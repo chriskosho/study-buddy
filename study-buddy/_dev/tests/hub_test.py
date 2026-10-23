@@ -41,19 +41,24 @@ async def main():
         pg.on('pageerror', lambda e: errors.append(str(e)))
         pg.on('console', lambda m: m.type == 'error' and errors.append(m.text))
 
-        # ---- first run ----
-        await pg.goto(base)
-        check(await pg.locator('text=Welcome to Study Buddy').count() == 1, 'first run shows setup')
-        check(await pg.locator('#finish').is_disabled(), 'finish disabled before PIN and children')
-        await pg.click('#pinBtn')
+        # ---- first run: straight in as Guest ----
+        await pg.goto(base); await pg.wait_for_selector('a.mod')
+        check('Hi, Guest' in await pg.locator('h1').inner_text(), 'first visit opens straight to the subjects as Guest')
+        check(await pg.locator('#addName').count() == 1, 'Guest chip offers Add a name')
+        # parent area offers a PIN; set one (mismatch rejected first)
+        await pg.click('a.pill:has-text("Parent")'); await pg.wait_for_selector('.sb-dlg')
+        check('Protect this with a parent PIN' in await pg.locator('.sb-dlg').inner_text(), 'parent area offers a PIN')
+        await pg.click('[data-x="set"]')
         await pg.fill('[data-x="a"]', '1234'); await pg.fill('[data-x="b"]', '1299'); await pg.click('[data-x="yes"]')
         check('do not match' in await pg.locator('.sb-err').inner_text(), 'mismatched PIN rejected')
         await pg.fill('[data-x="b"]', '1234'); await pg.click('[data-x="yes"]')
-        for n in ['Joshua', 'Eli', 'Hazel', 'Ava']:
-            await pg.fill('#newName', n); await pg.click('#addKid')
-        await pg.screenshot(path=f'{OUT}/sb_setup.png')
-        check(not await pg.locator('#finish').is_disabled(), 'finish enabled')
-        await pg.click('#finish')
+        await pg.wait_for_selector('#psec h2')
+        await pg.click('nav.tabs a:has-text("Children")'); await pg.wait_for_selector('.kidrow')
+        await pg.fill('.kidrow[data-id] .nm', 'Joshua'); await pg.keyboard.press('Tab'); await pg.wait_for_timeout(150)
+        for n in ['Eli', 'Hazel', 'Ava']:
+            await pg.fill('#newName', n); await pg.click('#addKid'); await pg.wait_for_selector('.kidrow'); await pg.wait_for_timeout(100)
+        check(await pg.locator('.sb-dlg').count() == 0, 'no second PIN offer when a PIN is already set')
+        await pg.goto(base + '#/'); await pg.wait_for_selector('.whocard')
 
         # ---- who's studying ----
         check(await pg.locator('.whocard').count() == 4, 'four profile cards')
@@ -63,7 +68,7 @@ async def main():
 
         # ---- home ----
         check('Hi, Joshua' in await pg.locator('h1').inner_text(), 'home greets Joshua')
-        check(await pg.locator('a.mod').count() == 2, 'two module cards (South America, Parts of Speech)')
+        check(await pg.locator('a.mod').count() == 3, 'three module cards (South America, Parts of Speech, Ancient Rome)')
         check('Easy' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text() and 'Hard' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'automatic difficulty range Easy to Hard')
         o = await overflow(pg); check(o['v'] <= 0 and o['h'] <= 0, f'home: no scroll {o}')
         await pg.screenshot(path=f'{OUT}/sb_home.png')

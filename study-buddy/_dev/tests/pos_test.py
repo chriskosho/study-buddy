@@ -81,22 +81,22 @@ async def main():
 
         # ---- sort it: one wrong, then all right ----
         await pg.click('nav.tabs button[data-tab="sort"]')
-        first = pg.locator('#sTray .chip').first
-        right = await first.get_attribute('data-p')
+        first = pg.locator('#tab-sort .sortTray .chip').first
+        right = await first.get_attribute('data-b')
         wrong = [x for x in ['n', 'v', 'adj'] if x != right][0]
-        await first.click(); await pg.click(f'.bucket[data-p="{wrong}"]')
+        await first.click(); await pg.click(f'#tab-sort .bucket[data-b="{wrong}"]')
         check(await pg.locator('#tab-sort .miss').inner_text() == '1', 'wrong sort counts a miss')
-        while await pg.locator('#sTray .chip').count():
-            c = pg.locator('#sTray .chip').first; pp = await c.get_attribute('data-p')
+        while await pg.locator('#tab-sort .sortTray .chip').count():
+            c = pg.locator('#tab-sort .sortTray .chip').first; pp = await c.get_attribute('data-b')
             sel = await c.get_attribute('class')
             if 'sel' not in sel: await c.click()
-            await pg.click(f'.bucket[data-p="{pp}"]')
+            await pg.click(f'#tab-sort .bucket[data-b="{pp}"]')
         rec = await pg.evaluate("SB.toolRecord('parts-of-speech','sort')")
         check(rec and rec['best'] == 11, f'sort result 12 minus 1 miss {rec}')
         # drag one chip with the mouse
         await pg.click('#tab-sort [data-a="restart"]')
-        c = pg.locator('#sTray .chip').first; pp = await c.get_attribute('data-p')
-        cb = await c.bounding_box(); bb = await pg.locator(f'.bucket[data-p="{pp}"]').bounding_box()
+        c = pg.locator('#tab-sort .sortTray .chip').first; pp = await c.get_attribute('data-b')
+        cb = await c.bounding_box(); bb = await pg.locator(f'#tab-sort .bucket[data-b="{pp}"]').bounding_box()
         await pg.mouse.move(cb['x'] + 10, cb['y'] + 10); await pg.mouse.down()
         await pg.mouse.move(cb['x'] + 40, cb['y'] + 40, steps=4); await pg.mouse.move(bb['x'] + 60, bb['y'] + 80, steps=8); await pg.mouse.up()
         check(await pg.locator('#tab-sort .placed').inner_text() == '1/12', 'drag and drop places a word')

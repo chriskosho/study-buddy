@@ -118,6 +118,20 @@ body.sbm section.panel>h2{display:inline-block;margin:0 16px 4px 0}
 body.sbm section.panel>h2+.lead{display:inline}
 body.sbm section.panel>h2+.lead+*{margin-top:14px}
 
+/* ---------- sort buckets (SBT.sort) ---------- */
+.buckets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
+.bucket{background:#fff;border:3px dashed var(--line);border-radius:20px;padding:12px;min-height:calc(100vh - 650px);display:flex;flex-direction:column;gap:10px;transition:border-color .15s,background .15s;cursor:pointer}
+.bucket.over{border-color:var(--teal);background:#f3fbf9}
+.bucket.ready{border-color:#bcd9d4}
+.bucket .bname{align-self:flex-start;font-weight:800;font-size:17px;background:var(--navy);color:#fff;border-radius:999px;padding:6px 14px}
+.bucket .got{display:flex;flex-wrap:wrap;gap:6px}
+.bucket .got span{font-weight:700;font-size:16px;background:var(--pc,#eef3f8);color:var(--pi,var(--ink));border:1.5px solid var(--line);border-radius:10px;padding:3px 10px}
+.sortTray{min-height:62px}
+.roundbar{display:flex;align-items:center;gap:12px;margin:12px 0}
+.roundbar .hint{white-space:nowrap}
+.qrow{justify-content:center;flex-wrap:nowrap;gap:12px;margin-bottom:6px}
+.qrow .qtext{margin:0}
+
 /* ---------- speaker button ---------- */
 .spk{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:2px solid var(--navy);background:#fff;color:var(--navy);padding:0;flex:0 0 auto}
 .spk:hover{background:var(--sun)}
@@ -236,6 +250,18 @@ a.mod:hover{border-color:var(--teal);transform:translateY(-2px)}
   .qtext{font-size:20px}
   .opt{padding:12px;font-size:16px}
   .cardstage{height:auto;width:100%;aspect-ratio:1/1;max-height:54vh;min-height:0}
+  /* Sort it on phones: the groups stay pinned at the top while the words scroll underneath */
+  section.panel.sbt-sort{display:flex;flex-direction:column}
+  .sbt-sort>.buckets{order:1;position:sticky;top:0;z-index:5;background:var(--card);margin:0 -6px;padding:6px 6px 8px}
+  .sbt-sort>.msg{order:2}
+  .sbt-sort>.sortTray{order:3}
+  .sbt-sort>.row{order:4}
+  .sbt-sort .sortTray .chip{font-size:14.5px;padding:7px 11px}
+  .buckets{gap:8px}
+  .bucket{min-height:120px;padding:8px;border-width:2px}
+  .bucket .bname{font-size:12.5px;padding:3px 8px}
+  .bucket .got span{font-size:14px;padding:2px 7px}
+  .qrow{justify-content:flex-start}
   .cardbtns{flex-wrap:nowrap;gap:8px}
   .cardbtns .btn{flex:1 1 0;padding:11px 6px;font-size:14.5px;white-space:nowrap}
   .cardbtns .btn.warn{flex-grow:1.3}

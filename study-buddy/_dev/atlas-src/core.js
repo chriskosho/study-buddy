@@ -205,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hub = HUB.BASE + 'index.html';
     $('#brand').innerHTML = `<a href="${hub}#/module/${REGION.key}" title="Back to Study Buddy">&lsaquo; Study Buddy</a> &middot; Geography`;
     const k = $('#kidChip'); k.href = hub + '#/'; k.innerHTML = HUB.avatar(KID) + '<b>' + HUB.esc(KID.name) + '</b>'; k.hidden = false;
+    if (HUB.isGuest(KID)) { k.innerHTML += ' <span style="font-size:13px;color:var(--ink2)">Add a name</span>'; k.title = 'Add your name to keep your progress'; k.onclick = e => { e.preventDefault(); HUB.nameDialog(() => location.reload()); }; }
   }
   if (!CAN_SPEAK) { document.body.classList.add('no-speech'); $('#sayBtn').hidden = true; $('#voiceBtn').hidden = true; }
   computeBoxes(); renderPassport(); renderStreak();

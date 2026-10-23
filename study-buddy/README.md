@@ -13,7 +13,10 @@ Quick review tools for school subjects. One hub, a profile per child, and progre
 GitHub Pages works too: upload the contents of the folder to a repository, then go to **Settings → Pages → Deploy from a branch → main / (root)**.
 
 ## First run
-The first visit asks you to set a parent PIN and add the children. Each child picks their name on the "Who's studying?" screen.
+Nothing to set up. The first visit opens straight to the subjects as **Guest**, and progress saves right away.
+- After the first finished round, Study Buddy invites you to add a name. It asks at most once per visit, and "Not now" waits a week. Adding a name keeps the progress. You can also tap **Guest · Add a name** at the top.
+- More people can be added in the **Parent** area. "Who's studying?" appears once there are two or more.
+- The parent PIN is optional. Study Buddy offers it the first time someone opens the Parent area or erases progress, and once more when a second person is added.
 
 ## Things to know
 - **Progress lives in each browser on each device.** The family computer and each phone keep their own. To copy progress to another device, use **Parent → Backup**: download it on one device, then load it on the other.
@@ -37,6 +40,7 @@ index.html, hub.js       the hub (who's studying, subjects, modules, parent area
 registry.js              the list of subjects and modules; the hub builds itself from it
 shared/sb.css            colors, type, and components shared by every page
 shared/sb-core.js        profiles, progress, sound, speech, PIN, backup
+shared/sb-tools.js       ready-made tools (flashcards, sort, quiz) that modules fill with content
 shared/sb-module.js      the standard module page (header, tool tabs, settings) that modules build on
 modules/<subject>/<module>/index.html   one folder per module
 manifest.webmanifest, sw.js, icons/     install on phones and work offline

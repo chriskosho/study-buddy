@@ -60,6 +60,23 @@ window.SB_REGISTRY = {
         { id: 'speed', name: 'Speed round', difficulty: 'hard', masterAt: 12, blurb: '60 seconds to name the part of speech of as many words as you can. Mastered at 12.' },
         { id: 'label', name: 'Label the sentence', difficulty: 'insane', blurb: 'Label every word, including words that switch jobs. Mastered at 4 of 5 sentences.' }
       ]
+    },
+    {
+      id: 'ancient-rome',
+      subject: 'history',
+      title: 'Ancient Rome',
+      blurb: 'Test 1 review: the founding of Rome, Roman religion, kinds of government, the Republic, and social classes.',
+      tags: ['history', 'government'],
+      path: 'modules/history/ancient-rome/index.html',
+      storage: ['ancient-rome'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Everything from the class study guide, section by section.' },
+        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'Terms from the study guide, plus the gods and goddesses. Mastered at 80% on the first try.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions. Mastered at 8 of 10.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort facts into governments, parts of the Republic, or social classes. Mastered at 80%.' },
+        { id: 'blanks', name: 'Fill it in', difficulty: 'hard', blurb: 'Type the missing word or date. Mastered at 8 of 10.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences, like the test. Mastered at 4 of 5.' }
+      ]
     }
   ]
 };

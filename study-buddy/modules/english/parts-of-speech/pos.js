@@ -63,133 +63,45 @@
     }
   };
 
-  /* ===================== Flashcards ===================== */
-  const FLIP_MS = 520;
+  /* ===================== Flashcards (shared tool) ===================== */
   const cards = {
     init(ctx) {
-      const P = ctx.panel, FC = { mode: 'parts', queue: [], cur: null, missed: new Set(), total: 0, flipped: false, busy: false };
-      P.innerHTML = `<h2>Flashcards</h2><p class="lead">Tap the card to flip it. Be honest: did you know it? Cards you miss come back again.</p>
-        <div class="deckbar"><div class="seg" role="group" aria-label="Card type"><button data-m="parts" aria-pressed="true">The 8 parts</button><button data-m="words" aria-pressed="false">Words in sentences</button></div>
-          <div class="bar" aria-hidden="true"><i></i></div><span class="hint count"></span></div>
-        <div class="cardstage"><div class="fcard" role="button" tabindex="0" aria-label="Flashcard. Press to flip"><div class="face front"></div><div class="face back"></div></div></div>
-        <div class="row center cardbtns"><button class="btn warn" data-a="again">Still learning</button><button class="btn ghost" data-a="skip">Skip</button><button class="btn good" data-a="knew">I knew it</button></div>`;
-      const card = $('.fcard', P), F = $('.front', P), B = $('.back', P);
-      const flip = on => { FC.flipped = on; card.classList.toggle('flip', on); };
-      const bar = () => { $('.bar i', P).style.width = ((FC.total - FC.queue.length) / FC.total * 100) + '%'; $('.count', P).textContent = (FC.total - FC.queue.length) + ' of ' + FC.total + ' done'; };
-      function build() {
-        FC.missed = new Set(); FC.busy = false;
-        if (FC.mode === 'parts') FC.queue = shuffle(ORDER).map(id => ({ kind: 'part', id }));
-        else {
-          const pool = shuffle(ALL_WORDS.filter(x => x.t.tag !== 'art')), seen = new Set(), q = [];
-          for (const x of pool) { const k = x.t.w.toLowerCase(); if (seen.has(k)) continue; seen.add(k); q.push({ kind: 'word', ...x }); if (q.length === 10) break; }
-          FC.queue = q;
+      SBT.flashcards(ctx, {
+        modes: [{ id: 'parts', label: 'The 8 parts' }, { id: 'words', label: 'Words in sentences' }],
+        build(mode) {
+          if (mode === 'parts') return shuffle(ORDER).map(id => {
+            const p = PART[id];
+            return { front: `<div class="tag">What does this part of speech do?</div><div class="big">${p.name}</div>`,
+              back: `<div class="tag">Answer</div>${pill(p.id)}<div class="defline">${esc(p.def)}</div><div class="exl">Examples: ${esc(p.examples.join(', '))}</div>${ctx.sayButton(p.name + '. ' + p.def, 'Hear it')}`,
+              say: 'What does ' + aAn(p.name) + ' ' + p.name.toLowerCase() + ' do?' };
+          });
+          const pool = shuffle(ALL_WORDS.filter(x => x.t.tag !== 'art')), seen = new Set(), out = [];
+          for (const x of pool) {
+            const k = x.t.w.toLowerCase(); if (seen.has(k)) continue; seen.add(k);
+            const toks = SENTS[x.si], why = reason(x.t, x.ti);
+            out.push({ front: `<div class="tag">What part of speech is the marked word?</div><div class="sent">${sentHTML(toks, x.ti)}</div>`,
+              back: `<div class="tag">Answer</div>${pill(x.t.part)}<div class="sent">${sentHTML(toks, x.ti, 'pc')}</div><div class="why">${esc(why)}</div>${ctx.sayButton(why, 'Hear it')}`,
+              say: 'What part of speech is ' + x.t.w + '? ' + plain(toks) });
+            if (out.length === 10) break;
+          }
+          return out;
         }
-        FC.total = FC.queue.length; next();
-      }
-      function next() {
-        SB.stopSpeech(); flip(false);
-        if (!FC.queue.length) {
-          if (FC.cur) ctx.result(FC.total - FC.missed.size, FC.total);
-          F.innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards. Press a button to go again.</div>`;
-          B.innerHTML = ''; FC.cur = null; ctx.sfx.win(); bar(); return;
-        }
-        const c = FC.cur = FC.queue[0];
-        if (c.kind === 'part') {
-          const p = PART[c.id];
-          F.innerHTML = `<div class="tag">What does this part of speech do?</div><div class="big">${p.name}</div>`;
-          B.innerHTML = `<div class="tag">Answer</div>${pill(p.id)}<div class="defline">${esc(p.def)}</div><div class="exl">Examples: ${esc(p.examples.join(', '))}</div>${ctx.sayButton(p.name + '. ' + p.def, 'Hear it')}`;
-          ctx.say('What does ' + aAn(p.name) + ' ' + p.name.toLowerCase() + ' do?');
-        } else {
-          const toks = SENTS[c.si];
-          F.innerHTML = `<div class="tag">What part of speech is the marked word?</div><div class="sent">${sentHTML(toks, c.ti)}</div>`;
-          B.innerHTML = `<div class="tag">Answer</div>${pill(c.t.part)}<div class="sent">${sentHTML(toks, c.ti, 'pc')}</div><div class="why">${esc(reason(c.t, c.ti))}</div>${ctx.sayButton(reason(c.t, c.ti), 'Hear it')}`;
-          ctx.say('What part of speech is ' + c.t.w + '? ' + plain(toks));
-        }
-        bar();
-      }
-      const afterUnflip = fn => { if (FC.busy) return; if (!FC.flipped) return fn(); FC.busy = true; flip(false); setTimeout(() => { FC.busy = false; fn(); }, FLIP_MS); };
-      const doFlip = () => { if (!FC.cur || FC.busy) return; flip(!FC.flipped); SB.stopSpeech(); };
-      card.addEventListener('click', doFlip);
-      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doFlip(); } });
-      $('[data-a="knew"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { FC.queue.shift(); ctx.credit(); ctx.sfx.good(); next(); }); };
-      $('[data-a="again"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { const c = FC.queue.shift(); FC.missed.add(c); FC.queue.splice(Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)), 0, c); ctx.slip(); ctx.sfx.bad(); next(); }); };
-      $('[data-a="skip"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { FC.queue.push(FC.queue.shift()); next(); }); };
-      $$('.seg button', P).forEach(b => b.onclick = () => { FC.mode = b.dataset.m; $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); build(); });
-      build();
+      });
     }
   };
 
-  /* ===================== Sort it ===================== */
+  /* ===================== Sort it (shared tool) ===================== */
   const SORT_PARTS = ['n', 'v', 'adj'];
   const sort = {
     init(ctx) {
-      const P = ctx.panel, S = { sel: null, miss: 0, placed: 0, total: 12 };
-      P.innerHTML = `<h2>Sort it</h2><p class="lead">Drag each word into its group, or tap a word and then tap a group.</p>
-        <div class="scorebar"><div class="stat"><b class="placed">0/12</b><span>Sorted</span></div><div class="stat"><b class="miss">0</b><span>Misses</span></div></div>
-        <div class="tray" id="sTray"></div><p class="msg">Pick a word to begin.</p>
-        <div class="buckets">${SORT_PARTS.map(p => `<div class="bucket" data-p="${p}" role="button" tabindex="0" aria-label="${PART[p].name} group"><span class="ppill" style="${pv(p)}">${PART[p].name}</span><div class="got"></div></div>`).join('')}</div>
-        <div class="row" style="margin-top:14px"><button class="btn warn" data-a="restart">Start over</button></div>`;
-      const msg = $('.msg', P), tray = $('.tray', P);
-      const score = () => { $('.placed', P).textContent = S.placed + '/' + S.total; $('.miss', P).textContent = S.miss; };
-      function select(chip) {
-        S.sel = S.sel === chip ? null : chip;
-        $$('.chip', tray).forEach(c => c.classList.toggle('sel', c === S.sel));
-        $$('.bucket', P).forEach(b => b.classList.toggle('ready', !!S.sel));
-        if (S.sel) { setMsg(msg, 'Now tap the group for "' + S.sel.textContent + '".'); ctx.say(S.sel.textContent); }
-      }
-      function tryPlace(chip, part) {
-        if (!chip) return;
-        if (chip.dataset.p === part) {
-          const b = $(`.bucket[data-p="${part}"] .got`, P), s = document.createElement('span');
-          s.style.cssText = pv(part); s.textContent = chip.textContent; b.appendChild(s);
-          chip.remove(); S.sel = null; $$('.bucket', P).forEach(x => x.classList.remove('ready'));
-          S.placed++; ctx.credit(); ctx.sfx.good(); setMsg(msg, 'Yes! ' + cap(s.textContent) + ' is ' + aAn(lower(part)) + ' ' + lower(part) + '.', 'good'); score();
-          if (S.placed === S.total) {
-            ctx.result(Math.max(0, S.total - S.miss), S.total); ctx.sfx.win();
-            setMsg(msg, S.miss === 0 ? 'Perfect! All 12 sorted with no misses.' : 'Done! All 12 sorted with ' + S.miss + ' miss' + (S.miss === 1 ? '' : 'es') + '.', 'good');
-          }
-        } else {
-          S.miss++; ctx.slip(); ctx.sfx.bad(); score();
-          chip.classList.remove('shake'); void chip.offsetWidth; chip.classList.add('shake');
-          setMsg(msg, 'Not quite. "' + chip.textContent + '" is not ' + aAn(lower(part)) + ' ' + lower(part) + '. Try another group.', 'bad');
-        }
-      }
-      function pointerDown(e, chip) {
-        if (e.button !== undefined && e.button > 0) return;
-        const sx = e.clientX, sy = e.clientY; let ghost = null, moved = false;
-        try { chip.setPointerCapture(e.pointerId); } catch (er) {}
-        const over = (x, y) => { const t = document.elementFromPoint(x, y); return t && t.closest && t.closest('.bucket'); };
-        const mv = ev => {
-          if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 6) { moved = true; ghost = document.createElement('div'); ghost.className = 'ghostchip'; ghost.textContent = chip.textContent; document.body.appendChild(ghost); chip.style.opacity = .4; }
-          if (ghost) { ghost.style.left = ev.clientX + 'px'; ghost.style.top = ev.clientY + 'px'; const b = over(ev.clientX, ev.clientY); $$('.bucket', P).forEach(x => x.classList.toggle('over', x === b)); }
-        };
-        const up = ev => {
-          chip.removeEventListener('pointermove', mv); chip.removeEventListener('pointerup', up); chip.removeEventListener('pointercancel', up);
-          $$('.bucket', P).forEach(x => x.classList.remove('over')); chip.style.opacity = '';
-          if (moved) { ghost.remove(); const b = over(ev.clientX, ev.clientY); if (b && ev.type === 'pointerup') tryPlace(chip, b.dataset.p); else setMsg(msg, 'Drop the word right on a group.'); }
-          else select(chip);
-        };
-        chip.addEventListener('pointermove', mv); chip.addEventListener('pointerup', up); chip.addEventListener('pointercancel', up);
-      }
-      function round() {
-        S.sel = null; S.miss = 0; S.placed = 0; tray.innerHTML = ''; $$('.got', P).forEach(g => g.innerHTML = '');
-        const words = shuffle(SORT_PARTS.flatMap(p => shuffle(SORT_WORDS[p]).slice(0, 4).map(w => ({ w, p }))));
-        S.total = words.length;
-        words.forEach(({ w, p }) => {
-          const c = document.createElement('button'); c.className = 'chip'; c.type = 'button'; c.textContent = w; c.dataset.p = p;
-          c.addEventListener('pointerdown', e => pointerDown(e, c));
-          c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(c); } });
-          tray.appendChild(c);
-        });
-        $$('.bucket', P).forEach(b => b.classList.remove('ready', 'over'));
-        setMsg(msg, 'Pick a word to begin.'); score();
-      }
-      $$('.bucket', P).forEach(b => {
-        b.addEventListener('click', () => { if (S.sel) tryPlace(S.sel, b.dataset.p); });
-        b.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && S.sel) { e.preventDefault(); tryPlace(S.sel, b.dataset.p); } });
+      SBT.sort(ctx, {
+        lead: 'Drag each word into its group, or tap a word and then tap a group.',
+        sets: [{ id: 'nva', label: 'Nouns, verbs, adjectives', perBucket: 4,
+          buckets: SORT_PARTS.map(p => ({ id: p, name: PART[p].name, style: pv(p), html: `<span class="ppill" style="${pv(p)}">${PART[p].name}</span>` })),
+          items: SORT_PARTS.flatMap(p => SORT_WORDS[p].map(w => ({ text: w, b: p }))) }],
+        right: (it, b) => 'Yes! ' + cap(it.text) + ' is ' + aAn(b.name.toLowerCase()) + ' ' + b.name.toLowerCase() + '.',
+        wrong: (it, b) => 'Not quite. "' + it.text + '" is not ' + aAn(b.name.toLowerCase()) + ' ' + b.name.toLowerCase() + '. Try another group.'
       });
-      $('[data-a="restart"]', P).onclick = round;
-      round();
     }
   };
 
