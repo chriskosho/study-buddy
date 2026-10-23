@@ -13,7 +13,10 @@ Quick review tools for school subjects. One hub, a profile per child, and progre
 GitHub Pages works too: upload the contents of the folder to a repository, then go to **Settings → Pages → Deploy from a branch → main / (root)**.
 
 ## First run
-The first visit asks you to set a parent PIN and add the children. Each child picks their name on the "Who's studying?" screen.
+Nothing to set up. The first visit opens straight to the subjects as **Guest**, and progress saves right away.
+- After the first finished round, Study Buddy invites you to add a name. It asks at most once per visit, and "Not now" waits a week. Adding a name keeps the progress. You can also tap **Guest · Add a name** at the top.
+- More people can be added in the **Parent** area. "Who's studying?" appears once there are two or more.
+- The parent PIN is optional. Study Buddy offers it the first time someone opens the Parent area or erases progress, and once more when a second person is added.
 
 ## Things to know
 - **Progress lives in each browser on each device.** The family computer and each phone keep their own. To copy progress to another device, use **Parent → Backup**: download it on one device, then load it on the other.

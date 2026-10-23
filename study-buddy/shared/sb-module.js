@@ -41,7 +41,9 @@
     app.innerHTML = `
       <header class="top">
         <h1><small><a href="${hub}#/module/${esc(mod.id)}" title="Back to Study Buddy">&lsaquo; Study Buddy</a> &middot; <a href="${hub}#/home/${esc(subject.id)}">${esc(subject.name)}</a></small><span>${esc(mod.title)}</span></h1>
-        <div class="row"><a class="pill kidpill" href="${hub}#/" title="Switch to someone else">${SB.avatar(kid)}<b>${esc(kid.name)}</b></a><div class="pill" id="sbStreak" title="Right answers in a row, and today's goal"></div></div>
+        <div class="row">${SB.isGuest(kid)
+          ? `<button class="pill kidpill" id="sbAddName" title="Add your name to keep your progress">${SB.avatar(kid)}<b>Guest</b><span class="hint">Add a name</span></button>`
+          : `<a class="pill kidpill" href="${hub}#/" title="Switch to someone else">${SB.avatar(kid)}<b>${esc(kid.name)}</b></a>`}<div class="pill" id="sbStreak" title="Right answers in a row, and today's goal"></div></div>
       </header>
       <div class="bar2">
         <nav class="tabs" role="tablist" aria-label="Tools">${tools.map(t => `<button role="tab" data-tab="${esc(t.id)}" aria-selected="false">${esc(t.name)}</button>`).join('')}</nav>
@@ -60,6 +62,7 @@
       const r = $('#sbRead'); if (r) { r.textContent = 'Read aloud: ' + (rd ? 'on' : 'off'); r.setAttribute('aria-pressed', rd); }
     };
     renderStreak(); paint();
+    if ($('#sbAddName')) $('#sbAddName').onclick = () => SB.nameDialog(() => location.reload());
     $('#sbSound').onclick = () => { SB.setSetting('sound', !SB.getSetting('sound')); paint(); if (SB.getSetting('sound')) SB.sfx.good(); };
     if ($('#sbRead')) $('#sbRead').onclick = () => { const on = !SB.getSetting('readAloud'); SB.setSetting('readAloud', on); paint(); if (on) SB.say('Read aloud is on.'); else SB.stopSpeech(); };
 

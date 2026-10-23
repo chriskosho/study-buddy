@@ -71,7 +71,16 @@
     const r = root(), p = { id: uid(), name: String(name).trim().slice(0, 24), color: color || COLORS[r.profiles.length % COLORS.length].c };
     r.profiles.push(p); saveRoot(r); saveChild(p.id, child(p.id)); return p;
   }
-  function updateProfile(id, patch) { const r = root(), p = r.profiles.find(x => x.id === id); if (!p) return; Object.assign(p, patch); if (p.name) p.name = String(p.name).trim().slice(0, 24); saveRoot(r); }
+  /* Guest: created on the first visit so the app opens straight away. "Add a name" renames it and keeps its progress. */
+  const GUEST_NAME = 'Guest';
+  const isGuest = p => !!(p && p.guest);
+  function ensureGuest() {
+    if (profiles().length) return activeProfile();
+    const p = addProfile(GUEST_NAME, '#2b4162'), r = root();
+    r.profiles.find(x => x.id === p.id).guest = true; r.active = p.id; saveRoot(r);
+    return activeProfile();
+  }
+  function updateProfile(id, patch) { const r = root(), p = r.profiles.find(x => x.id === id); if (!p) return; Object.assign(p, patch); if (p.name) p.name = String(p.name).trim().slice(0, 24); if (patch.name && patch.name.trim() !== GUEST_NAME) delete p.guest; saveRoot(r); }
   function clearModuleData(id) { allKeys().filter(k => k && k.startsWith(MODPREFIX(id))).forEach(remove); }
   function deleteProfile(id) {
     const r = root(); r.profiles = r.profiles.filter(p => p.id !== id); if (r.active === id) r.active = null; saveRoot(r);
@@ -115,6 +124,7 @@
     r.attempts++; r.lastScore = score; r.last = Date.now();
     if (r.best == null || score > r.best) { r.best = score; r.max = max == null ? null : max; }
     d.last = { module: moduleId, tool: toolId, at: r.last }; saveChild(id, d);
+    setTimeout(maybeInvite, 1400);
   }
   const toolRecord = (moduleId, toolId, id = activeId()) => id ? (child(id).tools[moduleId + '/' + toolId] || null) : null;
 
@@ -142,7 +152,9 @@
   function moduleKey(key) { return MODPREFIX(activeId() || 'none') + key; }
 
   function requireProfile() {
-    const p = activeProfile();
+    let p = activeProfile();
+    if (!p && !profiles().length) p = ensureGuest();
+    if (!p && profiles().length === 1) { setActive(profiles()[0].id); p = activeProfile(); }
     if (!p) { try { location.replace(BASE + 'index.html'); } catch (e) {} return null; }
     return p;
   }
@@ -211,6 +223,15 @@
   .sb-dlg .sb-btn.ghost{background:#fff;color:#2b4162;border:2px solid #e4dcc8;box-shadow:none}
   .sb-dlg .sb-btn.warn{background:#fff;color:#e4572e;border:2px solid #e4572e;box-shadow:none}
   .sb-dlg .sb-link{background:none;border:0;padding:0;color:#5b6773;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;margin-right:auto}
+  .sb-sw{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}
+  .sb-sw button{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #e4dcc8;padding:0;cursor:pointer}
+  .sb-sw button[aria-pressed="true"]{box-shadow:0 0 0 3px #2b4162}
+  .sb-invite{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:105;background:#2b4162;color:#fff;border-radius:18px;padding:12px 12px 12px 18px;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.25);width:max-content;max-width:calc(100% - 24px);font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,Arial,sans-serif;font-size:16px;font-weight:700;line-height:1.3}
+  .sb-invite .sb-inv-btns{display:flex;gap:8px}
+  .sb-invite button{font:inherit;font-size:15px;border-radius:11px;padding:8px 14px;cursor:pointer;border:0}
+  .sb-invite .yes{background:#f6b73c;color:#23313f;box-shadow:0 3px 0 #b07a00}
+  .sb-invite .no{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.45)}
+  body.sb-inviting .sb-toast,body.sb-inviting .toast{bottom:calc(var(--sb-inv-h,80px) + 30px)!important}
   .sb-toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,40px);background:#2b4162;color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;transition:.3s;z-index:110;pointer-events:none;font-family:"Trebuchet MS","Segoe UI",system-ui,Arial,sans-serif}
   .sb-toast.show{opacity:1;transform:translate(-50%,0)}
   @media (prefers-reduced-motion:reduce){.sb-toast{transition:none}}`;
@@ -292,7 +313,11 @@
 
   /* Ask for the parent PIN, then run onOk. Stays unlocked for 5 minutes in this tab. */
   function requirePin(message, onOk, onCancel) {
-    if (!hasPin()) return newPinDialog('Set a parent PIN first', 'Only a parent should know it. Use 4 to 8 digits.', onOk, onCancel);
+    if (!hasPin()) {
+      const r = root();
+      if (!r.pinOffered) { r.pinOffered = true; saveRoot(r); return offerPin('Protect this with a parent PIN?', 'A PIN keeps kids from erasing progress or changing profiles. You can add one later in the Parent area.', onOk); }
+      return onOk && onOk();
+    }
     if (isUnlocked()) return onOk && onOk();
     dialog(`<h3>Parent PIN</h3><p>${esc(message || 'Enter the parent PIN to continue.')}</p>
       <input type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="Parent PIN" data-x="a">
@@ -309,6 +334,64 @@
       box.querySelector('[data-x="forgot"]').onclick = () => { close(); forgotDialog(onOk, onCancel); };
       a.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
     });
+  }
+
+  /* Offer a PIN with a Skip button. onDone runs after either choice. */
+  function offerPin(title, text, onDone) {
+    dialog(`<h3>${esc(title)}</h3><p>${esc(text)}</p><div class="sb-row"><button class="sb-btn ghost" data-x="skip">Skip</button><button class="sb-btn" data-x="set">Set PIN</button></div>`, (box, close, ov) => {
+      const skip = () => { close(); const r = root(); r.pinSkipped = true; saveRoot(r); onDone && onDone(); };
+      ov._cancel = skip;
+      box.querySelector('[data-x="skip"]').onclick = skip;
+      box.querySelector('[data-x="set"]').onclick = () => { close(); newPinDialog('Set a parent PIN', 'Choose 4 to 8 digits. Only a parent should know it.', onDone, onDone); };
+    });
+  }
+  /* Call after adding a profile: once there are two people and no PIN, offer one a second time. */
+  function afterProfileAdded(onDone) {
+    const r = root();
+    if (r.profiles.length >= 2 && !r.pin && !r.pinOfferedAtTwo) {
+      r.pinOfferedAtTwo = true; r.pinOffered = true; saveRoot(r);
+      return offerPin('Add a parent PIN?', "Now that more than one child uses Study Buddy, a PIN keeps them from erasing each other's progress.", onDone);
+    }
+    onDone && onDone();
+  }
+  /* "Add your name": renames the Guest (keeping its progress), or adds a new person. */
+  function nameDialog(onDone, opts = {}) {
+    const renaming = !opts.add && isGuest(activeProfile());
+    let color = COLORS[(profiles().length + (renaming ? 0 : 1)) % COLORS.length].c;
+    dialog(`<h3>${renaming ? 'Add your name' : 'Add a person'}</h3><p>${renaming ? 'Your progress so far stays with you.' : 'Each person gets their own progress.'}</p>
+      <input class="txt" type="text" maxlength="24" autocomplete="off" aria-label="Name" placeholder="First name" data-x="a">
+      <div class="sb-sw" role="group" aria-label="Color">${COLORS.map(c => `<button type="button" style="background:${c.c}" data-c="${c.c}" aria-pressed="${c.c === color}" aria-label="Color ${c.c}"></button>`).join('')}</div>
+      <div class="sb-err" role="alert"></div>
+      <div class="sb-row"><button class="sb-btn ghost" data-x="no">Not now</button><button class="sb-btn" data-x="yes">Save</button></div>`, (box, close) => {
+      const a = box.querySelector('[data-x="a"]'), err = box.querySelector('.sb-err');
+      box.querySelectorAll('.sb-sw button').forEach(b => b.onclick = () => { color = b.dataset.c; box.querySelectorAll('.sb-sw button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+      const go = () => {
+        const n = a.value.trim();
+        if (!n) { err.textContent = 'Type a name first.'; a.focus(); return; }
+        if (n.toLowerCase() === GUEST_NAME.toLowerCase()) { err.textContent = 'Pick a name other than Guest.'; a.focus(); return; }
+        close();
+        if (renaming) { updateProfile(activeId(), { name: n, color }); toast('Saved. Hi, ' + n + '!'); onDone && onDone(); }
+        else { const p = addProfile(n, color); if (opts.activate) setActive(p.id); toast(n + ' was added'); afterProfileAdded(onDone); }
+      };
+      box.querySelector('[data-x="no"]').onclick = close;
+      box.querySelector('[data-x="yes"]').onclick = go;
+      a.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+    });
+  }
+  /* After the first finished round, invite a Guest to add a name. At most once per visit; "Not now" waits a week. */
+  function maybeInvite() {
+    if (!isGuest(activeProfile()) || document.querySelector('.sb-invite,.sb-ov')) return;
+    const r = root(); if ((r.inviteSnoozeUntil || 0) > Date.now()) return;
+    try { if (sessionStorage.getItem(NS + '.invited')) return; sessionStorage.setItem(NS + '.invited', '1'); } catch (e) {}
+    injectCSS();
+    const bar = document.createElement('div'); bar.className = 'sb-invite'; bar.setAttribute('role', 'status');
+    bar.innerHTML = '<span>Nice work! Add your name to keep your progress.</span><span class="sb-inv-btns"><button class="no" type="button">Not now</button><button class="yes" type="button">Add a name</button></span>';
+    document.body.appendChild(bar);
+    // other toasts move up while the invite is showing, so they never cover its buttons
+    document.body.style.setProperty('--sb-inv-h', bar.offsetHeight + 'px'); document.body.classList.add('sb-inviting');
+    const close = () => { bar.remove(); document.body.classList.remove('sb-inviting'); };
+    bar.querySelector('.no').onclick = () => { const x = root(); x.inviteSnoozeUntil = Date.now() + 7 * 864e5; saveRoot(x); close(); };
+    bar.querySelector('.yes').onclick = () => { close(); nameDialog(() => location.reload()); };
   }
 
   /* ---------- backup ---------- */
@@ -337,7 +420,7 @@
   window.SB = {
     ready: true, BASE, DAILY_GOAL, DIFFS, DIFF_NAMES, COLORS, CAN_SPEAK, SPK_ICON,
     esc, today,
-    root, profiles, profile, activeProfile, activeId, setActive, addProfile, updateProfile, deleteProfile, resetChild, resetModule,
+    root, profiles, profile, activeProfile, activeId, setActive, addProfile, isGuest, ensureGuest, nameDialog, afterProfileAdded, offerPin, updateProfile, deleteProfile, resetChild, resetModule,
     avatar, colorInk, initial, child,
     getSetting, setSetting,
     credit, slip, streakInfo, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,

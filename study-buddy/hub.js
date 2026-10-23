@@ -28,7 +28,9 @@
     if (kid) {
       const s = SB.streakInfo();
       right += `<div class="pill" title="Right answers in a row, and today's goal"><b>Streak ${s.streak}</b><b>Today ${Math.min(s.daily, s.goal)}/${s.goal}</b></div>`;
-      right += `<a class="pill kidpill" href="#/" title="Switch to someone else">${SB.avatar(kid)}<b>${esc(kid.name)}</b><span class="hint">Switch</span></a>`;
+      if (SB.isGuest(kid)) right += `<button class="pill kidpill" id="addName" title="Add your name to keep your progress">${SB.avatar(kid)}<b>Guest</b><span class="hint">Add a name</span></button>`;
+      else if (SB.profiles().length > 1) right += `<a class="pill kidpill" href="#/" title="Switch to someone else">${SB.avatar(kid)}<b>${esc(kid.name)}</b><span class="hint">Switch</span></a>`;
+      else right += `<span class="pill kidpill">${SB.avatar(kid)}<b>${esc(kid.name)}</b></span>`;
     }
     if (!parentView) right += `<a class="pill" href="#/parent">Parent</a>`;
     return `<header class="top"><h1><small>${eyebrow}</small><span>${esc(title)}</span></h1><div class="row">${right}</div></header>`;
@@ -122,15 +124,21 @@
   const PSECTIONS = [['progress', 'Progress'], ['children', 'Children'], ['backup', 'Backup'], ['pin', 'PIN']];
   function viewParent(section) {
     document.title = 'Parent area · Study Buddy';
-    if (!SB.hasPin() || !SB.isUnlocked()) {
+    if (!SB.hasPin() && !SB.root().pinOffered) {
+      app.innerHTML = header('Parent area', 'Study Buddy', null, true) + `<section class="panel"><p class="lead">Parent area</p></section>`;
+      SB.requirePin('', route); return;
+    }
+    if (SB.hasPin() && !SB.isUnlocked()) {
       app.innerHTML = header('Parent area', 'Study Buddy', null, true) + `<section class="panel"><p class="lead">This area is locked with the parent PIN.</p><button class="btn" id="unlock">Unlock</button> <a class="btn ghost" href="#/">Back</a></section>`;
       const ask = () => SB.requirePin('Enter the parent PIN to open the parent area.', route);
       document.getElementById('unlock').onclick = ask; ask(); return;
     }
     const sec = PSECTIONS.find(s => s[0] === section) ? section : 'progress';
     const tabs = `<nav class="tabs" aria-label="Parent sections">${PSECTIONS.map(([k, n]) => `<a href="#/parent/${k}" aria-selected="${sec === k}">${n}</a>`).join('')}</nav>
-      <div class="settings"><button class="iconbtn" id="lockBtn">Lock and leave</button></div>`;
-    app.innerHTML = header('Parent area', 'Study Buddy', null, true) + `<div class="bar2">${tabs}</div><section class="panel" id="psec"></section>`;
+      <div class="settings"><button class="iconbtn" id="lockBtn">${SB.hasPin() ? 'Lock and leave' : 'Leave'}</button></div>`;
+    const nopin = SB.hasPin() ? '' : `<div class="note row between">No parent PIN yet, so anyone can change profiles or erase progress here.<button class="btn small" id="setPin">Set a PIN</button></div>`;
+    app.innerHTML = header('Parent area', 'Study Buddy', null, true) + `<div class="bar2">${tabs}</div>${nopin}<section class="panel" id="psec"></section>`;
+    if (nopin) document.getElementById('setPin').onclick = () => SB.newPinDialog('Set a parent PIN', 'Choose 4 to 8 digits. Only a parent should know it.', route);
     document.getElementById('lockBtn').onclick = () => { SB.lock(); location.hash = '#/'; };
     ({ progress: pProgress, children: pChildren, backup: pBackup, pin: pPin })[sec](document.getElementById('psec'));
   }
@@ -201,7 +209,7 @@
       r.querySelector('[data-act="delete"]').onclick = () => SB.confirm({ title: 'Delete ' + p.name + '?', text: 'This removes the profile and all of its progress from this device.', ok: 'Delete', danger: true }, () => { SB.deleteProfile(id); SB.toast(p.name + ' was removed'); pChildren(box); });
     });
     box.querySelectorAll('#newSw .swatch').forEach(s => s.onclick = () => { newColor = s.dataset.c; box.querySelectorAll('#newSw .swatch').forEach(x => x.setAttribute('aria-pressed', x === s)); });
-    const add = () => { const n = box.querySelector('#newName'); if (!n.value.trim()) { n.focus(); return; } SB.addProfile(n.value, newColor); SB.toast(n.value.trim() + ' was added'); pChildren(box); };
+    const add = () => { const n = box.querySelector('#newName'); if (!n.value.trim()) { n.focus(); return; } SB.addProfile(n.value, newColor); SB.toast(n.value.trim() + ' was added'); SB.afterProfileAdded(route); };
     box.querySelector('#addKid').onclick = add;
     box.querySelector('#newName').addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
   }
@@ -232,41 +240,23 @@
     const dm = box.querySelector('#dismiss'); if (dm) dm.onclick = () => { SB.dismissPinNote(); pPin(box); };
   }
 
-  /* ---------- first run ---------- */
-  function viewSetup() {
-    document.title = 'Set up Study Buddy';
-    const ps = SB.profiles(); let newColor = SB.COLORS[ps.length % SB.COLORS.length].c;
-    const pinDone = SB.hasPin();
-    app.innerHTML = header('Welcome to Study Buddy', 'First-time setup') + `<section class="panel"><div class="steps">
-      <div class="step"><h3><span class="num">1</span>Set a parent PIN</h3>
-        <p class="lead">You will need it to reset progress, change profiles, and make backups.</p>
-        ${pinDone ? `<p class="done">${CHECK}PIN saved</p>` : '<button class="btn" id="pinBtn">Set PIN</button>'}</div>
-      <div class="step"><h3><span class="num">2</span>Add your children</h3>
-        <p class="lead">A first name is enough. Each child gets their own progress.</p>
-        ${ps.map(p => `<div class="kidrow">${SB.avatar(p)}<b class="grow">${esc(p.name)}</b></div>`).join('')}
-        <div class="kidrow"><div class="grow" style="display:flex;flex-direction:column;gap:8px"><input class="textin" id="newName" maxlength="24" placeholder="Name" aria-label="Child's name"><div id="newSw">${swatches(newColor, 'Color')}</div></div><button class="btn" id="addKid">Add</button></div></div>
-      <div class="step"><button class="btn good" id="finish" ${pinDone && ps.length ? '' : 'disabled'}>Finish</button>
-        <span class="hint" style="margin-left:10px">${pinDone && ps.length ? '' : 'Set a PIN and add at least one child to finish.'}</span></div>
-    </div></section>`;
-    const pb = document.getElementById('pinBtn'); if (pb) pb.onclick = () => SB.newPinDialog('Set a parent PIN', 'Choose 4 to 8 digits. Only a parent should know it.', viewSetup);
-    app.querySelectorAll('#newSw .swatch').forEach(s => s.onclick = () => { newColor = s.dataset.c; app.querySelectorAll('#newSw .swatch').forEach(x => x.setAttribute('aria-pressed', x === s)); });
-    const add = () => { const n = document.getElementById('newName'); if (!n.value.trim()) { n.focus(); return; } SB.addProfile(n.value, newColor); viewSetup(); document.getElementById('newName').focus(); };
-    document.getElementById('addKid').onclick = add;
-    document.getElementById('newName').addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
-    document.getElementById('finish').onclick = () => { SB.root(); location.hash = '#/'; route(); };
-  }
-
-  /* ---------- router ---------- */
-  let setupMode = false;
+  /* ---------- router ----------
+     First visit: a Guest profile is made, so the app opens straight to the subjects.
+     "Who's studying?" only appears when two or more people use Study Buddy. */
   function route() {
     const [view, arg] = location.hash.replace(/^#\/?/, '').split('/');
-    if (!SB.profiles().length || (setupMode && !SB.hasPin())) { setupMode = true; return viewSetup(); }
-    setupMode = false;
-    if (view === 'parent') return viewParent(arg);
-    const kid = SB.activeProfile();
-    if (view === 'home' && kid) return viewHome(arg);
-    if (view === 'module' && kid) return viewModule(arg);
-    return viewWho();
+    if (!SB.profiles().length) SB.ensureGuest();
+    if (SB.profiles().length === 1 && !SB.activeProfile()) SB.setActive(SB.profiles()[0].id);
+    if (view === 'parent') viewParent(arg);
+    else {
+      const kid = SB.activeProfile(), many = SB.profiles().length > 1;
+      if (view === 'home' && kid) viewHome(arg);
+      else if (view === 'module' && kid) viewModule(arg);
+      else if (!many && kid) viewHome();
+      else viewWho();
+    }
+    const an = document.getElementById('addName');
+    if (an) an.onclick = () => SB.nameDialog(route);
   }
   window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
   route();
