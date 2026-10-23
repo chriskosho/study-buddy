@@ -61,10 +61,7 @@
   const hub = SB.BASE + 'index.html';
   document.title = 'Calculator · Study Buddy';
   $('#app').innerHTML = `
-    <header class="top">
-      <h1><small><a href="${hub}#/utilities">&lsaquo; Study Buddy</a> &middot; <a href="${hub}#/utilities">Utilities</a></small><span>Calculator</span></h1>
-      <div class="row"><button class="pill" id="displayBtn" title="Theme, font, and text size">Display</button></div>
-    </header>
+    <header class="top"><h1><span>Calculator</span></h1></header>
     <section class="panel calcwrap">
       <div class="calc" role="application" aria-label="Calculator">
         <div class="screen" aria-live="polite"><div class="expr" id="expr">&nbsp;</div><div class="result" id="result">0</div><div class="rem" id="rem"></div></div>
@@ -76,7 +73,8 @@
       <div class="hist"><div class="row between"><h3>History</h3><button class="btn ghost small" id="clearHist">Clear</button></div><p class="hint">Tap a line to use its answer.</p><ol id="hist"></ol></div>
     </section>
     <p class="hint calc-tip">Works with the keyboard too: numbers, + − * /, parentheses, Enter, and Backspace. Follows the order of operations.</p>`;
-  $('#displayBtn').onclick = () => SB.displayDialog();
+  window.SB_NO_SLASH_SEARCH = true;   // / means divide here, so it does not open the search box
+  SB.shell({ utility: 'Calculator' });
 
   let expr = '', justDone = false;
   const exprEl = $('#expr'), resEl = $('#result'), remEl = $('#rem');

@@ -44,9 +44,9 @@ async def main():
         # ---- first run: straight in as Guest ----
         await pg.goto(base); await pg.wait_for_selector('a.mod')
         check('Hi, Guest' in await pg.locator('h1').inner_text(), 'first visit opens straight to the subjects as Guest')
-        check(await pg.locator('#addName').count() == 1, 'Guest chip offers Add a name')
+        check(await pg.locator('#sbAddName').count() == 1, 'Guest chip offers Add a name')
         # parent area offers a PIN; set one (mismatch rejected first)
-        await pg.click('a.pill:has-text("Parent")'); await pg.wait_for_selector('.sb-dlg')
+        await pg.click('#sbFoot a:has-text("Parent area")'); await pg.wait_for_selector('.sb-dlg')
         check('Protect this with a parent PIN' in await pg.locator('.sb-dlg').inner_text(), 'parent area offers a PIN')
         await pg.click('[data-x="set"]')
         await pg.wait_for_timeout(120)
@@ -89,8 +89,8 @@ async def main():
         # ---- open flashcards in the atlas ----
         await pg.click('.tool:has(h3:text-is("Flashcards")) a.btn')
         await pg.wait_for_selector('#fcard')
-        check('Study Buddy' in await pg.locator('#brand').text_content(), 'atlas shows Study Buddy back link')
-        check('Joshua' in await pg.locator('#kidChip').inner_text(), 'atlas shows child chip')
+        check('Home' in await pg.locator('.sbcrumbs').inner_text() and 'South America' in await pg.locator('.sbcrumbs').inner_text(), 'atlas shows the Home > Subject > Module trail')
+        check('Joshua' in await pg.locator('.kidpill').inner_text(), 'atlas shows child chip')
         check(await pg.locator('nav.tabs button[aria-selected="true"]').inner_text() == 'Flashcards', 'deep link opened Flashcards')
         o = await overflow(pg); check(o['v'] <= 0 and o['h'] <= 0, f'atlas flashcards: no scroll at 1440x900 {o}')
         await pg.screenshot(path=f'{OUT}/sb_atlas_cards.png')
@@ -123,8 +123,8 @@ async def main():
         await pg.click('[data-x="no"]')
 
         # ---- back to the hub ----
-        await pg.click('#brand a')
-        await pg.wait_for_selector('.tool')
+        await pg.click('.sbcrumbs a:has-text("Home")'); await pg.wait_for_selector('a.mod')
+        await pg.click('a.mod[href="#/module/south-america"]'); await pg.wait_for_selector('.tool')
         txt = await pg.locator('.tool:has(h3:text-is("Drag names"))').inner_text()
         check('Mastered' in txt and 'Best 12/12' in txt, 'hub shows Drag names mastered')
         ftxt = await pg.locator('.tool:has(h3:text-is("Flashcards"))').inner_text()
@@ -143,7 +143,7 @@ async def main():
         await pg.goto(base + '#/home')
 
         # ---- parent area ----
-        await pg.click('a.pill:has-text("Parent")'); await pg.wait_for_selector('.sb-dlg')
+        await pg.click('#sbFoot a:has-text("Parent area")'); await pg.wait_for_selector('.sb-dlg')
         check(await pg.locator('.sb-dlg').count() == 1, 'parent area asks for PIN')
         await pg.wait_for_timeout(120)
         await pg.fill('[data-x=\"a\"]', '0000'); await pg.click('[data-x="yes"]')

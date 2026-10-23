@@ -23,18 +23,11 @@
   }
   const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
 
-  function header(title, eyebrow = 'Study Buddy', kid = null, parentView = false) {
+  /* Page title row. The trail, search, child, Settings and Help live in the shared header (sb-shell.js). */
+  function header(title, kid = null) {
     let right = '';
-    if (kid) {
-      const s = SB.streakInfo();
-      right += `<div class="pill" title="Right answers in a row, and today's goal"><b>Streak ${s.streak}</b><b>Today ${Math.min(s.daily, s.goal)}/${s.goal}</b></div>`;
-      if (SB.isGuest(kid)) right += `<button class="pill kidpill" id="addName" title="Add your name to keep your progress">${SB.avatar(kid)}<b>Guest</b><span class="hint">Add a name</span></button>`;
-      else if (SB.profiles().length > 1) right += `<a class="pill kidpill" href="#/" title="Switch to someone else">${SB.avatar(kid)}<b>${esc(kid.name)}</b><span class="hint">Switch</span></a>`;
-      else right += `<span class="pill kidpill">${SB.avatar(kid)}<b>${esc(kid.name)}</b></span>`;
-    }
-    right += `<button class="pill" id="displayBtn" title="Theme, font, and text size">Display</button>`;
-    if (!parentView) right += `<a class="pill" href="#/parent">Parent</a>`;
-    return `<header class="top"><h1><small>${eyebrow}</small><span>${esc(title)}</span></h1><div class="row">${right}</div></header>`;
+    if (kid) { const s = SB.streakInfo(); right = `<div class="pill" title="Right answers in a row, and today's goal"><b>Streak ${s.streak}</b><b>Today ${Math.min(s.daily, s.goal)}/${s.goal}</b></div>`; }
+    return `<header class="top"><h1><span>${esc(title)}</span></h1><div class="row">${right}</div></header>`;
   }
 
   /* ---------- tool stats line ---------- */
@@ -82,7 +75,7 @@
 
     if (filter === 'utilities') {
       const u = REG.utilities || [];
-      app.innerHTML = header('Utilities', 'Study Buddy', kid) + `<div class="bar2">${tabs}</div><section class="panel"><div style="margin-bottom:12px"><h3>Utilities</h3><p class="lead" style="margin:2px 0 0">Handy tools for homework. They don't track progress.</p></div>
+      app.innerHTML = header('Utilities', kid) + `<div class="bar2">${tabs}</div><section class="panel"><div style="margin-bottom:12px"><h3>Utilities</h3><p class="lead" style="margin:2px 0 0">Handy tools for homework. They don't track progress.</p></div>
         <div class="grid">${u.map(x => `<a class="mod" href="${esc(x.path)}"><div class="eyebrow">Utility</div><h3>${esc(x.title)}</h3><p>${esc(x.blurb)}</p></a>`).join('')}</div></section>`;
       return;
     }
@@ -102,7 +95,7 @@
         (mine.length ? `<div class="grid">${mine.map(modCard).join('')}</div>` : `<p class="empty">No ${esc(subjectName(subj))} modules yet.</p>`) +
         (sugg.length ? `<div class="sectionhead"><h3>Suggested</h3><p class="lead" style="margin:2px 0 0">From other subjects, with ${esc(subjectName(subj))} mixed in.</p></div><div class="grid">${sugg.map(modCard).join('')}</div>` : '');
     }
-    app.innerHTML = header('Hi, ' + kid.name, 'Study Buddy', kid) + `<div class="bar2">${tabs}</div>${cont}<section class="panel">${body}</section>`;
+    app.innerHTML = header('Hi, ' + kid.name, kid) + `<div class="bar2">${tabs}</div>${cont}<section class="panel">${body}</section>`;
   }
 
   function viewModule(id) {
@@ -119,7 +112,7 @@
         <div class="tstats">${esc(toolStats(m, t, r))}</div>
         <a class="btn small" href="${esc(toolURL(m, t))}">Start</a></div>`;
     };
-    app.innerHTML = header(m.title, `<a href="#/home">Study Buddy</a> · <a href="#/home/${esc(m.subject)}">${esc(subjectName(m.subject))}</a>`, kid) +
+    app.innerHTML = header(m.title, kid) +
       `<section class="panel">
         <div class="modhead"><p>${esc(m.blurb)}</p>${SB.diffRangeHTML(m)}<div class="tags">${m.tags.map(t => `<span class="tagpill">${esc(t)}</span>`).join('')}</div>
           <div class="prog row" style="min-width:220px"><div class="bar" aria-hidden="true"><i style="width:${p.total ? p.mastered / p.total * 100 : 0}%"></i></div><span class="hint">${p.mastered} of ${p.total} mastered</span></div></div>
@@ -133,11 +126,11 @@
   function viewParent(section) {
     document.title = 'Parent area · Study Buddy';
     if (!SB.hasPin() && !SB.root().pinOffered) {
-      app.innerHTML = header('Parent area', 'Study Buddy', null, true) + `<section class="panel"><p class="lead">Parent area</p></section>`;
+      app.innerHTML = header('Parent area') + `<section class="panel"><p class="lead">Parent area</p></section>`;
       SB.requirePin('', route); return;
     }
     if (SB.hasPin() && !SB.isUnlocked()) {
-      app.innerHTML = header('Parent area', 'Study Buddy', null, true) + `<section class="panel"><p class="lead">This area is locked with the parent PIN.</p><button class="btn" id="unlock">Unlock</button> <a class="btn ghost" href="#/">Back</a></section>`;
+      app.innerHTML = header('Parent area') + `<section class="panel"><p class="lead">This area is locked with the parent PIN.</p><button class="btn" id="unlock">Unlock</button> <a class="btn ghost" href="#/">Back</a></section>`;
       const ask = () => SB.requirePin('Enter the parent PIN to open the parent area.', route);
       document.getElementById('unlock').onclick = ask; ask(); return;
     }
@@ -145,7 +138,7 @@
     const tabs = `<nav class="tabs" aria-label="Parent sections">${PSECTIONS.map(([k, n]) => `<a href="#/parent/${k}" aria-selected="${sec === k}">${n}</a>`).join('')}</nav>
       <div class="settings"><button class="iconbtn" id="lockBtn">${SB.hasPin() ? 'Lock and leave' : 'Leave'}</button></div>`;
     const nopin = SB.hasPin() ? '' : `<div class="note row between">No parent PIN yet, so anyone can change profiles or erase progress here.<button class="btn small" id="setPin">Set a PIN</button></div>`;
-    app.innerHTML = header('Parent area', 'Study Buddy', null, true) + `<div class="bar2">${tabs}</div>${nopin}<section class="panel" id="psec"></section>`;
+    app.innerHTML = header('Parent area') + `<div class="bar2">${tabs}</div>${nopin}<section class="panel" id="psec"></section>`;
     if (nopin) document.getElementById('setPin').onclick = () => SB.newPinDialog('Set a parent PIN', 'Choose 4 to 8 digits. Only a parent should know it.', route);
     document.getElementById('lockBtn').onclick = () => { SB.lock(); location.hash = '#/'; };
     ({ progress: pProgress, children: pChildren, backup: pBackup, pin: pPin })[sec](document.getElementById('psec'));
@@ -263,20 +256,19 @@
     if (!SB.profiles().length) SB.ensureGuest();
     if (SB.profiles().length === 1 && !SB.activeProfile()) SB.setActive(SB.profiles()[0].id);
     if (view !== 'parent') SB.lock();
-    if (view === 'parent') viewParent(arg);
-    else {
-      const kid = SB.activeProfile(), many = SB.profiles().length > 1;
-      if (view === 'home' && kid) viewHome(arg);
-      else if (view === 'utilities' && kid) viewHome('utilities');
-      else if (view === 'module' && kid) viewModule(arg);
-      else if (!many && kid) viewHome();
-      else viewWho();
-    }
-    const db = document.getElementById('displayBtn');
-    if (db) db.onclick = () => SB.displayDialog();
-    const an = document.getElementById('addName');
-    if (an) an.onclick = () => SB.nameDialog(route);
+    const kid = SB.activeProfile(), many = SB.profiles().length > 1;
+    const INFO = { settings: 'Settings', help: 'Help', faq: 'FAQ', about: 'About' };
+    let crumbs = [], shellOpts = null;
+    if (view === 'parent') { viewParent(arg); crumbs = [{ label: 'Parent area' }]; }
+    else if (INFO[view] && kid) { window.HUBPAGES[view](app, kid); crumbs = [{ label: INFO[view] }]; }
+    else if (view === 'home' && kid) { viewHome(arg); const s = REG.subjects.find(x => x.id === arg); crumbs = s ? [{ label: s.name }] : []; }
+    else if (view === 'utilities' && kid) { viewHome('utilities'); crumbs = [{ label: 'Utilities' }]; }
+    else if (view === 'module' && kid) { viewModule(arg); if (modById(arg)) shellOpts = { module: arg }; }
+    else if (!many && kid) viewHome();
+    else { viewWho(); crumbs = [{ label: "Who's studying?" }]; }
+    SB.shell(shellOpts || { crumbs });
   }
+  window.SB_SHELL_RELOAD = route;
   window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
   route();
 })();

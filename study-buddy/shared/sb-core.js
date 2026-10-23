@@ -55,7 +55,7 @@
   function saveRoot(r) { write(ROOT, r); }
   function child(id) {
     const d = Object.assign({ settings: {}, streak: 0, bestStreak: 0, daily: { d: '', n: 0, done: false }, tools: {}, last: null }, read(CHILD(id), {}));
-    d.settings = Object.assign({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal' }, d.settings);
+    d.settings = Object.assign({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal', voice: '' }, d.settings);
     d.streak = Number(d.streak) || 0; d.bestStreak = Number(d.bestStreak) || 0;
     if (!d.daily || typeof d.daily !== 'object') d.daily = { d: '', n: 0, done: false };
     d.daily.n = Number(d.daily.n) || 0;
@@ -107,8 +107,11 @@
   const avatar = (p, cls = '') => `<span class="av ${cls}" style="--c:${safeColor(p.color)};--ci:${colorInk(p.color)}" aria-hidden="true">${esc(initial(p.name))}</span>`;
 
   /* ---------- settings ---------- */
-  function getSetting(k, id = activeId()) { return id ? child(id).settings[k] : ({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal' })[k]; }
-  function setSetting(k, v, id = activeId()) { if (!id) return; const d = child(id); d.settings[k] = v; saveChild(id, d); }
+  function getSetting(k, id = activeId()) { return id ? child(id).settings[k] : ({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal', voice: '' })[k]; }
+  function setSetting(k, v, id = activeId()) {
+    if (!id) return; const d = child(id); d.settings[k] = v; saveChild(id, d);
+    if (id === activeId()) { if (k === 'sound' && !v) stopTones(); if (k === 'readAloud' && !v) stopSpeech(); }   // turning a setting off also stops what is playing
+  }
 
   /* ---------- progress ---------- */
   function credit() {
@@ -165,7 +168,8 @@
   }
 
   /* ---------- sound ---------- */
-  let actx = null;
+  let actx = null, liveTones = [];
+  function stopTones() { liveTones.forEach(o => { try { o.stop(); } catch (e) {} }); liveTones = []; }
   function tone(freqs, dur = 0.12) {
     if (!getSetting('sound')) return;
     try {
@@ -176,6 +180,7 @@
         const t = actx.currentTime + i * dur;
         g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
         o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+        liveTones.push(o); o.onended = () => { liveTones = liveTones.filter(x => x !== o); };
       });
     } catch (e) {}
   }
@@ -184,6 +189,29 @@
   /* ---------- speech ---------- */
   const CAN_SPEAK = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
   const SPK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+  /* Voices: the browser lists what the device has. "Automatic" prefers natural-sounding voices over the plain robotic ones. */
+  let voiceList = [];
+  function loadVoices() { try { voiceList = (speechSynthesis.getVoices && speechSynthesis.getVoices()) || []; } catch (e) { voiceList = []; } return voiceList; }
+  if (CAN_SPEAK) { loadVoices(); try { speechSynthesis.addEventListener('voiceschanged', loadVoices); } catch (e) {} }
+  const langBase = l => String(l || '').toLowerCase().replace('_', '-').split('-')[0];
+  function voiceScore(v, lang) {
+    const n = v.name || '';
+    let sc = 0;
+    if (String(v.lang || '').toLowerCase().replace('_', '-') === String(lang || '').toLowerCase()) sc += 4;
+    if (/natural|neural|online|enhanced|premium/i.test(n)) sc += 50;
+    if (/google/i.test(n)) sc += 30;
+    if (/samantha|ava\b|allison|susan|karen|moira|serena|zira|jenny|aria|michelle|libby|sonia|emma|female/i.test(n)) sc += 20;
+    if (/\bdavid\b|\bmark\b|\bfred\b|\bmale\b/i.test(n)) sc -= 20;
+    if (/compact|espeak|robot/i.test(n)) sc -= 40;
+    return sc;
+  }
+  /* voices that can speak this language, best first */
+  function voicesFor(lang = 'en-US') { const b = langBase(lang); return loadVoices().filter(v => langBase(v.lang) === b).sort((a, c) => voiceScore(c, lang) - voiceScore(a, lang)); }
+  function pickVoice(lang = 'en-US') {
+    const list = voicesFor(lang), want = getSetting('voice');
+    return (want && list.find(v => v.voiceURI === want)) || list[0] || null;   // a saved choice only applies to its own language
+  }
+  function applyVoice(u) { try { const v = pickVoice(u.lang); if (v) u.voice = v; } catch (e) {} }
   let sayTok = 0, sayTimer = null;
   function stopSpeech() { try { speechSynthesis.cancel(); } catch (e) {} sayTok++; clearTimeout(sayTimer); document.querySelectorAll('[data-sb-say].playing').forEach(b => b.classList.remove('playing')); }
   /* force: speak even when Read aloud is off (speaker buttons use this) */
@@ -191,7 +219,7 @@
     if (!CAN_SPEAK || !text || (!opts.force && !getSetting('readAloud'))) return;
     try {
       stopSpeech(); const tok = sayTok;
-      const u = new SpeechSynthesisUtterance(text); u.lang = opts.lang || 'en-US'; u.rate = opts.rate || 0.85;
+      const u = new SpeechSynthesisUtterance(text); u.lang = opts.lang || 'en-US'; u.rate = opts.rate || 0.85; applyVoice(u);
       const btns = opts.button ? [opts.button] : [];
       const done = () => { if (tok === sayTok) { clearTimeout(sayTimer); btns.forEach(b => b.classList.remove('playing')); } };
       u.onend = done; u.onerror = done; btns.forEach(b => b.classList.add('playing'));
@@ -199,11 +227,17 @@
       speechSynthesis.speak(u);
     } catch (e) {}
   }
+  /* stop everything that is making sound: speech and tones */
+  function stopAll() { stopSpeech(); stopTones(); try { window.__sbStopHook && window.__sbStopHook(); } catch (e) {} }
   const sayButton = (text, label = 'Hear it', lang = '') => CAN_SPEAK ? `<button type="button" class="spk" data-sb-say="${esc(text)}" data-lang="${esc(lang)}" aria-label="${esc(label)}" title="${esc(label)}">${SPK_ICON}</button>` : '';
   document.addEventListener('click', e => {
     const b = e.target.closest && e.target.closest('[data-sb-say]');
+    if (b && b.classList.contains('playing')) { e.stopPropagation(); stopAll(); return; }   // pressing the speaker while it plays stops it
     if (b) { e.stopPropagation(); say(b.dataset.sbSay, { force: true, lang: b.dataset.lang || undefined, button: b }); }
   }, true);
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.spk.playing,[data-sb-say].playing')) stopAll(); }, true);
+  window.addEventListener('pagehide', () => stopAll());
 
   /* ---------- toast ---------- */
   let toastTimer;
@@ -610,7 +644,7 @@
     getSetting, setSetting,
     credit, slip, streakInfo, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
     moduleKey, requireProfile,
-    tone, sfx, say, stopSpeech, sayButton, toast, applyDisplay, displayDialog, swipeCard,
+    tone, sfx, say, stopSpeech, stopAll, voicesFor, pickVoice, applyVoice, sayButton, toast, applyDisplay, displayDialog, swipeCard,
     dialog, confirm: confirmDlg, requirePin, newPinDialog, hasPin, dismissPinNote, isUnlocked, lock,
     exportAll, checkBackup, importAll, download
   };

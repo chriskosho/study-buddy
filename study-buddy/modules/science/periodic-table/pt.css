@@ -45,3 +45,6 @@
   .eldetail{flex-wrap:wrap}
   .el small{font-size:8px}.el b{font-size:13px}.el span{display:none}
 }
+
+/* the table stays a little narrower on big screens so the shared header and footer still fit the window */
+@media (min-width:761px){.ptwrap{max-width:1200px;margin-left:auto;margin-right:auto}}
