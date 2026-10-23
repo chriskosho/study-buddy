@@ -92,6 +92,75 @@ window.SB_REGISTRY = {
         { id: 'words', name: 'Words', difficulty: 'medium', blurb: 'Trace six words per round. Mastered at 5 of 6 on the first try.' },
         { id: 'sentences', name: 'Sentences', difficulty: 'hard', blurb: 'Trace four short sentences per round. Mastered at 4 of 4 on the first try.' }
       ]
+    },
+    {
+      id: 'place-value',
+      subject: 'math',
+      title: 'Place Value and Zeros',
+      blurb: 'Place value from millions to thousandths, decimal places, and multiplying and dividing numbers that end in zeros.',
+      tags: ['math', 'decimals', 'multiplication', 'division'],
+      path: 'modules/math/place-value/index.html',
+      storage: ['place-value'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A place value chart you can type into, and the zero tricks with examples.' },
+        { id: 'place', name: 'Place value', difficulty: 'easy', blurb: 'Values, places, and digits in big numbers and decimals. Mastered at 8 of 10.' },
+        { id: 'decimals', name: 'Decimal places', difficulty: 'medium', blurb: 'Compare, round, and read decimals. Mastered at 8 of 10.' },
+        { id: 'multiply', name: 'Multiply with zeros', difficulty: 'medium', blurb: 'Like 9,000 × 6,000. Mastered at 8 of 10.' },
+        { id: 'divide', name: 'Divide with zeros', difficulty: 'hard', blurb: 'Like 1,200,000 ÷ 3,000. Mastered at 8 of 10.' },
+        { id: 'powers', name: 'Decimals and powers of ten', difficulty: 'insane', blurb: 'Like 3.45 × 100 and 72 ÷ 1,000. Mastered at 8 of 10.' }
+      ]
+    },
+    {
+      id: 'planets',
+      subject: 'science',
+      title: 'The Planets',
+      blurb: 'The eight planets: their order, sizes, kinds, and the facts that make each one different.',
+      tags: ['science', 'space'],
+      path: 'modules/science/planets/index.html',
+      storage: ['planets'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Tap each planet in the solar system to learn about it.' },
+        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'Name the planet from clues, or recall facts. Mastered at 80% on the first try.' },
+        { id: 'order', name: 'Put in order', difficulty: 'easy', blurb: 'Order the planets from the Sun, or by size. Mastered at 7 of 8 in place.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Rocky, gas giant, or ice giant, and how many moons. Mastered at 80%.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions. Mastered at 8 of 10.' },
+        { id: 'compare', name: 'Which is more?', difficulty: 'hard', blurb: 'Bigger, farther, hotter, longer year, or longer spin. Mastered at 8 of 10.' },
+        { id: 'riddle', name: 'Which planet am I?', difficulty: 'insane', blurb: 'Guess the planet from a tricky first clue. Mastered at 7 of 8 on the first clue.', masterAt: 7 }
+      ]
+    },
+    {
+      id: 'periodic-table',
+      subject: 'science',
+      title: 'The Periodic Table',
+      blurb: 'All 118 elements: symbols, atomic numbers, families, metals and nonmetals, and where each one sits on the table.',
+      tags: ['science', 'chemistry'],
+      path: 'modules/science/periodic-table/index.html',
+      storage: ['periodic-table'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A periodic table you can tap. Light up each family of elements.' },
+        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'Symbols and names, from the first 20 to the common ones. Mastered at 80% on the first try.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: 'Symbols, atomic numbers, families, and how the table works. Mastered at 8 of 10.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Metal, nonmetal, or metalloid, and solid, liquid, or gas. Mastered at 80%.' },
+        { id: 'find', name: 'Find it', difficulty: 'hard', masterAt: 15, blurb: '60 seconds to find elements on the table. Mastered at 15 found.' },
+        { id: 'symbols', name: 'Type the symbol', difficulty: 'insane', blurb: 'Type the symbol from the name, including the tricky ones. Mastered at 8 of 10.' }
+      ]
+    },
+    {
+      id: 'black-beauty',
+      subject: 'english',
+      title: 'Black Beauty',
+      blurb: 'Review the novel by Anna Sewell: the horses and people, Beauty\'s homes, the order of events, and the big ideas.',
+      tags: ['english', 'literature', 'reading'],
+      path: 'modules/english/black-beauty/index.html',
+      storage: ['black-beauty'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The book, the characters, Beauty\'s homes, big ideas, and words to know.' },
+        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'Characters, homes, and words to know. Mastered at 80% on the first try.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions about the story. Mastered at 8 of 10.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort characters by where Beauty first met them, horse or person, and good or bad for horses. Mastered at 80%.' },
+        { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'Put the events of the story in order. Mastered at 80% in place on the first check.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences. Mastered at 4 of 5.' }
+      ]
     }
   ],
   /* Utilities: handy tools that are not lessons, so they have no progress or difficulty. */

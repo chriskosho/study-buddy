@@ -128,7 +128,9 @@ h3{margin:0 0 4px;font-size:21px}
 @keyframes shake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
 .ghostchip{position:fixed;z-index:50;pointer-events:none;background:var(--sun);border:2px solid #b07a00;color:var(--ink);border-radius:12px;padding:8px 14px;font-weight:800;transform:translate(-50%,-130%) rotate(-3deg);box-shadow:0 8px 18px rgba(0,0,0,.25)}
 
-/* module pages (sb-module.js): title and instructions share one line on wide screens, like Explorer's Atlas */
+/* module pages (sb-module.js): settings sit in the header so the tool tabs get the full width */
+body.sbm header.top .settings{flex:0 0 auto}
+/* title and instructions share one line on wide screens, like Explorer's Atlas */
 body.sbm section.panel>h2{display:inline-block;margin:0 16px 4px 0}
 body.sbm section.panel>h2+.lead{display:inline}
 body.sbm section.panel>h2+.lead+*{margin-top:14px}
@@ -146,6 +148,45 @@ body.sbm section.panel>h2+.lead+*{margin-top:14px}
 .roundbar .hint{white-space:nowrap}
 .qrow{justify-content:center;flex-wrap:nowrap;gap:12px;margin-bottom:6px}
 .qrow .qtext{margin:0}
+
+/* ---------- written answers (SBT.explain) ---------- */
+.qline{font-size:clamp(19px,2vw,24px);font-weight:800;margin:0;line-height:1.3}
+.model{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin:12px 0;display:flex;flex-direction:column;gap:6px}
+.model p{margin:0;font-size:18px}
+.model .spk{align-self:flex-start}
+.qrow.left{justify-content:flex-start;align-items:flex-start}
+.xgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+.answer{width:100%;font:inherit;font-size:18px;line-height:1.5;padding:12px 14px;border:2px solid var(--navy);border-radius:14px;background:var(--surface);margin:12px 0;resize:vertical;min-height:150px}
+.answer:focus{outline:3px solid rgba(27,153,139,.3)}
+.feedback{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:14px 16px}
+.checks{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.checks li{display:flex;gap:8px;align-items:flex-start;font-weight:700}
+.checks svg{width:20px;height:20px;flex:0 0 20px;margin-top:2px}
+.checks li.ok{color:var(--good)}
+.checks li.no{color:var(--bad)}
+.feedback .msg{margin:6px 0}
+
+/* ---------- two big choices side by side ---------- */
+.versus{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:760px;margin:0 auto}
+.vbtn{background:var(--surface);border:3px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:800;font-size:21px;color:var(--ink);transition:.12s}
+.vbtn:hover:not(:disabled){border-color:var(--teal);transform:translateY(-2px)}
+.vbtn.right{background:var(--tint-good);border-color:var(--good)}
+.vbtn.wrong{background:var(--tint-bad);border-color:var(--bad)}
+.vbtn small{font-weight:600;color:var(--ink2);font-size:15px;min-height:20px}
+
+/* ---------- put in order (SBT.order) ---------- */
+.olist{list-style:none;margin:12px 0 4px;padding:0;display:flex;flex-direction:column;gap:6px;max-width:720px}
+.oitem{display:flex;align-items:center;gap:12px;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:4px 8px 4px 12px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;box-shadow:0 2px 0 var(--line)}
+.oitem.dragging{border-color:var(--teal);box-shadow:0 8px 18px rgba(0,0,0,.18);cursor:grabbing;position:relative;z-index:2}
+.oitem.right{border-color:var(--good);background:var(--tint-good)}
+.oitem.wrong{border-color:var(--bad);background:var(--tint-bad)}
+.onum{flex:0 0 30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+.otext{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.otext b{font-size:17px}
+.otext small{font-size:13px;color:var(--ink2)}
+.oarrows{display:flex;gap:4px}
+.oarrows button{width:36px;height:36px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--navy-ink);font-size:13px;padding:0}
+.oarrows button:disabled{opacity:.35;cursor:default}
 
 /* ---------- speaker button ---------- */
 .spk{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:2px solid var(--navy);background:var(--surface);color:var(--navy-ink);padding:0;flex:0 0 auto}
@@ -246,7 +287,8 @@ a.mod:hover{border-color:var(--teal);transform:translateY(-2px)}
   nav.tabs{flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -14px;padding:2px 14px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   nav.tabs::-webkit-scrollbar{display:none}
   .settings{flex:1 1 100%;gap:6px}
-  .iconbtn{padding:5px 11px;font-size:13.5px}
+  .iconbtn{padding:5px 9px;font-size:13px}
+  .settings{gap:5px}
   section.panel{padding:14px;border-radius:20px}
   h2{font-size:21px}
   body.sbm section.panel>h2{display:block;margin:0 0 2px}
@@ -277,6 +319,11 @@ a.mod:hover{border-color:var(--teal);transform:translateY(-2px)}
   .bucket .bname{font-size:12.5px;padding:3px 8px}
   .bucket .got span{font-size:14px;padding:2px 7px}
   .qrow{justify-content:flex-start}
+  .xgrid{grid-template-columns:1fr;gap:10px}
+  .answer{font-size:16px;min-height:120px}
+  .model p{font-size:16px}
+  .otext b{font-size:16px}
+  .oitem{gap:8px}
   .cardbtns{flex-wrap:nowrap;gap:8px}
   .cardbtns .btn{flex:1 1 0;padding:11px 6px;font-size:14.5px;white-space:nowrap}
   .cardbtns .btn.warn{flex-grow:1.3}

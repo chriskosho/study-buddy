@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Place Value and Zeros · Study Buddy</title>
+<meta name="theme-color" content="#2b4162">
+<link rel="icon" href="../../../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../../shared/sb.css">
+<style>
+.pvform{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 12px}
+.pvform .textin{width:min(260px,100%);font-size:20px}
+.pvchart{border-collapse:separate;border-spacing:0;width:100%;background:var(--surface);border:2px solid var(--line);border-radius:16px;overflow:hidden;text-align:center;table-layout:fixed}
+.pvchart th{font-size:12.5px;font-weight:700;color:var(--ink2);padding:8px 4px;background:var(--paper);border-bottom:1.5px solid var(--line);line-height:1.2}
+.pvchart td{padding:8px 4px;border-right:1.5px solid var(--line)}
+.pvchart td:last-child{border-right:0}
+.pvchart .digits td{font-size:34px;font-weight:800;height:58px}
+.pvchart .vals td{font-size:13px;color:var(--ink2);border-top:1.5px solid var(--line);height:34px;word-break:break-all}
+.pvchart .dec{background:var(--tint-note)}
+.pvchart .ones{border-right:4px solid var(--coral)}
+.rules{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:16px}
+.rule{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 16px}
+.rule h3{margin:0 0 6px;font-size:19px}
+.rule p{margin:0 0 6px;font-size:16px}
+@media (max-width:1100px){.rules{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+  .pvchart{min-width:780px}
+  .pvchart th{font-size:11.5px}
+  .pvchart .vals td{word-break:normal;font-size:12px}
+  .pvchart .digits td{font-size:26px}
+  .rules{grid-template-columns:1fr}
+}
+</style>
+<script src="../../../shared/sb-core.js"></script>
+<script src="../../../registry.js"></script>
+<script src="../../../shared/sb-module.js"></script>
+<script src="../../../shared/sb-tools.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="gen.js"></script>
+<script src="pv.js"></script>
+</body>
+</html>

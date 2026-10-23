@@ -1,0 +1,50 @@
+/* The Planets: drawn with CSS only (no images), so it works offline. */
+.planet{display:inline-block;width:var(--s);height:var(--s);border-radius:50%;flex:0 0 auto;position:relative;box-shadow:inset calc(var(--s) * -.12) calc(var(--s) * -.1) calc(var(--s) * .25) rgba(0,0,0,.28)}
+.p-gray{background:radial-gradient(circle at 35% 35%,#c9c4bd,#8e8780)}
+.p-yellow{background:radial-gradient(circle at 35% 35%,#f6e1a6,#d9b25f)}
+.p-blue{background:radial-gradient(circle at 30% 30%,#7fc4ec 0 20%,transparent 21%),radial-gradient(circle at 65% 60%,#5aa25e 0 18%,transparent 19%),radial-gradient(circle at 40% 40%,#4f9fe0,#1f5f9e)}
+.p-red{background:radial-gradient(circle at 35% 35%,#f0a07a,#b9502f)}
+.p-jupiter{background:repeating-linear-gradient(180deg,#e8d2ad 0 12%,#c9945f 12% 20%,#efe0c4 20% 30%,#b9805a 30% 36%),#d9b88a}
+.p-jupiter::after{content:"";position:absolute;width:22%;height:12%;left:56%;top:60%;border-radius:50%;background:#c4573a}
+.p-saturn{background:repeating-linear-gradient(180deg,#f2deb0 0 14%,#d9b97a 14% 24%),#e8cf98}
+.p-saturn::before{content:"";position:absolute;left:-28%;right:-28%;top:42%;height:16%;border-radius:50%;border:calc(var(--s) * .06) solid rgba(214,190,140,.95);transform:rotate(-14deg)}
+.p-uranus{background:radial-gradient(circle at 35% 35%,#c8f0f2,#6fc6d0)}
+.p-neptune{background:radial-gradient(circle at 35% 35%,#7fa6f0,#2c4fb8)}
+
+.system{display:flex;align-items:center;gap:clamp(6px,1.4vw,22px);background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:16px 18px 10px 0;overflow-x:auto;margin:6px 0 14px}
+.sun{flex:0 0 auto;width:70px;height:150px;border-radius:0 150px 150px 0;background:radial-gradient(circle at 0 50%,#fff3b0,#f6b73c 55%,#e4572e)}
+.belt{flex:0 0 auto;width:14px;height:110px;background:radial-gradient(circle,#a89f93 1.5px,transparent 2px) 0 0/7px 9px;opacity:.8}
+.pbtn{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:2px solid transparent;border-radius:14px;padding:6px;color:var(--ink)}
+.pbtn:hover{border-color:var(--line)}
+.pbtn[aria-pressed="true"]{border-color:var(--teal);background:var(--tint-good)}
+.pbtn.right{border-color:var(--good);background:var(--tint-good)}
+.pbtn.wrong{border-color:var(--bad);opacity:.55}
+.pname{font-weight:700;font-size:14px}
+.pgridx{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+.pcard{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:16px 18px}
+.pcard h3{margin:0}
+.pfacts{margin:10px 0;padding-left:20px}
+.pfacts li{margin:3px 0}
+.pstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 14px;margin:0}
+.pstats div{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:6px 10px}
+.pstats dt{font-size:12px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.6px}
+.pstats dd{margin:2px 0 0;font-weight:700;font-size:15px}
+.solar{display:flex;flex-direction:column;gap:6px}
+.solar div{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:5px 11px;display:flex;flex-direction:column;line-height:1.3}
+.solar b{font-size:15px}
+.solar span{font-size:14px;color:var(--ink2)}
+.cardfacts{text-align:left;max-width:90%;font-size:clamp(16px,1.8vw,20px);margin:4px 0}
+.clues{margin:6px 0 12px;padding-left:24px;font-size:clamp(18px,2vw,22px);font-weight:700;display:flex;flex-direction:column;gap:6px}
+.clues li .spk{width:34px;height:34px;vertical-align:middle;margin-left:6px}
+.clues li .spk svg{width:18px;height:18px}
+.pick{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+.pick .pbtn{border-color:var(--line);background:var(--surface)}
+@media (max-width:1000px){.pgridx{grid-template-columns:1fr}.pstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+  .system{gap:4px;padding:10px 10px 8px 0}
+  .sun{width:40px;height:100px}
+  .pname{font-size:12px}
+  .pick{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .pstats{grid-template-columns:1fr 1fr}
+  .vbtn{font-size:18px;padding:12px}
+}
