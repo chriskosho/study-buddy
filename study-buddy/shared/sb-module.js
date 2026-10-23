@@ -40,14 +40,11 @@
     const app = $('#app');
     app.innerHTML = `
       <header class="top">
-        <h1><small><a href="${hub}#/module/${esc(mod.id)}" title="Back to Study Buddy">&lsaquo; Study Buddy</a> &middot; <a href="${hub}#/home/${esc(subject.id)}">${esc(subject.name)}</a></small><span>${esc(mod.title)}</span></h1>
-        <div class="row">${SB.isGuest(kid)
-          ? `<button class="pill kidpill" id="sbAddName" title="Add your name to keep your progress">${SB.avatar(kid)}<b>Guest</b><span class="hint">Add a name</span></button>`
-          : `<a class="pill kidpill" href="${hub}#/" title="Switch to someone else">${SB.avatar(kid)}<b>${esc(kid.name)}</b></a>`}<div class="pill" id="sbStreak" title="Right answers in a row, and today's goal"></div>
+        <h1><span>${esc(mod.title)}</span></h1>
+        <div class="row"><div class="pill" id="sbStreak" title="Right answers in a row, and today's goal"></div>
           <div class="settings">
             <button class="iconbtn" id="sbSound"></button>
             ${SB.CAN_SPEAK ? '<button class="iconbtn" id="sbRead" title="Reads questions out loud"></button>' : ''}
-            <button class="iconbtn" id="sbDisplay" title="Theme, font, and text size">Display</button>
             <button class="iconbtn" id="sbReset" title="Erase this module's progress (parent PIN)">Reset</button>
           </div></div>
       </header>
@@ -63,10 +60,9 @@
       const r = $('#sbRead'); if (r) { r.textContent = 'Read aloud: ' + (rd ? 'on' : 'off'); r.setAttribute('aria-pressed', rd); }
     };
     renderStreak(); paint();
-    $('#sbDisplay').onclick = () => SB.displayDialog(paint);
-    if ($('#sbAddName')) $('#sbAddName').onclick = () => SB.nameDialog(() => location.reload());
-    $('#sbSound').onclick = () => { SB.setSetting('sound', !SB.getSetting('sound')); paint(); if (SB.getSetting('sound')) SB.sfx.good(); };
-    if ($('#sbRead')) $('#sbRead').onclick = () => { const on = !SB.getSetting('readAloud'); SB.setSetting('readAloud', on); paint(); if (on) SB.say('Read aloud is on.'); else SB.stopSpeech(); };
+    SB.shell({ module: mod.id });
+    $('#sbSound').onclick = () => { SB.setSetting('sound', !SB.getSetting('sound')); paint(); if (SB.getSetting('sound')) SB.sfx.good(); else SB.stopAll(); };
+    if ($('#sbRead')) $('#sbRead').onclick = () => { const on = !SB.getSetting('readAloud'); SB.setSetting('readAloud', on); paint(); if (on) SB.say('Read aloud is on.'); else SB.stopAll(); };
 
     function ctxFor(t) {
       return {

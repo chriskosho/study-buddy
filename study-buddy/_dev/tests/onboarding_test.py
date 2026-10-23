@@ -115,8 +115,8 @@ async def main():
         ctx2 = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block')
         await ctx2.add_init_script(STUB); pg2 = await ctx2.new_page()
         pg2.on('pageerror', lambda e: errors.append(str(e)))
-        await pg2.goto(base + ATLAS + '?tool=cards'); await pg2.wait_for_selector('#kidChip')
-        check('Add a name' in await pg2.locator('#kidChip').inner_text(), 'South America on a fresh device runs as Guest with Add a name')
+        await pg2.goto(base + ATLAS + '?tool=cards'); await pg2.wait_for_selector('.kidpill')
+        check('Add a name' in await pg2.locator('.kidpill').inner_text(), 'South America on a fresh device runs as Guest with Add a name')
         o = await pg2.evaluate("({v: document.documentElement.scrollHeight - innerHeight, h: document.documentElement.scrollWidth - innerWidth})")
         check(o['v'] <= 0 and o['h'] <= 0, f'South America header still fits 1440x900 {o}')
 

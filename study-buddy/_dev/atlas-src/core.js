@@ -58,7 +58,7 @@ function speak(id, force) {            // force = speak even if "Say names" is o
     const c = COUNTRY_BY_ID[id], local = state.voice === 'local';
     stopSpeech(); const tok = speakTok;
     const u = new SpeechSynthesisUtterance(local ? c.local : c.name);
-    u.lang = local ? c.lang : 'en-US'; u.rate = 0.85;
+    u.lang = local ? c.lang : 'en-US'; u.rate = 0.85; if (ON_HUB && HUB.applyVoice) HUB.applyVoice(u);
     const done = () => { if (tok === speakTok) { clearTimeout(speakTimer); $$('.spk.playing').forEach(b => b.classList.remove('playing')); } };
     u.onend = done; u.onerror = done;
     $$(`[data-say="${id}"]`).forEach(b => b.classList.add('playing'));   // icon lights up while the name plays
@@ -68,8 +68,10 @@ function speak(id, force) {            // force = speak even if "Say names" is o
 }
 document.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('[data-say]');
+  if (b && b.classList.contains('playing')) { e.stopPropagation(); stopSpeech(); return; }   // pressing the speaker while it plays stops it
   if (b) { e.stopPropagation(); speak(b.dataset.say, true); }
 }, true);
+window.__sbStopHook = stopSpeech;   // the shared Escape key and "stop all sound" also stop the Atlas voice
 
 /* ---------- Streak, daily goal, passport ---------- */
 let streak = 0;
@@ -207,9 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (ON_HUB) {
     document.title = REGION.title + ' · Study Buddy';
     const hub = HUB.BASE + 'index.html';
-    $('#brand').innerHTML = `<a href="${hub}#/module/${REGION.key}" title="Back to Study Buddy">&lsaquo; Study Buddy</a> &middot; Geography`;
-    const k = $('#kidChip'); k.href = hub + '#/'; k.innerHTML = HUB.avatar(KID) + '<b>' + HUB.esc(KID.name) + '</b>'; k.hidden = false;
-    if (HUB.isGuest(KID)) { k.innerHTML += ' <span style="font-size:13px;color:var(--ink2)">Add a name</span>'; k.title = 'Add your name to keep your progress'; k.onclick = e => { e.preventDefault(); HUB.nameDialog(() => location.reload()); }; }
+    HUB.shell({ module: REGION.key });   // shared header: trail, search, child, Settings, Help
   }
   if (!CAN_SPEAK) { document.body.classList.add('no-speech'); $('#sayBtn').hidden = true; $('#voiceBtn').hidden = true; }
   computeBoxes(); renderPassport(); renderStreak();
@@ -220,11 +220,10 @@ document.addEventListener('DOMContentLoaded', () => {
     a.textContent = 'Say names: ' + (state.say ? 'on' : 'off'); a.setAttribute('aria-pressed', state.say);
     v.textContent = 'Voice: ' + (state.voice === 'local' ? 'Local' : 'English'); v.setAttribute('aria-pressed', state.voice === 'local');
   };
-  $('#soundBtn').onclick = () => { state.sound = !state.sound; if (ON_HUB) HUB.setSetting('sound', state.sound); save(); paint(); if (state.sound) sfx.good(); };
-  $('#sayBtn').onclick = () => { state.say = !state.say; if (ON_HUB) HUB.setSetting('readAloud', state.say); save(); paint(); if (state.say) speak(pick(C)[0].id); };
+  $('#soundBtn').onclick = () => { state.sound = !state.sound; if (ON_HUB) HUB.setSetting('sound', state.sound); save(); paint(); if (state.sound) sfx.good(); else stopSpeech(); };
+  $('#sayBtn').onclick = () => { state.say = !state.say; if (ON_HUB) HUB.setSetting('readAloud', state.say); save(); paint(); if (state.say) speak(pick(C)[0].id); else stopSpeech(); };
   $('#voiceBtn').onclick = () => { state.voice = state.voice === 'local' ? 'en' : 'local'; save(); paint(); speak(pick(C)[0].id, true); };
   paint();
-  if (ON_HUB) { const db = $('#displayBtn'); db.hidden = false; db.onclick = () => HUB.displayDialog(() => { state.sound = HUB.getSetting('sound'); state.say = !!HUB.getSetting('readAloud'); paint(); }); }
   const resetNow = () => { state = Object.assign(state, { mastery: {}, best: {}, daily: { d: today(), n: 0, done: false } }); streak = 0; if (ON_HUB) HUB.resetModule(KID.id, REGION.key, []); save(); renderPassport(); renderStreak(); toast('Progress reset'); };
   $('#resetAll').onclick = () => {
     if (ON_HUB) HUB.requirePin('Enter the parent PIN to erase ' + KID.name + "'s " + REGION.title + ' stamps and best scores.', resetNow, null, { confirm: { title: 'Reset ' + REGION.title + '?', text: 'This erases ' + KID.name + "'s stamps and best scores here. Other modules and settings stay.", ok: 'Reset progress' } });

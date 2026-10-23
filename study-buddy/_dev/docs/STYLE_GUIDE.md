@@ -95,10 +95,12 @@ Meaning of color is never the only signal: right/wrong also use text, and select
 - Tone effects are generated with WebAudio (triangle wave), no audio files: *good* 660→880 Hz, *bad* 220→180 Hz, *win* 523→659→784→1046 Hz.
 - Spoken names use the browser `speechSynthesis` at rate 0.85. "English" voice says the English name; "Local" voice uses each country's own spelling and language (es-ES, pt-BR, nl-NL, en-US).
 - Quiz questions are **not** read aloud (explicit decision).
+- Pressing a speaker button that is playing stops the sound (this applies to every sound), and Escape stops all sound. The voice is a per-child setting (Settings page); Automatic picks the most natural voice on the device.
 - Controls: *Sound* toggles tones, *Say names* toggles automatic name speaking in activities. Speaker buttons always work, even if Say names is off.
 
 ## 8. Layout rules
 
+- Every page has the shared header and footer (`shared/sb-shell.js`). Tool screens use `calc(100vh - var(--chrome) - Npx)` so the combined header and footer height is accounted for.
 - Full-width panels, maps and cards sized from the viewport: `calc(100vh - Npx)` for height.
 - Two-column grid (map + side tools) collapses to one column at 760px.
 - Test sizes: 1440×900 (no scroll), 1000×800 (no horizontal scroll), a narrow phone width (stacks, may scroll vertically).
@@ -124,7 +126,7 @@ Meaning of color is never the only signal: right/wrong also use text, and select
 ## 11. Reuse checklist for a new tool in the hub
 
 1. Copy the `:root` tokens and font stack unchanged.
-2. Use the same header (title, progress pill, streak chip), tab row, and settings row.
+2. Call `SB.shell({...})` for the shared header and footer, then use the same title, streak chip, tab row, and settings row. Size heights with `var(--chrome)`.
 3. Use `.btn` variants, `.seg`, `.stat`, `.msg`, and the toast as-is.
 4. One activity per tab, one feedback line, right/wrong colors and tones as above.
 5. Save progress locally (see BUILD_APPROACH.md, "Persistence").
