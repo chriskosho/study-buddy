@@ -94,6 +94,8 @@
     const old = child(id), fresh = child('__none__'); fresh.settings = old.settings;
     saveChild(id, fresh); clearModuleData(id);
   }
+  function resetAllProgress() { profiles().forEach(p => resetChild(p.id)); }   // every child's progress, but names and settings stay
+  function eraseEverything() { allKeys().filter(k => k && k.startsWith(NS)).forEach(remove); lock(); }   // all profiles, progress, settings, and the PIN
   function resetModule(id, moduleId, storageKeys) {
     const d = child(id);
     Object.keys(d.tools).forEach(k => { if (k.startsWith(moduleId + '/')) delete d.tools[k]; });
@@ -211,20 +213,23 @@
     const list = voicesFor(lang), want = getSetting('voice');
     return (want && list.find(v => v.voiceURI === want)) || list[0] || null;   // a saved choice only applies to its own language
   }
-  function applyVoice(u) { try { const v = pickVoice(u.lang); if (v) u.voice = v; } catch (e) {} }
+  function applyVoice(u) { try { const v = pickVoice(u.lang); if (v) { u.voice = v; if (v.lang) u.lang = v.lang; } } catch (e) {} }   // browsers often ignore the voice unless the utterance language matches it
   let sayTok = 0, sayTimer = null;
   function stopSpeech() { try { speechSynthesis.cancel(); } catch (e) {} sayTok++; clearTimeout(sayTimer); document.querySelectorAll('[data-sb-say].playing').forEach(b => b.classList.remove('playing')); }
   /* force: speak even when Read aloud is off (speaker buttons use this) */
   function say(text, opts = {}) {
     if (!CAN_SPEAK || !text || (!opts.force && !getSetting('readAloud'))) return;
     try {
+      const busy = speechSynthesis.speaking || speechSynthesis.pending;
       stopSpeech(); const tok = sayTok;
       const u = new SpeechSynthesisUtterance(text); u.lang = opts.lang || 'en-US'; u.rate = opts.rate || 0.85; applyVoice(u);
       const btns = opts.button ? [opts.button] : [];
       const done = () => { if (tok === sayTok) { clearTimeout(sayTimer); btns.forEach(b => b.classList.remove('playing')); } };
-      u.onend = done; u.onerror = done; btns.forEach(b => b.classList.add('playing'));
+      u.onend = done; u.onerror = e => { done(); if (opts.onerror) opts.onerror(e); }; btns.forEach(b => b.classList.add('playing'));
+      if (opts.onstart) u.onstart = () => opts.onstart(u);
       sayTimer = setTimeout(done, 5000 + text.length * 60);
-      speechSynthesis.speak(u);
+      // Chrome can drop a new utterance spoken in the same moment as cancel(), so wait a beat when something was playing
+      if (busy) setTimeout(() => { if (tok === sayTok) { try { speechSynthesis.speak(u); } catch (e) {} } }, 80); else speechSynthesis.speak(u);
     } catch (e) {}
   }
   /* stop everything that is making sound: speech and tones */
@@ -639,7 +644,7 @@
   window.SB = {
     ready: true, BASE, DAILY_GOAL, DIFFS, DIFF_NAMES, COLORS, CAN_SPEAK, SPK_ICON,
     esc, today,
-    root, profiles, profile, activeProfile, activeId, setActive, addProfile, isGuest, ensureGuest, nameDialog, afterProfileAdded, offerPin, updateProfile, deleteProfile, resetChild, resetModule,
+    root, profiles, profile, activeProfile, activeId, setActive, addProfile, isGuest, ensureGuest, nameDialog, afterProfileAdded, offerPin, updateProfile, deleteProfile, resetChild, resetAllProgress, eraseEverything, resetModule,
     avatar, colorInk, initial, child,
     getSetting, setSetting,
     credit, slip, streakInfo, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,

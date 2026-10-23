@@ -24,7 +24,7 @@
         ${seg('readAloud', 'Read aloud', [[false, 'Off'], [true, 'On']])}
         <div class="setrow"><label for="voiceSel">Voice</label>
           <span class="voicectl"><select id="voiceSel" aria-describedby="voiceHint"></select><button type="button" class="btn ghost small" id="voicePrev">Preview</button></span></div>
-        <p class="hint" id="voiceHint">${HINT}</p></div>` : '';
+        <p class="hint" id="voiceHint">${HINT}</p><p class="hint" id="voiceNow" role="status" aria-live="polite"></p></div>` : '';
     app.innerHTML = top('Settings', 'for ' + esc(kid.name)) + `<section class="panel setpanel">
       <p class="lead">Saved for ${esc(kid.name)} on this device. ${many ? `Not ${esc(kid.name)}? <a href="#/">Switch child</a>.` : ''}</p>
       ${OPTS.map(g => `<div class="setgroup"><h3>${g.group}</h3>${g.items.map(i => seg(...i)).join('')}</div>`).join('')}
@@ -32,6 +32,11 @@
       <div class="setgroup"><h3>Parents</h3>
         <div class="setrow"><span>Progress, children, backup, and the parent PIN</span><a class="btn ghost small" href="#/parent">Open the parent area</a></div>
         <p class="hint">The parent area asks for the PIN if one is set.</p></div>
+      <div class="setgroup"><h3>Start over</h3>
+        <div class="setrow"><span>Reset all progress</span><button type="button" class="btn warn small" id="resetProg">Reset all progress</button></div>
+        <p class="hint">Erases scores, streaks, and module progress for every child. Names, colors, and settings stay.</p>
+        <div class="setrow"><span>Erase everything</span><button type="button" class="btn warn small" id="eraseAll">Erase everything</button></div>
+        <p class="hint">Removes every child, all progress, all settings, and the parent PIN, then starts fresh. This cannot be undone. Save a backup first in the <a href="#/parent/backup">parent area</a> if you might want it back. Both ask for the parent PIN if one is set.</p></div>
     </section>`;
     app.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
       const k = b.dataset.k, v = b.dataset.v === 'true' ? true : b.dataset.v === 'false' ? false : b.dataset.v;
@@ -40,6 +45,11 @@
       if (k === 'sound' && v) SB.sfx.good();
       if (k === 'readAloud' && v) SB.say('Read aloud is on.');
     });
+    const names = SB.profiles().map(p => p.name).join(', ');
+    app.querySelector('#resetProg').onclick = () => SB.requirePin('Enter the parent PIN to reset all progress.', () => { SB.resetAllProgress(); SB.toast('All progress was reset'); },
+      null, { confirm: { title: 'Reset all progress?', text: 'This erases best scores, streaks, and module progress for ' + names + '. Names and settings stay.', ok: 'Reset all progress' } });
+    app.querySelector('#eraseAll').onclick = () => SB.requirePin('Enter the parent PIN to erase everything.', () => { SB.eraseEverything(); location.hash = '#/home'; location.reload(); },
+      null, { confirm: { title: 'Erase everything?', text: 'This removes ' + names + ', all progress, all settings, and the parent PIN from this device. It cannot be undone.', ok: 'Erase everything' } });
     const sel = app.querySelector('#voiceSel');
     if (sel) {
       const fill = () => {
@@ -51,7 +61,9 @@
       };
       fill();
       try { speechSynthesis.addEventListener('voiceschanged', fill); } catch (e) {}
-      const hear = () => SB.say('Hello! This is how I sound.', { force: true });
+      const now = app.querySelector('#voiceNow');
+      const hear = () => { now.textContent = ''; SB.say('Hello! This is how I sound.', { force: true, onstart: u => { now.textContent = 'Speaking with: ' + (u.voice ? u.voice.name : 'the device default voice') + '.'; },
+        onerror: e => { if (e && /interrupted|canceled/.test(e.error || '')) return; now.textContent = 'That voice did not play on this device. Please choose another.'; } }); };
       sel.onchange = () => { SB.setSetting('voice', sel.value); hear(); };
       app.querySelector('#voicePrev').onclick = hear;
     }

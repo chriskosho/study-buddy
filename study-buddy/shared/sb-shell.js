@@ -19,7 +19,7 @@
 
   const ICON = {
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
-    gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M4.2 7.4l2.2 1.3M17.6 15.3l2.2 1.3M4.2 16.6l2.2-1.3M17.6 8.7l2.2-1.3"/></svg>',
+    gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.8 L10.6 2.2 L13.4 2.2 L13.7 4.8 L15.9 5.7 L18.0 4.1 L19.9 6.0 L18.3 8.1 L19.2 10.3 L21.8 10.6 L21.8 13.4 L19.2 13.7 L18.3 15.9 L19.9 18.0 L18.0 19.9 L15.9 18.3 L13.7 19.2 L13.4 21.8 L10.6 21.8 L10.3 19.2 L8.1 18.3 L6.0 19.9 L4.1 18.0 L5.7 15.9 L4.8 13.7 L2.2 13.4 L2.2 10.6 L4.8 10.3 L5.7 8.1 L4.1 6.0 L6.0 4.1 L8.1 5.7z"/><circle cx="12" cy="12" r="3"/></svg>',
     help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 1 1 3.6 2.4c-.8.4-1.1.9-1.1 1.8M12 17h.01"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg>'
   };

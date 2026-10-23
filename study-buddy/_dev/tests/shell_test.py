@@ -15,9 +15,9 @@ def check(cond, msg):
 SEED = """if(!localStorage.getItem('studybuddy.v1.root')){localStorage.setItem('studybuddy.v1.root',JSON.stringify({profiles:[{id:'k1',name:'Joshua',color:'#e4572e'}],active:'k1',pin:null,pinOffered:true}));}"""
 # a speech engine that never finishes on its own, with three voices (one robotic, one natural, one Spanish)
 STUB = """window.__spoken=[];window.__cancels=0;
-const V=[{name:'Microsoft David - English (United States)',lang:'en-US',voiceURI:'david'},{name:'Microsoft Aria Online (Natural) - English (United States)',lang:'en-US',voiceURI:'aria'},{name:'Google espanol',lang:'es-ES',voiceURI:'es'}];
+const V=[{name:'Microsoft David - English (United States)',lang:'en-US',voiceURI:'david'},{name:'Microsoft Aria Online (Natural) - English (United States)',lang:'en-US',voiceURI:'aria'},{name:'Microsoft George - English (United Kingdom)',lang:'en-GB',voiceURI:'george'},{name:'Google espanol',lang:'es-ES',voiceURI:'es'}];
 window.SpeechSynthesisUtterance=function(t){this.text=t};
-Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak(u){window.__spoken.push({text:u.text,voice:u.voice&&u.voice.voiceURI,lang:u.lang})},cancel(){window.__cancels++},getVoices(){return V},addEventListener(){}}});"""
+Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak(u){window.__spoken.push({text:u.text,voice:u.voice&&u.voice.voiceURI,lang:u.lang});setTimeout(()=>u.onstart&&u.onstart({}),0)},cancel(){window.__cancels++},getVoices(){return V},addEventListener(){}}});"""
 CRUMB = "[...document.querySelectorAll('.sbcrumbs li')].map(li => li.textContent.trim())"
 
 async def main():
@@ -78,12 +78,17 @@ async def main():
         await pg.click('.seg button[data-k="readAloud"][data-v="false"]')
         # ---- voice picker ----
         opts = await pg.locator('#voiceSel option').all_inner_texts()
-        check(len(opts) == 3 and 'Automatic' in opts[0] and not any('espanol' in o for o in opts), f'voice list: Automatic plus English voices only {opts}')
+        check(len(opts) == 4 and 'Automatic' in opts[0] and not any('espanol' in o for o in opts), f'voice list: Automatic plus English voices only {opts}')
         await pg.evaluate("window.__spoken.length = 0")
         await pg.click('#voicePrev'); spoken = await pg.evaluate("window.__spoken")
         check(spoken and spoken[-1]['voice'] == 'aria', f'Automatic picks the natural voice, not the robotic one {spoken}')
         await pg.select_option('#voiceSel', 'david'); spoken = await pg.evaluate("window.__spoken")
         check(await pg.evaluate("SB.getSetting('voice')") == 'david' and spoken[-1]['voice'] == 'david', 'a chosen voice is saved and used, with a preview')
+        await pg.select_option('#voiceSel', 'george'); spoken = await pg.evaluate("window.__spoken")
+        check(spoken[-1]['voice'] == 'george' and spoken[-1]['lang'] == 'en-GB', f'the speech language follows the chosen voice {spoken[-1]}')
+        await pg.wait_for_function("document.querySelector('#voiceNow').textContent.includes('George')")
+        check(True, 'Settings says which voice is speaking')
+        await pg.select_option('#voiceSel', 'david')
         await pg.goto(base + 'modules/science/planets/index.html?tool=guide'); await pg.wait_for_selector('.spk')
         await pg.evaluate("window.__spoken.length = 0"); await pg.click('.spk >> nth=0')
         check((await pg.evaluate("window.__spoken"))[-1]['voice'] == 'david', 'speaker buttons in modules use the chosen voice')
@@ -164,6 +169,31 @@ async def main():
         o = await p3.evaluate("document.documentElement.scrollWidth - innerWidth")
         check(o <= 0, f'phone, larger + dyslexic: Settings has no sideways scroll ({o})')
         await c3.close()
+        # ---- cog icon and the two reset options ----
+        await pg.goto(base + 'index.html#/home'); await pg.wait_for_selector('a.mod')
+        check(await pg.locator('.sbhead a[aria-label="Settings"] svg path').count() == 1 and await pg.locator('.sbhead a[aria-label="Settings"] svg circle').count() == 1, 'the Settings icon is a cog (one toothed outline, one centre hole)')
+        c4 = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block')
+        await c4.add_init_script("""if(!sessionStorage.getItem('seeded')){sessionStorage.setItem('seeded','1');localStorage.setItem('studybuddy.v1.root',JSON.stringify({profiles:[{id:'a',name:'Joshua',color:'#e4572e'},{id:'b',name:'Eli',color:'#2b4162'}],active:'a',pin:null,pinOffered:true}));
+          localStorage.setItem('studybuddy.v1.child.a',JSON.stringify({settings:{sound:true,readAloud:false,theme:'dark',font:'standard',size:'normal',voice:''},streak:5,bestStreak:7,tools:{'planets/quiz':{attempts:2,visits:2,best:8,max:10,lastScore:8,last:1}}}));
+          localStorage.setItem('studybuddy.v1.child.b',JSON.stringify({settings:{sound:true,readAloud:false,theme:'light',font:'standard',size:'normal',voice:''},streak:3,bestStreak:3,tools:{}}));
+          localStorage.setItem('studybuddy.v1.m.a.calculator',JSON.stringify([{e:'1+1',v:2}]));}""")
+        p4 = await c4.new_page(); await p4.goto(base + 'index.html#/settings'); await p4.wait_for_selector('#resetProg')
+        # cancel changes nothing
+        await p4.click('#resetProg'); await p4.wait_for_selector('.sb-dlg'); await p4.click('.sb-dlg [data-x="no"]')
+        check(await p4.evaluate("SB.profile('a') && JSON.parse(localStorage.getItem('studybuddy.v1.child.a')).streak") == 5, 'Cancel keeps the progress')
+        await p4.click('#resetProg'); await p4.wait_for_selector('.sb-dlg')
+        check('Joshua, Eli' in await p4.inner_text('.sb-dlg'), 'the reset names the children it affects')
+        await p4.click('.sb-dlg [data-x="yes"]'); await p4.wait_for_timeout(200)
+        r = await p4.evaluate("({n: SB.profiles().length, a: JSON.parse(localStorage.getItem('studybuddy.v1.child.a')), b: JSON.parse(localStorage.getItem('studybuddy.v1.child.b')), calc: localStorage.getItem('studybuddy.v1.m.a.calculator')})")
+        check(r['n'] == 2 and r['a']['streak'] == 0 and r['b']['streak'] == 0 and not r['a']['tools'] and r['calc'] is None, f'Reset all progress clears every child but keeps both profiles {r["n"]}')
+        check(r['a']['settings']['theme'] == 'dark', 'Reset all progress keeps each child\'s settings')
+        await p4.click('#eraseAll'); await p4.wait_for_selector('.sb-dlg'); await p4.click('.sb-dlg [data-x="no"]')
+        check(await p4.evaluate("SB.profiles().length") == 2, 'Cancel keeps the profiles')
+        await p4.click('#eraseAll'); await p4.wait_for_selector('.sb-dlg'); await p4.click('.sb-dlg [data-x="yes"]')
+        await p4.wait_for_selector('a.mod'); await p4.wait_for_timeout(300)
+        r = await p4.evaluate("({names: SB.profiles().map(p => p.name), keys: Object.keys(localStorage).filter(k => k === 'studybuddy.v1.child.a' || k === 'studybuddy.v1.child.b').length})")
+        check(r['names'] == ['Guest'] and r['keys'] == 0, f'Erase everything removes the profiles and starts fresh as a Guest {r}')
+        await c4.close()
         check(not errs, f'no page errors {errs}')
         await b.close()
     print('\n' + ('ALL PASSED' if not fails else f'{len(fails)} FAILED')); sys.exit(1 if fails else 0)
