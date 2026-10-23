@@ -22,8 +22,9 @@ The site lives in `study-buddy/`. Read these before changing anything:
 2. One pull request per request from the owner, with a plain description of what changed and how to try it.
 3. Before pushing, run these from the repository root:
    - `node study-buddy/_dev/build.mjs`
-   - `python3 study-buddy/_dev/tests/hub_test.py`, `atlas_test3.py`, and `pos_test.py` in the same folder (they need Playwright and Chromium)
+   - `python3 study-buddy/_dev/tests/hub_test.py`, `atlas_test3.py`, `pos_test.py`, and `rome_test.py` in the same folder (they need Playwright and Chromium)
    Add or extend tests for each new module, and look at screenshots of the new screens.
 4. Commit the rebuilt files too (`sw.js` and `study-buddy/modules/geography/south-america/index.html`). Netlify also rebuilds them on deploy.
-5. To add a module, copy the Parts of Speech folder pattern and use `shared/sb-module.js` (ARCHITECTURE.md section 5), then add its entry to `study-buddy/registry.js`. Write its content in a `data.js`, and have a separate pass review the content for accuracy.
-6. Update the docs when behavior changes. Keep new modules consistent with the Explorer's Atlas screens.
+5. To add a module, use the shared tools in `shared/sb-tools.js` where they fit, copy the Parts of Speech or Ancient Rome folder pattern and use `shared/sb-module.js` (ARCHITECTURE.md section 5), then add its entry to `study-buddy/registry.js`. Write its content in a `data.js`, and have a separate pass review the content for accuracy.
+6. Modules made from photos of homework or study guides: follow ARCHITECTURE.md section 7 (teacher's wording, mark anything not on the photos, separate review against the photos).
+7. Update the docs when behavior changes. Keep new modules consistent with the Explorer's Atlas screens.

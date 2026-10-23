@@ -63,7 +63,7 @@ async def main():
 
         # ---- home ----
         check('Hi, Joshua' in await pg.locator('h1').inner_text(), 'home greets Joshua')
-        check(await pg.locator('a.mod').count() == 2, 'two module cards (South America, Parts of Speech)')
+        check(await pg.locator('a.mod').count() == 3, 'three module cards (South America, Parts of Speech, Ancient Rome)')
         check('Easy' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text() and 'Hard' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'automatic difficulty range Easy to Hard')
         o = await overflow(pg); check(o['v'] <= 0 and o['h'] <= 0, f'home: no scroll {o}')
         await pg.screenshot(path=f'{OUT}/sb_home.png')

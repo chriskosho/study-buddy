@@ -27,15 +27,8 @@ mark.pc{background:var(--pc);color:var(--pi);border-radius:6px;padding:0 4px}
 .face .exl{font-size:16px;color:var(--ink2)}
 .face .why{font-size:clamp(16px,1.8vw,20px);color:var(--ink2);max-width:88%}
 
-/* sort it */
-.buckets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
-.bucket{background:#fff;border:3px dashed var(--line);border-radius:20px;padding:12px;min-height:calc(100vh - 650px);display:flex;flex-direction:column;gap:10px;transition:border-color .15s,background .15s;cursor:pointer}
+/* sort it: the shared .bucket styles live in sb.css */
 .bucket .ppill{align-self:flex-start;font-size:17px;padding:6px 14px}
-.bucket.over{border-color:var(--teal);background:#f3fbf9}
-.bucket.ready{border-color:#bcd9d4}
-.bucket .got{display:flex;flex-wrap:wrap;gap:6px}
-.bucket .got span{font-weight:700;font-size:16px;background:var(--pc);color:var(--pi);border-radius:10px;padding:3px 10px}
-#sTray{min-height:62px}
 
 /* spot it + label: words you can tap */
 .words{display:flex;flex-wrap:wrap;gap:10px 8px;align-items:flex-end;margin:6px 0 4px}
@@ -75,10 +68,7 @@ mark.pc{background:var(--pc);color:var(--pi);border-radius:6px;padding:0 4px}
   .guide{grid-template-columns:1fr;gap:10px}
   .gcard{padding:12px 14px}
   .sent{font-size:22px}
-  .buckets{gap:8px}
-  .bucket{min-height:200px;padding:8px;border-width:2px}
   .bucket .ppill{font-size:12.5px;padding:3px 7px}
-  .bucket .got span{font-size:14px;padding:2px 7px}
   .wtok{padding:6px 10px;font-size:20px}
   .punct{font-size:20px}
   .palette{gap:6px}
