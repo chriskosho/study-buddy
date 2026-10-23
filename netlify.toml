@@ -1,0 +1,20 @@
+# Netlify settings for Study Buddy.
+# The site lives in the study-buddy/ folder of this repository.
+
+[build]
+  # Rebuilds the South America page and the offline file list (sw.js) on every deploy.
+  command = "node study-buddy/_dev/build.mjs"
+  publish = "study-buddy"
+
+# The offline worker must never be cached, or phones would keep an old version of the site.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# Keep tools and notes for developers out of what the browser can reach.
+[[redirects]]
+  from = "/_dev/*"
+  to = "/"
+  status = 302
+  force = true
