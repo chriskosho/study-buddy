@@ -55,7 +55,7 @@
   function saveRoot(r) { write(ROOT, r); }
   function child(id) {
     const d = Object.assign({ settings: {}, streak: 0, bestStreak: 0, daily: { d: '', n: 0, done: false }, tools: {}, last: null }, read(CHILD(id), {}));
-    d.settings = Object.assign({ sound: true, readAloud: false }, d.settings);
+    d.settings = Object.assign({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal' }, d.settings);
     if (d.daily.d !== today()) d.daily = { d: today(), n: 0, done: false };
     return d;
   }
@@ -102,7 +102,7 @@
   const avatar = (p, cls = '') => `<span class="av ${cls}" style="--c:${esc(p.color)};--ci:${colorInk(p.color)}" aria-hidden="true">${esc(initial(p.name))}</span>`;
 
   /* ---------- settings ---------- */
-  function getSetting(k, id = activeId()) { return id ? child(id).settings[k] : ({ sound: true, readAloud: false })[k]; }
+  function getSetting(k, id = activeId()) { return id ? child(id).settings[k] : ({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal' })[k]; }
   function setSetting(k, v, id = activeId()) { if (!id) return; const d = child(id); d.settings[k] = v; saveChild(id, d); }
 
   /* ---------- progress ---------- */
@@ -223,6 +223,29 @@
   .sb-dlg .sb-btn.ghost{background:#fff;color:#2b4162;border:2px solid #e4dcc8;box-shadow:none}
   .sb-dlg .sb-btn.warn{background:#fff;color:#e4572e;border:2px solid #e4572e;box-shadow:none}
   .sb-dlg .sb-link{background:none;border:0;padding:0;color:#5b6773;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;margin-right:auto}
+  .sb-swipe-tag{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:3;pointer-events:none;opacity:0;font-family:"Trebuchet MS","Segoe UI",system-ui,Arial,sans-serif;font-weight:800;font-size:20px;letter-spacing:.5px;padding:6px 16px;border-radius:999px;border:3px solid;background:rgba(255,255,255,.92)}
+  .sb-swipe-tag.r{color:#2e9e5b;border-color:#2e9e5b}
+  .sb-swipe-tag.l{color:#e4572e;border-color:#e4572e}
+  .cardstage{position:relative}
+  .swipe-tip{display:none}
+  @media (pointer:coarse){.swipe-tip{display:inline}}
+  .sb-opt{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1.5px solid #e4dcc8}
+  .sb-opt>span{font-weight:700}
+  .sb-seg{display:inline-flex;border:2px solid #e4dcc8;border-radius:12px;overflow:hidden;background:#fff}
+  .sb-seg button{font:inherit;font-size:15px;font-weight:700;border:0;background:transparent;color:inherit;padding:7px 12px;cursor:pointer}
+  .sb-seg button[aria-pressed="true"]{background:#1b998b;color:#fff}
+  @font-face{font-family:'OpenDyslexic';src:url('${BASE}shared/fonts/opendyslexic-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+  @font-face{font-family:'OpenDyslexic';src:url('${BASE}shared/fonts/opendyslexic-bold.woff2') format('woff2');font-weight:700 900;font-display:swap}
+  html.sb-dyslexic{--font:'OpenDyslexic',"Trebuchet MS",system-ui,sans-serif}
+  html.sb-dyslexic .sb-dlg,html.sb-dyslexic .sb-invite,html.sb-dyslexic .sb-toast{font-family:'OpenDyslexic',sans-serif}
+  html.sb-large body{zoom:1.15}
+  html.sb-dark .sb-dlg{background:#1a2430;color:#e9eef3;border-color:#34465c}
+  html.sb-dark .sb-dlg p{color:#a9b5c2}
+  html.sb-dark .sb-dlg input,html.sb-dark .sb-seg{background:#212d3b;color:#e9eef3;border-color:#a9c4f0}
+  html.sb-dark .sb-seg{border-color:#34465c}
+  html.sb-dark .sb-opt{border-color:#34465c}
+  html.sb-dark .sb-dlg .sb-btn.ghost{background:#212d3b;color:#e9eef3;border-color:#34465c}
+  html.sb-dark .sb-dlg .sb-btn{background:#3f5f92}
   .sb-sw{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}
   .sb-sw button{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #e4dcc8;padding:0;cursor:pointer}
   .sb-sw button[aria-pressed="true"]{box-shadow:0 0 0 3px #2b4162}
@@ -394,6 +417,78 @@
     bar.querySelector('.yes').onclick = () => { close(); nameDialog(() => location.reload()); };
   }
 
+  /* ---------- swipe for flashcards ----------
+     Drag the card right for "I knew it", left for "Still learning". A tap still flips it, and the arrow keys work too.
+     stage: the element that moves; card: the element that gets clicked to flip. */
+  function swipeCard(stage, card, { onRight, onLeft }) {
+    let st = null, dragged = false;
+    const tag = document.createElement('div'); tag.className = 'sb-swipe-tag'; tag.setAttribute('aria-hidden', 'true'); stage.appendChild(tag);
+    stage.style.touchAction = 'pan-y';
+    const set = dx => {
+      stage.style.transform = dx ? `translateX(${dx}px) rotate(${dx / 22}deg)` : '';
+      const k = Math.min(1, Math.abs(dx) / 110);
+      tag.textContent = dx > 0 ? 'I knew it' : 'Still learning'; tag.className = 'sb-swipe-tag ' + (dx > 0 ? 'r' : 'l'); tag.style.opacity = dx ? k : 0;
+    };
+    const fly = (dir, fn) => {
+      stage.style.transition = 'transform .22s ease-in, opacity .22s'; stage.style.transform = `translateX(${dir * 140}%) rotate(${dir * 14}deg)`; stage.style.opacity = '0';
+      setTimeout(() => {
+        stage.style.transition = 'none'; set(0); const wasFlipped = card.classList.contains('flip');
+        fn();
+        setTimeout(() => { stage.style.transition = 'opacity .2s'; stage.style.opacity = '1'; setTimeout(() => stage.style.transition = '', 220); }, wasFlipped ? 560 : 40);
+      }, 230);
+    };
+    stage.addEventListener('pointerdown', e => { if (e.button > 0 || e.target.closest('[data-say],[data-sb-say],button')) return; st = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false }; dragged = false; });
+    stage.addEventListener('pointermove', e => {
+      if (!st) return; const dx = e.clientX - st.x, dy = e.clientY - st.y;
+      if (!st.on) { if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.2) { st.on = true; dragged = true; stage.style.transition = 'none'; try { stage.setPointerCapture(st.id); } catch (er) {} } else if (Math.abs(dy) > 14) { st = null; return; } else return; }
+      set(dx);
+    });
+    const end = e => {
+      if (!st) return; const on = st.on, dx = (e.clientX || st.x) - st.x; st = null;
+      if (!on) return;
+      const far = Math.abs(dx) > Math.max(90, stage.offsetWidth * 0.28);
+      if (far && e.type === 'pointerup') fly(dx > 0 ? 1 : -1, dx > 0 ? onRight : onLeft);
+      else { stage.style.transition = 'transform .2s'; set(0); setTimeout(() => stage.style.transition = '', 220); }
+    };
+    stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
+    card.addEventListener('click', e => { if (dragged) { e.stopImmediatePropagation(); e.preventDefault(); dragged = false; } }, true);   // a swipe is not a tap
+    card.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { e.preventDefault(); fly(1, onRight); } else if (e.key === 'ArrowLeft') { e.preventDefault(); fly(-1, onLeft); } });
+  }
+
+  /* ---------- display options: theme, OpenDyslexic, text size (per child, applied as classes on <html>) ---------- */
+  const darkMQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+  function applyDisplay() {
+    const h = document.documentElement, t = getSetting('theme');
+    const dark = t === 'dark' || (t === 'auto' && !!(darkMQ && darkMQ.matches));
+    h.classList.toggle('sb-dark', dark);
+    h.classList.toggle('sb-dyslexic', getSetting('font') === 'dyslexic');
+    h.classList.toggle('sb-large', getSetting('size') === 'large');
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#121a23' : '#2b4162');
+  }
+  try { darkMQ && darkMQ.addEventListener && darkMQ.addEventListener('change', applyDisplay); } catch (e) {}
+  const DISPLAY_OPTS = [
+    ['theme', 'Theme', [['light', 'Light'], ['dark', 'Dark'], ['auto', 'Match device']]],
+    ['font', 'Font', [['standard', 'Standard'], ['dyslexic', 'OpenDyslexic']]],
+    ['size', 'Text size', [['normal', 'Normal'], ['large', 'Larger']]],
+    ['sound', 'Sound', [[true, 'On'], [false, 'Off']]],
+    ['readAloud', 'Read aloud', [[false, 'Off'], [true, 'On']]]
+  ];
+  function displayDialog(onChange) {
+    const p = activeProfile();
+    dialog(`<h3>Display</h3><p>Saved for ${esc(p ? p.name : 'you')} on this device.</p>
+      ${DISPLAY_OPTS.filter(o => o[0] !== 'readAloud' || CAN_SPEAK).map(([k, label, vals]) => `<div class="sb-opt"><span>${label}</span><div class="sb-seg" role="group" aria-label="${label}">${vals.map(([v, t]) => `<button type="button" data-k="${k}" data-v="${v}" aria-pressed="${String(getSetting(k)) === String(v)}">${t}</button>`).join('')}</div></div>`).join('')}
+      <div class="sb-row" style="margin-top:12px"><button class="sb-btn" data-x="done">Done</button></div>`, (box, close) => {
+      box.querySelectorAll('.sb-seg button').forEach(b => b.onclick = () => {
+        const k = b.dataset.k, v = b.dataset.v === 'true' ? true : b.dataset.v === 'false' ? false : b.dataset.v;
+        setSetting(k, v); applyDisplay();
+        box.querySelectorAll(`.sb-seg button[data-k="${k}"]`).forEach(x => x.setAttribute('aria-pressed', x === b));
+        if (k === 'sound' && v) sfx.good();
+        onChange && onChange(k, v);
+      });
+      box.querySelector('[data-x="done"]').onclick = close;
+    });
+  }
+
   /* ---------- backup ---------- */
   function exportAll() {
     const data = {}; allKeys().filter(k => k && k.startsWith(NS)).forEach(k => { data[k] = localStorage.getItem(k); });
@@ -417,6 +512,8 @@
     if ('serviceWorker' in navigator && webAddress) window.addEventListener('load', () => navigator.serviceWorker.register(BASE + 'sw.js').catch(() => {}));
   } catch (e) {}
 
+  try { applyDisplay(); } catch (e) {}
+
   window.SB = {
     ready: true, BASE, DAILY_GOAL, DIFFS, DIFF_NAMES, COLORS, CAN_SPEAK, SPK_ICON,
     esc, today,
@@ -425,7 +522,7 @@
     getSetting, setSetting,
     credit, slip, streakInfo, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
     moduleKey, requireProfile,
-    tone, sfx, say, stopSpeech, sayButton, toast,
+    tone, sfx, say, stopSpeech, sayButton, toast, applyDisplay, displayDialog, swipeCard,
     dialog, confirm: confirmDlg, requirePin, newPinDialog, hasPin, dismissPinNote, isUnlocked, lock,
     exportAll, importAll, download
   };

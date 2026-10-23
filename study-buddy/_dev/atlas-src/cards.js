@@ -54,6 +54,7 @@ inits.cards = () => {
   card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fcFlip(); } });
   $('#cardKnew').onclick = () => fcAnswer(true);
   $('#cardAgain').onclick = () => fcAnswer(false);
+  if (ON_HUB && HUB.swipeCard) HUB.swipeCard($('.cardstage'), card, { onRight: () => $('#cardKnew').click(), onLeft: () => $('#cardAgain').click() });   // swipe: right = I knew it, left = Still learning
   $('#cardSkip').onclick = () => { if (!FC.cur) return fcBuild(); fcAfterUnflip(() => { FC.queue.push(FC.queue.shift()); fcNext(); }); };
   $$('#cardMode button').forEach(b => b.onclick = () => { FC.mode = b.dataset.mode; $$('#cardMode button').forEach(x => x.setAttribute('aria-pressed', x === b)); FC.busy = false; fcBuild(); });
   fcBuild();

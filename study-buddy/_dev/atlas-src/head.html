@@ -263,7 +263,9 @@ section.panel>.lead+*{margin-top:14px}
 h1 small a{color:inherit;text-decoration:none}
 h1 small a:hover{text-decoration:underline}
 a.kidchip{text-decoration:none;color:inherit;font-size:15px}
-a.kidchip[hidden]{display:none}
+a.kidchip[hidden],button.kidchip[hidden]{display:none}
+button.kidchip{font:inherit;color:inherit;cursor:pointer;font-size:15px}
+button.kidchip:hover{border-color:var(--teal)}
 a.kidchip:hover{border-color:var(--teal)}
 .av{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--c,#2b4162);color:var(--ci,#fff);font-weight:800;font-size:13px;flex:0 0 auto}
 
@@ -339,6 +341,28 @@ a.kidchip:hover{border-color:var(--teal)}
   .spellrow input{font-size:20px;padding:10px 12px}
   .qvisual svg.mini{height:auto;min-height:0;max-height:42vh}
 }
+
+/* ---- v3.3: dark mode, only when the Study Buddy Display setting turns it on. Light mode is untouched. ---- */
+html.sb-dark{--paper:#121a23;--card:#1a2430;--ink:#e9eef3;--ink2:#a9b5c2;--line:#34465c;--sea:#1d3a48;--navy:#3f5f92;--coral:#f07a55;--teal:#23a898;--good:#43b874;--bad:#ef6b6b;color-scheme:dark}
+html.sb-dark .btn.ghost,html.sb-dark .btn.warn,html.sb-dark .seg,html.sb-dark .face,html.sb-dark .chip,html.sb-dark .stat,html.sb-dark .opt,html.sb-dark .srow,html.sb-dark .vbtn,html.sb-dark .spk,html.sb-dark .zoombar button,html.sb-dark .mcard .f.back,html.sb-dark .spellrow input{background:#212d3b}
+html.sb-dark .btn.ghost{color:#e9eef3}
+html.sb-dark .chip,html.sb-dark .spk,html.sb-dark .zoombar button{color:#a9c4f0;border-color:#a9c4f0}
+html.sb-dark .chip{box-shadow:0 3px 0 #0c1420}
+html.sb-dark .chip.sel{background:var(--sun);color:#23313f;border-color:#b07a00}
+html.sb-dark .spk:hover,html.sb-dark .zoombar button:hover{background:var(--sun);color:#23313f}
+html.sb-dark .spk.playing{background:var(--teal);border-color:var(--teal);color:#fff}
+html.sb-dark .btn{box-shadow:0 3px 0 #0c1420}
+html.sb-dark .face{border-color:#a9c4f0}
+html.sb-dark .face.back{background:#28303d}
+html.sb-dark .bar{background:#2b394a}
+html.sb-dark .mapbox{border-color:#2c5266}
+html.sb-dark .land{stroke:#121a23}
+html.sb-dark .ctx{fill:#3a4250;stroke:#4b5566}
+html.sb-dark .lbl{fill:#23313f}
+html.sb-dark .opt.right,html.sb-dark .vbtn.right,html.sb-dark .mcard.done .f.back{background:#1d3a2b}
+html.sb-dark .opt.wrong,html.sb-dark .vbtn.wrong{background:#43262a}
+html.sb-dark .stars .off{color:#34465c}
+html.sb-dark .spellrow input{color:var(--ink);border-color:#a9c4f0}
 </style>
 </head>
 <body>
@@ -347,6 +371,7 @@ a.kidchip:hover{border-color:var(--teal)}
     <h1><small id="brand">Explorer's Atlas</small><span id="title"></span></h1>
     <div class="row">
       <a class="passport kidchip" id="kidChip" hidden title="Switch to someone else"></a>
+      <button class="passport kidchip" id="displayBtn" type="button" title="Theme, font, and text size" hidden><b>Display</b></button>
       <div class="passport" title="Earn a stamp for each country by getting it right a few times">
         <b>Passport <span id="stampCount">0/12</span></b><div class="stamps" id="stamps"></div>
       </div>
@@ -385,7 +410,7 @@ a.kidchip:hover{border-color:var(--teal)}
 
   <section class="panel" id="tab-cards">
     <h2>Flashcards</h2>
-    <p class="lead">Tap the card to flip it. Be honest: did you know it? Cards you miss come back again.</p>
+    <p class="lead">Tap the card to flip it. Be honest: did you know it? Cards you miss come back again.<span class="swipe-tip"> Swipe right if you knew it, left if you are still learning.</span></p>
     <div class="deckbar">
       <div class="seg" id="cardMode" role="group" aria-label="Card type">
         <button data-mode="shape" aria-pressed="true">Map shape</button>

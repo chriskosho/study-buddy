@@ -1,0 +1,40 @@
+/* Handwriting: fonts, the pad, and controls. */
+@font-face{font-family:'SB Cursive';src:url('../../../shared/fonts/playwrite-us-trad.woff') format('woff');font-display:block}
+@font-face{font-family:'SB Print';src:url('../../../shared/fonts/andika-regular.woff') format('woff');font-display:block}
+:root{--hw-guide:#ddd5c3;--hw-rule:#9fb6cf;--hw-mid:#c4cfdb;--hw-base:#e4572e;--hw-ink:#23313f;--hw-missed:rgba(228,87,46,.55)}
+html.sb-dark{--hw-guide:#3b4a5d;--hw-rule:#4f6a88;--hw-mid:#3a4b60;--hw-base:#f07a55;--hw-ink:#e9eef3;--hw-missed:rgba(240,122,85,.6)}
+
+.hw-controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin:4px 0 10px}
+.hw-controls .roundbar{flex:1 1 260px;margin:0}
+.hw-own{display:flex;gap:8px;flex:1 1 320px;min-width:0}
+.hw-own .textin{flex:1;min-width:0}
+.hw-strip{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.hw-strip button{width:38px;height:38px;border-radius:10px;border:2px solid var(--line);background:var(--surface);font-weight:800;font-size:17px;padding:0;color:var(--ink)}
+.hw-strip button.done{border-color:var(--good);color:var(--good)}
+.hw-strip button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+
+.hw-pad{position:relative;height:calc(100vh - 470px);min-height:240px;background:var(--surface);border:2px solid var(--line);border-radius:20px;overflow:hidden}
+.hw-strip+.hw-pad{height:calc(100vh - 520px)}
+.hw-pad canvas{position:absolute;inset:0;display:block}
+.hw-ink{touch-action:none;cursor:crosshair;-webkit-user-select:none;user-select:none}
+
+.hw-penbar{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;margin-top:10px}
+.hw-pen{gap:10px}
+.hw-colors{display:flex;gap:6px}
+.hw-colors button{width:30px;height:30px;border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--line);background:var(--sw);padding:0}
+.hw-colors button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--navy-ink)}
+.seg.small button{padding:7px 11px;font-size:14px}
+.hw-msg{display:flex;align-items:center;gap:10px;margin:8px 0 0;min-height:30px}
+.stars.small{font-size:26px;letter-spacing:2px;line-height:1}
+
+@media (max-width:760px){
+  .hw-pad,.hw-strip+.hw-pad{height:48vh;min-height:220px}
+  .hw-strip{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px 8px;padding:2px 14px 4px;scrollbar-width:none}
+  .hw-strip::-webkit-scrollbar{display:none}
+  .hw-strip button{flex:0 0 auto;width:36px;height:36px}
+  .hw-penbar{gap:8px}
+  .hw-actions{width:100%}
+  .hw-actions .btn{flex:1 1 0}
+  .hw-own{flex-basis:100%;width:100%}
+  .hw-own .textin{width:0}
+}

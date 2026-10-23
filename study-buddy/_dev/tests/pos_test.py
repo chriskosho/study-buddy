@@ -55,8 +55,8 @@ async def main():
         pg.on('console', lambda m: m.type == 'error' and 'sw.js' not in m.text and errors.append(m.text))
 
         # ---- hub shows the module ----
-        await pg.goto(base + 'index.html#/home/english'); await pg.wait_for_selector('a.mod')
-        txt = await pg.locator('a.mod').inner_text()
+        await pg.goto(base + 'index.html#/home/english'); await pg.wait_for_selector('a.mod[href="#/module/parts-of-speech"]')
+        txt = await pg.locator('a.mod[href="#/module/parts-of-speech"]').inner_text()
         check('Parts of Speech' in txt and 'Insane' in txt, 'English shows Parts of Speech, Easy to Insane')
         check('0 of 5 mastered' in txt, 'five scored tools')
 

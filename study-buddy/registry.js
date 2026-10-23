@@ -77,6 +77,25 @@ window.SB_REGISTRY = {
         { id: 'blanks', name: 'Fill it in', difficulty: 'hard', blurb: 'Type the missing word or date. Mastered at 8 of 10.' },
         { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences, like the test. Mastered at 4 of 5.' }
       ]
+    },
+    {
+      id: 'handwriting',
+      subject: 'english',
+      title: 'Handwriting',
+      blurb: 'Trace letters, words, and sentences in cursive or print. Works with a stylus, a finger, or a mouse.',
+      tags: ['english', 'handwriting'],
+      path: 'modules/english/handwriting/index.html',
+      storage: ['handwriting'],
+      tools: [
+        { id: 'practice', name: 'Practice paper', kind: 'study', difficulty: 'easy', blurb: 'Lined paper. Type a name or spelling words to trace them.' },
+        { id: 'letters', name: 'Letters', difficulty: 'easy', blurb: 'Capitals and lowercase, one at a time. Mastered when 42 of the 52 letters pass.' },
+        { id: 'words', name: 'Words', difficulty: 'medium', blurb: 'Trace six words per round. Mastered at 5 of 6 on the first try.' },
+        { id: 'sentences', name: 'Sentences', difficulty: 'hard', blurb: 'Trace four short sentences per round. Mastered at 4 of 4 on the first try.' }
+      ]
     }
+  ],
+  /* Utilities: handy tools that are not lessons, so they have no progress or difficulty. */
+  utilities: [
+    { id: 'calculator', title: 'Calculator', blurb: 'Follows the order of operations, with parentheses and a history. Shows remainders for division.', path: 'utilities/calculator/index.html' }
   ]
 };

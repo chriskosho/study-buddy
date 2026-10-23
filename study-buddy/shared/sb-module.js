@@ -50,6 +50,7 @@
         <div class="settings">
           <button class="iconbtn" id="sbSound"></button>
           ${SB.CAN_SPEAK ? '<button class="iconbtn" id="sbRead" title="Reads questions out loud"></button>' : ''}
+          <button class="iconbtn" id="sbDisplay" title="Theme, font, and text size">Display</button>
           <button class="iconbtn" id="sbReset" title="Erase this module's progress (parent PIN)">Reset</button>
         </div>
       </div>
@@ -62,6 +63,7 @@
       const r = $('#sbRead'); if (r) { r.textContent = 'Read aloud: ' + (rd ? 'on' : 'off'); r.setAttribute('aria-pressed', rd); }
     };
     renderStreak(); paint();
+    $('#sbDisplay').onclick = () => SB.displayDialog(paint);
     if ($('#sbAddName')) $('#sbAddName').onclick = () => SB.nameDialog(() => location.reload());
     $('#sbSound').onclick = () => { SB.setSetting('sound', !SB.getSetting('sound')); paint(); if (SB.getSetting('sound')) SB.sfx.good(); };
     if ($('#sbRead')) $('#sbRead').onclick = () => { const on = !SB.getSetting('readAloud'); SB.setSetting('readAloud', on); paint(); if (on) SB.say('Read aloud is on.'); else SB.stopSpeech(); };
