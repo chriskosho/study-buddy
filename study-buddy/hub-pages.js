@@ -16,6 +16,7 @@
   ];
   const seg = (k, label, vals) => `<div class="setrow"><span id="lbl-${k}">${label}</span><div class="seg" role="group" aria-labelledby="lbl-${k}">${vals.map(([v, t]) => `<button type="button" data-k="${k}" data-v="${v}" aria-pressed="${String(SB.getSetting(k)) === String(v)}">${t}</button>`).join('')}</div></div>`;
 
+  const HINT = 'Read aloud reads questions out loud. The speaker buttons always work. "Automatic" picks the most natural voice this device has. Voices come from your device or browser, so a phone and a laptop can sound different.';
   function settings(app, kid) {
     document.title = 'Settings · Study Buddy';
     const many = SB.profiles().length > 1;
@@ -23,7 +24,7 @@
         ${seg('readAloud', 'Read aloud', [[false, 'Off'], [true, 'On']])}
         <div class="setrow"><label for="voiceSel">Voice</label>
           <span class="voicectl"><select id="voiceSel" aria-describedby="voiceHint"></select><button type="button" class="btn ghost small" id="voicePrev">Preview</button></span></div>
-        <p class="hint" id="voiceHint">Read aloud reads questions out loud. The speaker buttons always work. "Automatic" picks the most natural voice this device has. Voices come from your device or browser, so a phone and a laptop can sound different.</p></div>` : '';
+        <p class="hint" id="voiceHint">${HINT}</p></div>` : '';
     app.innerHTML = top('Settings', 'for ' + esc(kid.name)) + `<section class="panel setpanel">
       <p class="lead">Saved for ${esc(kid.name)} on this device. ${many ? `Not ${esc(kid.name)}? <a href="#/">Switch child</a>.` : ''}</p>
       ${OPTS.map(g => `<div class="setgroup"><h3>${g.group}</h3>${g.items.map(i => seg(...i)).join('')}</div>`).join('')}
@@ -42,10 +43,11 @@
     const sel = app.querySelector('#voiceSel');
     if (sel) {
       const fill = () => {
+        if (!sel.isConnected) { try { speechSynthesis.removeEventListener('voiceschanged', fill); } catch (e) {} return; }   // left this page
         const list = SB.voicesFor('en-US'), cur = SB.getSetting('voice') || '';
         sel.innerHTML = `<option value="">Automatic (recommended)</option>` + list.map(v => `<option value="${esc(v.voiceURI)}">${esc(v.name)}${v.lang ? ' (' + esc(v.lang) + ')' : ''}</option>`).join('');
         sel.value = list.some(v => v.voiceURI === cur) ? cur : '';
-        if (!list.length) app.querySelector('#voiceHint').textContent = 'This browser has not listed any English voices yet. Try Chrome or Edge, or reload the page. Automatic will use the device default.';
+        app.querySelector('#voiceHint').textContent = list.length ? HINT : 'This browser has not listed any English voices yet. Try Chrome or Edge, or reload the page. Automatic will use the device default.';
       };
       fill();
       try { speechSynthesis.addEventListener('voiceschanged', fill); } catch (e) {}

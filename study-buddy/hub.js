@@ -260,7 +260,7 @@
     const INFO = { settings: 'Settings', help: 'Help', faq: 'FAQ', about: 'About' };
     let crumbs = [], shellOpts = null;
     if (view === 'parent') { viewParent(arg); crumbs = [{ label: 'Parent area' }]; }
-    else if (INFO[view] && kid) { window.HUBPAGES[view](app, kid); crumbs = [{ label: INFO[view] }]; }
+    else if (INFO[view] && (kid || view !== 'settings')) { window.HUBPAGES[view](app, kid); crumbs = [{ label: INFO[view] }]; }
     else if (view === 'home' && kid) { viewHome(arg); const s = REG.subjects.find(x => x.id === arg); crumbs = s ? [{ label: s.name }] : []; }
     else if (view === 'utilities' && kid) { viewHome('utilities'); crumbs = [{ label: 'Utilities' }]; }
     else if (view === 'module' && kid) { viewModule(arg); if (modById(arg)) shellOpts = { module: arg }; }

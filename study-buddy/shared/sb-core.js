@@ -236,7 +236,7 @@
     if (b) { e.stopPropagation(); say(b.dataset.sbSay, { force: true, lang: b.dataset.lang || undefined, button: b }); }
   }, true);
 
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.spk.playing,[data-sb-say].playing')) stopAll(); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') stopAll(); }, true);   // also stops automatic Read aloud, which has no button
   window.addEventListener('pagehide', () => stopAll());
 
   /* ---------- toast ---------- */

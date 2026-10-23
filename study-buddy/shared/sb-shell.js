@@ -33,26 +33,26 @@
   body.sbshell .bar2{margin-bottom:8px}
   .sbhead{background:var(--card);border-bottom:2px solid var(--line);position:relative;z-index:60}
   .sbhead-in{max-width:1600px;margin:0 auto;padding:5px clamp(14px,3vw,40px);display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
-  .sbbrand{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:18px;color:var(--navy-ink);text-decoration:none;white-space:nowrap;padding:4px 6px;border-radius:10px}
+  .sbbrand{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:18px;color:var(--navy-ink,var(--navy));text-decoration:none;white-space:nowrap;padding:4px 6px;border-radius:10px}
   .sbbrand svg{width:22px;height:22px}
   .sbcrumbs{flex:1 1 auto;min-width:0}
   .sbcrumbs ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 0;font-size:15px;font-weight:700}
   .sbcrumbs li{display:inline-flex;align-items:center;min-width:0}
   .sbcrumbs li+li::before{content:"\\203A";margin:0 8px;color:var(--ink2);font-weight:800}
-  .sbcrumbs a{color:var(--navy-ink);text-decoration:none;border-bottom:2px solid transparent;padding:2px 0}
+  .sbcrumbs a{color:var(--navy-ink,var(--navy));text-decoration:none;border-bottom:2px solid transparent;padding:2px 0}
   .sbcrumbs a:hover{border-bottom-color:var(--teal)}
   .sbcrumbs [aria-current]{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sbhead-r{display:flex;align-items:center;gap:8px;margin-left:auto}
-  .sbbtn{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:4px 13px;font-size:15px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;line-height:1.2}
+  .sbbtn{display:inline-flex;align-items:center;gap:7px;background:var(--surface,var(--card));border:2px solid var(--line);border-radius:999px;padding:4px 13px;font-size:15px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;line-height:1.2}
   .sbbtn svg{width:18px;height:18px;flex:0 0 auto}
   .sbbtn:hover{border-color:var(--teal)}
-  .sbbtn[aria-expanded="true"]{border-color:var(--navy-ink)}
+  .sbbtn[aria-expanded="true"]{border-color:var(--navy-ink,var(--navy))}
   .sbbtn b{font-weight:800}
   .sbbtn .hint{font-size:13px}
   .sbsearch{position:relative}
   .sbsearch-box{position:relative;display:flex;align-items:center}
-  .sbsearch input{width:min(280px,34vw);font:inherit;font-size:15px;padding:5px 14px 5px 38px;border:2px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink)}
-  .sbsearch input:focus{border-color:var(--navy-ink);outline:none}
+  .sbsearch input{width:min(280px,34vw);font:inherit;font-size:15px;padding:5px 14px 5px 38px;border:2px solid var(--line);border-radius:999px;background:var(--surface,var(--card));color:var(--ink)}
+  .sbsearch input:focus{border-color:var(--navy-ink,var(--navy));outline:none}
   .sbsearch-box svg{position:absolute;left:12px;width:18px;height:18px;color:var(--ink2);pointer-events:none}
   .sbsearch-toggle{display:none}
   .sbresults{position:absolute;right:0;top:calc(100% + 6px);width:min(420px,92vw);max-height:60vh;overflow:auto;list-style:none;margin:0;padding:6px;background:var(--card);border:2px solid var(--line);border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.2);z-index:70}
@@ -60,17 +60,17 @@
   .sbresults a{display:flex;flex-direction:column;gap:1px;padding:8px 12px;border-radius:10px;color:var(--ink);text-decoration:none}
   .sbresults a b{font-size:16px}
   .sbresults a span{font-size:13px;color:var(--ink2)}
-  .sbresults li[aria-selected="true"] a,.sbresults a:hover{background:var(--tint-note)}
+  .sbresults li[aria-selected="true"] a,.sbresults a:hover{background:var(--tint-note,#fff0cf)}
   .sbresults .none{padding:10px 12px;color:var(--ink2);font-size:15px}
   .sbmenu{position:relative}
   .sbmenu-list{position:absolute;right:0;top:calc(100% + 6px);min-width:190px;list-style:none;margin:0;padding:6px;background:var(--card);border:2px solid var(--line);border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.2);z-index:70}
   .sbmenu-list[hidden]{display:none}
   .sbmenu-list a{display:block;padding:9px 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:700}
-  .sbmenu-list a:hover{background:var(--tint-note)}
+  .sbmenu-list a:hover{background:var(--tint-note,#fff0cf)}
   .sbfoot{border-top:2px solid var(--line);background:var(--card);color:var(--ink2);font-size:14px}
   .sbfoot-in{max-width:1600px;margin:0 auto;padding:5px clamp(14px,3vw,40px);display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;justify-content:space-between}
   .sbfoot nav{display:flex;flex-wrap:wrap;gap:2px 16px}
-  .sbfoot a{color:var(--navy-ink);font-weight:700;text-decoration:none;padding:3px 0}
+  .sbfoot a{color:var(--navy-ink,var(--navy));font-weight:700;text-decoration:none;padding:3px 0}
   .sbfoot a:hover{text-decoration:underline}
   .sbfoot p{margin:0}
   @media (max-width:760px){
@@ -81,15 +81,18 @@
     .sbbtn.kidpill .hint{display:none}
     .sbcrumbs{order:5;flex:1 1 100%}
     .sbcrumbs ol{font-size:14px}
+    .sbsearch,.sbsearch-box{position:static}
     .sbsearch input{display:none}
-    .sbsearch.open input{display:block;position:fixed;left:14px;right:14px;top:56px;width:auto;z-index:71}
+    .sbsearch.open input{display:block;position:absolute;left:14px;right:14px;top:calc(100% + 6px);width:auto;z-index:71}
     .sbsearch-toggle{display:inline-flex}
     .sbsearch-box svg{display:none}
-    .sbsearch.open .sbresults{position:fixed;left:14px;right:14px;top:104px;width:auto}
+    .sbsearch.open .sbresults{position:absolute;left:14px;right:14px;top:calc(100% + 54px);width:auto}
     .sbfoot-in{padding:10px 14px}
     .sbfoot nav{gap:2px 14px}
   }
   html.sb-dark .sbresults,html.sb-dark .sbmenu-list{box-shadow:0 12px 30px rgba(0,0,0,.5)}
+  html.sb-dark .sbresults li[aria-selected="true"] a,html.sb-dark .sbresults a:hover,html.sb-dark .sbmenu-list a:hover{background:var(--tint-note,#2d3b4f)}
+  html.sb-large body.sbshell{min-height:calc(100vh / 1.15)}
   `;
   const style = document.createElement('style'); style.id = 'sb-shell-css'; style.textContent = CSS;
   (document.head || document.documentElement).appendChild(style);
@@ -206,7 +209,7 @@
     const run = () => {
       items = search(q.value);
       if (!q.value.trim()) { res.hidden = true; q.setAttribute('aria-expanded', 'false'); return; }
-      res.innerHTML = items.length ? items.map((it, i) => `<li role="option" id="sbr${i}" aria-selected="false"><a href="${esc(it.href)}"><b>${esc(it.kind === 'Tool' ? it.title + ' (' + it.ctx.replace(/^in /, '') + ')' : it.title)}</b><span>${esc(it.kind)} &middot; ${esc(it.ctx)}${it.blurb ? ' &middot; ' + esc(it.blurb.length > 70 ? it.blurb.slice(0, 68) + '...' : it.blurb) : ''}</span></a></li>`).join('') : '<li class="none" role="option">Nothing found. Try another word.</li>';
+      res.innerHTML = items.length ? items.map((it, i) => `<li role="option" id="sbr${i}" aria-selected="false"><a href="${esc(it.href)}" tabindex="-1"><b>${esc(it.kind === 'Tool' ? it.title + ' (' + it.ctx.replace(/^in /, '') + ')' : it.title)}</b><span>${esc(it.kind)} &middot; ${esc(it.ctx)}${it.blurb ? ' &middot; ' + esc(it.blurb.length > 70 ? it.blurb.slice(0, 68) + '...' : it.blurb) : ''}</span></a></li>`).join('') : '<li class="none" role="option">Nothing found. Try another word.</li>';
       sel = items.length ? 0 : -1; res.hidden = false; q.setAttribute('aria-expanded', 'true'); paint();
     };
     q.addEventListener('focus', () => { ensureRegistry().then(() => { if (q.value) run(); }); });
@@ -214,10 +217,12 @@
     q.addEventListener('keydown', e => {
       if (e.key === 'ArrowDown' && items.length) { e.preventDefault(); sel = (sel + 1) % items.length; paint(); }
       else if (e.key === 'ArrowUp' && items.length) { e.preventDefault(); sel = (sel - 1 + items.length) % items.length; paint(); }
-      else if (e.key === 'Enter') { e.preventDefault(); const it = items[Math.max(sel, 0)]; if (it) location.href = it.href; }
+      else if (e.key === 'Enter') { e.preventDefault(); const it = items[Math.max(sel, 0)]; if (it) { location.href = it.href; q.value = ''; closeMenus(); } }
       else if (e.key === 'Escape') { if (q.value) { q.value = ''; run(); } else { box.classList.remove('open'); tg.setAttribute('aria-expanded', 'false'); tg.focus(); } }
     });
-    res.addEventListener('click', () => closeMenus());
+    res.addEventListener('click', () => { q.value = ''; closeMenus(); });
+    box.addEventListener('focusout', e => { if (!box.contains(e.relatedTarget)) closeMenus(); });
+    hm.parentNode.addEventListener('focusout', e => { if (!hm.parentNode.contains(e.relatedTarget)) closeMenus(); });
     tg.onclick = () => { const o = !box.classList.contains('open'); box.classList.toggle('open', o); tg.setAttribute('aria-expanded', String(o)); if (o) { q.focus(); } else { q.value = ''; closeMenus(); } };
     const an = document.getElementById('sbAddName');
     if (an) an.onclick = () => SB.nameDialog(() => { if (window.SB_SHELL_RELOAD) window.SB_SHELL_RELOAD(); else location.reload(); });
@@ -248,11 +253,8 @@
       foot = document.createElement('footer'); foot.className = 'sbfoot'; foot.id = 'sbFoot'; foot.innerHTML = footHTML();
       document.body.appendChild(foot);
     }
-    const prev = document.getElementById('sbQ'), keep = prev ? { v: prev.value, f: document.activeElement === prev } : null;
     head.innerHTML = headHTML(opts); wire();
     measure();
-    if (keep && keep.v) { document.getElementById('sbQ').value = keep.v; }
-    ensureRegistry().then(() => { if (!document.getElementById('sbQ').value) { const h = document.querySelector('.sbcrumbs'); if (h && !REG().modules.length) return; } });
     return head;
   }
   SB.shell = shell;

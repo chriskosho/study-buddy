@@ -350,6 +350,7 @@ a.mod:hover{border-color:var(--teal);transform:translateY(-2px)}
 .setgroup h3{margin:0 0 8px}
 .setrow{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;padding:6px 0}
 .setrow>span:first-child,.setrow>label{font-weight:700}
+.setrow .btn{white-space:normal;text-align:center;max-width:100%}
 .voicectl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:100%;min-width:0}
 .voicectl select{font:inherit;font-size:16px;padding:9px 12px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);max-width:min(340px,100%);min-width:0;width:100%;text-overflow:ellipsis}
 .qa{border:2px solid var(--line);border-radius:14px;background:var(--surface);margin:0 0 10px}

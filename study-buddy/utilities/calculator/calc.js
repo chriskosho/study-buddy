@@ -114,7 +114,7 @@
   }
   $$('.key').forEach(b => b.onclick = e => { press(b.dataset.k); if (e.detail) b.blur(); });   // a mouse or touch tap hands the keyboard back to the calculator
   document.addEventListener('keydown', e => {
-    if (e.target.closest('input,textarea,select') || document.querySelector('.sb-ov') || ((e.key === 'Enter' || e.key === ' ') && e.target.closest('button,a')) || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest('input,textarea,select,.sbmenu,.sbsearch') || document.querySelector('.sb-ov') || ((e.key === 'Enter' || e.key === ' ') && e.target.closest('button,a')) || e.ctrlKey || e.metaKey || e.altKey) return;
     const map = { '*': '×', 'x': '×', 'X': '×', '/': '÷', '-': '−', '+': '+', 'Enter': '=', '=': '=', 'Backspace': '⌫', 'Escape': 'AC', 'Delete': 'AC', '(': '(', ')': ')', '.': '.' };
     const k = /^[0-9]$/.test(e.key) ? e.key : map[e.key];
     if (!k) return; e.preventDefault(); press(k);

@@ -110,6 +110,60 @@ async def main():
         await pg.click('.sbsearch-toggle'); await pg.fill('#sbQ', 'quiz'); await pg.wait_for_selector('#sbResults li a')
         box = await pg.locator('#sbResults').bounding_box()
         check(box['x'] >= 0 and box['x'] + box['width'] <= 360, f'phone search results fit the screen {box}')
+        # ---- review fixes ----
+        await pg.set_viewport_size({'width': 1440, 'height': 900})
+        # Escape stops automatic Read aloud (no speaker button involved)
+        await pg.goto(base + 'modules/science/planets/index.html?tool=quiz'); await pg.wait_for_selector('.spk')
+        await pg.evaluate("SB.setSetting('readAloud', true)"); await pg.evaluate("window.__spoken.length = 0; SBT_RELOAD = 1") if False else None; await pg.reload(); await pg.wait_for_selector('.spk'); await pg.wait_for_timeout(400)
+        cancels = await pg.evaluate("window.__cancels"); await pg.keyboard.press('Escape')
+        check(await pg.evaluate("window.__cancels") > cancels, 'Escape stops automatic Read aloud')
+        await pg.evaluate("SB.setSetting('readAloud', false)")
+        # Larger text keeps tool screens free of scroll bars
+        await pg.evaluate("SB.setSetting('size','large'); SB.applyDisplay()"); await pg.wait_for_timeout(200)
+        o = await pg.evaluate("document.documentElement.scrollHeight - innerHeight")
+        check(o <= 0, f'larger text: Planets quiz does not scroll at 1440x900 ({o})')
+        # Atlas search shows which result is selected
+        await pg.evaluate("SB.setSetting('size','normal'); SB.applyDisplay()")
+        await pg.goto(base + 'modules/geography/south-america/index.html?tool=study'); await pg.wait_for_selector('#sbQ')
+        await pg.fill('#sbQ', 'quiz'); await pg.wait_for_selector('#sbResults li[aria-selected="true"] a')
+        bg = await pg.evaluate("getComputedStyle(document.querySelector('#sbResults li[aria-selected=true] a')).backgroundColor")
+        check(bg not in ('rgba(0, 0, 0, 0)', 'transparent'), f'Atlas: the selected search result is highlighted {bg}')
+        # Tab leaves the search and closes the list
+        await pg.keyboard.press('Tab'); check(not await pg.locator('#sbResults').is_visible(), 'Tab out of search closes the results')
+        # Escape in the Help menu does not clear the calculator
+        await pg.goto(base + 'utilities/calculator/index.html'); await pg.wait_for_selector('.key')
+        await pg.keyboard.type('12'); await pg.click('#sbHelpBtn'); await pg.keyboard.press('Escape')
+        shown = await pg.evaluate("document.body.innerText")
+        check('12' in shown and not await pg.locator('#sbHelpMenu').is_visible(), 'Escape closes the Help menu without clearing the calculator')
+        # the search box is empty after you open a result
+        await pg.goto(base + 'index.html#/home'); await pg.wait_for_selector('a.mod')
+        await pg.fill('#sbQ', 'planets'); await pg.wait_for_selector('#sbResults li a'); await pg.keyboard.press('Enter'); await pg.wait_for_selector('.tool')
+        check(await pg.input_value('#sbQ') == '', 'search box is empty after opening a result')
+        # voice hint recovers when voices arrive late; no errors after leaving Settings
+        await pg.goto(base + 'index.html#/settings'); await pg.wait_for_selector('#voiceSel')
+        await pg.evaluate("window.__lateVoices = true")
+        for _ in range(3):
+            await pg.goto(base + 'index.html#/help'); await pg.goto(base + 'index.html#/settings'); await pg.wait_for_selector('#voiceSel')
+        check('natural voice' in await pg.inner_text('#voiceHint'), 'voice hint is the normal text when voices exist')
+        # Help, FAQ and About open even when nobody is chosen
+        c2 = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block')
+        await c2.add_init_script("localStorage.setItem('studybuddy.v1.root',JSON.stringify({profiles:[{id:'a',name:'Joshua',color:'#e4572e'},{id:'b',name:'Eli',color:'#2b4162'}],active:null,pin:null,pinOffered:true}))")
+        p2 = await c2.new_page()
+        for h in ['help', 'faq', 'about']:
+            await p2.goto(base + f'index.html#/{h}'); await p2.wait_for_selector('h1')
+            check((await p2.inner_text('h1')).lower() == h, f'#/{h} opens with nobody chosen')
+        await c2.close()
+        # phone, larger text: the open search field does not cover the header buttons
+        c3 = await b.new_context(viewport={'width': 360, 'height': 780}, service_workers='block'); await c3.add_init_script(SEED)
+        p3 = await c3.new_page(); await p3.goto(base + 'index.html#/home'); await p3.wait_for_selector('a.mod')
+        await p3.evaluate("SB.setSetting('size','large'); SB.setSetting('font','dyslexic'); SB.applyDisplay()"); await p3.wait_for_timeout(300)
+        await p3.click('.sbsearch-toggle'); await p3.wait_for_timeout(150)
+        hit = await p3.evaluate("(()=>{const r=document.querySelector('.sbsearch-toggle').getBoundingClientRect();return !!document.elementFromPoint(r.x+r.width/2,r.y+r.height/2).closest('.sbsearch-toggle')})()")
+        check(hit, f'phone: open search does not cover its own toggle ({hit})')
+        await p3.goto(base + 'index.html#/settings'); await p3.wait_for_selector('.setpanel'); await p3.wait_for_timeout(200)
+        o = await p3.evaluate("document.documentElement.scrollWidth - innerWidth")
+        check(o <= 0, f'phone, larger + dyslexic: Settings has no sideways scroll ({o})')
+        await c3.close()
         check(not errs, f'no page errors {errs}')
         await b.close()
     print('\n' + ('ALL PASSED' if not fails else f'{len(fails)} FAILED')); sys.exit(1 if fails else 0)
