@@ -43,6 +43,23 @@ window.SB_REGISTRY = {
         { id: 'drag', name: 'Drag names', difficulty: 'medium', blurb: 'Drag each name onto its country. Mastered with 2 misses or fewer.' },
         { id: 'spell', name: 'Spell it', difficulty: 'hard', blurb: 'Type the name of the country shown. Mastered at 8 of 10.' }
       ]
+    },
+    {
+      id: 'parts-of-speech',
+      subject: 'english',
+      title: 'Parts of Speech',
+      blurb: 'The eight jobs a word can do in a sentence, from nouns and verbs to words that switch jobs.',
+      tags: ['english', 'grammar'],
+      path: 'modules/english/parts-of-speech/index.html',
+      storage: ['parts-of-speech'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'All eight parts of speech, with examples you can hear.' },
+        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'What each part does, and words in sentences. Mastered at 80% on the first try.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'easy', blurb: 'Sort words into nouns, verbs, and adjectives. Mastered with 2 misses or fewer.' },
+        { id: 'spot', name: 'Spot it', difficulty: 'medium', blurb: 'Tap the noun, verb, adjective, adverb, or pronoun in a sentence. Mastered at 8 of 10.' },
+        { id: 'speed', name: 'Speed round', difficulty: 'hard', masterAt: 12, blurb: '60 seconds to name the part of speech of as many words as you can. Mastered at 12.' },
+        { id: 'label', name: 'Label the sentence', difficulty: 'insane', blurb: 'Label every word, including words that switch jobs. Mastered at 4 of 5 sentences.' }
+      ]
     }
   ]
 };

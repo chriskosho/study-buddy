@@ -23,7 +23,7 @@ def check(cond, msg):
 
 SPEECH_STUB = """
 window.__spoken=[];
-window.speechSynthesis={speak(u){window.__spoken.push(u.text);setTimeout(()=>u.onend&&u.onend(),300)},cancel(){},getVoices(){return[]}};
+Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak(u){window.__spoken.push(u.text);setTimeout(()=>u.onend&&u.onend(),300)},cancel(){},getVoices(){return[]}}});
 window.SpeechSynthesisUtterance=function(t){this.text=t};
 """
 
@@ -63,17 +63,17 @@ async def main():
 
         # ---- home ----
         check('Hi, Joshua' in await pg.locator('h1').inner_text(), 'home greets Joshua')
-        check(await pg.locator('a.mod').count() == 1, 'one module card (South America)')
-        check('Easy' in await pg.locator('a.mod').inner_text() and 'Hard' in await pg.locator('a.mod').inner_text(), 'automatic difficulty range Easy to Hard')
+        check(await pg.locator('a.mod').count() == 2, 'two module cards (South America, Parts of Speech)')
+        check('Easy' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text() and 'Hard' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'automatic difficulty range Easy to Hard')
         o = await overflow(pg); check(o['v'] <= 0 and o['h'] <= 0, f'home: no scroll {o}')
         await pg.screenshot(path=f'{OUT}/sb_home.png')
         await pg.click('nav.tabs a:has-text("Math")'); await pg.wait_for_selector('.empty')
         check('No Math modules yet' in await pg.inner_text('body'), 'empty subject message')
         await pg.click('nav.tabs a:has-text("Geography")'); await pg.wait_for_selector('a.mod')
-        check(await pg.locator('a.mod').count() == 1, 'geography filter shows module')
+        check(await pg.locator('a.mod').count() == 1, 'geography filter shows only South America')
 
         # ---- module page ----
-        await pg.click('a.mod'); await pg.wait_for_selector('.tool')
+        await pg.click('a.mod[href="#/module/south-america"]'); await pg.wait_for_selector('.tool')
         check(await pg.locator('.tool').count() == 6, 'six tools listed')
         names = await pg.locator('.tool h3').all_inner_texts()
         check(names[0] in ('Study map', 'Flashcards') and names[-1] == 'Spell it', f'tools sorted easy to hard {names}')
@@ -116,13 +116,13 @@ async def main():
         txt = await pg.locator('.tool:has(h3:text-is("Flashcards"))').inner_text()
         check('Mastered' in txt and 'Best 12/12' in txt, 'hub shows flashcards mastered')
         await pg.click('a[href="#/home"] >> nth=0'); await pg.wait_for_selector('a.mod')
-        check('1 of 5 mastered' in await pg.locator('a.mod').inner_text(), 'module card shows 1 of 5 mastered')
+        check('1 of 5 mastered' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'module card shows 1 of 5 mastered')
         check('Keep going' in await pg.locator('body').text_content(), 'keep going strip')
         await pg.screenshot(path=f'{OUT}/sb_home_progress.png')
 
         # ---- another child sees their own progress ----
         await pg.click('a.kidpill'); await pg.click('.whocard:has-text("Eli")'); await pg.wait_for_selector('a.mod')
-        check('0 of 5 mastered' in await pg.locator('a.mod').inner_text(), 'Eli has separate progress')
+        check('0 of 5 mastered' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'Eli has separate progress')
         await pg.goto(base + 'modules/geography/south-america/index.html?tool=cards')
         await pg.wait_for_selector('#stamps .stamp')
         check(await pg.locator('#stampCount').inner_text() == '0/12', 'Eli passport is separate')
@@ -136,7 +136,7 @@ async def main():
         await pg.fill('[data-x="a"]', '1234'); await pg.click('[data-x="yes"]')
         await pg.wait_for_selector('#psec h2')
         check('Progress' in await pg.locator('#psec h2').inner_text(), 'parent progress opens')
-        check(await pg.locator('.ptable th').count() == 6, 'progress table has a column per child')
+        check(await pg.locator('.ptable >> nth=0 >> th').count() == 6, 'progress table has a column per child')
         await pg.screenshot(path=f'{OUT}/sb_parent_progress.png', full_page=True)
         await pg.click('nav.tabs a:has-text("Children")'); await pg.wait_for_selector('.kidrow')
         await pg.click('.kidrow:has(input[value="Hazel"]) [data-set="readAloud"]')

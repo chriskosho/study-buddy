@@ -82,9 +82,9 @@
 
     let body;
     if (subj === 'all') {
-      const groups = REG.subjects.map(s => ({ s, mods: REG.modules.filter(m => m.subject === s.id) })).filter(g => g.mods.length);
-      body = groups.length ? groups.map((g, i) => `<div class="${i ? 'sectionhead' : ''}" style="${i ? '' : 'margin-bottom:12px'}"><h3>${esc(g.s.name)}</h3></div><div class="grid">${g.mods.map(modCard).join('')}</div>`).join('')
-        : '<p class="empty">No modules yet.</p>';
+      const order = id => REG.subjects.findIndex(s => s.id === id);
+      const all = [...REG.modules].sort((a, b) => order(a.subject) - order(b.subject));   // each card names its subject
+      body = all.length ? `<div class="grid">${all.map(modCard).join('')}</div>` : '<p class="empty">No modules yet.</p>';
     } else {
       const mine = REG.modules.filter(m => m.subject === subj);
       const sugg = REG.modules.filter(m => m.subject !== subj && m.tags.includes(subj));
