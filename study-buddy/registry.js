@@ -1,0 +1,48 @@
+/* Study Buddy registry: the list of subjects and modules.
+   To add a module: put its folder under modules/<subject>/<module>/ and add one entry below.
+   The hub builds itself from this file. Module difficulty is worked out from its tools.
+
+   Module fields
+     id        unique id (also used in saved progress, so don't rename it later)
+     subject   the home subject id
+     tags      extra subjects or skills; a tag that matches another subject puts the module
+               in that subject's "Suggested" area
+     path      page to open, relative to the site root
+     storage   localStorage keys the module saves under SB.moduleKey(...), so a parent reset can clear them
+     tools     the activities inside the module
+
+   Tool fields
+     id          the module's own name for it (opened with ?tool=<id>)
+     difficulty  easy | medium | hard | insane
+     kind        'study' for tools with no score (they never count toward mastery)
+     masterAt    mastered when the best score reaches this number, or
+     masterPct   mastered when best / max reaches this share (default 0.8)
+*/
+window.SB_REGISTRY = {
+  subjects: [
+    { id: 'english', name: 'English' },
+    { id: 'math', name: 'Math' },
+    { id: 'science', name: 'Science' },
+    { id: 'geography', name: 'Geography' },
+    { id: 'history', name: 'History' }
+  ],
+  modules: [
+    {
+      id: 'south-america',
+      subject: 'geography',
+      title: 'South America',
+      blurb: 'The 12 countries: where they are, their capitals, their flags, and how to say and spell their names.',
+      tags: ['geography', 'maps'],
+      path: 'modules/geography/south-america/index.html',
+      storage: ['explorers-atlas.south-america'],
+      tools: [
+        { id: 'study', name: 'Study map', kind: 'study', difficulty: 'easy', blurb: 'Every country with its name. Tap one to hear it.' },
+        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'Map shapes, capitals, and flags. Mastered when you know 10 of 12 on the first try.' },
+        { id: 'listen', name: 'Listen and tap', difficulty: 'medium', blurb: 'Hear a name, then tap the country. Mastered at 10 of 12 on the first try.' },
+        { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 12, blurb: '60 seconds to find as many countries as you can. Mastered at 12 found.' },
+        { id: 'drag', name: 'Drag names', difficulty: 'medium', blurb: 'Drag each name onto its country. Mastered with 2 misses or fewer.' },
+        { id: 'spell', name: 'Spell it', difficulty: 'hard', blurb: 'Type the name of the country shown. Mastered at 8 of 10.' }
+      ]
+    }
+  ]
+};

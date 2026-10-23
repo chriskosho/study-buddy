@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#2b4162"/>
+  <g id="book">
+    <path d="M256 176C210 144 152 136 100 146V362C152 352 210 360 256 392Z" fill="#fbf6ea"/>
+    <path d="M256 176C302 144 360 136 412 146V362C360 352 302 360 256 392Z" fill="#fffdf7"/>
+    <path d="M256 176V392" stroke="#e4dcc8" stroke-width="6"/>
+    <g stroke="#e4dcc8" stroke-width="12" stroke-linecap="round" fill="none">
+      <path d="M134 200C166 194 198 198 224 210"/><path d="M134 244C166 238 198 242 224 254"/><path d="M134 288C166 282 198 286 224 298"/>
+      <path d="M288 254C314 242 346 238 378 244"/><path d="M288 298C314 286 346 282 378 288"/>
+    </g>
+    <path d="M330 147L372 142V242L351 224L330 242Z" fill="#f6b73c"/>
+  </g>
+</svg>

@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explorer's Atlas: South America</title>
+<!-- Study Buddy core. Missing when this file is opened on its own, and the app still works. -->
+<script src="../../../shared/sb-core.js"></script>
+<style>
+:root{
+  --paper:#fbf6ea; --card:#fffdf7; --ink:#23313f; --ink2:#5b6773; --line:#e4dcc8;
+  --sea:#cfe8f0; --coral:#e4572e; --teal:#1b998b; --sun:#f6b73c; --navy:#2b4162;
+  --good:#2e9e5b; --bad:#d64545; --radius:16px;
+  --font: "Trebuchet MS","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.45}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:1000px;margin:0 auto;padding:14px 14px 40px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+h1{font-size:clamp(22px,4.5vw,32px);margin:0;letter-spacing:-.5px}
+h1 small{display:block;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal)}
+.passport{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 12px}
+.passport .stamps{display:flex;gap:4px;flex-wrap:wrap}
+.stamp{width:22px;height:22px;border-radius:50%;overflow:hidden;border:2px solid var(--line);filter:grayscale(1) opacity(.45);transition:.3s}
+.stamp.on{filter:none;border-color:var(--sun);transform:scale(1.08)}
+.stamp svg{width:100%;height:100%;display:block}
+.passport b{font-size:14px;white-space:nowrap}
+.iconbtn{background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+nav.tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:thin}
+nav.tabs button{flex:0 0 auto;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:9px 16px;font-weight:700;font-size:15px;transition:.15s}
+nav.tabs button:hover{border-color:var(--teal)}
+nav.tabs button[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+section.panel{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:18px}
+section.panel[hidden]{display:none}
+h2{margin:0 0 4px;font-size:22px}
+.lead{margin:0 0 14px;color:var(--ink2)}
+.btn{background:var(--navy);color:#fff;border:0;border-radius:12px;padding:10px 18px;font-weight:700;box-shadow:0 3px 0 #1b2b45;transition:transform .08s}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #1b2b45}
+.btn.ghost{background:#fff;color:var(--navy);border:2px solid var(--line);box-shadow:none}
+.btn.good{background:var(--good);box-shadow:0 3px 0 #1f6f40}
+.btn.warn{background:#fff;color:var(--coral);border:2px solid var(--coral);box-shadow:none}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.center{justify-content:center}
+.seg{display:inline-flex;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.seg button{border:0;background:transparent;padding:7px 12px;font-size:14px;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--teal);color:#fff}
+.flag{display:block;width:100%;height:auto;border-radius:6px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+
+/* flashcards */
+.deckbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.bar{height:10px;background:#eee6d2;border-radius:99px;overflow:hidden;flex:1;min-width:120px}
+.bar i{display:block;height:100%;background:var(--teal);width:0;transition:width .3s}
+.cardstage{perspective:1200px;max-width:400px;margin:8px auto 14px}
+.fcard{position:relative;width:100%;aspect-ratio:1/1;transform-style:preserve-3d;transition:transform .5s;cursor:pointer;border:0;background:none;padding:0;display:block}
+.fcard.flip{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:22px;border:3px solid var(--navy);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;text-align:center;gap:8px;overflow:hidden}
+.face.back{transform:rotateY(180deg);background:#fff9e6}
+.face .tag{font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--teal)}
+.face .big{font-size:clamp(26px,6vw,38px);font-weight:800;line-height:1.1}
+.face .small{font-size:15px;color:var(--ink2);max-width:90%}
+.face svg.mini{height:74%;width:auto;max-width:85%}
+.face .flagbox{width:56%}
+.hint{font-size:12px;color:var(--ink2)}
+
+/* map */
+.mapgrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:720px){.mapgrid{grid-template-columns:1fr}}
+.mapbox{background:var(--sea);border-radius:18px;border:2px solid #b7d8e4;padding:6px;position:relative}
+.mapbox svg{display:block;width:100%;height:auto;max-height:78vh;touch-action:manipulation}
+.land{stroke:#fff;stroke-width:1.6;stroke-linejoin:round;transition:fill .25s,transform .25s}
+.ctx{fill:#ece6d3;stroke:#cfc7ae;stroke-width:1}
+.cpath{cursor:pointer}
+.cpath.challenge{fill:#e9dfc4}
+.cpath.hover{filter:brightness(1.07);stroke:var(--navy);stroke-width:2.2}
+.cpath.placed{fill-opacity:1}
+.cpath.flash-bad{animation:badflash .5s}
+.cpath.flash-good{animation:goodflash .7s}
+@keyframes badflash{0%,100%{stroke:#fff}30%,70%{stroke:var(--bad);stroke-width:4}}
+@keyframes goodflash{0%{stroke:var(--good);stroke-width:5}100%{stroke:#fff}}
+.cpath.target{stroke:var(--coral);stroke-width:3}
+.lbl{font-weight:800;fill:var(--ink);paint-order:stroke;stroke:#fff;stroke-width:3.4px;stroke-linejoin:round;pointer-events:none;text-anchor:middle;font-family:var(--font)}
+.tray{display:flex;flex-wrap:wrap;gap:8px;min-height:60px}
+.chip{background:#fff;border:2px solid var(--navy);color:var(--navy);border-radius:12px;padding:8px 14px;font-weight:800;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;box-shadow:0 3px 0 var(--navy);transition:transform .1s}
+.chip:hover{transform:translateY(-1px)}
+.chip.sel{background:var(--sun);border-color:#b07a00;box-shadow:0 3px 0 #b07a00}
+.chip.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.ghostchip{position:fixed;z-index:50;pointer-events:none;background:var(--sun);border:2px solid #b07a00;color:var(--ink);border-radius:12px;padding:8px 14px;font-weight:800;transform:translate(-50%,-130%) rotate(-3deg);box-shadow:0 8px 18px rgba(0,0,0,.25)}
+.scorebar{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 12px}
+.stat{background:#fff;border:2px solid var(--line);border-radius:12px;padding:6px 14px;min-width:92px}
+.stat b{display:block;font-size:22px;line-height:1.1}
+.stat span{font-size:12px;color:var(--ink2);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.prompt{font-size:clamp(22px,5vw,30px);font-weight:800;margin:6px 0 8px}
+.prompt em{font-style:normal;color:var(--coral)}
+.msg{min-height:26px;font-weight:700}
+.msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
+
+/* quiz */
+.qwrap{max-width:620px;margin:0 auto}
+.qvisual{display:flex;justify-content:center;margin:8px 0 14px}
+.qvisual .flagbox{width:min(260px,70%)}
+.qvisual svg.mini{width:min(260px,70%);height:auto;background:var(--sea);border-radius:14px;padding:6px}
+.qtext{font-size:clamp(20px,4.5vw,26px);font-weight:800;text-align:center;margin:0 0 14px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.opts{grid-template-columns:1fr}}
+.opt{background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px;font-weight:700;font-size:17px;text-align:center;transition:.12s}
+.opt:hover:not(:disabled){border-color:var(--teal);transform:translateY(-1px)}
+.opt.right{background:#dff3e6;border-color:var(--good)}
+.opt.wrong{background:#fbe0e0;border-color:var(--bad)}
+.opt:disabled{cursor:default}
+.explain{margin-top:12px;text-align:center;min-height:24px;color:var(--ink2)}
+.result{text-align:center;padding:10px}
+.stars{font-size:44px;letter-spacing:6px;color:var(--sun)}
+.stars .off{color:#e2dbc6}
+
+/* memory */
+.mgrid{display:grid;gap:10px;max-width:520px;margin:0 auto}
+.mcard{aspect-ratio:1/1;position:relative;perspective:800px;border:0;background:none;padding:0}
+.mcard .in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .4s}
+.mcard.up .in,.mcard.done .in{transform:rotateY(180deg)}
+.mcard .f{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;font-weight:800;font-size:clamp(12px,2.8vw,17px);line-height:1.1;overflow:hidden}
+.mcard .f.front{background:var(--navy);color:#fff;font-size:28px}
+.mcard .f.back{transform:rotateY(180deg);background:#fff;border:3px solid var(--teal);flex-direction:column}
+.mcard.done .f.back{background:#dff3e6;border-color:var(--good)}
+.mcard .f.back .flag{width:90%}
+
+footer{margin-top:18px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--ink2);font-size:13px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,40px);background:var(--navy);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;transition:.3s;z-index:60;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.settings{margin:0 0 8px}
+.iconbtn[aria-pressed="false"]{opacity:.65}
+.passport b{font-weight:700}
+.spk{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;border:2px solid var(--navy);background:#fff;color:var(--navy);padding:0;flex:0 0 auto}
+.spk:hover{background:var(--sun)}
+.spk svg{width:20px;height:20px}
+.face .spk{position:absolute;top:10px;right:10px}
+.no-speech .spk{display:none}
+/* zoom controls */
+.zoombar{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.zoombar button{width:36px;height:36px;border-radius:10px;border:2px solid var(--navy);background:#fff;color:var(--navy);font-size:20px;font-weight:800;line-height:1;padding:0}
+.zoombar button:hover{background:var(--sun)}
+.mapbox svg.zoomed{touch-action:none;cursor:grab}
+/* bigger flashcards */
+.cardstage{width:min(100%,620px,64vh);max-width:none}
+.face svg.mini{background:var(--sea);border-radius:14px;height:78%;width:auto;max-width:92%;border:2px solid #b7d8e4}
+.face .flagbox{width:68%}
+.face .big{font-size:clamp(30px,7vw,48px)}
+.face .small{font-size:clamp(15px,2.6vw,19px)}
+/* study list */
+.studylist{display:grid;gap:6px}
+.srow{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--line);border-radius:12px;padding:5px 10px}
+.srow .sf{width:46px;flex:0 0 46px}
+.srow .st{flex:1;min-width:0}.srow .st b{display:block;line-height:1.15}.srow .st span{font-size:13px;color:var(--ink2)}
+.srow .spk{width:32px;height:32px}
+.mapgrid.study{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+@media (max-width:720px){.mapgrid.study{grid-template-columns:1fr}}
+/* spell + bigger */
+.spellrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.spellrow input{font:inherit;font-size:22px;font-weight:700;padding:10px 14px;border:2px solid var(--navy);border-radius:12px;width:min(320px,100%);text-align:center}
+.spellrow input.bad{border-color:var(--bad)}
+.err{color:var(--bad);font-weight:700;min-height:24px;text-align:center}
+.versus{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.vbtn{background:#fff;border:3px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:800;font-size:20px;transition:.12s}
+.vbtn:hover:not(:disabled){border-color:var(--teal);transform:translateY(-2px)}
+.vbtn .flagbox{width:70%}
+.vbtn.right{background:#dff3e6;border-color:var(--good)}
+.vbtn.wrong{background:#fbe0e0;border-color:var(--bad)}
+.vbtn small{font-weight:600;color:var(--ink2);font-size:14px;min-height:20px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---- v3: more room, fewer scrollbars ---- */
+body{font-size:18px}
+.wrap{max-width:1600px;padding:22px clamp(14px,3vw,40px) 40px}
+header.top{margin-bottom:14px;gap:16px}
+.settings{margin:0 0 14px;gap:12px}
+.iconbtn{padding:8px 16px;font-size:15px}
+nav.tabs{flex-wrap:wrap;overflow:visible;gap:10px;padding:2px 0 16px}
+nav.tabs button{padding:11px 20px;font-size:16px}
+section.panel{padding:clamp(18px,2.6vw,36px);border-radius:26px}
+h2{font-size:28px;margin-bottom:6px}
+.lead{font-size:18px;margin-bottom:20px}
+.btn{padding:13px 26px;font-size:18px;border-radius:14px}
+.seg button{padding:10px 16px;font-size:15px}
+.scorebar{gap:18px;margin:8px 0 20px}
+.stat{padding:8px 18px;min-width:104px}
+.stat b{font-size:26px}
+.mapgrid{gap:clamp(20px,3vw,44px);grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media (max-width:760px){.mapgrid,.mapgrid.study{grid-template-columns:1fr}}
+.mapbox{padding:10px;border-radius:22px}
+.mapbox svg{width:100%;height:calc(100vh - 270px);min-height:480px;max-height:980px}
+.tray{gap:14px}
+.chip{padding:13px 22px;font-size:20px;border-radius:14px}
+.prompt{font-size:clamp(26px,3.4vw,40px);margin:8px 0 16px}
+.msg{font-size:19px;margin:14px 0}
+.srow{padding:8px 16px;gap:14px}
+.srow .st b{font-size:20px}.srow .st span{font-size:15px}
+.srow .sf{width:58px;flex-basis:58px}
+.studylist{gap:9px}
+.cardstage{width:min(100%,820px,calc(100vh - 360px));min-width:min(100%,360px)}
+.face svg.mini{height:86%;max-width:94%}
+.qvisual svg.mini{height:calc(100vh - 470px);min-height:300px;width:auto;max-width:100%;padding:8px}
+.deckbar{margin-bottom:18px}
+.spk{width:44px;height:44px}
+.spk svg{width:24px;height:24px}
+.srow .spk{width:40px;height:40px}
+.spk.playing{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 0 0 5px rgba(27,153,139,.28)}
+.spellrow input{font-size:26px;padding:14px 18px}
+
+/* ---- v3b: fit the screen ---- */
+h1{font-size:clamp(24px,3vw,32px)}
+header.top{margin-bottom:6px}
+.bar2{display:flex;justify-content:space-between;align-items:flex-start;gap:12px 24px;flex-wrap:wrap;margin-bottom:12px}
+.bar2 nav.tabs{padding:0;flex:1 1 auto}
+.bar2 .settings{margin:0;flex:0 0 auto}
+section.panel{padding:clamp(16px,2vw,28px)}
+section.panel>h2{display:inline-block;margin:0 16px 0 0;font-size:26px}
+section.panel>.lead{display:inline;font-size:17px}
+section.panel>.lead+*{margin-top:14px}
+.scorebar{margin:12px 0 14px}
+.deckbar{margin:14px 0}
+.cardstage{height:calc(100vh - 330px);min-height:380px;width:auto;max-width:100%;aspect-ratio:5/4;min-width:0;margin:6px auto 16px}
+.fcard{height:100%;aspect-ratio:auto}
+.face svg.mini{height:88%}
+.mapbox svg{height:calc(100vh - 360px);min-height:440px}
+#tab-study .mapbox svg{height:calc(100vh - 270px)}
+.studylist{gap:7px}
+.srow{padding:6px 14px}
+.srow .sf{width:52px;flex-basis:52px}
+.spellgrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(20px,4vw,56px);align-items:center;margin-top:6px}
+@media (max-width:760px){.spellgrid{grid-template-columns:1fr}}
+.spellgrid .qvisual{margin:0}
+.spellgrid .qvisual svg.mini{height:calc(100vh - 330px);min-height:380px;width:auto;max-width:100%}
+.spellgrid .qtext{text-align:left;font-size:clamp(24px,3vw,36px);margin-bottom:8px}
+.spellgrid .spellrow{justify-content:flex-start}
+.spellgrid .err{text-align:left}
+.spellgrid .row{justify-content:flex-start}
+
+/* ---- v3c: final fit ---- */
+.cardstage{height:calc(100vh - 450px)}
+.mapbox svg{height:calc(100vh - 440px);min-height:420px}
+#tab-study .mapbox svg{height:calc(100vh - 320px)}
+.studylist{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.srow{padding:6px 10px;gap:10px}
+.srow .sf{width:44px;flex-basis:44px}
+.srow .st b{font-size:18px}.srow .st span{font-size:13px}
+.srow .spk{width:36px;height:36px}
+.mapgrid.study{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.spellgrid .qvisual svg.mini{height:calc(100vh - 380px)}
+.wrap{padding-bottom:16px}
+#tab-study .mapbox svg{height:calc(100vh - 340px)}
+.cardstage{height:calc(100vh - 480px)}
+.mapbox svg{height:calc(100vh - 470px)}
+#tab-study .mapbox svg{height:calc(100vh - 372px)}
+.spellgrid .qvisual svg.mini{height:calc(100vh - 400px)}
+#tab-spell .qwrap{max-width:none}
+.cardstage{height:calc(100vh - 420px)}
+.mapbox svg{height:calc(100vh - 410px)}
+#tab-study .mapbox svg{height:calc(100vh - 312px)}
+.spellgrid .qvisual svg.mini{height:calc(100vh - 340px)}
+.spellgrid{justify-content:center}
+/* ---- Study Buddy bridge ---- */
+h1 small a{color:inherit;text-decoration:none}
+h1 small a:hover{text-decoration:underline}
+a.kidchip{text-decoration:none;color:inherit;font-size:15px}
+a.kidchip[hidden]{display:none}
+a.kidchip:hover{border-color:var(--teal)}
+@media (max-width:760px){.bar2 .settings{flex:1 1 100%}}   /* phones: let the settings row wrap instead of scrolling sideways */
+.av{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--c,#2b4162);color:var(--ci,#fff);font-weight:800;font-size:13px;flex:0 0 auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1><small id="brand">Explorer's Atlas</small><span id="title"></span></h1>
+    <div class="row">
+      <a class="passport kidchip" id="kidChip" hidden title="Switch to someone else"></a>
+      <div class="passport" title="Earn a stamp for each country by getting it right a few times">
+        <b>Passport <span id="stampCount">0/12</span></b><div class="stamps" id="stamps"></div>
+      </div>
+      <div class="passport" title="Right answers in a row, and today's goal"><b>Streak <span id="streakN">0</span></b><b>Today <span id="dailyN">0</span>/<span id="dailyGoal">20</span></b></div>
+    </div>
+  </header>
+
+<div class="bar2">
+  <nav class="tabs" role="tablist" aria-label="Activities">
+    <button role="tab" data-tab="study" aria-selected="false">Study map</button>
+    <button role="tab" data-tab="cards" aria-selected="true">Flashcards</button>
+    <button role="tab" data-tab="drag" aria-selected="false">Drag names</button>
+    <button role="tab" data-tab="find" aria-selected="false">Find it</button>
+    <button role="tab" data-tab="listen" aria-selected="false">Listen and tap</button>
+    <button role="tab" data-tab="spell" aria-selected="false">Spell it</button>
+    <button role="tab" data-tab="quiz" aria-selected="false" hidden>Quiz</button>
+    <button role="tab" data-tab="bigger" aria-selected="false" hidden>Which is bigger?</button>
+    <button role="tab" data-tab="memory" aria-selected="false" hidden>Memory match</button>
+  </nav>
+  <div class="settings row">
+    <button class="iconbtn" id="soundBtn" aria-pressed="true">Sound: on</button>
+    <button class="iconbtn" id="sayBtn" aria-pressed="true">Say names: on</button>
+    <button class="iconbtn" id="resetAll" title="Erase saved stamps and best scores">Reset</button>
+    <button class="iconbtn" id="voiceBtn" aria-pressed="false" title="English voice says the English name. Local voice says it the way people there do.">Voice: English</button>
+  </div>
+  </div>
+
+  <section class="panel" id="tab-study" hidden>
+    <h2>Study map</h2>
+    <p class="lead">Every country with its name. Tap a country (or a speaker) to hear it. Zoom in on the small ones.</p>
+    <div class="mapgrid study">
+      <div class="mapbox"><svg id="mapStudy" aria-label="Labeled map of South America"></svg></div>
+      <div><div class="studylist" id="studyList"></div></div>
+    </div>
+  </section>
+
+  <section class="panel" id="tab-cards">
+    <h2>Flashcards</h2>
+    <p class="lead">Tap the card to flip it. Be honest: did you know it? Cards you miss come back again.</p>
+    <div class="deckbar">
+      <div class="seg" id="cardMode" role="group" aria-label="Card type">
+        <button data-mode="shape" aria-pressed="true">Map shape</button>
+        <button data-mode="capital" aria-pressed="false">Capitals</button>
+        <button data-mode="flag" aria-pressed="false">Flags</button>
+        <button data-mode="mix" aria-pressed="false">Mix</button>
+      </div>
+      <div class="bar" aria-hidden="true"><i id="cardBar"></i></div>
+      <span class="hint" id="cardCount"></span>
+    </div>
+    <div class="cardstage"><div class="fcard" id="fcard" role="button" tabindex="0" aria-label="Flashcard. Press to flip"><div class="face front" id="faceF"></div><div class="face back" id="faceB"></div></div></div>
+    <div class="row center">
+      <button class="btn warn" id="cardAgain">Still learning</button>
+      <button class="btn ghost" id="cardSkip">Skip</button>
+      <button class="btn good" id="cardKnew">I knew it</button>
+    </div>
+      </section>
+
+  <section class="panel" id="tab-drag" hidden>
+    <h2>Map: drag the names</h2>
+    <p class="lead">Drag each name onto its country (or tap a name, then tap the country).</p>
+    <div class="scorebar">
+      <div class="stat"><b id="dPlaced">0/12</b><span>Placed</span></div>
+      <div class="stat"><b id="dMiss">0</b><span>Misses</span></div>
+      <div class="seg" id="dragMode" role="group" aria-label="Map style"><button data-m="grey" aria-pressed="true" title="Everything starts colored. Placed countries turn grey.">Grey out when placed</button><button data-m="reveal" aria-pressed="false" title="Everything starts blank. Placed countries get color and a thick border.">Blank, then color</button><button data-m="stay" aria-pressed="false" title="Colors stay on the whole time.">Colors stay</button></div>
+    </div>
+    <div class="mapgrid">
+      <div class="mapbox"><svg id="mapDrag" aria-label="Map of South America"></svg></div>
+      <div>
+        <div class="tray" id="tray"></div>
+        <p class="msg" id="dMsg"></p>
+        <div class="row"><button class="btn ghost" id="dHint">Hint</button><button class="btn warn" id="dReset">Start over</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="tab-find" hidden>
+    <h2>Map: find it</h2>
+    <p class="lead">A country name appears. Tap it on the map as fast as you can.</p>
+    <div class="scorebar">
+      <div class="stat"><b id="fScore">0</b><span>Score</span></div>
+      <div class="stat"><b id="fTime">60</b><span>Seconds</span></div>
+      <div class="stat"><b id="fBest">0</b><span>Best</span></div>
+    </div>
+    <div class="mapgrid">
+      <div class="mapbox"><svg id="mapFind" aria-label="Map of South America"></svg></div>
+      <div>
+        <div class="prompt" id="fPrompt">Ready?</div>
+        <p class="msg" id="fMsg">You get 60 seconds. Each right tap is a point.</p>
+        <div class="row"><button class="btn" id="fStart">Start</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="tab-listen" hidden>
+    <h2>Listen and tap</h2>
+    <p class="lead">Listen to the country name, then tap it on the map. Switch the voice to "Local" to hear how people there say it.</p>
+    <div class="scorebar">
+      <div class="stat"><b id="lScore">0/12</b><span>Right</span></div>
+      <div class="stat"><b id="lRound">1</b><span>Round</span></div>
+    </div>
+    <div class="mapgrid">
+      <div class="mapbox"><svg id="mapListen" aria-label="Map of South America"></svg></div>
+      <div>
+        <div class="prompt" id="lPrompt">Press play</div>
+        <div class="row"><button class="btn" id="lPlay">Play the name</button><button class="btn ghost" id="lSkip">Skip</button></div>
+        <p class="msg" id="lMsg"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="tab-spell" hidden>
+    <div class="qwrap" id="spellBox"></div>
+  </section>
+
+  <section class="panel" id="tab-bigger" hidden>
+    <div class="qwrap" id="bigBox"></div>
+  </section>
+
+  <section class="panel" id="tab-quiz" hidden>
+    <div class="qwrap" id="quizBox"></div>
+  </section>
+
+  <section class="panel" id="tab-memory" hidden>
+    <h2>Memory match</h2>
+    <p class="lead" id="memLead">Flip two cards. Match each country with its capital.</p>
+    <div class="scorebar">
+      <div class="stat"><b id="mPairs">0</b><span>Pairs</span></div>
+      <div class="stat"><b id="mMoves">0</b><span>Moves</span></div>
+      <div class="stat"><b id="mBest">-</b><span>Best moves</span></div>
+      <div class="seg" id="memMode" role="group" aria-label="Match type"><button data-m="capital" aria-pressed="true">Capitals</button><button data-m="flag" aria-pressed="false">Flags</button></div>
+      <div class="seg" id="memSize" role="group" aria-label="Number of pairs"><button data-n="6" aria-pressed="true">6 pairs</button><button data-n="8" aria-pressed="false">8 pairs</button><button data-n="12" aria-pressed="false">12 pairs</button></div>
+    </div>
+    <div class="mgrid" id="mgrid"></div>
+    <div class="row center" style="margin-top:14px"><button class="btn" id="mNew">New game</button></div>
+    <p class="msg" id="mMsg" style="text-align:center"></p>
+  </section>
+
+
+</div>
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+const MAPDATA = {"width":533,"height":798,"countries":{"colombia":{"d":"M121.9,19L115.6,30.2L114.6,41.4L109.4,56L112.5,68.9L134.4,73.4L158.3,81.8L160.4,100.8L158.3,119.8L165.6,132.2L143.7,138.9L135.4,145.6L140.6,162.4L135.9,198.2L114.6,178.1L93.7,162.4L80.2,152.3L55.2,143.4L42.7,135.5L45.8,126.6L59.4,106.4L58.3,88.5L53.1,70.6L59.4,54.9L64.6,53.8L77.1,34.7L85.4,28L100,24.6L115.6,12.3Z","label":[103.7,113.3,44.9]},"venezuela":{"d":"M121.9,19L135.4,14.6L153.1,31.4L177.1,32.5L197.9,32.5L215.6,31.4L227.1,40.3L230.2,51.5L241.7,55.4L232.3,68.3L232.3,93L204.2,107.5L189.6,104.2L173.9,142.2L165.6,132.2L158.3,119.8L160.4,100.8L158.3,81.8L134.4,73.4L112.5,68.9L109.4,56L114.6,41.4L115.6,30.2L121.9,19Z","label":[195.4,68.6,36.1]},"ecuador":{"d":"M80.2,152.3L55.2,143.4L42.7,135.5L31.2,151.2L21.9,162.4L20.8,175.8L29.2,183.7L28.1,189.3L36.5,200.5L47.9,189.3L54.2,183.7L77.1,168L80.2,152.3Z","label":[47.8,163.5,20.2]},"peru":{"d":"M28.1,189.3L18.7,203.8L21.9,216.2L32.3,228.5L41.7,244.2L52.1,261L62.5,286.7L70.8,303.5L81.2,322.6L104.2,333.8L119.8,345L131.2,356.2L140.6,347.2L144.8,332.6L145.8,313.6L146.9,293.4L139.6,273.8L129.2,274.4L106.2,257.6L102.1,234.1L104.2,218.4L126,200.5L135.9,198.2L114.6,178.1L93.7,162.4L80.2,152.3L77.1,168L54.2,183.7L47.9,189.3L36.5,200.5L28.1,189.3Z","label":[67.7,219.3,35.1]},"brazil":{"d":"M327.1,104.2L343.7,131L343.7,145.6L359.4,162.4L385.4,163.5L406.2,179.2L432.3,183.7L458.3,185.9L477.1,206.1L497.9,215L502.1,229.6L500,249.8L484.3,268.8L473.9,274.4L463.5,296.8L458.3,319.2L456.2,349.4L451,369.6L438.5,392L428.1,407.7L414.6,408.8L395.8,414.4L381.2,420L364.6,436.8L357.3,450.2L358.3,467L346.9,481.6L335.4,500.6L320.8,511.8L308.3,528.6L308.3,516.3L291.6,500.6L281.2,489.4L264.6,489.4L269.8,480.5L283.3,467L296.9,457L304.1,446.9L295.8,437.9L296.9,418.9L283.3,401L262.5,386.4L258.3,373L263.5,348.3L256.2,333.8L237.5,333.8L237.5,313.6L211.4,296.8L184.4,261L166.7,265.4L147.9,274.4L139.6,273.8L129.2,274.4L106.2,257.6L102.1,234.1L104.2,218.4L126,200.5L135.9,198.2L140.6,162.4L135.4,145.6L143.7,138.9L165.6,132.2L173.9,142.2L189.6,104.2L204.2,107.5L232.3,93L238.5,101.9L239.6,119.8L247.9,135.5L256.2,134.4L267.7,128.8L276,129.9L282.3,129.9L295.8,125.4L310.4,126.6L318.7,115.4L327.1,104.2Z","label":[353.1,278,111.8]},"bolivia":{"d":"M139.6,273.8L146.9,293.4L145.8,313.6L144.8,332.6L140.6,347.2L145.8,359.5L152.1,376.3L157.3,397.6L164.6,406.6L182.3,398.7L193.7,406.6L212.5,399.8L219.8,384.2L239.6,367.4L258.3,373L263.5,348.3L256.2,333.8L237.5,333.8L237.5,313.6L211.4,296.8L184.4,261L166.7,265.4L147.9,274.4L139.6,273.8Z","label":[191.6,346,47.4]},"paraguay":{"d":"M212.5,399.8L219.8,384.2L239.6,367.4L258.3,373L262.5,386.4L283.3,401L296.9,418.9L295.8,437.9L293.7,444.6L282.3,457L266.6,457L254.2,457L257.3,430.1L234.4,417.8L212.5,399.8Z","label":[242.5,395.4,21.9]},"uruguay":{"d":"M264.6,489.4L281.2,489.4L291.6,500.6L308.3,516.3L308.3,528.6L295.8,541L279.1,542.1L267.7,536.5L256.2,530.9L256.2,524.2L258.3,515.2L259.4,501.8L264.6,489.4Z","label":[279.2,518.4,21.2]},"argentina":{"d":"M164.6,406.6L182.3,398.7L193.7,406.6L212.5,399.8L234.4,417.8L257.3,430.1L254.2,457L266.6,457L282.3,457L293.7,444.6L295.8,437.9L304.1,446.9L296.9,457L283.3,467L269.8,480.5L264.6,489.4L259.4,501.8L258.3,515.2L256.2,524.2L256.2,530.9L256.2,538.7L265.6,547.7L270.8,557.8L264.6,579L250,584.6L217.7,585.8L215.6,604.8L192.7,609.3L187.5,621.6L195.8,630.6L184.4,649.6L162.5,666.4L180.2,684.3L160.4,700L152.1,714.6L145.8,729.1L151,739.2L135.4,731.4L119.8,721.3L109.4,711.2L106.2,694.4L111.5,672L114.6,649.6L116.7,627.2L117.7,604.8L122.9,582.4L129.2,560L134.4,537.6L133.3,515.2L135.4,487.2L143.7,464.8L151,448L154.2,424.5L164.6,406.6ZM150,740.9L166.7,751.5L184.4,763.8L171.9,767.2L150,767.2Z","label":[196.2,507.7,62.2]},"chile":{"d":"M131.2,356.2L133.3,380.8L130.2,415.5L128.1,442.4L121.9,476L119.8,509.6L117.7,532L109.4,554.4L102.1,576.8L97.9,599.2L94.8,621.6L91.7,644L83.3,672L79.2,694.4L81.2,716.8L91.7,733.6L104.2,750.4L119.8,763.8L150,767.2L150,740.9L151,739.2L135.4,731.4L119.8,721.3L109.4,711.2L106.2,694.4L111.5,672L114.6,649.6L116.7,627.2L117.7,604.8L122.9,582.4L129.2,560L134.4,537.6L133.3,515.2L135.4,487.2L143.7,464.8L151,448L154.2,424.5L164.6,406.6L157.3,397.6L152.1,376.3L145.8,359.5L140.6,347.2L131.2,356.2Z","label":[126.2,746.2,17.5]},"guyana":{"d":"M269.3,84.3L257.3,75L247.9,67.2L241.7,55.4L232.3,68.3L232.3,93L238.5,101.9L239.6,119.8L247.9,135.5L256.2,134.4L267.7,128.8L276,129.9L271.9,118.7L267.7,107.5L267.7,95.2L269.3,84.3Z","label":[251.3,91.4,16.5]},"suriname":{"d":"M269.3,84.3L267.7,95.2L267.7,107.5L271.9,118.7L276,129.9L282.3,129.9L295.8,125.4L297.4,115.4L300,106.4L302.1,86.8L291.6,84.6L276,84.6L269.3,84.3Z","label":[283.7,101.3,16]}},"context":{"frenchGuiana":"M295.8,125.4L297.4,115.4L300,106.4L302.1,86.8L309.4,89.6L319.8,96.3L327.1,104.2L318.7,115.4L310.4,126.6L295.8,125.4Z","panama":"M59.4,54.9L53.1,70.6L41.7,68.3L27.1,69.4L13.5,65L1,60.5L1,50.4L15.6,52.6L35.4,43.7L52.1,48.2Z","falklands":"M229.2,728L244.8,724.6L262.5,728L256.2,737L234.4,734.7Z","trinidad":"M219.8,31.4L230.2,30.2L229.2,39.2L220.8,38.1Z"}};
+/* ---------- Region data (swap this block to make a different continent) ---------- */
+const star = (cx, cy, r, fill = '#fff') => {
+  let p = [];
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.4 : r; p.push((cx + rr * Math.cos(a)).toFixed(2) + ',' + (cy + rr * Math.sin(a)).toFixed(2)); }
+  return `<polygon points="${p.join(' ')}" fill="${fill}"/>`;
+};
+const FLAGS = {
+  venezuela: () => `<rect width="30" height="6.7" fill="#fcd116"/><rect y="6.7" width="30" height="6.7" fill="#00247d"/><rect y="13.4" width="30" height="6.6" fill="#cf142b"/>` + [0,1,2,3,4,5,6,7].map(i => { const a = Math.PI * (0.15 + 0.7 * i / 7); return `<circle cx="${(15 - 6.5 * Math.cos(a)).toFixed(2)}" cy="${(11.3 - 2.6 * Math.sin(a)).toFixed(2)}" r="0.55" fill="#fff"/>`; }).join(''),
+  colombia: () => `<rect width="30" height="10" fill="#fcd116"/><rect y="10" width="30" height="5" fill="#003893"/><rect y="15" width="30" height="5" fill="#ce1126"/>`,
+  ecuador: () => `<rect width="30" height="10" fill="#ffdd00"/><rect y="10" width="30" height="5" fill="#034ea2"/><rect y="15" width="30" height="5" fill="#ed1c24"/><ellipse cx="15" cy="10" rx="2.6" ry="3.2" fill="#8a6d3b" stroke="#c9a227" stroke-width="0.5"/><circle cx="15" cy="9.2" r="1.3" fill="#7ec8e3"/>`,
+  peru: () => `<rect width="30" height="20" fill="#d91023"/><rect x="10" width="10" height="20" fill="#fff"/><ellipse cx="15" cy="10" rx="2" ry="2.5" fill="#6b8e4e" stroke="#c9a227" stroke-width="0.5"/>`,
+  brazil: () => `<rect width="30" height="20" fill="#009b3a"/><polygon points="15,2 27.5,10 15,18 2.5,10" fill="#fedf00"/><circle cx="15" cy="10" r="4.6" fill="#002776"/><path d="M10.6 9.2 Q15 7.6 19.4 11.2" stroke="#fff" stroke-width="1" fill="none"/>`,
+  bolivia: () => `<rect width="30" height="6.7" fill="#d52b1e"/><rect y="6.7" width="30" height="6.7" fill="#f9e300"/><rect y="13.4" width="30" height="6.6" fill="#007934"/>`,
+  paraguay: () => `<rect width="30" height="6.7" fill="#d52b1e"/><rect y="6.7" width="30" height="6.7" fill="#fff"/><rect y="13.4" width="30" height="6.6" fill="#0038a8"/><circle cx="15" cy="10" r="2.3" fill="none" stroke="#6b8e4e" stroke-width="0.7"/>`,
+  uruguay: () => `<rect width="30" height="20" fill="#fff"/>` + [1,3,5,7].map(i => `<rect y="${(i * 20 / 9).toFixed(2)}" width="30" height="${(20 / 9).toFixed(2)}" fill="#0038a8"/>`).join('') + `<rect width="11" height="${(20 * 4 / 9).toFixed(2)}" fill="#fff"/><circle cx="5.5" cy="4.4" r="2.3" fill="#fcd116"/>`,
+  argentina: () => `<rect width="30" height="20" fill="#74acdf"/><rect y="6.7" width="30" height="6.6" fill="#fff"/><circle cx="15" cy="10" r="1.9" fill="#f6b40e"/>`,
+  chile: () => `<rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d52b1e"/><rect width="10" height="10" fill="#0039a6"/>` + star(5, 5, 2.8),
+  guyana: () => `<rect width="30" height="20" fill="#009e49"/><polygon points="0,0 30,10 0,20" fill="#fff"/><polygon points="0,1.3 27.4,10 0,18.7" fill="#fcd116"/><polygon points="0,0 15.5,10 0,20" fill="#000"/><polygon points="0,1.7 13,10 0,18.3" fill="#ce1126"/>`,
+  suriname: () => `<rect width="30" height="20" fill="#377e3f"/><rect y="4.4" width="30" height="11.2" fill="#fff"/><rect y="6" width="30" height="8" fill="#b40a2d"/>` + star(15, 10, 3.6, '#ecc81d'),
+};
+const flagSVG = (id, cls = '') => `<svg class="flag ${cls}" viewBox="0 0 30 20" role="img" aria-label="Flag of ${COUNTRY_BY_ID[id].name}" preserveAspectRatio="xMidYMid slice">${FLAGS[id]()}</svg>`;
+
+const REGION = {
+  key: 'south-america',
+  title: 'South America',
+  countries: [
+    { id: 'venezuela', name: 'Venezuela', capital: 'Caracas', color: '#f2b880',
+      fact: 'Angel Falls here is the tallest waterfall on Earth, with a drop of about 979 meters.',
+      clue: 'Home of Angel Falls, the tallest waterfall in the world.', neighbors: ['colombia','brazil','guyana'] },
+    { id: 'colombia', name: 'Colombia', capital: 'Bogotá', color: '#e9d27a',
+      fact: 'Named after Christopher Columbus. It is famous for coffee, emeralds, and colorful flowers.',
+      clue: 'Named after Christopher Columbus and famous for its coffee.', neighbors: ['venezuela','brazil','peru','ecuador'] },
+    { id: 'ecuador', name: 'Ecuador', capital: 'Quito', color: '#a6d27a',
+      fact: 'Its name means "equator" in Spanish, and the Galápagos Islands belong to it.',
+      clue: 'The equator runs through it, and it owns the Galápagos Islands.', neighbors: ['colombia','peru'] },
+    { id: 'peru', name: 'Peru', capital: 'Lima', color: '#6fc2a5',
+      fact: 'Machu Picchu, the mountain city of the Inca, is here. Llamas and alpacas live in the Andes.',
+      clue: 'Home of Machu Picchu, the ancient Inca city in the mountains.', neighbors: ['ecuador','colombia','brazil','bolivia','chile'] },
+    { id: 'brazil', name: 'Brazil', capital: 'Brasília', color: '#f7a072',
+      fact: 'The biggest country in South America. People speak Portuguese, and the Amazon rainforest is mostly here.',
+      clue: 'The biggest country in South America. People speak Portuguese there.', neighbors: ['venezuela','guyana','suriname','colombia','peru','bolivia','paraguay','argentina','uruguay'] },
+    { id: 'bolivia', name: 'Bolivia', capital: 'Sucre', capitalNote: 'La Paz is where the government sits.', color: '#8fa8d6',
+      fact: 'It has no coast and holds Salar de Uyuni, the largest salt flat in the world.',
+      clue: 'It has no coastline, but it does have the biggest salt flat in the world.', neighbors: ['peru','brazil','paraguay','argentina','chile'] },
+    { id: 'paraguay', name: 'Paraguay', capital: 'Asunción', color: '#d9a1b6',
+      fact: 'It has no coast. Most people speak both Spanish and Guaraní.',
+      clue: 'A landlocked country where many people speak Guaraní and Spanish.', neighbors: ['bolivia','brazil','argentina'] },
+    { id: 'uruguay', name: 'Uruguay', capital: 'Montevideo', color: '#9fd8d3',
+      fact: 'One of the smallest countries in South America, and it loves soccer. The first World Cup was held here in 1930.',
+      clue: 'A small country that hosted the very first soccer World Cup in 1930.', neighbors: ['brazil','argentina'] },
+    { id: 'argentina', name: 'Argentina', capital: 'Buenos Aires', color: '#ee8f7a',
+      fact: 'Tango music began here. Mount Aconcagua, the tallest mountain in the Americas, is on its border with Chile.',
+      clue: 'Tango music started here, and it is the second-biggest country in South America.', neighbors: ['chile','bolivia','paraguay','brazil','uruguay'] },
+    { id: 'chile', name: 'Chile', capital: 'Santiago', color: '#9bc7e6',
+      fact: 'A very long, skinny country, about 4,300 km long but only about 175 km wide on average. The Atacama Desert is here.',
+      clue: 'A super long, skinny country that stretches along the Pacific coast.', neighbors: ['peru','bolivia','argentina'] },
+    { id: 'guyana', name: 'Guyana', capital: 'Georgetown', color: '#c7b2e0',
+      fact: 'The only country in South America where English is the official language. Kaieteur Falls is here.',
+      clue: 'The only South American country where English is the official language.', neighbors: ['venezuela','brazil','suriname'] },
+    { id: 'suriname', name: 'Suriname', capital: 'Paramaribo', color: '#f4a9c8',
+      fact: 'The smallest country in South America. People speak Dutch, and most of it is covered in rainforest.',
+      clue: 'The smallest country in South America, where people speak Dutch.', neighbors: ['guyana','brazil'] },
+  ],
+  labelTweaks: {            // per-country map label sizing / position overrides
+    guyana:   { size: 9,  dx: -5, dy: 3 },
+    suriname: { size: 9,  dx: 5,  dy: -2 },
+    uruguay:  { size: 9 },
+    ecuador:  { size: 10 },
+    paraguay: { size: 10 },
+    chile:    { size: 11, x: 121, y: 520, rot: -90 },
+    peru:     { size: 11 },
+  },
+};
+const COUNTRY_BY_ID = Object.fromEntries(REGION.countries.map(c => [c.id, c]));
+
+/* Extra per-country data: local spelling + language for "Local" voice, area (km2), people (about) */
+const EXTRA = {
+  venezuela: { local: 'Venezuela', lang: 'es-ES', area: 916445,  pop: 28000000 },
+  colombia:  { local: 'Colombia',  lang: 'es-ES', area: 1141748, pop: 52000000 },
+  ecuador:   { local: 'Ecuador',   lang: 'es-ES', area: 283561,  pop: 18000000 },
+  peru:      { local: 'Perú',      lang: 'es-ES', area: 1285216, pop: 34000000 },
+  brazil:    { local: 'Brasil',    lang: 'pt-BR', area: 8515767, pop: 216000000 },
+  bolivia:   { local: 'Bolivia',   lang: 'es-ES', area: 1098581, pop: 12000000 },
+  paraguay:  { local: 'Paraguay',  lang: 'es-ES', area: 406752,  pop: 6800000 },
+  uruguay:   { local: 'Uruguay',   lang: 'es-ES', area: 176215,  pop: 3400000 },
+  argentina: { local: 'Argentina', lang: 'es-ES', area: 2780400, pop: 46000000 },
+  chile:     { local: 'Chile',     lang: 'es-ES', area: 756102,  pop: 19600000 },
+  guyana:    { local: 'Guyana',    lang: 'en-US', area: 214969,  pop: 800000 },
+  suriname:  { local: 'Suriname',  lang: 'nl-NL', area: 163820,  pop: 600000 },
+};
+REGION.countries.forEach(c => Object.assign(c, EXTRA[c.id]));
+
+/* ---------- Helpers, storage, sound, speech, streak ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = (a, n = 1) => shuffle(a).slice(0, n);
+const C = REGION.countries;
+const SVGNS = 'http://www.w3.org/2000/svg';
+const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '');
+
+/* ---------- Study Buddy bridge ----------
+   Inside Study Buddy, shared/sb-core.js is loaded first and window.SB exists. Progress is then saved per child,
+   the streak and daily goal are shared across Study Buddy, and finished rounds are reported to the hub.
+   Opened on its own (no SB), the app behaves exactly as before. */
+const HUB = (window.SB && window.SB.ready) ? window.SB : null;
+const KID = HUB ? HUB.requireProfile() : null;
+const ON_HUB = !!(HUB && KID);
+const report = (tool, score, max) => { if (ON_HUB) HUB.result(REGION.key, tool, score, max); };
+
+const STORE_KEY = ON_HUB ? HUB.moduleKey('explorers-atlas.' + REGION.key) : 'explorers-atlas.' + REGION.key;
+const DAILY_GOAL = ON_HUB ? HUB.DAILY_GOAL : 20;
+let state = { mastery: {}, best: {}, sound: true, say: true, voice: 'en', daily: { d: '', n: 0, done: false } };
+try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s) state = Object.assign(state, s); } catch (e) {}
+if (ON_HUB) state.sound = HUB.getSetting('sound');   // Sound is one setting per child across Study Buddy
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} };
+const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
+
+let actx = null;
+function tone(freqs, dur = 0.12) {
+  if (!state.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    freqs.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      const t = actx.currentTime + i * dur;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+    });
+  } catch (e) {}
+}
+const sfx = { good: () => tone([660, 880]), bad: () => tone([220, 180], 0.14), win: () => tone([523, 659, 784, 1046], 0.13) };
+
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400); }
+
+/* ---------- Speech ---------- */
+const CAN_SPEAK = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+const SPK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+const spkBtn = (id, cls = '') => CAN_SPEAK ? `<button type="button" class="spk ${cls}" data-say="${id}" aria-label="Hear ${COUNTRY_BY_ID[id].name}" title="Hear the name">${SPK_ICON}</button>` : '';
+let speakTok = 0, speakTimer = null;
+function stopSpeech() {
+  try { speechSynthesis.cancel(); } catch (e) {}
+  speakTok++; clearTimeout(speakTimer); $$('.spk.playing').forEach(b => b.classList.remove('playing'));
+}
+function speak(id, force) {            // force = speak even if "Say names" is off (used by speaker buttons)
+  if (!CAN_SPEAK || (!force && !state.say)) return;
+  try {
+    const c = COUNTRY_BY_ID[id], local = state.voice === 'local';
+    stopSpeech(); const tok = speakTok;
+    const u = new SpeechSynthesisUtterance(local ? c.local : c.name);
+    u.lang = local ? c.lang : 'en-US'; u.rate = 0.85;
+    const done = () => { if (tok === speakTok) { clearTimeout(speakTimer); $$('.spk.playing').forEach(b => b.classList.remove('playing')); } };
+    u.onend = done; u.onerror = done;
+    $$(`[data-say="${id}"]`).forEach(b => b.classList.add('playing'));   // icon lights up while the name plays
+    speakTimer = setTimeout(done, 5000);                                  // safety net if the browser never reports the end
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-say]');
+  if (b) { e.stopPropagation(); speak(b.dataset.say, true); }
+}, true);
+
+/* ---------- Streak, daily goal, passport ---------- */
+let streak = 0;
+const STAMP_AT = 3;
+function dailyCheck() { if (state.daily.d !== today()) state.daily = { d: today(), n: 0, done: false }; }
+function renderStreak() {
+  if (ON_HUB) { const s = HUB.streakInfo(); $('#streakN').textContent = s.streak; $('#dailyN').textContent = Math.min(s.daily, DAILY_GOAL); $('#dailyGoal').textContent = DAILY_GOAL; return; }
+  dailyCheck(); $('#streakN').textContent = streak; $('#dailyN').textContent = Math.min(state.daily.n, DAILY_GOAL); $('#dailyGoal').textContent = DAILY_GOAL;
+}
+function credit(id) {                  // learner got a country right
+  const before = state.mastery[id] || 0;
+  state.mastery[id] = before + 1;
+  let run, goalHit = false;
+  if (ON_HUB) { const r = HUB.credit(); run = r.streak; goalHit = r.goalJustReached; }
+  else {
+    streak++; run = streak; state.best.streak = Math.max(state.best.streak || 0, streak);
+    dailyCheck(); state.daily.n++;
+    if (state.daily.n === DAILY_GOAL && !state.daily.done) { state.daily.done = true; goalHit = true; }
+  }
+  if (before + 1 === STAMP_AT) toast('Passport stamp earned: ' + COUNTRY_BY_ID[id].name + '!');
+  else if (goalHit) { toast('Daily goal reached! Great studying.'); sfx.win(); }
+  else if (run > 0 && run % 5 === 0) toast(run + ' in a row!');
+  save(); renderPassport(); renderStreak();
+}
+function slip() { if (ON_HUB) HUB.slip(); else streak = 0; renderStreak(); }   // learner got one wrong
+function renderPassport() {
+  const box = $('#stamps');
+  if (!box.children.length) C.forEach(c => { const d = document.createElement('div'); d.className = 'stamp'; d.dataset.id = c.id; d.title = c.name; d.innerHTML = flagSVG(c.id); box.appendChild(d); });
+  let n = 0;
+  $$('.stamp').forEach(s => { const on = (state.mastery[s.dataset.id] || 0) >= STAMP_AT; s.classList.toggle('on', on); if (on) n++; });
+  $('#stampCount').textContent = n + '/' + C.length;
+}
+
+/* ---------- Map rendering ---------- */
+function buildMap(svg) {
+  const vb = svg._vb || { x: 0, y: 0, w: MAPDATA.width, h: MAPDATA.height };
+  svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  svg.innerHTML = '';
+  const g0 = document.createElementNS(SVGNS, 'g');
+  Object.entries(MAPDATA.context).forEach(([k, d]) => { const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', d); p.setAttribute('class', 'ctx'); if (k === 'frenchGuiana') p.innerHTML = '<title>French Guiana (part of France)</title>'; g0.appendChild(p); });
+  svg.appendChild(g0);
+  const paths = {}, gl = document.createElementNS(SVGNS, 'g');
+  C.forEach(c => {
+    const p = document.createElementNS(SVGNS, 'path');
+    p.setAttribute('d', MAPDATA.countries[c.id].d);
+    p.setAttribute('class', 'land cpath');
+    p.dataset.id = c.id; p.style.fill = c.color;
+    svg.appendChild(p); paths[c.id] = p;
+  });
+  svg.appendChild(gl);
+  svg._paths = paths; svg._labels = gl;
+  return paths;
+}
+function addLabel(svg, id) {
+  const m = MAPDATA.countries[id].label, t = REGION.labelTweaks[id] || {};
+  const x = t.x ?? (m[0] + (t.dx || 0)), y = t.y ?? (m[1] + (t.dy || 0)), size = t.size || 12;
+  const el = document.createElementNS(SVGNS, 'text');
+  el.setAttribute('class', 'lbl'); el.setAttribute('x', x); el.setAttribute('y', y + size * 0.35); el.style.fontSize = size + 'px';
+  if (t.rot) el.setAttribute('transform', `rotate(${t.rot} ${x} ${y})`);
+  el.textContent = COUNTRY_BY_ID[id].name; el.dataset.id = id;
+  svg._labels.appendChild(el);
+}
+
+/* zoom + pan for a map svg (buttons, mouse wheel, drag to pan when zoomed) */
+function makeZoom(svg) {
+  const full = { x: 0, y: 0, w: MAPDATA.width, h: MAPDATA.height };
+  const vb = svg._vb = { ...full };
+  const apply = () => { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); svg.classList.toggle('zoomed', vb.w < full.w - 1); };
+  const clampPan = () => { vb.x = Math.min(Math.max(vb.x, full.x - vb.w * 0.1), full.x + full.w - vb.w * 0.9); vb.y = Math.min(Math.max(vb.y, full.y - vb.h * 0.1), full.y + full.h - vb.h * 0.9); };
+  const zoomAt = (f, cx, cy) => {
+    const nw = Math.min(full.w, Math.max(full.w / 6, vb.w / f)), nh = nw * full.h / full.w, k = nw / vb.w;
+    vb.x = cx - (cx - vb.x) * k; vb.y = cy - (cy - vb.y) * k; vb.w = nw; vb.h = nh; clampPan(); apply();
+  };
+  const toSvg = (cx, cy) => { const r = svg.getBoundingClientRect(); return [vb.x + (cx - r.left) / r.width * vb.w, vb.y + (cy - r.top) / r.height * vb.h]; };
+  const bar = document.createElement('div'); bar.className = 'zoombar';
+  bar.innerHTML = '<button type="button" aria-label="Zoom in" title="Zoom in">+</button><button type="button" aria-label="Zoom out" title="Zoom out">&minus;</button><button type="button" aria-label="Reset zoom" title="Show the whole map" style="font-size:13px">All</button>';
+  svg.parentElement.appendChild(bar);
+  const [bi, bo, br] = bar.children, mid = () => [vb.x + vb.w / 2, vb.y + vb.h / 2];
+  bi.onclick = () => zoomAt(1.6, ...mid()); bo.onclick = () => zoomAt(1 / 1.6, ...mid());
+  br.onclick = () => { Object.assign(vb, full); apply(); };
+  svg.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.25 : 0.8, ...toSvg(e.clientX, e.clientY)); }, { passive: false });
+  let pan = null;
+  svg.addEventListener('pointerdown', e => { if (vb.w < full.w - 1 && e.button === 0) pan = { x: e.clientX, y: e.clientY, moved: false, id: e.pointerId }; });
+  svg.addEventListener('pointermove', e => {
+    if (!pan) return;
+    const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
+    if (!pan.moved && Math.hypot(dx, dy) > 6) { pan.moved = true; try { svg.setPointerCapture(pan.id); } catch (er) {} }
+    if (pan.moved) { const r = svg.getBoundingClientRect(); vb.x -= dx / r.width * vb.w; vb.y -= dy / r.height * vb.h; pan.x = e.clientX; pan.y = e.clientY; clampPan(); apply(); }
+  });
+  const end = () => { if (pan && pan.moved) { svg._justPanned = true; setTimeout(() => svg._justPanned = false, 50); } pan = null; };
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+  apply();
+}
+const clickOK = svg => !svg._justPanned;
+
+/* zoomed-in mini map of one country (so small countries are easy to see) */
+const BBOX = {};
+function computeBoxes() {
+  const s = document.createElementNS(SVGNS, 'svg');
+  s.setAttribute('viewBox', `0 0 ${MAPDATA.width} ${MAPDATA.height}`); s.style.cssText = 'position:absolute;width:10px;height:10px;visibility:hidden';
+  document.body.appendChild(s);
+  C.forEach(c => { const p = document.createElementNS(SVGNS, 'path'); p.setAttribute('d', MAPDATA.countries[c.id].d); s.appendChild(p); BBOX[c.id] = p.getBBox(); });
+  s.remove();
+}
+function zoomBox(id) {
+  const b = BBOX[id], size = Math.min(MAPDATA.height, Math.max(190, Math.max(b.width, b.height) * 1.3));
+  return `${(b.x + b.width / 2 - size / 2).toFixed(1)} ${(b.y + b.height / 2 - size / 2).toFixed(1)} ${size.toFixed(1)} ${size.toFixed(1)}`;
+}
+const miniMap = (id, hi = '#e4572e', zoom = true) => {
+  const vb = zoom ? zoomBox(id) : `0 0 ${MAPDATA.width} ${MAPDATA.height}`;
+  const ctx = Object.values(MAPDATA.context).map(d => `<path d="${d}" fill="#ece6d3" stroke="#cfc7ae" stroke-width="1"/>`).join('');
+  const all = C.map(c => `<path d="${MAPDATA.countries[c.id].d}" fill="${c.id === id ? hi : '#f6efdb'}" stroke="${c.id === id ? '#8c2f12' : '#b9ad8a'}" stroke-width="${c.id === id ? 2 : 1.2}" stroke-linejoin="round"/>`).join('');
+  return `<svg class="mini" viewBox="${vb}" aria-hidden="true">${ctx}${all}</svg>`;
+};
+
+/* ---------- Tabs ---------- */
+const tabInit = {}, inits = {};
+function showTab(name) {
+  $$('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
+  $$('section.panel').forEach(s => s.hidden = s.id !== 'tab-' + name);
+  if (!tabInit[name]) { tabInit[name] = true; (inits[name] || (() => {}))(); }
+  if (name !== 'find') stopFind(true);
+  stopSpeech();
+  if (ON_HUB) HUB.opened(REGION.key, name);
+}
+
+/* ---------- Boot ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  $('#title').textContent = REGION.title;
+  document.title = "Explorer's Atlas: " + REGION.title;
+  if (ON_HUB) {
+    document.title = REGION.title + ' · Study Buddy';
+    const hub = HUB.BASE + 'index.html';
+    $('#brand').innerHTML = `<a href="${hub}#/module/${REGION.key}" title="Back to Study Buddy">&lsaquo; Study Buddy</a> &middot; Geography`;
+    const k = $('#kidChip'); k.href = hub + '#/'; k.innerHTML = HUB.avatar(KID) + '<b>' + HUB.esc(KID.name) + '</b>'; k.hidden = false;
+  }
+  if (!CAN_SPEAK) { document.body.classList.add('no-speech'); $('#sayBtn').hidden = true; $('#voiceBtn').hidden = true; }
+  computeBoxes(); renderPassport(); renderStreak();
+  $$('nav.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+  const paint = () => {
+    const s = $('#soundBtn'), a = $('#sayBtn'), v = $('#voiceBtn');
+    s.textContent = 'Sound: ' + (state.sound ? 'on' : 'off'); s.setAttribute('aria-pressed', state.sound);
+    a.textContent = 'Say names: ' + (state.say ? 'on' : 'off'); a.setAttribute('aria-pressed', state.say);
+    v.textContent = 'Voice: ' + (state.voice === 'local' ? 'Local' : 'English'); v.setAttribute('aria-pressed', state.voice === 'local');
+  };
+  $('#soundBtn').onclick = () => { state.sound = !state.sound; if (ON_HUB) HUB.setSetting('sound', state.sound); save(); paint(); if (state.sound) sfx.good(); };
+  $('#sayBtn').onclick = () => { state.say = !state.say; save(); paint(); if (state.say) speak(pick(C)[0].id); };
+  $('#voiceBtn').onclick = () => { state.voice = state.voice === 'local' ? 'en' : 'local'; save(); paint(); speak(pick(C)[0].id, true); };
+  paint();
+  const resetNow = () => { state = Object.assign(state, { mastery: {}, best: {}, daily: { d: today(), n: 0, done: false } }); streak = 0; if (ON_HUB) HUB.resetModule(KID.id, REGION.key, []); save(); renderPassport(); renderStreak(); toast('Progress reset'); };
+  $('#resetAll').onclick = () => {
+    if (ON_HUB) HUB.requirePin('Enter the parent PIN to erase ' + KID.name + "'s " + REGION.title + ' stamps and best scores.', resetNow);
+    else if (confirm('Erase all saved stamps and best scores?')) resetNow();
+  };
+  const want = new URLSearchParams(location.search).get('tool'), wb = want && $(`nav.tabs button[data-tab="${want}"]`);
+  showTab(wb && !wb.hidden ? want : 'cards');
+});
+
+/* ---------- Flashcards ---------- */
+const FC = { mode: 'shape', queue: [], cur: null, known: new Set(), missed: new Set(), total: 0, flipped: false, busy: false };
+const FLIP_MS = 520;
+function fcBuild() { FC.queue = shuffle(C.map(c => c.id)); FC.known = new Set(); FC.missed = new Set(); FC.total = C.length; fcNext(); }
+const fcKindFor = () => FC.mode !== 'mix' ? FC.mode : ['shape', 'capital', 'flag'][Math.floor(Math.random() * 3)];
+function fcSetFlip(on) { FC.flipped = on; $('#fcard').classList.toggle('flip', on); }
+function fcNext() {
+  stopSpeech(); fcSetFlip(false);
+  if (!FC.queue.length) {
+    if (FC.cur) report('cards', FC.total - FC.missed.size, FC.total);   // Study Buddy: known on the first try
+    $('#faceF').innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards. Press a button to go again.</div>`;
+    $('#faceB').innerHTML = ''; FC.cur = null; sfx.win(); fcBar(); return;
+  }
+  const id = FC.queue[0], c = COUNTRY_BY_ID[id], kind = fcKindFor();
+  FC.cur = { id, kind };
+  let f, b;
+  if (kind === 'shape') {
+    f = `<div class="tag">Which country is this?</div>${miniMap(id, '#e4572e', false)}`;
+    b = `<div class="tag">Answer</div><div class="big">${c.name}</div><div class="small">Capital: ${c.capital}${c.capitalNote ? ' (' + c.capitalNote + ')' : ''}</div><div class="flagbox">${flagSVG(id)}</div>${spkBtn(id)}`;
+  } else if (kind === 'capital') {
+    f = `<div class="tag">What is the capital?</div><div class="big">${c.name}</div>${spkBtn(id)}`;
+    b = `<div class="tag">Capital</div><div class="big">${c.capital}</div><div class="small">${c.capitalNote || c.fact}</div>`;
+  } else {
+    f = `<div class="tag">Whose flag is this?</div><div class="flagbox">${flagSVG(id)}</div>`;
+    b = `<div class="tag">Answer</div><div class="big">${c.name}</div><div class="small">Capital: ${c.capital}${c.capitalNote ? ' (' + c.capitalNote + ')' : ''}</div>${spkBtn(id)}`;
+  }
+  $('#faceF').innerHTML = f; $('#faceB').innerHTML = b; fcBar();
+}
+function fcBar() { $('#cardBar').style.width = (FC.known.size / FC.total * 100) + '%'; $('#cardCount').textContent = FC.known.size + ' of ' + FC.total + ' known'; }
+function fcFlip() {
+  if (!FC.cur || FC.busy) return;
+  fcSetFlip(!FC.flipped);
+  stopSpeech();   // flashcard sound is only ever played by pressing the speaker button, once
+}
+/* The card always turns back to its front first, and only then does the next card appear. */
+function fcAfterUnflip(fn) {
+  if (FC.busy) return;
+  if (!FC.flipped) return fn();
+  FC.busy = true; fcSetFlip(false);
+  setTimeout(() => { FC.busy = false; fn(); }, FLIP_MS);
+}
+function fcAnswer(knew) {
+  if (!FC.cur) return fcBuild();
+  fcAfterUnflip(() => {
+    const id = FC.queue.shift();
+    if (knew) { FC.known.add(id); credit(id); sfx.good(); }
+    else { FC.missed.add(id); const pos = Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)); FC.queue.splice(pos, 0, id); slip(); sfx.bad(); }
+    fcNext();
+  });
+}
+inits.cards = () => {
+  const card = $('#fcard');
+  card.addEventListener('click', fcFlip);
+  card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fcFlip(); } });
+  $('#cardKnew').onclick = () => fcAnswer(true);
+  $('#cardAgain').onclick = () => fcAnswer(false);
+  $('#cardSkip').onclick = () => { if (!FC.cur) return fcBuild(); fcAfterUnflip(() => { FC.queue.push(FC.queue.shift()); fcNext(); }); };
+  $$('#cardMode button').forEach(b => b.onclick = () => { FC.mode = b.dataset.mode; $$('#cardMode button').forEach(x => x.setAttribute('aria-pressed', x === b)); FC.busy = false; fcBuild(); });
+  fcBuild();
+};
+
+/* ---------- Study map (all names shown) ---------- */
+inits.study = () => {
+  const svg = $('#mapStudy'); buildMap(svg); makeZoom(svg);
+  Object.entries(svg._paths).forEach(([id, p]) => {
+    addLabel(svg, id);
+    p.addEventListener('click', () => { if (clickOK(svg)) { speak(id, true); p.classList.remove('flash-good'); void p.getBBox(); p.classList.add('flash-good'); } });
+  });
+  $('#studyList').innerHTML = C.map(c => `<div class="srow"><div class="sf">${flagSVG(c.id)}</div><div class="st"><b>${c.name}</b><span>Capital: ${c.capital}</span></div>${spkBtn(c.id)}</div>`).join('');
+};
+
+/* ---------- Map: drag the names ---------- */
+const DR = { svg: null, placed: new Set(), miss: 0, sel: null, mode: 'grey' };
+const GREY = '#d6d2c4', BLANK = '#ece4cc';
+function drPaint(id, placed) {
+  const p = DR.svg._paths[id], col = COUNTRY_BY_ID[id].color;
+  if (DR.mode === 'grey') p.style.fill = placed ? GREY : col;
+  else if (DR.mode === 'reveal') p.style.fill = placed ? col : BLANK;
+  else p.style.fill = col;
+  p.style.strokeWidth = placed ? (DR.mode === 'grey' ? '1.6' : '3.4') : '';
+  p.style.stroke = placed && DR.mode !== 'grey' ? '#2b4162' : '';
+  if (placed && DR.mode !== 'grey') DR.svg.insertBefore(p, DR.svg._labels);   // draw on top so the thick border is fully visible
+}
+function drReset() {
+  DR.svg = $('#mapDrag'); buildMap(DR.svg); DR.placed = new Set(); DR.miss = 0; DR.sel = null;
+  C.forEach(c => drPaint(c.id, false));
+  Object.entries(DR.svg._paths).forEach(([id, p]) => {
+    p.addEventListener('click', () => { if (DR.sel && clickOK(DR.svg)) drTry(DR.sel, id); });
+    p.addEventListener('pointerenter', () => { if (DR.sel) p.classList.add('hover'); });
+    p.addEventListener('pointerleave', () => p.classList.remove('hover'));
+  });
+  const tray = $('#tray'); tray.innerHTML = '';
+  shuffle(C).forEach(c => {
+    const b = document.createElement('button'); b.className = 'chip'; b.textContent = c.name; b.dataset.id = c.id;
+    b.addEventListener('pointerdown', e => drPointerDown(e, b));
+    b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); drSelect(c.id); } });
+    tray.appendChild(b);
+  });
+  drScore(); $('#dMsg').className = 'msg'; $('#dMsg').textContent = 'Pick a name to begin.';
+}
+function drScore() { $('#dPlaced').textContent = DR.placed.size + '/' + C.length; $('#dMiss').textContent = DR.miss; }
+function drSelect(id, quiet) {
+  DR.sel = DR.sel === id ? null : id;
+  $$('#tray .chip').forEach(ch => ch.classList.toggle('sel', ch.dataset.id === DR.sel));
+  if (DR.sel) { $('#dMsg').className = 'msg'; $('#dMsg').textContent = 'Now tap ' + COUNTRY_BY_ID[DR.sel].name + ' on the map.'; if (!quiet) speak(DR.sel); }
+}
+function drPointerDown(e, chip) {
+  if (e.button !== undefined && e.button > 0) return;
+  const id = chip.dataset.id, sx = e.clientX, sy = e.clientY; let ghost = null, moved = false;
+  chip.setPointerCapture(e.pointerId); speak(id);
+  const mv = ev => {
+    if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 6) { moved = true; ghost = document.createElement('div'); ghost.className = 'ghostchip'; ghost.textContent = chip.textContent; document.body.appendChild(ghost); chip.style.opacity = .4; }
+    if (ghost) { ghost.style.left = ev.clientX + 'px'; ghost.style.top = ev.clientY + 'px'; }
+    if (moved) { const t = document.elementFromPoint(ev.clientX, ev.clientY); $$('#mapDrag .cpath.hover').forEach(x => x.classList.remove('hover')); const p = t && t.closest && t.closest('.cpath'); if (p) p.classList.add('hover'); }
+  };
+  const up = ev => {
+    chip.removeEventListener('pointermove', mv); chip.removeEventListener('pointerup', up); chip.removeEventListener('pointercancel', up);
+    $$('#mapDrag .cpath.hover').forEach(x => x.classList.remove('hover')); chip.style.opacity = '';
+    if (moved) {
+      ghost.remove();
+      const t = document.elementFromPoint(ev.clientX, ev.clientY), p = t && t.closest && t.closest('.cpath');
+      if (p && ev.type === 'pointerup') drTry(id, p.dataset.id);
+      else { $('#dMsg').className = 'msg'; $('#dMsg').textContent = 'Drop the name right on a country.'; }
+    } else drSelect(id, true);
+  };
+  chip.addEventListener('pointermove', mv); chip.addEventListener('pointerup', up); chip.addEventListener('pointercancel', up);
+}
+function drTry(id, target) {
+  if (DR.placed.has(target)) { $('#dMsg').className = 'msg'; $('#dMsg').textContent = COUNTRY_BY_ID[target].name + ' is already placed.'; return; }
+  const chip = $(`#tray .chip[data-id="${id}"]`), path = DR.svg._paths[target], msg = $('#dMsg');
+  if (id === target) {
+    DR.placed.add(id); chip.remove(); DR.sel = null; drPaint(id, true); addLabel(DR.svg, id); credit(id); sfx.good();
+    path.classList.remove('flash-good'); void path.getBBox(); path.classList.add('flash-good');
+    msg.className = 'msg good'; msg.textContent = 'Yes! That is ' + COUNTRY_BY_ID[id].name + '.'; drScore();
+    if (DR.placed.size === C.length) {
+      report('drag', Math.max(0, C.length - DR.miss), C.length);
+      sfx.win(); msg.textContent = DR.miss === 0 ? 'Perfect! All ' + C.length + ' countries with no misses!' : 'Done! All ' + C.length + ' placed with ' + DR.miss + ' miss' + (DR.miss === 1 ? '' : 'es') + '.';
+    }
+  } else {
+    DR.miss++; slip(); sfx.bad(); drScore();
+    chip.classList.remove('shake'); void chip.offsetWidth; chip.classList.add('shake');
+    path.classList.remove('flash-bad'); void path.getBBox(); path.classList.add('flash-bad');
+    msg.className = 'msg bad'; msg.textContent = 'Not quite. That one is ' + COUNTRY_BY_ID[target].name + '. Try again.';
+  }
+}
+inits.drag = () => {
+  const svg = $('#mapDrag'); makeZoom(svg);
+  $('#dReset').onclick = drReset;
+  $('#dHint').onclick = () => {
+    const id = DR.sel || ($('#tray .chip') && $('#tray .chip').dataset.id); if (!id) return;
+    const p = DR.svg._paths[id]; p.classList.add('target'); setTimeout(() => p.classList.remove('target'), 1800);
+    DR.miss++; drScore(); $('#dMsg').className = 'msg'; $('#dMsg').textContent = 'Hint: ' + COUNTRY_BY_ID[id].name + ' is outlined in orange.';
+  };
+  $$('#dragMode button').forEach(b => b.onclick = () => { DR.mode = b.dataset.m; $$('#dragMode button').forEach(x => x.setAttribute('aria-pressed', x === b)); drReset(); });
+  drReset();
+};
+
+/* ---------- Map: find it ---------- */
+const FD = { svg: null, score: 0, time: 60, timer: null, target: null, running: false };
+function stopFind(silent) {
+  clearInterval(FD.timer); FD.running = false;
+  if (silent && tabInit.find) { $('#fPrompt').textContent = 'Ready?'; $('#fStart').textContent = 'Start'; }
+}
+function fdNext() {
+  let c; do { c = pick(C)[0]; } while (FD.target && c.id === FD.target && C.length > 1);
+  FD.target = c.id; $('#fPrompt').innerHTML = 'Find <em>' + c.name + '</em> ' + spkBtn(c.id); speak(c.id);
+}
+function fdEnd() {
+  clearInterval(FD.timer); FD.running = false; FD.target = null;
+  const best = Math.max(state.best.find || 0, FD.score), isNew = FD.score > (state.best.find || 0);
+  state.best.find = best; save(); $('#fBest').textContent = best; report('find', FD.score, null);
+  $('#fPrompt').textContent = 'Time!'; $('#fMsg').className = 'msg good';
+  $('#fMsg').textContent = 'You found ' + FD.score + ' countries.' + (isNew && FD.score > 0 ? ' New best!' : ''); $('#fStart').textContent = 'Play again'; sfx.win();
+}
+function fdStart() {
+  FD.score = 0; FD.time = 60; FD.running = true; $('#fScore').textContent = 0; $('#fTime').textContent = 60; $('#fMsg').className = 'msg'; $('#fMsg').textContent = 'Go!'; $('#fStart').textContent = 'Restart';
+  fdNext(); clearInterval(FD.timer);
+  FD.timer = setInterval(() => { FD.time--; $('#fTime').textContent = FD.time; if (FD.time <= 0) fdEnd(); }, 1000);
+}
+function fdClick(id) {
+  if (!FD.running || !clickOK(FD.svg)) return;
+  const p = FD.svg._paths[id], msg = $('#fMsg');
+  if (id === FD.target) {
+    FD.score++; $('#fScore').textContent = FD.score; credit(id); sfx.good();
+    p.classList.remove('flash-good'); void p.getBBox(); p.classList.add('flash-good'); msg.className = 'msg good'; msg.textContent = 'Yes! ' + COUNTRY_BY_ID[id].name + '.'; fdNext();
+  } else {
+    slip(); sfx.bad(); p.classList.remove('flash-bad'); void p.getBBox(); p.classList.add('flash-bad'); msg.className = 'msg bad'; msg.textContent = 'That is ' + COUNTRY_BY_ID[id].name + '. Keep looking for ' + COUNTRY_BY_ID[FD.target].name + '.';
+  }
+}
+inits.find = () => {
+  FD.svg = $('#mapFind'); buildMap(FD.svg); makeZoom(FD.svg);
+  Object.entries(FD.svg._paths).forEach(([id, p]) => p.addEventListener('click', () => fdClick(id)));
+  $('#fBest').textContent = state.best.find || 0; $('#fStart').onclick = fdStart;
+};
+
+/* ---------- Listen and tap (pronunciation practice) ---------- */
+const LS = { svg: null, order: [], i: 0, score: 0, tries: 0, done: false };
+function lsNew() {
+  LS.order = shuffle(C.map(c => c.id)); LS.i = 0; LS.score = 0; LS.tries = 0; LS.done = false;
+  buildMap(LS.svg); Object.entries(LS.svg._paths).forEach(([id, p]) => p.addEventListener('click', () => lsClick(id)));
+  lsShow();
+}
+function lsShow() {
+  $('#lScore').textContent = LS.score + '/' + C.length; $('#lRound').textContent = Math.min(LS.i + 1, C.length);
+  if (LS.i >= C.length) {
+    LS.done = true; report('listen', LS.score, C.length); $('#lPrompt').textContent = 'All done!'; $('#lMsg').className = 'msg good'; $('#lMsg').textContent = 'You got ' + LS.score + ' of ' + C.length + ' on the first try.'; $('#lPlay').textContent = 'Play again'; sfx.win(); return;
+  }
+  $('#lPrompt').textContent = 'Which country did you hear?'; $('#lPlay').textContent = 'Play the name again'; LS.tries = 0;
+  speak(LS.order[LS.i], true);
+}
+function lsClick(id) {
+  if (LS.done || !clickOK(LS.svg)) return;
+  const want = LS.order[LS.i], p = LS.svg._paths[id], msg = $('#lMsg');
+  if (id === want) {
+    if (LS.tries === 0) LS.score++; credit(id); sfx.good(); p.classList.remove('flash-good'); void p.getBBox(); p.classList.add('flash-good');
+    msg.className = 'msg good'; msg.textContent = 'Yes! ' + COUNTRY_BY_ID[id].name + '.'; LS.i++; setTimeout(lsShow, 900);
+  } else {
+    LS.tries++; slip(); sfx.bad(); p.classList.remove('flash-bad'); void p.getBBox(); p.classList.add('flash-bad');
+    msg.className = 'msg bad'; msg.textContent = 'That is ' + COUNTRY_BY_ID[id].name + '. Listen again and try another.';
+  }
+}
+inits.listen = () => {
+  LS.svg = $('#mapListen'); makeZoom(LS.svg);
+  $('#lPlay').onclick = () => { if (LS.done) { lsNew(); $('#lMsg').textContent = ''; } else speak(LS.order[LS.i], true); };
+  $('#lSkip').onclick = () => { if (LS.done) return; LS.order.push(LS.order.splice(LS.i, 1)[0]); lsShow(); };
+  if (!CAN_SPEAK) { $('#lPrompt').textContent = 'This browser cannot speak. Try Chrome, Edge, or Safari.'; return; }
+  lsNew();
+};
+
+/* ---------- Quiz ---------- */
+const QZ = { qs: [], i: 0, score: 0, answered: false };
+const QTYPES = ['shape', 'flag', 'capital', 'capitalRev', 'clue', 'border'];
+const nameOpts = (id, n = 4) => shuffle([id, ...pick(C.filter(c => c.id !== id), n - 1).map(c => c.id)]).map(x => ({ v: x, label: COUNTRY_BY_ID[x].name }));
+function makeQ(type, id) {
+  const c = COUNTRY_BY_ID[id];
+  if (type === 'shape') return { id, visual: miniMap(id), text: 'Which country is colored in?', opts: nameOpts(id), ans: id, why: c.name + '. Capital: ' + c.capital + '.' };
+  if (type === 'flag') return { id, visual: `<div class="flagbox">${flagSVG(id)}</div>`, text: 'Whose flag is this?', opts: nameOpts(id), ans: id, why: 'That is the flag of ' + c.name + '.' };
+  if (type === 'capital') {
+    const o = shuffle([id, ...pick(C.filter(x => x.id !== id), 3).map(x => x.id)]).map(x => ({ v: x, label: COUNTRY_BY_ID[x].capital }));
+    return { id, visual: '', text: 'What is the capital of ' + c.name + '?', opts: o, ans: id, why: c.capital + ' is the capital of ' + c.name + '.' + (c.capitalNote ? ' ' + c.capitalNote : '') };
+  }
+  if (type === 'capitalRev') return { id, visual: '', text: c.capital + ' is the capital of which country?', opts: nameOpts(id), ans: id, why: c.capital + ' is in ' + c.name + '.' };
+  if (type === 'clue') return { id, visual: '', text: c.clue, opts: nameOpts(id), ans: id, why: c.name + '. ' + c.fact };
+  if (type === 'border') {
+    const non = C.filter(x => x.id !== id && !c.neighbors.includes(x.id)).map(x => x.id);
+    if (non.length < 3) return null;
+    const right = pick(c.neighbors)[0];
+    const o = shuffle([right, ...pick(non, 3)]).map(x => ({ v: x, label: COUNTRY_BY_ID[x].name }));
+    return { id, visual: miniMap(id, '#f6b73c', false), text: 'Which country shares a border with ' + c.name + '?', opts: o, ans: right, why: c.name + ' borders ' + c.neighbors.map(n => COUNTRY_BY_ID[n].name).join(', ') + '.' };
+  }
+}
+function quizBuild() {
+  const qs = [], used = {}, seen = new Set();
+  for (const type of shuffle([...QTYPES, ...QTYPES]).slice(0, 10)) {
+    for (let tries = 0; tries < 30; tries++) {
+      const id = pick(C)[0].id;
+      if ((used[id] || 0) >= 2 || seen.has(type + id)) continue;
+      const q = makeQ(type, id); if (!q) continue;
+      q.type = type; used[id] = (used[id] || 0) + 1; seen.add(type + id); qs.push(q); break;
+    }
+  }
+  QZ.qs = shuffle(qs); QZ.i = 0; QZ.score = 0; quizShow();
+}
+const starsHTML = n => `<div class="stars">${[0, 1, 2].map(i => `<span class="${i < n ? '' : 'off'}">&#9733;</span>`).join('')}</div>`;
+function quizShow() {
+  const box = $('#quizBox');
+  if (QZ.i >= QZ.qs.length) {
+    const s = QZ.score, n = QZ.qs.length, stars = s >= 9 ? 3 : s >= 7 ? 2 : s >= 5 ? 1 : 0;
+    const best = Math.max(state.best.quiz || 0, s); state.best.quiz = best; save(); sfx.win();
+    box.innerHTML = `<div class="result"><h2>Quiz complete</h2>${starsHTML(stars)}
+      <p class="prompt">${s} out of ${n}</p><p class="lead">${stars === 3 ? 'Amazing! You really know South America.' : stars === 2 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'} Best score: ${best}</p>
+      <button class="btn" id="qAgain">Play again</button></div>`;
+    $('#qAgain').onclick = quizBuild; return;
+  }
+  const q = QZ.qs[QZ.i]; QZ.answered = false;
+  box.innerHTML = `<div class="deckbar"><div class="bar"><i style="width:${QZ.i / QZ.qs.length * 100}%"></i></div><span class="hint">Question ${QZ.i + 1} of ${QZ.qs.length} &middot; Score ${QZ.score}</span></div>
+    <div class="qvisual">${q.visual}</div><p class="qtext">${q.text}</p>
+    <div class="opts">${q.opts.map(o => `<button class="opt" data-v="${o.v}">${o.label}</button>`).join('')}</div>
+    <div class="explain" id="qWhy"></div><div class="row center" style="margin-top:10px"><button class="btn" id="qNext" hidden>${QZ.i === QZ.qs.length - 1 ? 'See results' : 'Next question'}</button></div>`;
+  $$('.opt', box).forEach(b => b.onclick = () => quizAnswer(b, q));
+  $('#qNext').onclick = () => { QZ.i++; quizShow(); };
+}
+function quizAnswer(btn, q) {
+  if (QZ.answered) return; QZ.answered = true;
+  const ok = btn.dataset.v === q.ans;
+  $$('.opt').forEach(b => { b.disabled = true; if (b.dataset.v === q.ans) b.classList.add('right'); });
+  if (ok) { QZ.score++; credit(q.id); sfx.good(); } else { btn.classList.add('wrong'); slip(); sfx.bad(); }
+  $('#qWhy').innerHTML = (ok ? '<b style="color:var(--good)">Correct!</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + q.why + ' ' + spkBtn(q.id);
+  $('#qNext').hidden = false; $('#qNext').focus();
+}
+inits.quiz = quizBuild;
+
+/* ---------- Spell it ---------- */
+const SP = { order: [], i: 0, score: 0, tries: 0, hinted: false };
+function spellNew() { SP.order = pick(C, 10).map(c => c.id); SP.i = 0; SP.score = 0; spellShow(); }
+function spellShow() {
+  const box = $('#spellBox');
+  if (SP.i >= SP.order.length) {
+    const s = SP.score, n = SP.order.length, stars = s >= 9 ? 3 : s >= 7 ? 2 : s >= 5 ? 1 : 0; sfx.win();
+    state.best.spell = Math.max(state.best.spell || 0, s); save(); report('spell', s, n);
+    box.innerHTML = `<div class="result"><h2>Spelling complete</h2>${starsHTML(stars)}<p class="prompt">${s} out of ${n}</p><p class="lead">Best: ${state.best.spell}</p><button class="btn" id="spAgain">Play again</button></div>`;
+    $('#spAgain').onclick = spellNew; return;
+  }
+  const id = SP.order[SP.i], c = COUNTRY_BY_ID[id]; SP.tries = 0; SP.hinted = false;
+  box.innerHTML = `<div class="deckbar"><div class="bar"><i style="width:${SP.i / SP.order.length * 100}%"></i></div><span class="hint">Country ${SP.i + 1} of ${SP.order.length} &middot; Score ${SP.score}</span></div>
+    <div class="spellgrid"><div class="qvisual">${miniMap(id, '#e4572e', false)}</div><div><p class="qtext">Type the name of the country colored in</p>
+    <form class="spellrow" id="spForm" autocomplete="off"><input id="spIn" aria-label="Country name" placeholder="Country name" autocapitalize="words" spellcheck="false"><button class="btn" type="submit">Check</button></form>
+    <div class="err" id="spErr" role="alert"></div><div class="row"><button type="button" class="btn ghost" id="spHint">Hint</button><button type="button" class="btn ghost" id="spNext" hidden>Next</button></div></div></div>`;
+  const inp = $('#spIn'); inp.focus();
+  inp.oninput = () => { inp.classList.remove('bad'); $('#spErr').textContent = ''; };
+  $('#spHint').onclick = () => { SP.hinted = true; $('#spErr').style.color = 'var(--ink2)'; $('#spErr').textContent = 'Starts with "' + c.name[0] + '" and has ' + c.name.length + ' letters.'; inp.focus(); };
+  $('#spForm').onsubmit = e => {
+    e.preventDefault();
+    const v = inp.value.trim();
+    if (!v) { inp.classList.add('bad'); $('#spErr').style.color = ''; $('#spErr').textContent = 'Type a name first.'; return; }
+    const ok = norm(v) === norm(c.name) || norm(v) === norm(c.local);
+    if (ok) { SP.score += SP.hinted ? 0 : 1; if (!SP.hinted) credit(id); sfx.good(); speak(id); $('#spErr').style.color = 'var(--good)'; $('#spErr').textContent = 'Correct! ' + c.name + (SP.hinted ? ' (hint used, so no point)' : '') + '.'; spellDone(); }
+    else {
+      SP.tries++; slip(); sfx.bad(); inp.classList.add('bad'); $('#spErr').style.color = '';
+      if (SP.tries >= 2) { $('#spErr').textContent = 'It is spelled ' + c.name + '.'; spellDone(); }
+      else $('#spErr').textContent = 'Not quite. Check the spelling and try again.';
+    }
+  };
+  $('#spNext').onclick = () => { SP.i++; spellShow(); };
+}
+function spellDone() { $('#spIn').disabled = true; $('#spForm button').disabled = true; $('#spNext').hidden = false; $('#spHint').hidden = true; $('#spNext').focus(); }
+inits.spell = spellNew;
+
+/* ---------- Which is bigger? ---------- */
+const BG = { kind: 'area', order: [], i: 0, score: 0, answered: false };
+const fmt = n => n.toLocaleString('en-US');
+function bigNew() {
+  const pairs = []; let guard = 0;
+  while (pairs.length < 10 && guard++ < 200) {
+    const [a, b] = pick(C, 2); const x = a[BG.kind === 'area' ? 'area' : 'pop'], y = b[BG.kind === 'area' ? 'area' : 'pop'];
+    if (Math.max(x, y) / Math.min(x, y) < 1.25) continue;
+    if (pairs.some(p => p[0] === a.id && p[1] === b.id || p[0] === b.id && p[1] === a.id)) continue;
+    pairs.push([a.id, b.id]);
+  }
+  BG.order = pairs; BG.i = 0; BG.score = 0; bigShow();
+}
+function bigShow() {
+  const box = $('#bigBox');
+  const toggle = `<div class="row center" style="margin-bottom:10px"><div class="seg" id="bgKind"><button data-k="area" aria-pressed="${BG.kind === 'area'}">Bigger area</button><button data-k="pop" aria-pressed="${BG.kind === 'pop'}">More people</button></div></div>`;
+  const wire = () => $$('#bgKind button').forEach(b => b.onclick = () => { BG.kind = b.dataset.k; bigNew(); });
+  if (BG.i >= BG.order.length) {
+    const s = BG.score, n = BG.order.length, stars = s >= 9 ? 3 : s >= 7 ? 2 : s >= 5 ? 1 : 0; sfx.win();
+    state.best['big-' + BG.kind] = Math.max(state.best['big-' + BG.kind] || 0, s); save();
+    box.innerHTML = toggle + `<div class="result"><h2>Round complete</h2>${starsHTML(stars)}<p class="prompt">${s} out of ${n}</p><p class="lead">Best: ${state.best['big-' + BG.kind]}</p><button class="btn" id="bgAgain">Play again</button></div>`;
+    wire(); $('#bgAgain').onclick = bigNew; return;
+  }
+  const [a, b] = BG.order[BG.i].map(id => COUNTRY_BY_ID[id]); BG.answered = false;
+  const card = c => `<button class="vbtn" data-id="${c.id}"><div class="flagbox">${flagSVG(c.id)}</div>${c.name}<small></small></button>`;
+  box.innerHTML = toggle + `<div class="deckbar"><div class="bar"><i style="width:${BG.i / BG.order.length * 100}%"></i></div><span class="hint">Round ${BG.i + 1} of ${BG.order.length} &middot; Score ${BG.score}</span></div>
+    <p class="qtext">${BG.kind === 'area' ? 'Which country is bigger?' : 'Which country has more people?'}</p><div class="versus">${card(a)}${card(b)}</div>
+    <div class="explain" id="bgWhy"></div><div class="row center" style="margin-top:10px"><button class="btn" id="bgNext" hidden>${BG.i === BG.order.length - 1 ? 'See results' : 'Next'}</button></div>`;
+  wire();
+  const key = BG.kind === 'area' ? 'area' : 'pop', winner = a[key] > b[key] ? a : b;
+  $$('.vbtn').forEach(btn => btn.onclick = () => {
+    if (BG.answered) return; BG.answered = true;
+    const ok = btn.dataset.id === winner.id;
+    $$('.vbtn').forEach(x => { x.disabled = true; const c = COUNTRY_BY_ID[x.dataset.id]; x.querySelector('small').textContent = BG.kind === 'area' ? fmt(c.area) + ' km²' : 'about ' + fmt(c.pop); if (x.dataset.id === winner.id) x.classList.add('right'); });
+    if (ok) { BG.score++; credit(winner.id); sfx.good(); } else { btn.classList.add('wrong'); slip(); sfx.bad(); }
+    $('#bgWhy').innerHTML = (ok ? '<b style="color:var(--good)">Correct!</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + winner.name + ' is ' + (BG.kind === 'area' ? 'bigger.' : 'home to more people.');
+    $('#bgNext').hidden = false; $('#bgNext').focus();
+  });
+  $('#bgNext').onclick = () => { BG.i++; bigShow(); };
+}
+inits.bigger = bigNew;
+
+/* ---------- Memory match ---------- */
+const MM = { mode: 'capital', n: 6, cards: [], open: [], lock: false, moves: 0, pairs: 0 };
+const mmKey = () => `mem-${MM.mode}-${MM.n}`;
+function mmBuild() {
+  const chosen = pick(C, MM.n); MM.cards = []; MM.open = []; MM.lock = false; MM.moves = 0; MM.pairs = 0;
+  chosen.forEach(c => {
+    if (MM.mode === 'capital') MM.cards.push({ id: c.id, html: c.name }, { id: c.id, html: c.capital });
+    else MM.cards.push({ id: c.id, html: flagSVG(c.id) }, { id: c.id, html: c.name });
+  });
+  MM.cards = shuffle(MM.cards);
+  const g = $('#mgrid'); g.style.gridTemplateColumns = 'repeat(4,1fr)'; g.innerHTML = '';
+  MM.cards.forEach((card, i) => {
+    const b = document.createElement('button'); b.className = 'mcard'; b.setAttribute('aria-label', 'Hidden card ' + (i + 1));
+    b.innerHTML = `<div class="in"><div class="f front">?</div><div class="f back">${card.html}</div></div>`;
+    b.onclick = () => mmFlip(i, b); g.appendChild(b);
+  });
+  $('#mPairs').textContent = '0'; $('#mMoves').textContent = '0'; $('#mBest').textContent = state.best[mmKey()] || '-'; $('#mMsg').textContent = '';
+  $('#memLead').textContent = MM.mode === 'capital' ? 'Flip two cards. Match each country with its capital.' : 'Flip two cards. Match each flag with its country.';
+}
+function mmFlip(i, el) {
+  if (MM.lock || el.classList.contains('up') || el.classList.contains('done')) return;
+  el.classList.add('up'); MM.open.push({ i, el });
+  if (MM.open.length < 2) return;
+  MM.moves++; $('#mMoves').textContent = MM.moves; MM.lock = true;
+  const [a, b] = MM.open;
+  if (MM.cards[a.i].id === MM.cards[b.i].id) {
+    a.el.classList.replace('up', 'done'); b.el.classList.replace('up', 'done'); MM.pairs++; $('#mPairs').textContent = MM.pairs; credit(MM.cards[a.i].id); sfx.good(); speak(MM.cards[a.i].id);
+    MM.open = []; MM.lock = false;
+    if (MM.pairs === MM.n) {
+      const prev = state.best[mmKey()]; const nb = !prev || MM.moves < prev; if (nb) { state.best[mmKey()] = MM.moves; save(); $('#mBest').textContent = MM.moves; }
+      $('#mMsg').className = 'msg good'; $('#mMsg').textContent = 'You matched them all in ' + MM.moves + ' moves.' + (nb ? ' New best!' : ''); sfx.win();
+    }
+  } else {
+    sfx.bad();
+    setTimeout(() => { a.el.classList.remove('up'); b.el.classList.remove('up'); MM.open = []; MM.lock = false; }, 950);
+  }
+}
+inits.memory = () => {
+  $$('#memMode button').forEach(b => b.onclick = () => { MM.mode = b.dataset.m; $$('#memMode button').forEach(x => x.setAttribute('aria-pressed', x === b)); mmBuild(); });
+  $$('#memSize button').forEach(b => b.onclick = () => { MM.n = +b.dataset.n; $$('#memSize button').forEach(x => x.setAttribute('aria-pressed', x === b)); mmBuild(); });
+  $('#mNew').onclick = mmBuild; mmBuild();
+};
+
+</script>
+</body>
+</html>
