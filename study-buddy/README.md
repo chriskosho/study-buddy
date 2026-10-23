@@ -18,6 +18,12 @@ Nothing to set up. The first visit opens straight to the subjects as **Guest**, 
 - More people can be added in the **Parent** area. "Who's studying?" appears once there are two or more.
 - The parent PIN is optional. Study Buddy offers it the first time someone opens the Parent area or erases progress, and once more when a second person is added.
 
+## Display, handwriting, and utilities
+- **Display** (top of every page): light or dark theme (or match the device), the OpenDyslexic font, and larger text, saved for each child.
+- **Handwriting** works with the S Pen, a finger, or a mouse. After the pen is used, palm touches are ignored. Tap "Finger: on" to draw with a finger again.
+- **Flashcards:** swipe right for "I knew it", left for "Still learning".
+- **Utilities** tab: a calculator that follows the order of operations.
+
 ## Things to know
 - **Progress lives in each browser on each device.** The family computer and each phone keep their own. To copy progress to another device, use **Parent → Backup**: download it on one device, then load it on the other.
 - **The parent PIN keeps kids from erasing things by accident.** It is not real security. If you forget it, "Forgot PIN?" removes it without losing progress, and the parent area notes the date it happened.
@@ -40,6 +46,8 @@ index.html, hub.js       the hub (who's studying, subjects, modules, parent area
 registry.js              the list of subjects and modules; the hub builds itself from it
 shared/sb.css            colors, type, and components shared by every page
 shared/sb-core.js        profiles, progress, sound, speech, PIN, backup
+shared/fonts/            cursive, print, and OpenDyslexic fonts (open licenses included)
+utilities/               utilities such as the calculator
 shared/sb-tools.js       ready-made tools (flashcards, sort, quiz) that modules fill with content
 shared/sb-module.js      the standard module page (header, tool tabs, settings) that modules build on
 modules/<subject>/<module>/index.html   one folder per module

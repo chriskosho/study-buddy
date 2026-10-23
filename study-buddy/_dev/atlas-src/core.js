@@ -220,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#sayBtn').onclick = () => { state.say = !state.say; save(); paint(); if (state.say) speak(pick(C)[0].id); };
   $('#voiceBtn').onclick = () => { state.voice = state.voice === 'local' ? 'en' : 'local'; save(); paint(); speak(pick(C)[0].id, true); };
   paint();
+  if (ON_HUB) { const db = $('#displayBtn'); db.hidden = false; db.onclick = () => HUB.displayDialog(() => { state.sound = HUB.getSetting('sound'); paint(); }); }
   const resetNow = () => { state = Object.assign(state, { mastery: {}, best: {}, daily: { d: today(), n: 0, done: false } }); streak = 0; if (ON_HUB) HUB.resetModule(KID.id, REGION.key, []); save(); renderPassport(); renderStreak(); toast('Progress reset'); };
   $('#resetAll').onclick = () => {
     if (ON_HUB) HUB.requirePin('Enter the parent PIN to erase ' + KID.name + "'s " + REGION.title + ' stamps and best scores.', resetNow);

@@ -32,6 +32,7 @@
       else if (SB.profiles().length > 1) right += `<a class="pill kidpill" href="#/" title="Switch to someone else">${SB.avatar(kid)}<b>${esc(kid.name)}</b><span class="hint">Switch</span></a>`;
       else right += `<span class="pill kidpill">${SB.avatar(kid)}<b>${esc(kid.name)}</b></span>`;
     }
+    right += `<button class="pill" id="displayBtn" title="Theme, font, and text size">Display</button>`;
     if (!parentView) right += `<a class="pill" href="#/parent">Parent</a>`;
     return `<header class="top"><h1><small>${eyebrow}</small><span>${esc(title)}</span></h1><div class="row">${right}</div></header>`;
   }
@@ -76,8 +77,15 @@
     const tabs = `<nav class="tabs" aria-label="Subjects">
       <a href="#/home" aria-selected="${subj === 'all'}">All<span class="n">${REG.modules.length}</span></a>
       ${REG.subjects.map(s => `<a href="#/home/${s.id}" aria-selected="${subj === s.id}">${esc(s.name)}<span class="n">${count(s.id)}</span></a>`).join('')}
+      ${(REG.utilities || []).length ? `<a href="#/utilities" aria-selected="${filter === 'utilities'}" class="utab">Utilities</a>` : ''}
     </nav>`;
 
+    if (filter === 'utilities') {
+      const u = REG.utilities || [];
+      app.innerHTML = header('Utilities', 'Study Buddy', kid) + `<div class="bar2">${tabs}</div><section class="panel"><div style="margin-bottom:12px"><h3>Utilities</h3><p class="lead" style="margin:2px 0 0">Handy tools for homework. They don't track progress.</p></div>
+        <div class="grid">${u.map(x => `<a class="mod" href="${esc(x.path)}"><div class="eyebrow">Utility</div><h3>${esc(x.title)}</h3><p>${esc(x.blurb)}</p></a>`).join('')}</div></section>`;
+      return;
+    }
     let cont = '';
     const last = SB.child(kid.id).last, lm = last && modById(last.module), lt = toolOf(lm, last && last.tool);
     if (lm && lt) cont = `<div class="continue"><div class="grow"><div class="eyebrow">Keep going</div><b>${esc(lt.name)}</b> <span class="hint">in ${esc(lm.title)} · ${ago(last.at)}</span></div><a class="btn small" href="${esc(toolURL(lm, lt))}">Open</a></div>`;
@@ -251,10 +259,13 @@
     else {
       const kid = SB.activeProfile(), many = SB.profiles().length > 1;
       if (view === 'home' && kid) viewHome(arg);
+      else if (view === 'utilities' && kid) viewHome('utilities');
       else if (view === 'module' && kid) viewModule(arg);
       else if (!many && kid) viewHome();
       else viewWho();
     }
+    const db = document.getElementById('displayBtn');
+    if (db) db.onclick = () => SB.displayDialog();
     const an = document.getElementById('addName');
     if (an) an.onclick = () => SB.nameDialog(route);
   }
