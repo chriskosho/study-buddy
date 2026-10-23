@@ -43,16 +43,16 @@
         <h1><small><a href="${hub}#/module/${esc(mod.id)}" title="Back to Study Buddy">&lsaquo; Study Buddy</a> &middot; <a href="${hub}#/home/${esc(subject.id)}">${esc(subject.name)}</a></small><span>${esc(mod.title)}</span></h1>
         <div class="row">${SB.isGuest(kid)
           ? `<button class="pill kidpill" id="sbAddName" title="Add your name to keep your progress">${SB.avatar(kid)}<b>Guest</b><span class="hint">Add a name</span></button>`
-          : `<a class="pill kidpill" href="${hub}#/" title="Switch to someone else">${SB.avatar(kid)}<b>${esc(kid.name)}</b></a>`}<div class="pill" id="sbStreak" title="Right answers in a row, and today's goal"></div></div>
+          : `<a class="pill kidpill" href="${hub}#/" title="Switch to someone else">${SB.avatar(kid)}<b>${esc(kid.name)}</b></a>`}<div class="pill" id="sbStreak" title="Right answers in a row, and today's goal"></div>
+          <div class="settings">
+            <button class="iconbtn" id="sbSound"></button>
+            ${SB.CAN_SPEAK ? '<button class="iconbtn" id="sbRead" title="Reads questions out loud"></button>' : ''}
+            <button class="iconbtn" id="sbDisplay" title="Theme, font, and text size">Display</button>
+            <button class="iconbtn" id="sbReset" title="Erase this module's progress (parent PIN)">Reset</button>
+          </div></div>
       </header>
       <div class="bar2">
         <nav class="tabs" role="tablist" aria-label="Tools">${tools.map(t => `<button role="tab" data-tab="${esc(t.id)}" aria-selected="false">${esc(t.name)}</button>`).join('')}</nav>
-        <div class="settings">
-          <button class="iconbtn" id="sbSound"></button>
-          ${SB.CAN_SPEAK ? '<button class="iconbtn" id="sbRead" title="Reads questions out loud"></button>' : ''}
-          <button class="iconbtn" id="sbDisplay" title="Theme, font, and text size">Display</button>
-          <button class="iconbtn" id="sbReset" title="Erase this module's progress (parent PIN)">Reset</button>
-        </div>
       </div>
       ${tools.map(t => `<section class="panel" id="tab-${esc(t.id)}" role="tabpanel" hidden></section>`).join('')}`;
 

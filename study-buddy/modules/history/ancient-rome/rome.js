@@ -135,52 +135,8 @@
     }
   };
 
-  /* ===================== Explain it ===================== */
-  function grade(text, ex) {
-    const t = ' ' + text.toLowerCase().replace(/\s+/g, ' ') + ' ';
-    const ideas = ex.ideas.map(idea => ({ label: idea.label, ok: idea.all.every(group => group.some(k => t.includes(k))) }));
-    const sentences = text.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
-    const complete = sentences.length > 0 && sentences.every(s => /^[A-Z0-9"']/.test(s) && /[.!?]["']?$/.test(s) && s.split(/\s+/).length >= 4);
-    return { ideas, complete, perfect: complete && ideas.every(i => i.ok) };
-  }
-  const explain = {
-    init(ctx) {
-      const P = ctx.panel, X = { list: [], i: 0, score: 0, checked: false };
-      function start() { X.list = [EXPLAIN[0], ...shuffle(EXPLAIN.slice(1))]; X.i = 0; X.score = 0; show(); }
-      function show() {
-        if (X.i >= X.list.length) {
-          ctx.result(X.score, X.list.length); ctx.sfx.win();
-          P.innerHTML = `<h2>Explain it</h2><div class="result">${starsHTML(X.score, X.list.length)}<p class="prompt">${X.score} out of ${X.list.length} complete</p><p class="lead">${X.score >= 4 ? 'Insane work. You can explain it all in your own words.' : 'Explaining is the hardest part. Read the model answers, then try again.'}</p><button class="btn" data-a="again">Play again</button></div>`;
-          $('[data-a="again"]', P).onclick = start; return;
-        }
-        const ex = X.list[X.i]; X.checked = false;
-        P.innerHTML = `<h2>Explain it</h2><p class="lead">Answer in complete sentences, then check your answer.</p>
-          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${X.i / X.list.length * 100}%"></i></div><span class="hint">Question ${X.i + 1} of ${X.list.length} &middot; Complete ${X.score}</span></div>
-          <div class="xgrid"><div>
-            <div class="row qrow left"><p class="qline">${esc(ex.q)}</p>${ctx.sayButton(ex.q, 'Hear the question')}</div>
-            <textarea class="answer" rows="5" aria-label="Your answer" placeholder="Write your answer here."></textarea>
-            <div class="row"><button class="btn" data-a="check">Check my answer</button><button class="btn" data-a="next" hidden>${X.i === X.list.length - 1 ? 'See results' : 'Next question'}</button></div>
-          </div><div class="feedback" hidden></div></div>`;
-        const ta = $('.answer', P), fb = $('.feedback', P), check = $('[data-a="check"]', P), next = $('[data-a="next"]', P);
-        ta.focus();
-        check.onclick = () => {
-          if (ta.value.trim().split(/\s+/).length < 4) { fb.hidden = false; fb.innerHTML = '<p class="msg bad">Write a little more first.</p>'; return; }
-          const g = grade(ta.value, ex);
-          if (!X.checked) { X.checked = true; if (g.perfect) { X.score++; ctx.credit(); ctx.sfx.good(); } else { ctx.slip(); ctx.sfx.bad(); } }
-          fb.hidden = false;
-          fb.innerHTML = `<div class="eyebrow">Did your answer include</div>
-            <ul class="checks">${g.ideas.map(i => `<li class="${i.ok ? 'ok' : 'no'}">${i.ok ? CHECK : CROSS}<span>${esc(i.label)}</span></li>`).join('')}
-            <li class="${g.complete ? 'ok' : 'no'}">${g.complete ? CHECK : CROSS}<span>Complete sentences (capital letter, end mark)</span></li></ul>
-            <p class="msg ${g.perfect ? 'good' : 'bad'}">${g.perfect ? 'Great answer!' : 'Add what is missing, then check again. Your score counts your first check.'}</p>
-            <div class="model"><div class="eyebrow">${ex.teacher ? 'Answer from the study guide' : 'A good answer'}</div><p>${esc(ex.model)}</p>${ctx.sayButton(ex.model, 'Hear the answer')}</div>`;
-          check.textContent = 'Check again'; next.hidden = false;
-        };
-        next.onclick = () => { X.i++; show(); };
-        ctx.say(ex.q);
-      }
-      start();
-    }
-  };
+  /* ===================== Explain it (shared tool) ===================== */
+  const explain = { init(ctx) { SBT.explain(ctx, { items: EXPLAIN, keepFirst: true }); } };
 
   SBM.start({ module: 'ancient-rome', defaults: {}, tools: { guide, cards, quiz, sort, blanks, explain } });
 })();

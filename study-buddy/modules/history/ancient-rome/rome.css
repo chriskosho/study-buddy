@@ -16,23 +16,8 @@
 .god{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:7px 11px;display:flex;flex-direction:column;line-height:1.25}
 .god b{font-size:17px}
 .god span{font-size:14px;color:var(--ink2)}
-.qline{font-size:clamp(19px,2vw,24px);font-weight:800;margin:0;line-height:1.3}
-.model{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin:12px 0;display:flex;flex-direction:column;gap:6px}
-.model p{margin:0;font-size:18px}
-.model .spk{align-self:flex-start}
 .qtext.fill{text-align:left}
 .blank{display:inline-block;border-bottom:3px solid var(--coral);min-width:90px;color:transparent}
-.qrow.left{justify-content:flex-start;align-items:flex-start}
-.xgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
-.answer{width:100%;font:inherit;font-size:18px;line-height:1.5;padding:12px 14px;border:2px solid var(--navy);border-radius:14px;background:var(--surface);margin:12px 0;resize:vertical;min-height:150px}
-.answer:focus{outline:3px solid rgba(27,153,139,.3)}
-.feedback{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:14px 16px}
-.checks{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:6px}
-.checks li{display:flex;gap:8px;align-items:flex-start;font-weight:700}
-.checks svg{width:20px;height:20px;flex:0 0 20px;margin-top:2px}
-.checks li.ok{color:var(--good)}
-.checks li.no{color:var(--bad)}
-.feedback .msg{margin:6px 0}
 
 @media (min-width:761px){.sortTray .chip{font-size:16px;padding:8px 14px}.sbt-sort .bucket{min-height:170px}}
 
@@ -47,7 +32,4 @@
   .ttable tbody th{white-space:normal;width:30%}
   .ttable.gov{font-size:14px}
   .gods{grid-template-columns:1fr 1fr}
-  .xgrid{grid-template-columns:1fr;gap:10px}
-  .answer{font-size:16px;min-height:120px}
-  .model p{font-size:16px}
 }

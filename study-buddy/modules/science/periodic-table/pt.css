@@ -1,0 +1,47 @@
+/* The Periodic Table: the grid, the detail card, and the key. */
+.ptwrap{margin:6px 0 10px}
+.ptable-grid{display:grid;grid-template-columns:repeat(18,minmax(0,1fr));grid-template-rows:repeat(7,auto) 10px repeat(2,auto);gap:3px;min-width:860px;position:relative}
+.el{position:relative;aspect-ratio:1/0.7;border:1.5px solid rgba(0,0,0,.12);border-radius:7px;background:var(--c);color:var(--i);padding:2px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;font:inherit;cursor:pointer;min-width:0;overflow:hidden;transition:transform .08s,opacity .15s}
+.el small{position:absolute;top:2px;left:4px;font-size:clamp(8px,.62vw,11px);font-weight:700}
+.el b{font-size:clamp(12px,1.15vw,18px);font-weight:800}
+.el span{font-size:clamp(6px,.5vw,9px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-top:2px}
+.el:hover{transform:scale(1.08);z-index:2;box-shadow:0 4px 10px rgba(0,0,0,.2)}
+.el.sel{outline:3px solid var(--navy-ink);outline-offset:1px;z-index:2}
+.el.ph{background:var(--card);color:var(--ink2);cursor:default;border-style:dashed}
+.el.ph:hover{transform:none;box-shadow:none}
+.el.ph small{position:static;font-size:clamp(8px,.6vw,11px)}
+.ptable-grid.filtering .el[data-n]:not(.lit){opacity:.22}
+.el.flash-good{animation:elgood .6s}
+.el.flash-bad{animation:elbad .5s}
+@keyframes elgood{0%{box-shadow:0 0 0 5px var(--good)}100%{box-shadow:0 0 0 0 transparent}}
+@keyframes elbad{0%,100%{transform:none}30%{transform:translateX(-3px)}70%{transform:translateX(3px)}}
+.eldetail{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:10px 12px;margin:0 6px 6px;overflow:hidden}
+.eldetail h3{margin:0;font-size:20px}
+.eldetail p{margin:4px 0 0;font-size:15px}
+.eltext{flex:1;min-width:0}
+.eltile{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;position:relative;width:64px;height:64px;border-radius:10px;background:var(--c);color:var(--i);flex:0 0 auto;line-height:1;border:1.5px solid rgba(0,0,0,.12)}
+.eltile small{position:absolute;top:4px;left:6px;font-size:12px;font-weight:700}
+.eltile b{font-size:26px}
+.eltile span{font-size:10px;margin-top:3px}
+.eltile.big{width:96px;height:96px}
+.eltile.big b{font-size:40px}
+.eltile.big span{font-size:13px}
+.bigsym{font-size:clamp(64px,9vw,120px);font-weight:800;line-height:1}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.legend button{border:2px solid transparent;border-radius:999px;background:var(--c);color:var(--i);font:inherit;font-size:13.5px;font-weight:700;padding:4px 11px}
+.legend button[aria-pressed="true"]{border-color:var(--navy-ink)}
+.ideas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 12px;width:100%}
+.ideas div{display:flex;flex-direction:column;line-height:1.25}
+.ideas b{font-size:14px}
+.ideas span{font-size:12.5px;color:var(--ink2)}
+.linkbtn{background:none;border:0;padding:0;margin-top:6px;font:inherit;font-size:14px;font-weight:700;color:var(--teal);text-decoration:underline;cursor:pointer}
+.findbar{display:flex;align-items:center;gap:10px 20px;flex-wrap:wrap}
+.findbar .scorebar{margin:0}
+.fprompt{margin:0;font-size:clamp(22px,2.4vw,32px)}
+@media (max-width:760px){
+  .ideas{grid-template-columns:1fr 1fr}
+  .eldetail{grid-column:1/-1 !important;grid-row:11 !important;margin:8px 0 0;position:sticky;left:0;width:calc(100vw - 62px);max-width:calc(100vw - 62px)}
+  .ideas{grid-template-columns:1fr}
+  .eldetail{flex-wrap:wrap}
+  .el small{font-size:8px}.el b{font-size:13px}.el span{display:none}
+}

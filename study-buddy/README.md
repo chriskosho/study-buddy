@@ -48,7 +48,7 @@ shared/sb.css            colors, type, and components shared by every page
 shared/sb-core.js        profiles, progress, sound, speech, PIN, backup
 shared/fonts/            cursive, print, and OpenDyslexic fonts (open licenses included)
 utilities/               utilities such as the calculator
-shared/sb-tools.js       ready-made tools (flashcards, sort, quiz) that modules fill with content
+shared/sb-tools.js       ready-made tools (flashcards, sort, quiz, typed answers, put in order, explain) that modules fill with content
 shared/sb-module.js      the standard module page (header, tool tabs, settings) that modules build on
 modules/<subject>/<module>/index.html   one folder per module
 manifest.webmanifest, sw.js, icons/     install on phones and work offline
