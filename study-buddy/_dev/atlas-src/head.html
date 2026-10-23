@@ -265,8 +265,80 @@ h1 small a:hover{text-decoration:underline}
 a.kidchip{text-decoration:none;color:inherit;font-size:15px}
 a.kidchip[hidden]{display:none}
 a.kidchip:hover{border-color:var(--teal)}
-@media (max-width:760px){.bar2 .settings{flex:1 1 100%}}   /* phones: let the settings row wrap instead of scrolling sideways */
 .av{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--c,#2b4162);color:var(--ci,#fff);font-weight:800;font-size:13px;flex:0 0 auto}
+
+/* ---- v3.2: phones (760px and narrower). Desktop is untouched: every rule below lives inside this query. ---- */
+@media (max-width:760px){
+  .wrap{padding:12px 14px 24px}
+  /* header: name + streak on one line, passport on the next */
+  header.top{gap:8px;margin-bottom:10px}
+  header.top>.row{width:100%;gap:6px}
+  header.top>.row>:nth-child(2){order:3}
+  h1{font-size:24px}
+  h1 small{font-size:11.5px;letter-spacing:1.2px}
+  .passport{padding:4px 10px;gap:6px}
+  .passport b{font-size:13.5px}
+  a.kidchip{font-size:14px}
+  .passport .stamps{gap:3px;flex-wrap:nowrap}
+  .stamp{width:16px;height:16px;border-width:1.5px}
+  /* tabs: one swipeable line; settings: small pills */
+  .bar2{gap:8px;margin-bottom:10px}
+  .bar2 nav.tabs{flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:0 -14px;padding:2px 14px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .bar2 nav.tabs::-webkit-scrollbar{display:none}
+  nav.tabs button{padding:8px 15px;font-size:15px}
+  .bar2 .settings{flex:1 1 100%;gap:6px}
+  .iconbtn{padding:5px 11px;font-size:13.5px}
+  /* panels and text */
+  section.panel{padding:14px;border-radius:20px}
+  section.panel>h2{display:block;font-size:21px;margin:0 0 2px}
+  section.panel>.lead{display:block;font-size:15px;margin:0}
+  section.panel>.lead+*{margin-top:10px}
+  .btn{padding:11px 18px;font-size:16px}
+  .msg{font-size:16px;margin:8px 0;min-height:22px}
+  .prompt{font-size:24px;margin:2px 0 8px}
+  .scorebar{gap:8px;margin:10px 0}
+  .stat{min-width:0;flex:1 1 0;padding:5px 10px}
+  .stat b{font-size:20px}
+  .stat span{font-size:10.5px;letter-spacing:.6px}
+  .scorebar .seg{flex:1 1 100%}
+  .seg button{padding:8px 6px;font-size:13.5px;flex:1 1 0}
+  /* maps: full width, sized by the screen, controls a little smaller */
+  .mapgrid,.mapgrid.study{grid-template-columns:1fr;gap:12px}
+  .mapbox{padding:6px;border-radius:16px}
+  .mapbox svg,#tab-study .mapbox svg{height:auto;min-height:0;max-height:56vh}
+  .zoombar{right:8px;top:8px;gap:5px}
+  .zoombar button{width:32px;height:32px;font-size:18px}
+  /* Find it and Listen and tap: the prompt sits above the map, so the target and the map are seen together */
+  #tab-find .mapgrid>div:not(.mapbox),#tab-listen .mapgrid>div:not(.mapbox){order:-1}
+  #tab-find .prompt,#tab-listen .prompt{font-size:22px}
+  /* Drag names: names and feedback above the map, Hint and Start over below */
+  #tab-drag .mapgrid>div:not(.mapbox){display:contents}
+  #tab-drag .tray{order:-2;gap:8px;min-height:0}
+  #tab-drag .msg{order:-1;margin:0}
+  #tab-drag .mapbox{order:1}
+  #tab-drag .mapgrid .row{order:2}
+  .chip{padding:8px 13px;font-size:16px;border-radius:12px}
+  /* Study map: one clear row per country under the map */
+  .studylist{grid-template-columns:1fr;gap:6px}
+  .srow{padding:6px 10px}
+  .srow .st b{font-size:17px}
+  /* Flashcards */
+  .deckbar{margin:10px 0;gap:8px}
+  #cardMode{display:flex;width:100%}
+  .cardstage{height:auto;width:100%;aspect-ratio:1/1;max-height:54vh;min-height:0;margin:4px auto 12px}
+  .face{padding:12px}
+  .face svg.mini{height:90%}
+  .face .big{font-size:32px}
+  #tab-cards .row.center{flex-wrap:nowrap;gap:8px}
+  #tab-cards .row.center .btn{flex:1 1 0;padding:11px 6px;font-size:14.5px;white-space:nowrap}
+  #tab-cards .row.center .btn.warn{flex-grow:1.3}
+  /* Spell it */
+  .spellgrid{gap:10px}
+  .spellgrid .qvisual svg.mini{height:auto;max-height:40vh;min-height:0;width:auto;max-width:100%;margin:0 auto}
+  .spellgrid .qtext{font-size:20px}
+  .spellrow input{font-size:20px;padding:10px 12px}
+  .qvisual svg.mini{height:auto;min-height:0;max-height:42vh}
+}
 </style>
 </head>
 <body>

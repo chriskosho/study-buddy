@@ -188,7 +188,7 @@ const miniMap = (id, hi = '#e4572e', zoom = true) => {
 /* ---------- Tabs ---------- */
 const tabInit = {}, inits = {};
 function showTab(name) {
-  $$('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
+  $$('nav.tabs button').forEach(b => { b.setAttribute('aria-selected', b.dataset.tab === name); if (b.dataset.tab === name && b.scrollIntoView && innerWidth <= 760) b.scrollIntoView({ block: 'nearest', inline: 'nearest' }); });   // phones: keep the chosen tab in view in the swipeable row
   $$('section.panel').forEach(s => s.hidden = s.id !== 'tab-' + name);
   if (!tabInit[name]) { tabInit[name] = true; (inits[name] || (() => {}))(); }
   if (name !== 'find') stopFind(true);

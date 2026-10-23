@@ -37,6 +37,7 @@ index.html, hub.js       the hub (who's studying, subjects, modules, parent area
 registry.js              the list of subjects and modules; the hub builds itself from it
 shared/sb.css            colors, type, and components shared by every page
 shared/sb-core.js        profiles, progress, sound, speech, PIN, backup
+shared/sb-module.js      the standard module page (header, tool tabs, settings) that modules build on
 modules/<subject>/<module>/index.html   one folder per module
 manifest.webmanifest, sw.js, icons/     install on phones and work offline
 _dev/                    source, build script, tests, and design docs (not needed by the site)
