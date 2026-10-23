@@ -29,7 +29,11 @@ Defined on `:root`:
 | `--sun` | `#f6b73c` | Earned stamps, drag ghost chip |
 | `--navy` | `#2b4162` | Primary buttons, card borders, chip borders, toast |
 | `--good` | `#2e9e5b` | Correct |
-| `--bad` | `#d64545` | Wrong |
+| `--bad` | `#d64545` | Wrong (fills and borders only) |
+| `--teal-ink` `--good-ink` `--coral-ink` `--bad-ink` | light `#0e7569` `#1e7340` `#b23a15` `#b32d2d`; dark `#3cc4b4` `#5ccb8a` `#f48d6b` `#f58a8a` | Text in those colors (at least 4.5:1 on cards, paper, and the green/red tints) |
+| `--teal-fill` `--good-fill` | light `#0e7468` `#1d7442`; dark `#127268` `#23703f` | Backgrounds behind white text (selected segmented button, "I knew it", speaker playing) |
+
+Keyboard focus shows one navy ring (`:focus-visible`, light navy in dark mode) on every control and on map countries. Selected chips use dark text on the yellow fill in both themes.
 
 Other fixed colors: land with no data `#f6efdb` (stroke `#b9ad8a`), context land (French Guiana, Panama, etc.) `#ece6d3` / `#cfc7ae`, greyed-out placed country `#d6d2c4`, blank "reveal" country `#ece4cc`, button shadow `#1b2b45`, good-button shadow `#1f6f40`.
 

@@ -49,7 +49,8 @@ async def main():
         await pg.click('a.pill:has-text("Parent")'); await pg.wait_for_selector('.sb-dlg')
         check('Protect this with a parent PIN' in await pg.locator('.sb-dlg').inner_text(), 'parent area offers a PIN')
         await pg.click('[data-x="set"]')
-        await pg.fill('[data-x="a"]', '1234'); await pg.fill('[data-x="b"]', '1299'); await pg.click('[data-x="yes"]')
+        await pg.wait_for_timeout(120)
+        await pg.fill('[data-x=\"a\"]', '1234'); await pg.fill('[data-x="b"]', '1299'); await pg.click('[data-x="yes"]')
         check('do not match' in await pg.locator('.sb-err').inner_text(), 'mismatched PIN rejected')
         await pg.fill('[data-x="b"]', '1234'); await pg.click('[data-x="yes"]')
         await pg.wait_for_selector('#psec h2')
@@ -100,9 +101,15 @@ async def main():
             await pg.click('#cardKnew'); await pg.wait_for_timeout(650 if i == 0 else 80)
         await pg.wait_for_timeout(300)
         check('Deck complete' in await pg.locator('#faceF').text_content(), 'deck completes')
-        check(await pg.locator('#streakN').inner_text() == '12', 'hub streak shows in atlas')
+        check(await pg.locator('#streakN').inner_text() == '0', 'flashcards are practice only: no streak')
         rec = await pg.evaluate("SB.toolRecord('south-america','cards')")
-        check(rec and rec['best'] == 12 and rec['max'] == 12, f'flashcard result recorded {rec}')
+        check(not rec or rec.get('best') is None, f'flashcards record no score {rec}')
+        # a checked tool (Drag names) does give credit: place every country with no misses
+        await pg.click('nav.tabs button[data-tab="drag"]'); await pg.wait_for_selector('#tray .chip')
+        await pg.evaluate("C.forEach(c => drTry(c.id, c.id))"); await pg.wait_for_timeout(300)
+        check(await pg.locator('#streakN').inner_text() == '12', 'hub streak shows in atlas after a checked tool')
+        rec = await pg.evaluate("SB.toolRecord('south-america','drag')")
+        check(rec and rec['best'] == 12 and rec['max'] == 12, f'drag result recorded {rec}')
 
         # Listen and tap deep link check + every visible tab fits
         for tab in ['study', 'drag', 'find', 'listen', 'spell']:
@@ -118,16 +125,18 @@ async def main():
         # ---- back to the hub ----
         await pg.click('#brand a')
         await pg.wait_for_selector('.tool')
-        txt = await pg.locator('.tool:has(h3:text-is("Flashcards"))').inner_text()
-        check('Mastered' in txt and 'Best 12/12' in txt, 'hub shows flashcards mastered')
+        txt = await pg.locator('.tool:has(h3:text-is("Drag names"))').inner_text()
+        check('Mastered' in txt and 'Best 12/12' in txt, 'hub shows Drag names mastered')
+        ftxt = await pg.locator('.tool:has(h3:text-is("Flashcards"))').inner_text()
+        check('Practice only' in ftxt and 'Mastered' not in ftxt, 'hub shows flashcards as practice only')
         await pg.click('a[href="#/home"] >> nth=0'); await pg.wait_for_selector('a.mod')
-        check('1 of 5 mastered' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'module card shows 1 of 5 mastered')
+        check('1 of 4 mastered' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'module card shows 1 of 4 mastered')
         check('Keep going' in await pg.locator('body').text_content(), 'keep going strip')
         await pg.screenshot(path=f'{OUT}/sb_home_progress.png')
 
         # ---- another child sees their own progress ----
         await pg.click('a.kidpill'); await pg.click('.whocard:has-text("Eli")'); await pg.wait_for_selector('a.mod')
-        check('0 of 5 mastered' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'Eli has separate progress')
+        check('0 of 4 mastered' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'Eli has separate progress')
         await pg.goto(base + 'modules/geography/south-america/index.html?tool=cards')
         await pg.wait_for_selector('#stamps .stamp')
         check(await pg.locator('#stampCount').inner_text() == '0/12', 'Eli passport is separate')
@@ -136,9 +145,11 @@ async def main():
         # ---- parent area ----
         await pg.click('a.pill:has-text("Parent")'); await pg.wait_for_selector('.sb-dlg')
         check(await pg.locator('.sb-dlg').count() == 1, 'parent area asks for PIN')
-        await pg.fill('[data-x="a"]', '0000'); await pg.click('[data-x="yes"]')
+        await pg.wait_for_timeout(120)
+        await pg.fill('[data-x=\"a\"]', '0000'); await pg.click('[data-x="yes"]')
         check('not right' in await pg.locator('.sb-err').inner_text(), 'wrong PIN rejected')
-        await pg.fill('[data-x="a"]', '1234'); await pg.click('[data-x="yes"]')
+        await pg.wait_for_timeout(120)
+        await pg.fill('[data-x=\"a\"]', '1234'); await pg.click('[data-x="yes"]')
         await pg.wait_for_selector('#psec h2')
         check('Progress' in await pg.locator('#psec h2').inner_text(), 'parent progress opens')
         check(await pg.locator('.ptable >> nth=0 >> th').count() == 6, 'progress table has a column per child')
@@ -154,10 +165,10 @@ async def main():
         # backup round trip
         dump = await pg.evaluate('SB.exportAll()')
         await pg.evaluate("(()=>{const p=SB.profiles().find(x=>x.name==='Joshua');SB.resetChild(p.id)})()")
-        gone = await pg.evaluate("(()=>{const p=SB.profiles().find(x=>x.name==='Joshua');return SB.toolRecord('south-america','cards',p.id)})()")
+        gone = await pg.evaluate("(()=>{const p=SB.profiles().find(x=>x.name==='Joshua');return SB.toolRecord('south-america','drag',p.id)})()")
         check(gone is None, 'reset child clears progress')
         await pg.evaluate('t => SB.importAll(t)', dump)
-        back = await pg.evaluate("(()=>{const p=SB.profiles().find(x=>x.name==='Joshua');return SB.toolRecord('south-america','cards',p.id)})()")
+        back = await pg.evaluate("(()=>{const p=SB.profiles().find(x=>x.name==='Joshua');return SB.toolRecord('south-america','drag',p.id)})()")
         check(back and back['best'] == 12, 'backup restores progress')
 
         # ---- phone width (Galaxy S23: 360 x 780) ----

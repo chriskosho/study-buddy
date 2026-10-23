@@ -17,13 +17,14 @@
         <div class="seg gtabs" role="group" aria-label="Study guide section">${GUIDE.map((g, i) => `<button data-g="${g.id}" aria-pressed="${i === 0}">${esc(g.label)}</button>`).join('')}</div>
         <div class="gbody"></div>`;
       const body = $('.gbody', P);
-      const rows = b => `<table class="ttable"><tbody>${b.rows.map(([t, d]) => `<tr><th scope="row">${esc(t)}</th><td>${esc(d)}</td><td class="s">${ctx.sayButton(t + '. ' + d, 'Hear ' + t)}</td></tr>`).join('')}</tbody></table>`;
+      const sayNote = k => { const n = SAY[k]; return n ? `<details class="histsay"><summary>Historians say</summary><span>${esc(n.text)} <a href="${WIKI}${n.page}" target="_blank" rel="noopener">Source: Wikipedia, ${esc(n.label)}</a></span></details>` : ''; };
+      const rows = b => `<table class="ttable"><tbody>${b.rows.map(([t, d]) => `<tr><th scope="row">${esc(t)}</th><td>${esc(d)}${sayNote(t)}</td><td class="s">${ctx.sayButton(t + '. ' + d, 'Hear ' + t)}</td></tr>`).join('')}</tbody></table>`;
       function show(id) {
         const g = GUIDE.find(x => x.id === id);
         if (g.table) {
           body.innerHTML = `<h3>Kinds of government</h3><p class="hint">Be able to explain each kind of government, when or if Rome had it, the good aspects, and the bad aspects.</p>
             <div class="tablewrap"><table class="ttable gov"><thead><tr><th>Kind</th><th>What and when</th><th>Good aspects</th><th>Bad aspects</th></tr></thead>
-            <tbody>${GOVS.map(v => `<tr><th scope="row">${esc(v.name)}</th><td>${esc(v.what)}</td><td>${esc(v.good)}</td><td>${esc(v.bad)}</td></tr>`).join('')}</tbody></table></div>`;
+            <tbody>${GOVS.map(v => `<tr><th scope="row">${esc(v.name)}</th><td>${esc(v.what)}${sayNote(v.name)}</td><td>${esc(v.good)}</td><td>${esc(v.bad)}</td></tr>`).join('')}</tbody></table></div>`;
         } else if (g.explain) {
           const e = EXPLAIN[0];
           body.innerHTML = `<h3>Be able to explain in complete sentences</h3><p class="qline">${esc(e.q)}</p>
@@ -31,7 +32,7 @@
             <p class="hint">Practice writing it yourself in the Explain it tool.</p>`;
         } else {
           body.innerHTML = `<div class="gcols">${g.blocks.map(b => b.gods
-            ? `<div><h3>${esc(b.h)}</h3><p class="note">${esc(b.note)}</p><div class="gods">${GODS.map(x => `<div class="god"><b>${esc(x.name)}</b><span>${esc(x.attr)}</span></div>`).join('')}</div></div>`
+            ? `<div><h3>${esc(b.h)}</h3><p class="note">${esc(b.note)}</p><div class="gods">${GODS.map(x => `<div class="god"><b>${esc(x.name)}</b><span>${esc(x.attr)}</span>${x.name === 'Apollo' ? sayNote('Apollo') : ''}</div>`).join('')}</div></div>`
             : `<div><h3>${esc(b.h)}</h3>${rows(b)}</div>`).join('')}</div>`;
         }
       }

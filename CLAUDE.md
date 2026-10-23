@@ -12,7 +12,9 @@ The site lives in `study-buddy/`. Read these before changing anything:
 - Words: Study Buddy → Subjects → Modules → Tools. A module has one home subject plus tags. Difficulty is Easy, Medium, Hard, or Insane. Never grade levels.
 - The same look for every child, at every age. No emoji, no mascots.
 - Read aloud is a per-child setting, off by default. When it is on, modules read their questions aloud. Explorer's Atlas never reads quiz questions aloud. Speaker buttons always work.
-- Keep the Explorer's Atlas tools Study map, Drag names, Find it, and Listen and tap as they are unless asked. Flashcards show the whole continent, and sound plays only from the speaker button.
+- Flashcards are practice only: no credit, streak, or mastery. Credit comes only from checked tools.
+- Statements in a study guide that historians dispute keep the teacher's wording, with a "Historians say" note that links a Wikipedia article as its source.
+- Keep the Explorer's Atlas tools Study map, Drag names, Find it, and Listen and tap as they are unless asked. (The owner approved keyboard access for the map activities and Say names following Read aloud.) Flashcards show the whole continent, and sound plays only from the speaker button.
 - Hide unused features instead of deleting them.
 - Desktop first, phone friendly. No scroll bars on tool screens at 1440×900, and no sideways scroll at 360px wide (Galaxy S23).
 - Progress is saved locally only. No cloud.
@@ -23,7 +25,7 @@ The site lives in `study-buddy/`. Read these before changing anything:
 2. One pull request per request from the owner, with a plain description of what changed and how to try it.
 3. Before pushing, run these from the repository root:
    - `node study-buddy/_dev/build.mjs`
-   - `python3 study-buddy/_dev/tests/hub_test.py`, `atlas_test3.py`, `pos_test.py`, `rome_test.py`, `onboarding_test.py`, `handwriting_test.py`, `utilities_display_test.py`, and `new_modules_test.py` in the same folder (they need Playwright and Chromium)
+   - `python3 study-buddy/_dev/tests/hub_test.py`, `atlas_test3.py`, `pos_test.py`, `rome_test.py`, `onboarding_test.py`, `handwriting_test.py`, `utilities_display_test.py`, `safety_test.py`, `display_a11y_test.py`, and `new_modules_test.py` in the same folder (they need Playwright and Chromium)
    - `node study-buddy/_dev/tests/math_gen_check.mjs`
    Add or extend tests for each new module, and look at screenshots of the new screens.
 4. Commit the rebuilt files too (`sw.js` and `study-buddy/modules/geography/south-america/index.html`). Netlify also rebuilds them on deploy.

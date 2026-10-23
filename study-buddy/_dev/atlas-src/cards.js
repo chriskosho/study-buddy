@@ -7,7 +7,6 @@ function fcSetFlip(on) { FC.flipped = on; $('#fcard').classList.toggle('flip', o
 function fcNext() {
   stopSpeech(); fcSetFlip(false);
   if (!FC.queue.length) {
-    if (FC.cur) report('cards', FC.total - FC.missed.size, FC.total);   // Study Buddy: known on the first try
     $('#faceF').innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards. Press a button to go again.</div>`;
     $('#faceB').innerHTML = ''; FC.cur = null; sfx.win(); fcBar(); return;
   }
@@ -43,8 +42,8 @@ function fcAnswer(knew) {
   if (!FC.cur) return fcBuild();
   fcAfterUnflip(() => {
     const id = FC.queue.shift();
-    if (knew) { FC.known.add(id); credit(id); sfx.good(); }
-    else { FC.missed.add(id); const pos = Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)); FC.queue.splice(pos, 0, id); slip(); sfx.bad(); }
+    if (knew) { FC.known.add(id); sfx.good(); }
+    else { FC.missed.add(id); const pos = Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)); FC.queue.splice(pos, 0, id); sfx.bad(); }
     fcNext();
   });
 }

@@ -24,7 +24,7 @@ const PLANETS = [
   { id: 'uranus', name: 'Uranus', type: 'Ice giant', diameter: 51118, distance: 2867, spin: 'about 17 hours', spinH: 17.2, year: 30687, yearText: 'about 84 Earth years', temp: -195, moons: 'More than 25 moons', moonCount: 29,
     look: 'uranus', facts: ['It spins on its side, like a rolling ball.', 'Methane gas makes it look blue-green.', 'It was the first planet found with a telescope.'],
     clues: ['I was the first planet found with a telescope.', 'Methane gas makes me look blue-green.', 'I spin on my side, like a rolling ball.'] },
-  { id: 'neptune', name: 'Neptune', type: 'Ice giant', diameter: 49528, distance: 4515, spin: 'about 16 hours', spinH: 16.1, year: 60190, yearText: 'about 165 Earth years', temp: -200, moons: '16 moons', moonCount: 16,
+  { id: 'neptune', name: 'Neptune', type: 'Ice giant', diameter: 49528, distance: 4515, spin: 'about 16 hours', spinH: 16.1, year: 60190, yearText: 'about 165 Earth years', temp: -200, moons: '16 known moons', moonCount: 16,
     look: 'neptune', facts: ['The farthest planet from the Sun.', 'It has the fastest winds in the solar system.', 'Scientists used math to predict where it was, then found it with a telescope.'],
     clues: ['Scientists used math to work out where I was before I was discovered.', 'I have the fastest winds in the solar system.', 'I am the eighth planet, the farthest from the Sun.'] }
 ];

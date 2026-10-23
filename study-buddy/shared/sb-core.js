@@ -56,6 +56,10 @@
   function child(id) {
     const d = Object.assign({ settings: {}, streak: 0, bestStreak: 0, daily: { d: '', n: 0, done: false }, tools: {}, last: null }, read(CHILD(id), {}));
     d.settings = Object.assign({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal' }, d.settings);
+    d.streak = Number(d.streak) || 0; d.bestStreak = Number(d.bestStreak) || 0;
+    if (!d.daily || typeof d.daily !== 'object') d.daily = { d: '', n: 0, done: false };
+    d.daily.n = Number(d.daily.n) || 0;
+    if (!d.tools || typeof d.tools !== 'object') d.tools = {};
     if (d.daily.d !== today()) d.daily = { d: today(), n: 0, done: false };
     return d;
   }
@@ -99,7 +103,8 @@
   }
   const colorInk = c => (COLORS.find(x => x.c === c) || { ink: '#fff' }).ink;
   const initial = name => (String(name).trim()[0] || '?').toUpperCase();
-  const avatar = (p, cls = '') => `<span class="av ${cls}" style="--c:${esc(p.color)};--ci:${colorInk(p.color)}" aria-hidden="true">${esc(initial(p.name))}</span>`;
+  const safeColor = c => /^#[0-9a-f]{6}$/i.test(String(c)) ? c : '#2b4162';
+  const avatar = (p, cls = '') => `<span class="av ${cls}" style="--c:${safeColor(p.color)};--ci:${colorInk(p.color)}" aria-hidden="true">${esc(initial(p.name))}</span>`;
 
   /* ---------- settings ---------- */
   function getSetting(k, id = activeId()) { return id ? child(id).settings[k] : ({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal' })[k]; }
@@ -216,16 +221,19 @@
   .sb-dlg p{margin:0 0 14px;color:#5b6773}
   .sb-dlg input{width:100%;font:inherit;font-size:24px;font-weight:700;letter-spacing:6px;text-align:center;padding:12px 14px;border:2px solid #2b4162;border-radius:12px;background:#fff;color:#23313f;margin-bottom:8px}
   .sb-dlg input.txt{letter-spacing:1px;font-size:20px}
-  .sb-dlg input:focus{outline:3px solid rgba(27,153,139,.35)}
-  .sb-dlg .sb-err{color:#d64545;font-weight:700;min-height:24px;font-size:16px;margin-bottom:6px}
+  .sb-dlg input:focus{outline:3px solid #0e7468;outline-offset:1px}
+  .sb-dlg button:focus-visible,.sb-seg button:focus-visible,.sb-sw button:focus-visible,.sb-invite button:focus-visible{outline:3px solid #2b4162;outline-offset:2px}
+  .sb-invite button:focus-visible{outline-color:#fff}
+  html.sb-dark .sb-dlg button:focus-visible,html.sb-dark .sb-seg button:focus-visible,html.sb-dark .sb-sw button:focus-visible{outline-color:#a9c4f0}
+  .sb-dlg .sb-err{color:#b32d2d;font-weight:700;min-height:24px;font-size:16px;margin-bottom:6px}
   .sb-dlg .sb-row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;align-items:center}
   .sb-dlg .sb-btn{font:inherit;font-weight:700;font-size:17px;border-radius:13px;padding:11px 22px;cursor:pointer;border:0;background:#2b4162;color:#fff;box-shadow:0 3px 0 #1b2b45}
   .sb-dlg .sb-btn.ghost{background:#fff;color:#2b4162;border:2px solid #e4dcc8;box-shadow:none}
-  .sb-dlg .sb-btn.warn{background:#fff;color:#e4572e;border:2px solid #e4572e;box-shadow:none}
+  .sb-dlg .sb-btn.warn{background:#fff;color:#b23a15;border:2px solid #b23a15;box-shadow:none}
   .sb-dlg .sb-link{background:none;border:0;padding:0;color:#5b6773;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer;margin-right:auto}
   .sb-swipe-tag{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:3;pointer-events:none;opacity:0;font-family:"Trebuchet MS","Segoe UI",system-ui,Arial,sans-serif;font-weight:800;font-size:20px;letter-spacing:.5px;padding:6px 16px;border-radius:999px;border:3px solid;background:rgba(255,255,255,.92)}
-  .sb-swipe-tag.r{color:#2e9e5b;border-color:#2e9e5b}
-  .sb-swipe-tag.l{color:#e4572e;border-color:#e4572e}
+  .sb-swipe-tag.r{color:#1e7340;border-color:#1e7340}
+  .sb-swipe-tag.l{color:#b23a15;border-color:#b23a15}
   .cardstage{position:relative}
   .swipe-tip{display:none}
   @media (pointer:coarse){.swipe-tip{display:inline}}
@@ -233,7 +241,7 @@
   .sb-opt>span{font-weight:700}
   .sb-seg{display:inline-flex;border:2px solid #e4dcc8;border-radius:12px;overflow:hidden;background:#fff}
   .sb-seg button{font:inherit;font-size:15px;font-weight:700;border:0;background:transparent;color:inherit;padding:7px 12px;cursor:pointer}
-  .sb-seg button[aria-pressed="true"]{background:#1b998b;color:#fff}
+  .sb-seg button[aria-pressed="true"]{background:#0e7468;color:#fff}
   @font-face{font-family:'OpenDyslexic';src:url('${BASE}shared/fonts/opendyslexic-regular.woff2') format('woff2');font-weight:400;font-display:swap}
   @font-face{font-family:'OpenDyslexic';src:url('${BASE}shared/fonts/opendyslexic-bold.woff2') format('woff2');font-weight:700 900;font-display:swap}
   html.sb-dyslexic{--font:'OpenDyslexic',"Trebuchet MS",system-ui,sans-serif}
@@ -246,29 +254,51 @@
   html.sb-dark .sb-opt{border-color:#34465c}
   html.sb-dark .sb-dlg .sb-btn.ghost{background:#212d3b;color:#e9eef3;border-color:#34465c}
   html.sb-dark .sb-dlg .sb-btn{background:#3f5f92}
+  html.sb-dark .sb-dlg .sb-btn.warn{background:#212d3b;color:#f48d6b;border-color:#f48d6b}
+  html.sb-dark .sb-dlg .sb-err{color:#f58a8a}
+  html.sb-dark .sb-dlg .sb-link{color:#a9b5c2}
+  html.sb-dark .sb-seg button[aria-pressed="true"]{background:#127268;color:#fff}
+  html.sb-dark .sb-swipe-tag{background:rgba(26,36,48,.92)}
+  html.sb-dark .sb-swipe-tag.r{color:#5ccb8a;border-color:#5ccb8a}
+  html.sb-dark .sb-swipe-tag.l{color:#f48d6b;border-color:#f48d6b}
   .sb-sw{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}
   .sb-sw button{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #e4dcc8;padding:0;cursor:pointer}
   .sb-sw button[aria-pressed="true"]{box-shadow:0 0 0 3px #2b4162}
-  .sb-invite{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:105;background:#2b4162;color:#fff;border-radius:18px;padding:12px 12px 12px 18px;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.25);width:max-content;max-width:calc(100% - 24px);font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,Arial,sans-serif;font-size:16px;font-weight:700;line-height:1.3}
+  .sb-invite{position:sticky;top:8px;margin:8px auto 0;z-index:105;background:#2b4162;color:#fff;border-radius:18px;padding:12px 12px 12px 18px;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.25);width:max-content;max-width:calc(100% - 24px);font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,Arial,sans-serif;font-size:16px;font-weight:700;line-height:1.3}
   .sb-invite .sb-inv-btns{display:flex;gap:8px}
   .sb-invite button{font:inherit;font-size:15px;border-radius:11px;padding:8px 14px;cursor:pointer;border:0}
   .sb-invite .yes{background:#f6b73c;color:#23313f;box-shadow:0 3px 0 #b07a00}
   .sb-invite .no{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.45)}
-  body.sb-inviting .sb-toast,body.sb-inviting .toast{bottom:calc(var(--sb-inv-h,80px) + 30px)!important}
   .sb-toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,40px);background:#2b4162;color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;transition:.3s;z-index:110;pointer-events:none;font-family:"Trebuchet MS","Segoe UI",system-ui,Arial,sans-serif}
   .sb-toast.show{opacity:1;transform:translate(-50%,0)}
   @media (prefers-reduced-motion:reduce){.sb-toast{transition:none}}`;
   function injectCSS() { if (document.getElementById('sb-dlg-css')) return; const s = document.createElement('style'); s.id = 'sb-dlg-css'; s.textContent = DLG_CSS; (document.head || document.documentElement).appendChild(s); }
   injectCSS();
 
+  /* feedback lines (.msg) announce themselves to screen readers */
+  function liveMsgs(root) { (root || document).querySelectorAll('p.msg:not([aria-live])').forEach(m => m.setAttribute('aria-live', 'polite')); }
+  function startLive() { liveMsgs(); try { new MutationObserver(() => liveMsgs()).observe(document.body, { childList: true, subtree: true }); } catch (e) {} }
+  if (document.body) startLive(); else document.addEventListener('DOMContentLoaded', startLive);
+
   function dialog(html, wire) {
     injectCSS();
     const prevFocus = document.activeElement;
     const ov = document.createElement('div'); ov.className = 'sb-ov';
     ov.innerHTML = `<div class="sb-dlg" role="dialog" aria-modal="true">${html}</div>`;
+    { const h = ov.querySelector("h3"); if (h) { h.id = "sb-dlg-title"; ov.firstElementChild.setAttribute("aria-labelledby", "sb-dlg-title"); } }
     document.body.appendChild(ov);
     const close = () => { ov.remove(); document.removeEventListener('keydown', onKey, true); try { prevFocus && prevFocus.focus(); } catch (e) {} };
-    const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); (ov._cancel || close)(); } };
+    const onKey = e => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); (ov._cancel || close)(); return; }
+      if (e.key === 'Tab') {
+        const els = [...ov.querySelectorAll('button,input,[href],[tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled && x.offsetParent !== null);
+        if (!els.length) return;
+        const first = els[0], last = els[els.length - 1];
+        if (!ov.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+        else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
     document.addEventListener('keydown', onKey, true);
     ov.addEventListener('pointerdown', e => { if (e.target === ov) (ov._cancel || close)(); });
     wire(ov.firstElementChild, close, ov);
@@ -317,16 +347,17 @@
   }
 
   function forgotDialog(onOk, onCancel) {
-    dialog(`<h3>Forgot the PIN?</h3><p>Type REMOVE to clear the PIN. All progress stays. The parent area will show the date the PIN was removed.</p>
+    dialog(`<h3>Forgot the PIN?</h3><p>Type REMOVE, then choose a new PIN. All progress stays. The parent area will show the date the PIN was reset.</p>
       <input class="txt" type="text" autocomplete="off" aria-label="Type REMOVE" data-x="a">
       <div class="sb-err" role="alert"></div>
-      <div class="sb-row"><button class="sb-btn ghost" data-x="no">Cancel</button><button class="sb-btn warn" data-x="yes">Remove PIN</button></div>`, (box, close, ov) => {
+      <div class="sb-row"><button class="sb-btn ghost" data-x="no">Cancel</button><button class="sb-btn warn" data-x="yes">Continue</button></div>`, (box, close, ov) => {
       const a = box.querySelector('[data-x="a"]'), err = box.querySelector('.sb-err');
       ov._cancel = () => { close(); onCancel && onCancel(); };
       const go = () => {
         if (a.value.trim().toUpperCase() !== 'REMOVE') { err.textContent = 'Type the word REMOVE.'; a.focus(); return; }
-        const r = root(); r.pin = null; r.pinRemovedAt = new Date().toISOString(); saveRoot(r); close();
-        newPinDialog('Set a new parent PIN', 'Choose 4 to 8 digits.', onOk, onCancel);
+        close();
+        // The old PIN keeps working until a new one is saved, so cancelling here changes nothing.
+        newPinDialog('Set a new parent PIN', 'Choose 4 to 8 digits.', () => { const r = root(); r.pinRemovedAt = new Date().toISOString(); saveRoot(r); onOk && onOk(); }, onCancel);
       };
       box.querySelector('[data-x="no"]').onclick = ov._cancel;
       box.querySelector('[data-x="yes"]').onclick = go;
@@ -335,13 +366,15 @@
   }
 
   /* Ask for the parent PIN, then run onOk. Stays unlocked for 5 minutes in this tab. */
-  function requirePin(message, onOk, onCancel) {
+  function requirePin(message, onOk, onCancel, opts = {}) {
+    // opts.confirm = { title, text, ok }: for destructive actions. Asks "are you sure" even without a PIN or when unlocked.
+    const proceed = () => opts.confirm ? confirmDlg(Object.assign({ danger: true }, opts.confirm), onOk, onCancel) : (onOk && onOk());
     if (!hasPin()) {
       const r = root();
-      if (!r.pinOffered) { r.pinOffered = true; saveRoot(r); return offerPin('Protect this with a parent PIN?', 'A PIN keeps kids from erasing progress or changing profiles. You can add one later in the Parent area.', onOk); }
-      return onOk && onOk();
+      if (!r.pinOffered) { r.pinOffered = true; saveRoot(r); return offerPin('Protect this with a parent PIN?', 'A PIN keeps kids from erasing progress or changing profiles. You can add one later in the Parent area.', proceed, onCancel || (() => {})); }
+      return proceed();
     }
-    if (isUnlocked()) return onOk && onOk();
+    if (isUnlocked()) return proceed();
     dialog(`<h3>Parent PIN</h3><p>${esc(message || 'Enter the parent PIN to continue.')}</p>
       <input type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="Parent PIN" data-x="a">
       <div class="sb-err" role="alert"></div>
@@ -350,22 +383,22 @@
       ov._cancel = () => { close(); onCancel && onCancel(); };
       const go = () => {
         if (!checkPin(a.value)) { err.textContent = 'That PIN is not right.'; a.value = ''; a.focus(); sfx.bad(); return; }
-        unlock(); close(); onOk && onOk();
+        unlock(); close(); proceed();
       };
       box.querySelector('[data-x="no"]').onclick = ov._cancel;
       box.querySelector('[data-x="yes"]').onclick = go;
-      box.querySelector('[data-x="forgot"]').onclick = () => { close(); forgotDialog(onOk, onCancel); };
+      box.querySelector('[data-x="forgot"]').onclick = () => { close(); forgotDialog(proceed, onCancel); };
       a.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
     });
   }
 
   /* Offer a PIN with a Skip button. onDone runs after either choice. */
-  function offerPin(title, text, onDone) {
+  function offerPin(title, text, onDone, onCancel) {
     dialog(`<h3>${esc(title)}</h3><p>${esc(text)}</p><div class="sb-row"><button class="sb-btn ghost" data-x="skip">Skip</button><button class="sb-btn" data-x="set">Set PIN</button></div>`, (box, close, ov) => {
       const skip = () => { close(); const r = root(); r.pinSkipped = true; saveRoot(r); onDone && onDone(); };
-      ov._cancel = skip;
+      ov._cancel = onCancel ? () => { close(); onCancel(); } : skip;
       box.querySelector('[data-x="skip"]').onclick = skip;
-      box.querySelector('[data-x="set"]').onclick = () => { close(); newPinDialog('Set a parent PIN', 'Choose 4 to 8 digits. Only a parent should know it.', onDone, onDone); };
+      box.querySelector('[data-x="set"]').onclick = () => { close(); newPinDialog('Set a parent PIN', 'Choose 4 to 8 digits. Only a parent should know it.', onDone, onCancel || onDone); };
     });
   }
   /* Call after adding a profile: once there are two people and no PIN, offer one a second time. */
@@ -408,11 +441,9 @@
     try { if (sessionStorage.getItem(NS + '.invited')) return; sessionStorage.setItem(NS + '.invited', '1'); } catch (e) {}
     injectCSS();
     const bar = document.createElement('div'); bar.className = 'sb-invite'; bar.setAttribute('role', 'status');
-    bar.innerHTML = '<span>Nice work! Add your name to keep your progress.</span><span class="sb-inv-btns"><button class="no" type="button">Not now</button><button class="yes" type="button">Add a name</button></span>';
-    document.body.appendChild(bar);
-    // other toasts move up while the invite is showing, so they never cover its buttons
-    document.body.style.setProperty('--sb-inv-h', bar.offsetHeight + 'px'); document.body.classList.add('sb-inviting');
-    const close = () => { bar.remove(); document.body.classList.remove('sb-inviting'); };
+    bar.innerHTML = '<span>Add your name so this progress shows under you.</span><span class="sb-inv-btns"><button class="no" type="button">Not now</button><button class="yes" type="button">Add a name</button></span>';
+    document.body.insertBefore(bar, document.body.firstChild);
+    const close = () => bar.remove();
     bar.querySelector('.no').onclick = () => { const x = root(); x.inviteSnoozeUntil = Date.now() + 7 * 864e5; saveRoot(x); close(); };
     bar.querySelector('.yes').onclick = () => { close(); nameDialog(() => location.reload()); };
   }
@@ -494,11 +525,64 @@
     const data = {}; allKeys().filter(k => k && k.startsWith(NS)).forEach(k => { data[k] = localStorage.getItem(k); });
     return JSON.stringify({ app: 'study-buddy', version: 1, exported: new Date().toISOString(), data }, null, 1);
   }
+  /* Check a backup file completely before touching anything. Returns { data, names } or throws an Error with a plain message. */
+  const BAD = 'That file is not a Study Buddy backup.';
+  const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+  const num = v => typeof v === 'number' && isFinite(v);
+  function checkBackup(text) {
+    if (typeof text !== 'string' || text.length > 4e6) throw new Error('That file is too big to be a Study Buddy backup.');
+    let o; try { o = JSON.parse(text); } catch (e) { throw new Error(BAD); }
+    if (!isObj(o) || o.app !== 'study-buddy' || !isObj(o.data)) throw new Error(BAD);
+    const entries = Object.entries(o.data);
+    if (!entries.length || entries.length > 600) throw new Error('This backup is empty or damaged, so nothing was changed.');
+    const parsed = {};
+    for (const [k, v] of entries) {
+      if (typeof k !== 'string' || !k.startsWith(NS + '.') || typeof v !== 'string') throw new Error('This backup is damaged, so nothing was changed.');
+      let j; try { j = JSON.parse(v); } catch (e) { throw new Error('This backup is damaged, so nothing was changed.'); }
+      parsed[k] = j;
+    }
+    const r = parsed[ROOT];
+    if (!isObj(r) || !Array.isArray(r.profiles) || !r.profiles.length || r.profiles.length > 30) throw new Error('This backup has no profiles in it, so nothing was changed.');
+    const ids = new Set();
+    for (const p of r.profiles) {
+      if (!isObj(p) || typeof p.id !== 'string' || !/^[a-z0-9]{1,24}$/i.test(p.id) || typeof p.name !== 'string' || !/^#[0-9a-f]{6}$/i.test(p.color)) throw new Error('This backup is damaged, so nothing was changed.');
+      ids.add(p.id);
+    }
+    if (r.active != null && !ids.has(r.active)) throw new Error('This backup is damaged, so nothing was changed.');
+    if (r.pin != null && typeof r.pin !== 'string') throw new Error('This backup is damaged, so nothing was changed.');
+    for (const [k, j] of Object.entries(parsed)) {
+      if (k === ROOT) continue;
+      const c = k.match(/^studybuddy\.v1\.child\.([a-z0-9]+)$/i);
+      if (c) {
+        if (!ids.has(c[1]) || !isObj(j)) throw new Error('This backup is damaged, so nothing was changed.');
+        if ((j.streak != null && !num(j.streak)) || (j.bestStreak != null && !num(j.bestStreak))) throw new Error('This backup is damaged, so nothing was changed.');
+        if (j.daily != null && (!isObj(j.daily) || !num(j.daily.n) || typeof j.daily.d !== 'string')) throw new Error('This backup is damaged, so nothing was changed.');
+        if (j.settings != null && !isObj(j.settings)) throw new Error('This backup is damaged, so nothing was changed.');
+        if (j.tools != null) {
+          if (!isObj(j.tools)) throw new Error('This backup is damaged, so nothing was changed.');
+          for (const t of Object.values(j.tools)) if (!isObj(t) || ['attempts', 'visits', 'best', 'max', 'lastScore', 'last'].some(f => t[f] != null && !num(t[f]))) throw new Error('This backup is damaged, so nothing was changed.');
+        }
+        continue;
+      }
+      const m = k.match(/^studybuddy\.v1\.m\.([a-z0-9]+)\./i);
+      if (m && ids.has(m[1])) continue;
+      throw new Error('This backup is damaged, so nothing was changed.');
+    }
+    return { data: o.data, names: r.profiles.map(p => p.name.slice(0, 24)) };
+  }
+  /* Replace everything with the backup. The old data is kept until the new data is fully written, and put back if it can't be. */
   function importAll(text) {
-    let o; try { o = JSON.parse(text); } catch (e) { throw new Error('That file is not a Study Buddy backup.'); }
-    if (!o || o.app !== 'study-buddy' || !o.data || typeof o.data !== 'object') throw new Error('That file is not a Study Buddy backup.');
-    allKeys().filter(k => k && k.startsWith(NS)).forEach(remove);
-    Object.entries(o.data).forEach(([k, v]) => { if (k.startsWith(NS) && typeof v === 'string') { try { localStorage.setItem(k, v); } catch (e) {} } });
+    const { data } = checkBackup(text);
+    const keys = allKeys().filter(k => k && k.startsWith(NS));
+    const old = {}; keys.forEach(k => { old[k] = localStorage.getItem(k); });
+    try {
+      keys.forEach(remove);
+      Object.entries(data).forEach(([k, v]) => localStorage.setItem(k, v));
+    } catch (e) {
+      allKeys().filter(k => k && k.startsWith(NS)).forEach(remove);
+      Object.entries(old).forEach(([k, v]) => { try { localStorage.setItem(k, v); } catch (e2) {} });
+      throw new Error('There was not enough room to load that backup. Nothing was changed.');
+    }
     lock();
   }
   function download(name, text, type = 'application/json') {
@@ -513,6 +597,10 @@
   } catch (e) {}
 
   try { applyDisplay(); } catch (e) {}
+  try {
+    const loadedActive = activeId();
+    window.addEventListener('storage', e => { if (e.key === ROOT && activeId() !== loadedActive) location.reload(); });
+  } catch (e) {}
 
   window.SB = {
     ready: true, BASE, DAILY_GOAL, DIFFS, DIFF_NAMES, COLORS, CAN_SPEAK, SPK_ICON,
@@ -524,6 +612,6 @@
     moduleKey, requireProfile,
     tone, sfx, say, stopSpeech, sayButton, toast, applyDisplay, displayDialog, swipeCard,
     dialog, confirm: confirmDlg, requirePin, newPinDialog, hasPin, dismissPinNote, isUnlocked, lock,
-    exportAll, importAll, download
+    exportAll, checkBackup, importAll, download
   };
 })();

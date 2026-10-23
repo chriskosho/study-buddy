@@ -27,6 +27,7 @@
     return { str, cells };
   }
   const placeName = exp => PLACES.find(p => p.exp === exp).name;
+  const placeOf = (d, name) => d === 1 ? name.replace(/s$/, '') : name;   // 1 thousand, 3 thousands
 
   /* ---------- Place value (multiple choice) ---------- */
   function placeValueQ() {
@@ -51,7 +52,7 @@
     /* build: "4 thousands, 3 hundreds, 0 tens, 5 ones" */
     const len = rnd(3, 5), ds = Array.from({ length: len }, (_, i) => i === 0 ? rnd(1, 9) : rnd(0, 9));
     if (!ds.slice(1).includes(0)) ds[rnd(1, len - 1)] = 0;
-    const parts = ds.map((d, i) => `${d} ${placeName(len - 1 - i)}`).join(', ');
+    const parts = ds.map((d, i) => `${d} ${placeOf(d, placeName(len - 1 - i))}`).join(', ');
     const right = ds.join(''), swap = s => { const a = s.split(''); const i = rnd(0, a.length - 2); [a[i], a[i + 1]] = [a[i + 1], a[i]]; return a.join(''); };
     const wrongSet = new Set([ds.filter(d => d !== 0).join(''), swap(right), right + '0', ds.slice().reverse().join('')].filter(x => x !== right && x[0] !== '0'));
     while (wrongSet.size < 3) { const r = String(rnd(10 ** (len - 1), 10 ** len - 1)); if (r !== right) wrongSet.add(r); }
@@ -74,7 +75,7 @@
       let A = `${w}.${a1}`, B = `${w}.${b2}`;
       if (Math.random() < 0.5) [A, B] = [B, A];
       const c = cmp(A, B), right = c > 0 ? A : c < 0 ? B : 'They are equal';
-      return { q: `Which is greater: ${A} or ${B}?`, a: right, wrong: [A, B, 'They are equal'].filter(x => x !== right), why: c === 0 ? `${A} and ${B} are the same amount.` : `Line up the decimal points and compare place by place: ${right} is greater. More digits does not mean a bigger number.` };
+      return { q: `Which is greater: ${A} or ${B}?`, a: right, wrong: [A, B, 'They are equal'].filter(x => x !== right), why: c === 0 ? `${A} and ${B} are the same amount.` : `Line up the decimal points and compare place by place: ${right} is greater.${right.length < (right === A ? B : A).length ? ' More digits does not mean a bigger number.' : ''}` };
     }
     if (type === 'round') {
       const places = rnd(1, 2), int = rnd(1000, 99999), s = decStr(int, 4).replace(/^0+(?=\d)/, '');
@@ -93,7 +94,7 @@
     if (type === 'build') {
       const t = rnd(1, 9); let h = rnd(0, 9); while (h === t) h = rnd(0, 9);
       const th = Math.random() < 0.5 ? rnd(1, 9) : null, tail = th !== null ? String(th) : '';
-      const right = '0.' + t + h + tail, words = `${t} tenths, ${h} hundredths${th !== null ? `, and ${th} thousandths` : ''}`;
+      const right = '0.' + t + h + tail, words = `${t} ${placeOf(t, 'tenths')}, ${h} ${placeOf(h, 'hundredths')}${th !== null ? `, and ${th} ${placeOf(th, 'thousandths')}` : ''}`;
       const cands = ['0.' + h + t + tail, t + '.' + h + tail, '0.0' + t + h + tail, String(t) + h + tail + '.0'];
       const seen = new Set([cmpKey(right)]), wrong = [];
       for (const c of cands) { const k = cmpKey(c); if (!seen.has(k)) { seen.add(k); wrong.push(c); } if (wrong.length === 3) break; }
@@ -138,7 +139,7 @@
     if (!mult && Math.random() < 0.5) s = String(rnd(2, 999));
     s = s.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
     const ans = shiftStr(s, mult ? p : -p);
-    const why = `${mult ? 'Multiplying' : 'Dividing'} by ${fmt(power)} moves the decimal point ${p} place${p === 1 ? '' : 's'} to the ${mult ? 'right' : 'left'} (one place for each zero). ${fmtStr(s)} ${mult ? '×' : '÷'} ${fmt(power)} = ${fmtStr(ans)}.`;
+    const why = `${mult ? 'Multiplying' : 'Dividing'} by ${fmt(power)} moves the decimal point ${p} place${p === 1 ? '' : 's'} to the ${mult ? 'right' : 'left'} (one place for each zero). Fill any empty places with 0. ${fmtStr(s)} ${mult ? '×' : '÷'} ${fmt(power)} = ${fmtStr(ans)}.`;
     return { q: `${fmtStr(s)} ${mult ? '×' : '÷'} ${fmt(power)} = ?`, a: parseFloat(ans), show: fmtStr(ans), why, hint: `Count the zeros in ${fmt(power)}. Move the decimal point that many places to the ${mult ? 'right' : 'left'}.`, say: `${fmtStr(s)} ${mult ? 'times' : 'divided by'} ${fmt(power)}` };
   }
 

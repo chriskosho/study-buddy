@@ -33,3 +33,11 @@
   .ttable.gov{font-size:14px}
   .gods{grid-template-columns:1fr 1fr}
 }
+
+/* "Historians say" notes under study guide rows: a small toggle that opens the note */
+.histsay{margin-top:4px;font-size:14.5px;line-height:1.4}
+.histsay summary{display:inline-block;cursor:pointer;font-weight:800;font-size:13px;color:var(--navy-ink);border:1.5px solid var(--line);border-radius:999px;padding:1px 10px;background:var(--paper)}
+.histsay[open] summary{border-color:var(--note-line);background:var(--tint-note)}
+.histsay span{display:block;margin-top:5px;padding:6px 10px;border-left:4px solid var(--note-line);background:var(--tint-note);border-radius:8px;color:var(--ink)}
+.histsay a{color:var(--navy-ink);font-weight:700}
+.god .histsay{font-size:13px}

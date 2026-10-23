@@ -10,7 +10,7 @@
 :root{
   --paper:#fbf6ea; --card:#fffdf7; --ink:#23313f; --ink2:#5b6773; --line:#e4dcc8;
   --sea:#cfe8f0; --coral:#e4572e; --teal:#1b998b; --sun:#f6b73c; --navy:#2b4162;
-  --good:#2e9e5b; --bad:#d64545; --radius:16px;
+  --good:#2e9e5b; --bad:#d64545; --teal-ink:#0e7569; --good-ink:#1e7340; --coral-ink:#b23a15; --bad-ink:#b32d2d; --teal-fill:#0e7468; --good-fill:#1d7442; --radius:16px;
   --font: "Trebuchet MS","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
 }
 *{box-sizing:border-box}
@@ -20,7 +20,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:1000px;margin:0 auto;padding:14px 14px 40px}
 header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 h1{font-size:clamp(22px,4.5vw,32px);margin:0;letter-spacing:-.5px}
-h1 small{display:block;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal)}
+h1 small{display:block;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal-ink)}
 .passport{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 12px}
 .passport .stamps{display:flex;gap:4px;flex-wrap:wrap}
 .stamp{width:22px;height:22px;border-radius:50%;overflow:hidden;border:2px solid var(--line);filter:grayscale(1) opacity(.45);transition:.3s}
@@ -39,13 +39,13 @@ h2{margin:0 0 4px;font-size:22px}
 .btn{background:var(--navy);color:#fff;border:0;border-radius:12px;padding:10px 18px;font-weight:700;box-shadow:0 3px 0 #1b2b45;transition:transform .08s}
 .btn:active{transform:translateY(2px);box-shadow:0 1px 0 #1b2b45}
 .btn.ghost{background:#fff;color:var(--navy);border:2px solid var(--line);box-shadow:none}
-.btn.good{background:var(--good);box-shadow:0 3px 0 #1f6f40}
-.btn.warn{background:#fff;color:var(--coral);border:2px solid var(--coral);box-shadow:none}
+.btn.good{background:var(--good-fill);box-shadow:0 3px 0 #14502d}
+.btn.warn{background:#fff;color:var(--coral-ink);border:2px solid var(--coral-ink);box-shadow:none}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .row.center{justify-content:center}
 .seg{display:inline-flex;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
 .seg button{border:0;background:transparent;padding:7px 12px;font-size:14px;font-weight:700}
-.seg button[aria-pressed="true"]{background:var(--teal);color:#fff}
+.seg button[aria-pressed="true"]{background:var(--teal-fill);color:#fff}
 .flag{display:block;width:100%;height:auto;border-radius:6px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
 
 /* flashcards */
@@ -57,7 +57,7 @@ h2{margin:0 0 4px;font-size:22px}
 .fcard.flip{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:22px;border:3px solid var(--navy);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;text-align:center;gap:8px;overflow:hidden}
 .face.back{transform:rotateY(180deg);background:#fff9e6}
-.face .tag{font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--teal)}
+.face .tag{font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--teal-ink)}
 .face .big{font-size:clamp(26px,6vw,38px);font-weight:800;line-height:1.1}
 .face .small{font-size:15px;color:var(--ink2);max-width:90%}
 .face svg.mini{height:74%;width:auto;max-width:85%}
@@ -72,6 +72,9 @@ h2{margin:0 0 4px;font-size:22px}
 .land{stroke:#fff;stroke-width:1.6;stroke-linejoin:round;transition:fill .25s,transform .25s}
 .ctx{fill:#ece6d3;stroke:#cfc7ae;stroke-width:1}
 .cpath{cursor:pointer}
+.cpath:focus{outline:none}
+.cpath:focus-visible{stroke:#2b4162;stroke-width:3.2}
+html.sb-dark .cpath:focus-visible{stroke:#a9c4f0}
 .cpath.challenge{fill:#e9dfc4}
 .cpath.hover{filter:brightness(1.07);stroke:var(--navy);stroke-width:2.2}
 .cpath.placed{fill-opacity:1}
@@ -95,7 +98,7 @@ h2{margin:0 0 4px;font-size:22px}
 .prompt{font-size:clamp(22px,5vw,30px);font-weight:800;margin:6px 0 8px}
 .prompt em{font-style:normal;color:var(--coral)}
 .msg{min-height:26px;font-weight:700}
-.msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
+.msg.good{color:var(--good-ink)} .msg.bad{color:var(--bad-ink)}
 
 /* quiz */
 .qwrap{max-width:620px;margin:0 auto}
@@ -334,6 +337,8 @@ a.kidchip:hover{border-color:var(--teal)}
   #tab-cards .row.center{flex-wrap:nowrap;gap:8px}
   #tab-cards .row.center .btn{flex:1 1 0;padding:11px 6px;font-size:14.5px;white-space:nowrap}
   #tab-cards .row.center .btn.warn{flex-grow:1.3}
+  html.sb-dyslexic #tab-cards .row.center,html.sb-large #tab-cards .row.center{flex-wrap:wrap}
+  html.sb-dyslexic #tab-cards .row.center .btn,html.sb-large #tab-cards .row.center .btn{flex:1 1 40%;white-space:normal}
   /* Spell it */
   .spellgrid{gap:10px}
   .spellgrid .qvisual svg.mini{height:auto;max-height:40vh;min-height:0;width:auto;max-width:100%;margin:0 auto}
@@ -343,12 +348,21 @@ a.kidchip:hover{border-color:var(--teal)}
 }
 
 /* ---- v3.3: dark mode, only when the Study Buddy Display setting turns it on. Light mode is untouched. ---- */
-html.sb-dark{--paper:#121a23;--card:#1a2430;--ink:#e9eef3;--ink2:#a9b5c2;--line:#34465c;--sea:#1d3a48;--navy:#3f5f92;--coral:#f07a55;--teal:#23a898;--good:#43b874;--bad:#ef6b6b;color-scheme:dark}
+html.sb-dark{--paper:#121a23;--card:#1a2430;--ink:#e9eef3;--ink2:#a9b5c2;--line:#34465c;--sea:#1d3a48;--navy:#3f5f92;--coral:#f07a55;--teal:#23a898;--good:#43b874;--bad:#ef6b6b;--teal-ink:#3cc4b4;--good-ink:#5ccb8a;--coral-ink:#f48d6b;--bad-ink:#f58a8a;--teal-fill:#127268;--good-fill:#23703f;color-scheme:dark}
 html.sb-dark .btn.ghost,html.sb-dark .btn.warn,html.sb-dark .seg,html.sb-dark .face,html.sb-dark .chip,html.sb-dark .stat,html.sb-dark .opt,html.sb-dark .srow,html.sb-dark .vbtn,html.sb-dark .spk,html.sb-dark .zoombar button,html.sb-dark .mcard .f.back,html.sb-dark .spellrow input{background:#212d3b}
 html.sb-dark .btn.ghost{color:#e9eef3}
 html.sb-dark .chip,html.sb-dark .spk,html.sb-dark .zoombar button{color:#a9c4f0;border-color:#a9c4f0}
 html.sb-dark .chip{box-shadow:0 3px 0 #0c1420}
 html.sb-dark .chip.sel{background:var(--sun);color:#23313f;border-color:#b07a00}
+:focus-visible{outline:3px solid #2b4162;outline-offset:2px;border-radius:6px}
+html.sb-dark :focus-visible{outline-color:#a9c4f0}
+.passport{max-width:100%}
+.seg{max-width:100%}
+html.sb-dyslexic .seg,html.sb-large .seg{flex-wrap:wrap}
+html.sb-dyslexic .seg button,html.sb-large .seg button{flex:1 1 auto}
+.stamp{flex:0 0 auto}
+html.sb-dyslexic .passport,html.sb-large .passport{flex-wrap:wrap;border-radius:18px}
+html.sb-dyslexic .passport .stamps,html.sb-large .passport .stamps{flex-wrap:wrap}
 html.sb-dark .spk:hover,html.sb-dark .zoombar button:hover{background:var(--sun);color:#23313f}
 html.sb-dark .spk.playing{background:var(--teal);border-color:var(--teal);color:#fff}
 html.sb-dark .btn{box-shadow:0 3px 0 #0c1420}
@@ -542,7 +556,7 @@ const REGION = {
   title: 'South America',
   countries: [
     { id: 'venezuela', name: 'Venezuela', capital: 'Caracas', color: '#f2b880',
-      fact: 'Angel Falls here is the tallest waterfall on Earth, with a drop of about 979 meters.',
+      fact: 'Angel Falls here is the tallest waterfall on Earth, about 979 meters tall (3,212 feet).',
       clue: 'Home of Angel Falls, the tallest waterfall in the world.', neighbors: ['colombia','brazil','guyana'] },
     { id: 'colombia', name: 'Colombia', capital: 'Bogotá', color: '#e9d27a',
       fact: 'Named after Christopher Columbus. It is famous for coffee, emeralds, and colorful flowers.',
@@ -560,13 +574,13 @@ const REGION = {
       fact: 'It has no coast and holds Salar de Uyuni, the largest salt flat in the world.',
       clue: 'It has no coastline, but it does have the biggest salt flat in the world.', neighbors: ['peru','brazil','paraguay','argentina','chile'] },
     { id: 'paraguay', name: 'Paraguay', capital: 'Asunción', color: '#d9a1b6',
-      fact: 'It has no coast. Most people speak both Spanish and Guaraní.',
+      fact: 'It has no coast. Many people speak both Spanish and Guaraní.',
       clue: 'A landlocked country where many people speak Guaraní and Spanish.', neighbors: ['bolivia','brazil','argentina'] },
     { id: 'uruguay', name: 'Uruguay', capital: 'Montevideo', color: '#9fd8d3',
       fact: 'One of the smallest countries in South America, and it loves soccer. The first World Cup was held here in 1930.',
       clue: 'A small country that hosted the very first soccer World Cup in 1930.', neighbors: ['brazil','argentina'] },
     { id: 'argentina', name: 'Argentina', capital: 'Buenos Aires', color: '#ee8f7a',
-      fact: 'Tango music began here. Mount Aconcagua, the tallest mountain in the Americas, is on its border with Chile.',
+      fact: 'Tango music began here. Mount Aconcagua, the tallest mountain in the Americas, is here, near the border with Chile.',
       clue: 'Tango music started here, and it is the second-biggest country in South America.', neighbors: ['chile','bolivia','paraguay','brazil','uruguay'] },
     { id: 'chile', name: 'Chile', capital: 'Santiago', color: '#9bc7e6',
       fact: 'A very long, skinny country, about 4,300 km long but only about 175 km wide on average. The Atacama Desert is here.',
@@ -629,7 +643,7 @@ const STORE_KEY = ON_HUB ? HUB.moduleKey('explorers-atlas.' + REGION.key) : 'exp
 const DAILY_GOAL = ON_HUB ? HUB.DAILY_GOAL : 20;
 let state = { mastery: {}, best: {}, sound: true, say: true, voice: 'en', daily: { d: '', n: 0, done: false } };
 try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s) state = Object.assign(state, s); } catch (e) {}
-if (ON_HUB) state.sound = HUB.getSetting('sound');   // Sound is one setting per child across Study Buddy
+if (ON_HUB) { state.sound = HUB.getSetting('sound'); state.say = !!HUB.getSetting('readAloud'); }   // Sound and Say names follow each child's Display settings (Say names = Read aloud, off by default)   // Sound is one setting per child across Study Buddy
 const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} };
 const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 
@@ -726,6 +740,10 @@ function buildMap(svg) {
     p.setAttribute('d', MAPDATA.countries[c.id].d);
     p.setAttribute('class', 'land cpath');
     p.dataset.id = c.id; p.style.fill = c.color;
+    // keyboard access: every country can be focused and pressed with Enter or Space.
+    // Only the Study map names the country; the quiz maps stay generic so they do not give the answer away.
+    p.setAttribute('tabindex', '0'); p.setAttribute('role', 'button'); p.setAttribute('aria-label', svg.id === 'mapStudy' ? c.name : 'Country on the map');
+    p.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); p.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
     svg.appendChild(p); paths[c.id] = p;
   });
   svg.appendChild(gl);
@@ -826,13 +844,13 @@ document.addEventListener('DOMContentLoaded', () => {
     v.textContent = 'Voice: ' + (state.voice === 'local' ? 'Local' : 'English'); v.setAttribute('aria-pressed', state.voice === 'local');
   };
   $('#soundBtn').onclick = () => { state.sound = !state.sound; if (ON_HUB) HUB.setSetting('sound', state.sound); save(); paint(); if (state.sound) sfx.good(); };
-  $('#sayBtn').onclick = () => { state.say = !state.say; save(); paint(); if (state.say) speak(pick(C)[0].id); };
+  $('#sayBtn').onclick = () => { state.say = !state.say; if (ON_HUB) HUB.setSetting('readAloud', state.say); save(); paint(); if (state.say) speak(pick(C)[0].id); };
   $('#voiceBtn').onclick = () => { state.voice = state.voice === 'local' ? 'en' : 'local'; save(); paint(); speak(pick(C)[0].id, true); };
   paint();
-  if (ON_HUB) { const db = $('#displayBtn'); db.hidden = false; db.onclick = () => HUB.displayDialog(() => { state.sound = HUB.getSetting('sound'); paint(); }); }
+  if (ON_HUB) { const db = $('#displayBtn'); db.hidden = false; db.onclick = () => HUB.displayDialog(() => { state.sound = HUB.getSetting('sound'); state.say = !!HUB.getSetting('readAloud'); paint(); }); }
   const resetNow = () => { state = Object.assign(state, { mastery: {}, best: {}, daily: { d: today(), n: 0, done: false } }); streak = 0; if (ON_HUB) HUB.resetModule(KID.id, REGION.key, []); save(); renderPassport(); renderStreak(); toast('Progress reset'); };
   $('#resetAll').onclick = () => {
-    if (ON_HUB) HUB.requirePin('Enter the parent PIN to erase ' + KID.name + "'s " + REGION.title + ' stamps and best scores.', resetNow);
+    if (ON_HUB) HUB.requirePin('Enter the parent PIN to erase ' + KID.name + "'s " + REGION.title + ' stamps and best scores.', resetNow, null, { confirm: { title: 'Reset ' + REGION.title + '?', text: 'This erases ' + KID.name + "'s stamps and best scores here. Other modules and settings stay.", ok: 'Reset progress' } });
     else if (confirm('Erase all saved stamps and best scores?')) resetNow();
   };
   const want = new URLSearchParams(location.search).get('tool'), wb = want && $(`nav.tabs button[data-tab="${want}"]`);
@@ -848,7 +866,6 @@ function fcSetFlip(on) { FC.flipped = on; $('#fcard').classList.toggle('flip', o
 function fcNext() {
   stopSpeech(); fcSetFlip(false);
   if (!FC.queue.length) {
-    if (FC.cur) report('cards', FC.total - FC.missed.size, FC.total);   // Study Buddy: known on the first try
     $('#faceF').innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards. Press a button to go again.</div>`;
     $('#faceB').innerHTML = ''; FC.cur = null; sfx.win(); fcBar(); return;
   }
@@ -884,8 +901,8 @@ function fcAnswer(knew) {
   if (!FC.cur) return fcBuild();
   fcAfterUnflip(() => {
     const id = FC.queue.shift();
-    if (knew) { FC.known.add(id); credit(id); sfx.good(); }
-    else { FC.missed.add(id); const pos = Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)); FC.queue.splice(pos, 0, id); slip(); sfx.bad(); }
+    if (knew) { FC.known.add(id); sfx.good(); }
+    else { FC.missed.add(id); const pos = Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)); FC.queue.splice(pos, 0, id); sfx.bad(); }
     fcNext();
   });
 }

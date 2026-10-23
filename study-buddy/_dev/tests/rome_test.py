@@ -54,7 +54,7 @@ async def main():
         for i in range(n):
             await pg.click('#tab-cards [data-a="knew"]'); await pg.wait_for_timeout(40)
         rec = await pg.evaluate("SB.toolRecord('ancient-rome','cards')")
-        check(rec and rec['best'] == n, f'flashcards deck of {n} recorded {rec}')
+        check(not rec or rec.get('best') is None, f'flashcards deck of {n} is practice only {rec}')
 
         # quiz: answer every question correctly by lookup
         await pg.click('nav.tabs button[data-tab="quiz"]')
@@ -115,7 +115,7 @@ async def main():
 
         await pg.goto(base + 'index.html#/module/ancient-rome'); await pg.wait_for_selector('.tool')
         m = await pg.locator('.tool.mastered').count()
-        check(m == 5, f'hub shows all 5 scored tools mastered -> {m}')
+        check(m == 4, f'hub shows all 4 scored tools mastered (flashcards are practice only) -> {m}')
 
         await pg.set_viewport_size({'width': 360, 'height': 780})
         for t in ['guide', 'cards', 'quiz', 'sort', 'blanks', 'explain']:

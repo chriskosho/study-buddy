@@ -7,7 +7,7 @@
   const esc = SB.esc;
   const BYSYM = Object.fromEntries(ELEMENTS.map(e => [e.sym, e]));
   const BYN = Object.fromEntries(ELEMENTS.map(e => [e.n, e]));
-  const LATIN = { Na: 'natrium', K: 'kalium', Fe: 'ferrum', Cu: 'cuprum', Ag: 'argentum', Sn: 'stannum', Sb: 'stibium', Au: 'aurum', Hg: 'hydrargyrum', Pb: 'plumbum', W: 'wolfram (its German name)' };
+  const LATIN = { Na: 'natrium', K: 'kalium', Fe: 'ferrum', Cu: 'cuprum', Ag: 'argentum', Sn: 'stannum', Sb: 'stibium', Au: 'aurum', Hg: 'hydrargyrum', Pb: 'plumbum', W: 'wolfram' };
   const COMMON = ELEMENTS.filter(e => e.n <= 36).concat(['Ag', 'Sn', 'I', 'Xe', 'Ba', 'W', 'Pt', 'Au', 'Hg', 'Pb', 'Rn', 'Ra', 'U', 'Pu'].map(s => BYSYM[s]));
   const KNOWN = ELEMENTS.filter(e => e.cat !== 'un');
   const cs = e => `--c:${CATS[e.cat].color};--i:${CATS[e.cat].ink}`;
@@ -89,7 +89,7 @@
     if (t === 0) return { q: `Which element has the symbol ${e.sym}?`, a: e.name, wrong: others(3).map(x => x.name) };
     if (t === 1) return { q: `What is the symbol for ${e.name}?`, a: e.sym, wrong: others(3).map(x => x.sym) };
     if (t === 2) return { q: `Which element has atomic number ${e.n}?`, a: e.name, wrong: others(3).map(x => x.name) };
-    if (t === 3) { const cats = shuffle(Object.keys(CATS).filter(k => k !== e.cat && k !== 'un' && k !== 'la' && k !== 'ac')).slice(0, 3); return { q: `What kind of element is ${e.name}?`, a: CATS[e.cat].name, wrong: cats.map(k => CATS[k].name) }; }
+    if (t === 3) { const cats = shuffle(Object.keys(CATS).filter(k => k !== e.cat && k !== 'un' && k !== 'la' && k !== 'ac' && !(k === 'nm' && (e.cat === 'hal' || e.cat === 'ng')) && !((k === 'hal' || k === 'ng') && e.cat === 'nm'))).slice(0, 3); return { q: `What kind of element is ${e.name}?`, a: CATS[e.cat].name, wrong: cats.map(k => CATS[k].name) }; }
     return { q: `At room temperature, ${e.name} is a…`, a: e.state, wrong: ['Solid', 'Liquid', 'Gas'].filter(s => s !== e.state) };
   }
   const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, build: () => [...shuffle(PTQUIZ).slice(0, 4), ...Array.from({ length: 6 }, madeQuestion)] }); } };
@@ -148,9 +148,10 @@
   /* ===================== Type the symbol ===================== */
   const symbols = {
     init(ctx) {
-      const why = e => `The symbol for ${e.name} is ${e.sym}.` + (LATIN[e.sym] ? ` It comes from its Latin name, ${LATIN[e.sym]}.` : '') + ' A symbol starts with a capital letter.';
+      const why = e => `The symbol for ${e.name} is ${e.sym}.` + (e.sym === 'W' ? ' It comes from wolfram, its German name.' : LATIN[e.sym] ? ` It comes from its Latin name, ${LATIN[e.sym]}.` : '') + ' A symbol starts with a capital letter.';
       SBT.answer(ctx, {
-        title: 'Type the symbol', lead: 'Type the symbol for each element. Watch out for the tricky ones like K and Au.', kind: 'text', rounds: 10,
+        title: 'Type the symbol', lead: 'Type the symbol for each element. Watch out for the tricky ones like K and Au. Capital letters count: Co is cobalt, CO is not.', kind: 'text', rounds: 10,
+        exactCase: true,
         build: () => shuffle(COMMON).slice(0, 10).map(e => ({ q: `What is the symbol for <em>${e.name}</em>?`, a: [e.sym], show: e.sym, why: why(e), hint: `It starts with "${e.sym[0]}" and has ${e.sym.length} letter${e.sym.length === 1 ? '' : 's'}.`, say: 'What is the symbol for ' + e.name + '?' }))
       });
     }

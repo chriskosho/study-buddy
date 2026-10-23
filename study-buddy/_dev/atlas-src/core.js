@@ -20,7 +20,7 @@ const STORE_KEY = ON_HUB ? HUB.moduleKey('explorers-atlas.' + REGION.key) : 'exp
 const DAILY_GOAL = ON_HUB ? HUB.DAILY_GOAL : 20;
 let state = { mastery: {}, best: {}, sound: true, say: true, voice: 'en', daily: { d: '', n: 0, done: false } };
 try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s) state = Object.assign(state, s); } catch (e) {}
-if (ON_HUB) state.sound = HUB.getSetting('sound');   // Sound is one setting per child across Study Buddy
+if (ON_HUB) { state.sound = HUB.getSetting('sound'); state.say = !!HUB.getSetting('readAloud'); }   // Sound and Say names follow each child's Display settings (Say names = Read aloud, off by default)   // Sound is one setting per child across Study Buddy
 const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} };
 const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 
@@ -117,6 +117,10 @@ function buildMap(svg) {
     p.setAttribute('d', MAPDATA.countries[c.id].d);
     p.setAttribute('class', 'land cpath');
     p.dataset.id = c.id; p.style.fill = c.color;
+    // keyboard access: every country can be focused and pressed with Enter or Space.
+    // Only the Study map names the country; the quiz maps stay generic so they do not give the answer away.
+    p.setAttribute('tabindex', '0'); p.setAttribute('role', 'button'); p.setAttribute('aria-label', svg.id === 'mapStudy' ? c.name : 'Country on the map');
+    p.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); p.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
     svg.appendChild(p); paths[c.id] = p;
   });
   svg.appendChild(gl);
@@ -217,13 +221,13 @@ document.addEventListener('DOMContentLoaded', () => {
     v.textContent = 'Voice: ' + (state.voice === 'local' ? 'Local' : 'English'); v.setAttribute('aria-pressed', state.voice === 'local');
   };
   $('#soundBtn').onclick = () => { state.sound = !state.sound; if (ON_HUB) HUB.setSetting('sound', state.sound); save(); paint(); if (state.sound) sfx.good(); };
-  $('#sayBtn').onclick = () => { state.say = !state.say; save(); paint(); if (state.say) speak(pick(C)[0].id); };
+  $('#sayBtn').onclick = () => { state.say = !state.say; if (ON_HUB) HUB.setSetting('readAloud', state.say); save(); paint(); if (state.say) speak(pick(C)[0].id); };
   $('#voiceBtn').onclick = () => { state.voice = state.voice === 'local' ? 'en' : 'local'; save(); paint(); speak(pick(C)[0].id, true); };
   paint();
-  if (ON_HUB) { const db = $('#displayBtn'); db.hidden = false; db.onclick = () => HUB.displayDialog(() => { state.sound = HUB.getSetting('sound'); paint(); }); }
+  if (ON_HUB) { const db = $('#displayBtn'); db.hidden = false; db.onclick = () => HUB.displayDialog(() => { state.sound = HUB.getSetting('sound'); state.say = !!HUB.getSetting('readAloud'); paint(); }); }
   const resetNow = () => { state = Object.assign(state, { mastery: {}, best: {}, daily: { d: today(), n: 0, done: false } }); streak = 0; if (ON_HUB) HUB.resetModule(KID.id, REGION.key, []); save(); renderPassport(); renderStreak(); toast('Progress reset'); };
   $('#resetAll').onclick = () => {
-    if (ON_HUB) HUB.requirePin('Enter the parent PIN to erase ' + KID.name + "'s " + REGION.title + ' stamps and best scores.', resetNow);
+    if (ON_HUB) HUB.requirePin('Enter the parent PIN to erase ' + KID.name + "'s " + REGION.title + ' stamps and best scores.', resetNow, null, { confirm: { title: 'Reset ' + REGION.title + '?', text: 'This erases ' + KID.name + "'s stamps and best scores here. Other modules and settings stay.", ok: 'Reset progress' } });
     else if (confirm('Erase all saved stamps and best scores?')) resetNow();
   };
   const want = new URLSearchParams(location.search).get('tool'), wb = want && $(`nav.tabs button[data-tab="${want}"]`);

@@ -43,9 +43,13 @@
       else { if (v.length < 2) throw new Error('Not finished'); const b = v.pop(), a = v.pop(); v.push(OPS[t][1](a, b)); }
     }
     if (v.length !== 1 || !isFinite(v[0])) throw new Error('Not finished');
-    return +v[0].toPrecision(12);
+    const r = +v[0].toPrecision(15);
+    if (Math.abs(r) >= 1e15) throw new Error('Too big');
+    if (r !== 0 && Math.abs(r) < 1e-6) throw new Error('Too small to show');
+    return r;
   }
-  const fmt = n => { const [i, d] = String(Math.abs(n) >= 1e15 || (Math.abs(n) < 1e-9 && n !== 0) ? n.toExponential(6) : n).split('.'); return (i.includes('e') ? i : i.replace(/\B(?=(\d{3})+(?!\d))/g, ',')) + (d !== undefined ? '.' + d : ''); };
+  /* answers are kept between 1e-6 and 1e15, so JavaScript never writes them with an exponent */
+  const fmt = n => { const [i, d] = String(n).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (d !== undefined ? '.' + d : ''); };
   /* for a plain "a ÷ b" with whole numbers, also show the remainder, like long division */
   function remainder(expr, value) {
     const m = expr.match(/^(\d+)÷(\d+)$/); if (!m || Number.isInteger(value)) return '';
@@ -88,7 +92,7 @@
   }
   function renderHist() {
     $('#hist').innerHTML = hist.map((h, i) => `<li><button data-i="${i}"><span>${esc(h.e)} =</span><b>${esc(fmt(h.v))}</b></button></li>`).join('') || '<li class="hint">Nothing yet.</li>';
-    $$('#hist button').forEach(b => b.onclick = () => { expr = String(hist[+b.dataset.i].v).replace('-', '−'); justDone = false; paint(); });
+    $$('#hist button').forEach(b => b.onclick = e => { if (e.detail) b.blur(); expr = String(hist[+b.dataset.i].v).replace('-', '−'); justDone = false; paint(); });
   }
   function press(k) {
     if (k === 'AC') { expr = ''; justDone = false; return paint(); }
@@ -110,9 +114,9 @@
     if (k === '.') { const last = expr.split(/[+−×÷()]/).pop(); if (last.includes('.')) return; if (!last) k = '0.'; }
     expr += k; paint();
   }
-  $$('.key').forEach(b => b.onclick = () => press(b.dataset.k));
+  $$('.key').forEach(b => b.onclick = e => { press(b.dataset.k); if (e.detail) b.blur(); });   // a mouse or touch tap hands the keyboard back to the calculator
   document.addEventListener('keydown', e => {
-    if (e.target.closest('input,textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest('input,textarea,select') || document.querySelector('.sb-ov') || ((e.key === 'Enter' || e.key === ' ') && e.target.closest('button,a')) || e.ctrlKey || e.metaKey || e.altKey) return;
     const map = { '*': '×', 'x': '×', 'X': '×', '/': '÷', '-': '−', '+': '+', 'Enter': '=', '=': '=', 'Backspace': '⌫', 'Escape': 'AC', 'Delete': 'AC', '(': '(', ')': ')', '.': '.' };
     const k = /^[0-9]$/.test(e.key) ? e.key : map[e.key];
     if (!k) return; e.preventDefault(); press(k);

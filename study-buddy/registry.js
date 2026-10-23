@@ -37,7 +37,7 @@ window.SB_REGISTRY = {
       storage: ['explorers-atlas.south-america'],
       tools: [
         { id: 'study', name: 'Study map', kind: 'study', difficulty: 'easy', blurb: 'Every country with its name. Tap one to hear it.' },
-        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'Map shapes, capitals, and flags. Mastered when you know 10 of 12 on the first try.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Map shapes, capitals, and flags. Practice only.' },
         { id: 'listen', name: 'Listen and tap', difficulty: 'medium', blurb: 'Hear a name, then tap the country. Mastered at 10 of 12 on the first try.' },
         { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 12, blurb: '60 seconds to find as many countries as you can. Mastered at 12 found.' },
         { id: 'drag', name: 'Drag names', difficulty: 'medium', blurb: 'Drag each name onto its country. Mastered with 2 misses or fewer.' },
@@ -54,7 +54,7 @@ window.SB_REGISTRY = {
       storage: ['parts-of-speech'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'All eight parts of speech, with examples you can hear.' },
-        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'What each part does, and words in sentences. Mastered at 80% on the first try.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'What each part does, and words in sentences. Practice only.' },
         { id: 'sort', name: 'Sort it', difficulty: 'easy', blurb: 'Sort words into nouns, verbs, and adjectives. Mastered with 2 misses or fewer.' },
         { id: 'spot', name: 'Spot it', difficulty: 'medium', blurb: 'Tap the noun, verb, adjective, adverb, or pronoun in a sentence. Mastered at 8 of 10.' },
         { id: 'speed', name: 'Speed round', difficulty: 'hard', masterAt: 12, blurb: '60 seconds to name the part of speech of as many words as you can. Mastered at 12.' },
@@ -71,7 +71,7 @@ window.SB_REGISTRY = {
       storage: ['ancient-rome'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Everything from the class study guide, section by section.' },
-        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'Terms from the study guide, plus the gods and goddesses. Mastered at 80% on the first try.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Terms from the study guide, plus the gods and goddesses. Practice only.' },
         { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions. Mastered at 8 of 10.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort facts into governments, parts of the Republic, or social classes. Mastered at 80%.' },
         { id: 'blanks', name: 'Fill it in', difficulty: 'hard', blurb: 'Type the missing word or date. Mastered at 8 of 10.' },
@@ -120,7 +120,7 @@ window.SB_REGISTRY = {
       storage: ['planets'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Tap each planet in the solar system to learn about it.' },
-        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'Name the planet from clues, or recall facts. Mastered at 80% on the first try.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Name the planet from clues, or recall facts. Practice only.' },
         { id: 'order', name: 'Put in order', difficulty: 'easy', blurb: 'Order the planets from the Sun, or by size. Mastered at 7 of 8 in place.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Rocky, gas giant, or ice giant, and how many moons. Mastered at 80%.' },
         { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions. Mastered at 8 of 10.' },
@@ -138,7 +138,7 @@ window.SB_REGISTRY = {
       storage: ['periodic-table'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A periodic table you can tap. Light up each family of elements.' },
-        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'Symbols and names, from the first 20 to the common ones. Mastered at 80% on the first try.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Symbols and names, from the first 20 to the common ones. Practice only.' },
         { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: 'Symbols, atomic numbers, families, and how the table works. Mastered at 8 of 10.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Metal, nonmetal, or metalloid, and solid, liquid, or gas. Mastered at 80%.' },
         { id: 'find', name: 'Find it', difficulty: 'hard', masterAt: 15, blurb: '60 seconds to find elements on the table. Mastered at 15 found.' },
@@ -155,9 +155,9 @@ window.SB_REGISTRY = {
       storage: ['black-beauty'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The book, the characters, Beauty\'s homes, big ideas, and words to know.' },
-        { id: 'cards', name: 'Flashcards', difficulty: 'easy', blurb: 'Characters, homes, and words to know. Mastered at 80% on the first try.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Characters, homes, and words to know. Practice only.' },
         { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions about the story. Mastered at 8 of 10.' },
-        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort characters by where Beauty first met them, horse or person, and good or bad for horses. Mastered at 80%.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort characters by where they belong, horse or person, and good or bad for horses. Mastered at 80%.' },
         { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'Put the events of the story in order. Mastered at 80% in place on the first check.' },
         { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences. Mastered at 4 of 5.' }
       ]
