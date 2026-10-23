@@ -139,7 +139,7 @@ async def main():
         for i in range(n):
             await pg.click('#tab-cards [data-a="knew"]'); await pg.wait_for_timeout(30)
         rec = await record(pg, 'black-beauty', 'cards')
-        check(rec and rec['best'] == n, f'character flashcards: deck of {n} {rec}')
+        check(not rec or rec.get('best') is None, f'character flashcards: deck of {n} is practice only {rec}')
 
         await pg.click('nav.tabs button[data-tab="quiz"]')
         for i in range(10):
@@ -179,7 +179,7 @@ async def main():
 
         await pg.goto(base + 'index.html#/module/black-beauty'); await pg.wait_for_selector('.tool')
         m = await pg.locator('.tool.mastered').count()
-        check(m == 5, f'hub shows the 5 scored Black Beauty tools mastered -> {m}')
+        check(m == 4, f'hub shows the 4 scored Black Beauty tools mastered -> {m}')
 
         # ---- layout: every tool of every new module ----
         for mod, (path, tools) in MODS.items():

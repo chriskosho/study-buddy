@@ -32,7 +32,7 @@ for (let i = 0; i < N; i++) {
     const got = exp >= 0 ? w[w.length - 1 - exp] : dec[-exp - 1];
     if (got !== q.a) bad('place-digit', q, 'wrong digit');
   } else if ((m = q.q.match(/^Which number is (.+)\?$/))) {
-    let total = 0n; for (const part of m[1].split(', ')) { const [d, ...name] = part.split(' '); total += BigInt(d) * 10n ** BigInt(G.PLACES.find(p => p.name === name.join(' ')).exp); }
+    let total = 0n; for (const part of m[1].split(', ')) { const [d, ...name] = part.split(' '); total += BigInt(d) * 10n ** BigInt(G.PLACES.find(p => p.name === name.join(' ') || p.name === name.join(' ') + 's').exp); }
     if (BigInt(unc(q.a)) !== total) bad('place-build', q, 'wrong number');
   } else bad('place', q, 'unknown question');
 }
@@ -48,7 +48,7 @@ for (let i = 0; i < N; i++) {
     if (q.wrong.some(w => big(w) === r)) bad('round', q, 'a wrong option equals the answer');
   } else if ((m = q.q.match(/^How many decimal places does ([\d.]+) have\?$/))) {
     if (String(m[1].split('.')[1].length) !== q.a) bad('count', q, 'wrong count');
-  } else if ((m = q.q.match(/^Which decimal is (\d) tenths, (\d) hundredths(?:, and (\d) thousandths)?\?$/))) {
+  } else if ((m = q.q.match(/^Which decimal is (\d) tenths?, (\d) hundredths?(?:, and (\d) thousandths?)?\?$/))) {
     const want = BigInt(m[1]) * 10n ** 11n + BigInt(m[2]) * 10n ** 10n + (m[3] ? BigInt(m[3]) * 10n ** 9n : 0n);
     if (big(q.a) !== want) bad('build-dec', q, 'wrong decimal');
     if (q.wrong.some(w => big(w) === want)) bad('build-dec', q, 'a wrong option equals the answer');

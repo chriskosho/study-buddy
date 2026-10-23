@@ -109,7 +109,7 @@
       Object.keys(started).forEach(k => delete started[k]);
       $$('section.panel').forEach(s => s.innerHTML = '');
       SB.toast('Progress reset'); show(current);
-    });
+    }, null, { confirm: { title: 'Reset ' + mod.title + '?', text: 'This erases ' + kid.name + "'s scores and saved progress in " + mod.title + '. Other modules and settings stay.', ok: 'Reset progress' } });
 
     const want = new URLSearchParams(location.search).get('tool');
     show(tools.some(t => t.id === want) ? want : (cfg.first && tools.some(t => t.id === cfg.first) ? cfg.first : tools[0].id));

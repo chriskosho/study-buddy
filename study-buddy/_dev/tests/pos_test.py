@@ -58,7 +58,7 @@ async def main():
         await pg.goto(base + 'index.html#/home/english'); await pg.wait_for_selector('a.mod[href="#/module/parts-of-speech"]')
         txt = await pg.locator('a.mod[href="#/module/parts-of-speech"]').inner_text()
         check('Parts of Speech' in txt and 'Insane' in txt, 'English shows Parts of Speech, Easy to Insane')
-        check('0 of 5 mastered' in txt, 'five scored tools')
+        check('0 of 4 mastered' in txt, 'four scored tools (flashcards are practice only)')
 
         # ---- study guide ----
         await pg.goto(base + M); await pg.wait_for_selector('.gcard')
@@ -76,7 +76,7 @@ async def main():
             await pg.click('section.panel:not([hidden]) [data-a="knew"]'); await pg.wait_for_timeout(60)
         check('Deck complete' in await pg.locator('#tab-cards .front').text_content(), 'flashcard deck completes')
         rec = await pg.evaluate("SB.toolRecord('parts-of-speech','cards')")
-        check(rec and rec['best'] == 10 and rec['max'] == 10, f'flashcards result recorded {rec}')
+        check(not rec or rec.get('best') is None, f'flashcards are practice only: no score recorded {rec}')
         o = await overflow(pg); check(o['v'] <= 0 and o['h'] <= 0, f'cards fits 1440x900 {o}')
 
         # ---- sort it: one wrong, then all right ----
@@ -153,7 +153,7 @@ async def main():
         # ---- hub reflects mastery ----
         await pg.goto(base + 'index.html#/module/parts-of-speech'); await pg.wait_for_selector('.tool')
         mastered = await pg.locator('.tool.mastered').count()
-        check(mastered == 4, f'hub shows 4 tools mastered (cards, sort, spot, label) -> {mastered}')
+        check(mastered == 3, f'hub shows 3 tools mastered (sort, spot, label; flashcards give no credit) -> {mastered}')
 
         # ---- read aloud on (Hazel) speaks prompts ----
         await pg.evaluate("SB.setActive('k2'); SB.setSetting('readAloud', true, 'k2')")

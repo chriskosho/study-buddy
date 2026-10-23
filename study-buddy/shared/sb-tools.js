@@ -51,7 +51,6 @@
     function next() {
       SB.stopSpeech(); flip(false);
       if (!FC.queue.length) {
-        if (FC.cur) ctx.result(FC.total - FC.missed.size, FC.total);
         F.innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards. Press a button to go again.</div>`;
         B.innerHTML = ''; FC.cur = null; ctx.sfx.win(); bar(); return;
       }
@@ -62,8 +61,8 @@
     const doFlip = () => { if (!FC.cur || FC.busy) return; flip(!FC.flipped); SB.stopSpeech(); };
     card.addEventListener('click', doFlip);
     card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doFlip(); } });
-    $('[data-a="knew"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { FC.queue.shift(); ctx.credit(); ctx.sfx.good(); next(); }); };
-    $('[data-a="again"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { const c = FC.queue.shift(); FC.missed.add(c); FC.queue.splice(Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)), 0, c); ctx.slip(); ctx.sfx.bad(); next(); }); };
+    $('[data-a="knew"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { FC.queue.shift(); ctx.sfx.good(); next(); }); };
+    $('[data-a="again"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { const c = FC.queue.shift(); FC.missed.add(c); FC.queue.splice(Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)), 0, c); ctx.sfx.bad(); next(); }); };
     $('[data-a="skip"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { FC.queue.push(FC.queue.shift()); next(); }); };
     SB.swipeCard($('.cardstage', P), card, { onRight: () => $('[data-a="knew"]', P).click(), onLeft: () => $('[data-a="again"]', P).click() });
     $$('.seg button', P).forEach(b => b.onclick = () => { FC.mode = b.dataset.m; $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); build(); });
@@ -194,6 +193,7 @@
     const check = (item, v) => {
       if (kind === 'number') { const x = numNorm(v); if (!/^-?\d*\.?\d+$/.test(x)) return 'bad'; return Math.abs(parseFloat(x) - Number(item.a)) < 1e-9 ? 'ok' : 'no'; }
       const t = txtNorm(v), list = [].concat(item.a);
+      if (opt.exactCase) { const tv = String(v).trim(); if (list.includes(tv)) return 'ok'; if (list.some(a => String(a).toLowerCase() === tv.toLowerCase())) return 'case'; return 'no'; }
       if (list.some(a => txtNorm(a) === t)) return 'ok';
       if (opt.typo && list.some(a => txtNorm(a).length >= 5 && editDist(txtNorm(a), t) <= 1)) return 'close';
       return 'no';
@@ -224,9 +224,10 @@
         if (!v) { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Type an answer first.'; return; }
         const r = check(item, v);
         if (r === 'bad') { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Type a number, like 4,000 or 2.5.'; return; }
+        if (r === 'case') { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Almost! Check the capital and small letters, then try again.'; return; }
         if (r === 'ok' || r === 'close') {
           if (!R.hinted && R.tries === 0) R.score++;
-          ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good)';
+          ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good-ink)';
           err.textContent = (r === 'close' ? 'Close enough! It is spelled ' + shown(item) + '.' : 'Correct! ' + shown(item) + '.') + (R.hinted ? ' (Hint used, so no point.)' : '');
           done();
         } else {
@@ -260,13 +261,13 @@
     function render(marks) {
       list.innerHTML = O.items.map((it, i) => `<li class="oitem${marks ? (marks[i] ? ' right' : ' wrong') : ''}" data-i="${i}">
         <span class="onum">${i + 1}</span><span class="otext"><b>${esc(it.text)}</b>${it.sub ? `<small>${esc(it.sub)}</small>` : ''}</span>
-        <span class="oarrows"><button type="button" data-mv="-1" aria-label="Move up" ${i === 0 ? 'disabled' : ''}>&#9650;</button><button type="button" data-mv="1" aria-label="Move down" ${i === O.items.length - 1 ? 'disabled' : ''}>&#9660;</button></span></li>`).join('');
+        <span class="oarrows"><button type="button" data-mv="-1" aria-label="Move ${esc(it.text)} up" ${i === 0 ? 'disabled' : ''}>&#9650;</button><button type="button" data-mv="1" aria-label="Move ${esc(it.text)} down" ${i === O.items.length - 1 ? 'disabled' : ''}>&#9660;</button></span></li>`).join('');
       $$('.oitem', list).forEach(li => {
         li.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => move(+li.dataset.i, +li.dataset.i + +b.dataset.mv));
         li.addEventListener('pointerdown', e => drag(e, li));
       });
     }
-    function move(a, b) { if (b < 0 || b >= O.items.length) return; const [x] = O.items.splice(a, 1); O.items.splice(b, 0, x); render(); const btn = $(`.oitem[data-i="${b}"] [data-mv]`, list); }
+    function move(a, b) { if (b < 0 || b >= O.items.length) return; const [x] = O.items.splice(a, 1); O.items.splice(b, 0, x); render(); const dir = b > a ? '1' : '-1'; let btn = $(`.oitem[data-i="${b}"] [data-mv="${dir}"]`, list); if (!btn || btn.disabled) btn = $(`.oitem[data-i="${b}"] [data-mv]:not(:disabled)`, list); if (btn) btn.focus(); }
     function drag(e, li) {
       if (e.target.closest('button') || (e.button !== undefined && e.button > 0)) return;
       const sy = e.clientY; let moved = false, from = +li.dataset.i;
@@ -298,11 +299,21 @@
   /* ---------------- Explain it (written answers) ---------------- */
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  /* Lenient on purpose: curly quotes (phones type them) count as straight ones, a keyword can sit inside a longer word
+     ("elect" finds "elected"), "B.C." does not end a sentence, and a sentence needs only 3 words. */
+  const ABBR = /(?:\b(?:b\.c|a\.d|b\.c\.e|c\.e|mr|mrs|ms|dr|st|vs|etc)\.)$/i;
+  function splitSentences(text) {
+    const raw = text.split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(Boolean), out = [];
+    // "In 753 B.C. Rome began." stays one sentence: a short piece after a date abbreviation joins the one before it
+    raw.forEach(piece => { const prev = out[out.length - 1]; if (prev && ABBR.test(prev) && (/^[a-z]/.test(piece) || piece.split(/\s+/).length < 3)) out[out.length - 1] = prev + ' ' + piece; else out.push(piece); });
+    return out;
+  }
   function gradeExplain(text, ex) {
+    text = String(text).replace(/[\u2018\u2019\u02bc]/g, "'").replace(/[\u201c\u201d]/g, '"');
     const t = ' ' + text.toLowerCase().replace(/\s+/g, ' ') + ' ';
     const ideas = ex.ideas.map(idea => ({ label: idea.label, ok: idea.all.every(group => group.some(k => t.includes(k))) }));
-    const sentences = text.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
-    const complete = sentences.length > 0 && sentences.every(s => /^[A-Z0-9"']/.test(s) && /[.!?]["']?$/.test(s) && s.split(/\s+/).length >= 4);
+    const sentences = splitSentences(text);
+    const complete = sentences.length > 0 && sentences.every(s => /^[A-Z0-9"']/.test(s) && /[.!?]["']?$/.test(s) && s.split(/\s+/).length >= 3);
     return { ideas, complete, perfect: complete && ideas.every(i => i.ok) };
   }
   function explain(ctx, opt) {
@@ -325,7 +336,7 @@
       const ta = $('.answer', P), fb = $('.feedback', P), check = $('[data-a="check"]', P), next = $('[data-a="next"]', P);
       ta.focus();
       check.onclick = () => {
-        if (ta.value.trim().split(/\s+/).length < 4) { fb.hidden = false; fb.innerHTML = '<p class="msg bad">Write a little more first.</p>'; return; }
+        if (ta.value.trim().split(/\s+/).length < 3) { fb.hidden = false; fb.innerHTML = '<p class="msg bad">Write a little more first.</p>'; return; }
         const g = gradeExplain(ta.value, ex);
         if (!X.checked) { X.checked = true; if (g.perfect) { X.score++; ctx.credit(); ctx.sfx.good(); } else { ctx.slip(); ctx.sfx.bad(); } }
         fb.hidden = false;

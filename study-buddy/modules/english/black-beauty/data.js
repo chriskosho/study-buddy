@@ -96,7 +96,7 @@ const QUIZ = [
   { q: 'Why can Beauty no longer work for rich families after his fall?', a: 'The scars on his knees spoil his looks', wrong: ['He becomes too old', 'He forgets how to pull a carriage', 'He bites people'] },
   { q: 'What does Jerry Barker call Beauty?', a: 'Jack', wrong: ['Darkie', 'Black Auster', 'Captain'] },
   { q: 'Why will Jerry Barker not drive his cab on Sundays?', a: 'He believes Sunday should be a day of rest for people and horses', wrong: ['There are no riders on Sundays', 'The law says cabs cannot drive', 'His horses are sold on Sundays'] },
-  { q: 'What happens to Ginger at the end of her life?', a: 'She is worked to death as a London cab horse', wrong: ['She goes to live with Merrylegs', 'She wins a prize at the fair', 'She goes back to Birtwick'], why: 'Ginger is worn out from cab work. Soon after, Beauty sees a dead chestnut horse in a cart and believes it is Ginger.' },
+  { q: 'What happens to Ginger at the end of her life?', a: 'She is worn out by cab work, and Beauty believes she died', wrong: ['She goes to live with Merrylegs', 'She wins a prize at the fair', 'She goes back to Birtwick'], why: 'Ginger is worn out from cab work. Soon after, Beauty sees a dead chestnut horse in a cart and believes it is Ginger.' },
   { q: 'Who works Beauty so hard that he falls down in the street?', a: 'Nicholas Skinner', wrong: ['Jerry Barker', 'Farmer Thoroughgood', 'John Manly'] },
   { q: 'Who helps Beauty get well after he collapses?', a: 'Farmer Thoroughgood and his grandson Willie', wrong: ['Jerry and Polly Barker', 'York and Reuben Smith', 'Squire Gordon'] },
   { q: 'Who recognizes Beauty at his last home?', a: 'Joe Green', wrong: ['John Manly', 'James Howard', 'Jerry Barker'] },
@@ -109,9 +109,9 @@ const QUIZ = [
 
 /* Sort it. Each item is [text, bucket]. */
 const SORTS = [
-  { id: 'home', label: 'Where Beauty first met them', buckets: ['Farmer Grey\'s farm', 'Birtwick Park', 'Earlshall Park', 'London'], perBucket: 2, items: [
+  { id: 'home', label: 'Where they belong', buckets: ['Farmer Grey\'s farm', 'Birtwick Park', 'Earlshall Park', 'London'], perBucket: 2, items: [
     ['Duchess', 'Farmer Grey\'s farm'], ['Farmer Grey', 'Farmer Grey\'s farm'],
-    ['Squire Gordon', 'Birtwick Park'], ['John Manly', 'Birtwick Park'], ['James Howard', 'Birtwick Park'], ['Joe Green', 'Birtwick Park'], ['Merrylegs', 'Birtwick Park'], ['Ginger', 'Birtwick Park'],
+    ['Mrs. Gordon', 'Birtwick Park'], ['John Manly', 'Birtwick Park'], ['James Howard', 'Birtwick Park'], ['Joe Green', 'Birtwick Park'], ['Merrylegs', 'Birtwick Park'], ['Ginger', 'Birtwick Park'],
     ['York', 'Earlshall Park'], ['Reuben Smith', 'Earlshall Park'], ['Lady Anne', 'Earlshall Park'],
     ['Jerry Barker', 'London'], ['Polly Barker', 'London'], ['Captain', 'London'], ['Hotspur', 'London'], ['Nicholas Skinner', 'London']
   ] },
@@ -152,13 +152,13 @@ const EXPLAIN = [
     model: 'Anna Sewell wrote Black Beauty to show people how horses feel. She wanted people to treat horses with kindness instead of cruelty.',
     ideas: [
       { label: 'To show how horses feel', all: [['feel', 'suffer', 'pain', 'hurt', 'understand', 'think']] },
-      { label: 'So people would treat horses kindly', all: [['kind', 'gentle', 'better', 'care', 'nice', 'cruel']] }
+      { label: 'So people would treat horses kindly', all: [['kind', 'gentle', 'better', 'care', 'nice', 'good', 'respect']] }
     ] },
   { q: 'Why was the bearing rein cruel?',
     model: 'The bearing rein held a horse\'s head up high and tight. It hurt the horse\'s neck and mouth, and it made pulling a heavy load much harder.',
     ideas: [
       { label: 'It held the head up high', all: [['head'], ['up', 'high', 'raise', 'back']] },
-      { label: 'It hurt the horse', all: [['hurt', 'pain', 'sore', 'ache', 'suffer']] },
+      { label: 'It hurt the horse', all: [['hurt', 'pain', 'sore', 'ache', 'suffer', 'uncomfortable', 'bad for']] },
       { label: 'It made pulling or working harder', all: [['pull', 'load', 'work', 'carriage', 'hill']] }
     ] },
   { q: 'How did Beauty save Squire Gordon and John on the stormy night?',
@@ -178,7 +178,7 @@ const EXPLAIN = [
   { q: 'Why were Ginger and Beauty so different when they met?',
     model: 'Ginger bit and kicked because people treated her roughly when she was young. Beauty was gentle because his mother and Farmer Grey raised him with kindness.',
     ideas: [
-      { label: 'Ginger was treated roughly', all: [['rough', 'cruel', 'mean', 'hard', 'badly', 'harsh', 'beat', 'whip']] },
+      { label: 'Ginger was treated roughly', all: [['rough', 'cruel', 'mean', 'hard', 'badly', 'harsh', 'beat', 'whip', 'bad', 'hurt', 'abuse']] },
       { label: 'Beauty was raised with kindness', all: [['kind', 'gentle', 'good', 'well', 'nice']] }
     ] },
   { q: 'Compare Jerry Barker and Nicholas Skinner.',

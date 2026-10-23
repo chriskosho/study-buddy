@@ -44,6 +44,20 @@ const GUIDE = [
   { id: 'explain', label: 'Explain in sentences', explain: true }
 ];
 
+/* "Historians say" notes. The study guide wording stays as the teacher wrote it; these add what historians say, with a Wikipedia article as the source.
+   Keys are the study guide row names (or 'gov:<name>' / 'god:<name>'). */
+const WIKI = 'https://en.wikipedia.org/wiki/';
+const SAY = {
+  'Romulus': { text: 'Historians say Romulus and Remus are a legend, and 753 B.C. is the date Romans traditionally gave for the founding of Rome.', page: 'Romulus_and_Remus', label: 'Romulus and Remus' },
+  'Romulus and Remus': { text: 'Historians say this is a legend, not a record of real events.', page: 'Romulus_and_Remus', label: 'Romulus and Remus' },
+  'Senate': { text: 'Historians say the Senate mostly advised, and the citizens voted in assemblies to elect the consuls.', page: 'Roman_Senate', label: 'Roman Senate' },
+  'Consuls': { text: 'Historians say the consuls were the highest regular officials, but a dictator could hold more power for a short time.', page: 'Roman_consul', label: 'Roman consul' },
+  'Dictator': { text: 'Historians say a dictator was chosen by a consul, with the Senate agreeing, for up to 6 months.', page: 'Roman_dictator', label: 'Roman dictator' },
+  'Slaves': { text: 'Historians say nobody knows the exact numbers. Slaves were a very large group, and some historians think free commoners (plebeians) were the largest class.', page: 'Slavery_in_ancient_Rome', label: 'Slavery in ancient Rome' },
+  'Republic': { text: 'Historians say only adult male citizens could vote. Women, slaves, and people who were not citizens could not.', page: 'Roman_Republic', label: 'Roman Republic' },
+  'Apollo': { text: 'Historians say Apollo was linked with the sun later on. The Greeks\' sun god was Helios, and the Romans\' was Sol.', page: 'Apollo', label: 'Apollo' }
+};
+
 const GOVS = [
   { name: 'Monarchy', what: 'Rule of one king. Began in 753 B.C.', good: 'Very quick decisions.', bad: 'Too much power for one person to have.' },
   { name: 'Democracy', what: 'Rule of the people. Rome never had a democracy.', good: 'Everyone has a say or a vote.', bad: 'Very slow. Disagreements happened easily.' },
@@ -136,12 +150,12 @@ const SORTS = [
   { id: 'gov', label: 'Governments', buckets: ['Monarchy', 'Democracy', 'Republic'], items: [
     ['Rule of one king', 'Monarchy'], ['Began in 753 B.C.', 'Monarchy'], ['Very quick decisions', 'Monarchy'], ['Too much power for one person', 'Monarchy'],
     ['Rule of the people', 'Democracy'], ['Rome never had one', 'Democracy'], ['Very slow', 'Democracy'], ['Disagreements happened easily', 'Democracy'],
-    ['Rule of elected representatives', 'Republic'], ['Began in 509 B.C.', 'Republic'], ['People vote for representatives', 'Republic'], ['Laws favored patricians', 'Republic'], ['Fewer people have power', 'Republic']
+    ['Rule of elected representatives', 'Republic'], ['Began in 509 B.C.', 'Republic'], ['People vote for representatives', 'Republic'], ['Laws favored patricians', 'Republic'], ['A small group of elected leaders decides', 'Republic']
   ] },
   { id: 'parts', label: 'Parts of the Republic', buckets: ['Senate', 'Consuls', 'Dictator'], items: [
     ['300 male citizens', 'Senate'], ['Helped create laws', 'Senate'], ['Helped elect consuls', 'Senate'],
     ['2 male citizens', 'Consuls'], ['Final say on laws and wars', 'Consuls'], ['Most power of any official', 'Consuls'],
-    ['1 male citizen', 'Dictator'], ['Elected for 6 months', 'Dictator'], ['Only in times of war', 'Dictator']
+    ['1 male citizen', 'Dictator'], ['Elected for 6 months', 'Dictator'], ['In times of war', 'Dictator']
   ] },
   { id: 'classes', label: 'Social classes', buckets: ['Patricians', 'Plebeians', 'Slaves'], items: [
     ['Upper class', 'Patricians'], ['Wealthy and powerful', 'Patricians'], ['Smaller class', 'Patricians'],
@@ -178,38 +192,38 @@ const EXPLAIN = [
   { q: 'How does a republic combine the good of a monarchy with the good of a democracy?', teacher: true,
     model: 'A republic has a few rulers, so they can still make quick decisions like in a monarchy. A republic is the rule of elected representatives, so the people still have a say in who their rulers are, like in a democracy.',
     ideas: [
-      { label: 'A republic has a few rulers', all: [['few', 'small group', 'representative', 'not many']] },
-      { label: 'So it can make quick decisions, like a monarchy', all: [['quick', 'fast', 'faster', 'quicker', 'quickly'], ['monarch', 'king']] },
-      { label: 'People elect their rulers and have a say, like a democracy', all: [['elect', 'vote', 'choose', 'say in who'], ['democra']] }
+      { label: 'A republic has a few rulers', all: [['few', 'small group', 'representative', 'not many', 'some', 'elected']] },
+      { label: 'So it can make quick decisions, like a monarchy', all: [['quick', 'fast', 'faster', 'quicker', 'quickly', 'speed', 'efficient'], ['monarch', 'king', 'one ruler', 'one person']] },
+      { label: 'People elect their rulers and have a say, like a democracy', all: [['elect', 'vote', 'choose', 'say in who', 'pick', 'represent'], ['democra', 'people', 'citizens', 'everyone']] }
     ] },
   { q: 'Explain a monarchy: what it is, when Rome had it, one good thing, and one bad thing.',
     model: 'A monarchy is the rule of one king. Rome\'s monarchy began in 753 B.C. A good thing is that decisions are very quick. A bad thing is that one person has too much power.',
     ideas: [
-      { label: 'Rule of one king', all: [['king', 'one ruler', 'one person']] },
+      { label: 'Rule of one king', all: [['king', 'one ruler', 'one person', 'monarch', 'one leader']] },
       { label: 'Began in 753 B.C.', all: [['753']] },
       { label: 'Good: very quick decisions', all: [['quick', 'fast']] },
-      { label: 'Bad: too much power for one person', all: [['power']] }
+      { label: 'Bad: too much power for one person', all: [['power', 'too much', 'control', 'unfair', 'dangerous', 'in charge', 'boss']] }
     ] },
   { q: 'Explain a democracy: what it is, whether Rome had it, one good thing, and one bad thing.',
     model: 'A democracy is the rule of the people. Rome never had a democracy. A good thing is that everyone has a say or a vote. A bad thing is that it is very slow, and disagreements happen easily.',
     ideas: [
       { label: 'Rule of the people', all: [['people', 'everyone', 'citizens']] },
-      { label: 'Rome never had one', all: [['never', 'did not', "didn't", 'not have']] },
+      { label: 'Rome never had one', all: [['never', 'did not', "didn't", 'not have', 'no democracy', 'was not', "wasn't", 'had no']] },
       { label: 'Good: everyone has a say or vote', all: [['say', 'vote']] },
-      { label: 'Bad: very slow, disagreements', all: [['slow', 'disagree']] }
+      { label: 'Bad: very slow, disagreements', all: [['slow', 'disagree', 'argue', 'fight', 'take long', 'took long', 'long time']] }
     ] },
   { q: 'Explain a republic: what it is, when Rome had it, one good thing, and one bad thing.',
     model: 'A republic is the rule of elected representatives. The Roman Republic began in 509 B.C. A good thing is that people get a say by voting for representatives. A bad thing is that not all Romans were treated equally, and laws favored patricians.',
     ideas: [
       { label: 'Rule of elected representatives', all: [['represent', 'elect']] },
       { label: 'Began in 509 B.C.', all: [['509']] },
-      { label: 'Good: people vote, or quicker decisions', all: [['vote', 'say', 'quick', 'fewer']] },
-      { label: 'Bad: not treated equally, laws favored patricians', all: [['patrician', 'not treated equal', 'not equal', 'unequal', 'unfair', 'favored', 'favour']] }
+      { label: 'Good: people vote, or quicker decisions', all: [['vote', 'say', 'quick', 'fast', 'fewer', 'choose', 'pick']] },
+      { label: 'Bad: not treated equally, laws favored patricians', all: [['patrician', 'not treated equal', 'not equal', 'unequal', 'unfair', 'favored', 'favour', 'not fair', 'rich', 'equal rights']] }
     ] },
   { q: 'What are checks and balances in the Roman Republic?',
     model: 'Checks and balances means each part of the government kept the other parts from gaining too much power.',
     ideas: [
-      { label: 'Each part of government', all: [['part', 'each', 'senate', 'consul', 'branch']] },
-      { label: 'Kept the others from gaining too much power', all: [['power']] }
+      { label: 'Each part of government', all: [['part', 'each', 'senate', 'consul', 'branch', 'government', 'group', 'dictator', 'everyone']] },
+      { label: 'Kept the others from gaining too much power', all: [['power', 'control', 'too much', 'too strong', 'too big', 'in charge', 'boss']] }
     ] }
 ];

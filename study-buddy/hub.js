@@ -176,7 +176,8 @@
         <div class="tablewrap"><table class="ptable"><thead><tr><th>Tool</th><th>Difficulty</th>${ps.map(p => `<th>${esc(p.name)}</th>`).join('')}</tr></thead>
         <tbody>${tools.map(t => `<tr><td><b>${esc(t.name)}</b></td><td>${SB.diffBadge(t.difficulty)}</td>${ps.map(p => `<td class="num">${cell(t, p)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
     }).join('');
-    box.innerHTML = `<h2>Progress</h2><p class="lead">A tool counts as mastered once its best score reaches the goal in its description. Study tools have no score.</p><div class="cards2">${sums}</div>${tables}`;
+    box.innerHTML = `<h2>Progress</h2>${pinNote(SB.root())}<p class="lead">A tool counts as mastered once its best score reaches the goal in its description. Study tools have no score. Flashcards are practice only and do not count toward mastery.</p><div class="cards2">${sums}</div>${tables}`;
+    wireDismiss(box, pProgress);
   }
 
   function swatches(sel, name) {
@@ -225,27 +226,33 @@
   function pBackup(box) {
     box.innerHTML = `<h2>Backup</h2>
       <p class="lead">Progress is saved in this browser on this device only. A backup file lets you keep a copy or move everything to another device, like a phone.</p>
-      <div class="kidrow"><div class="grow"><h3>Save a backup</h3><span class="hint">Downloads one small file with every profile, setting, and score.</span></div><button class="btn" id="exp">Download backup</button></div>
+      <div class="kidrow"><div class="grow"><h3>Save a backup</h3><span class="hint">Downloads one small file with every profile, setting, and score. It also holds the parent PIN, so keep it private.</span></div><button class="btn" id="exp">Download backup</button></div>
       <div class="kidrow"><div class="grow"><h3>Load a backup</h3><span class="hint">Replaces everything on this device with the backup, including the parent PIN saved in it.</span></div>
-        <label class="btn ghost" style="cursor:pointer">Choose file<input type="file" id="imp" accept=".json,application/json" hidden></label></div>`;
+        <button class="btn ghost" id="pick" type="button">Choose file</button><input type="file" id="imp" accept=".json,application/json" tabindex="-1" aria-hidden="true" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></div>`;
+    box.querySelector('#pick').onclick = () => box.querySelector('#imp').click();
     box.querySelector('#exp').onclick = () => { const d = new Date(); SB.download(`study-buddy-backup-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.json`, SB.exportAll()); };
     box.querySelector('#imp').onchange = e => {
       const f = e.target.files[0]; if (!f) return;
-      f.text().then(text => SB.confirm({ title: 'Load this backup?', text: 'Everything on this device will be replaced with the backup from ' + f.name + '.', ok: 'Load backup', danger: true }, () => {
-        try { SB.importAll(text); SB.toast('Backup loaded'); location.hash = '#/'; route(); } catch (err) { SB.toast(err.message); }
-      }));
       e.target.value = '';
+      f.text().then(text => {
+        let info; try { info = SB.checkBackup(text); } catch (err) { SB.confirm({ title: 'Cannot load this file', text: err.message + ' Nothing on this device was changed.', ok: 'OK', cancel: 'Close' }); return; }
+        SB.confirm({ title: 'Load this backup?', text: 'Everything on this device will be replaced with the backup from ' + f.name + '. It has ' + info.names.join(', ') + '.', ok: 'Load backup', danger: true }, () => {
+          try { SB.importAll(text); SB.toast('Backup loaded'); location.hash = '#/'; route(); } catch (err) { SB.toast(err.message); }
+        });
+      }, () => SB.toast('That file could not be read.'));
     };
   }
 
+  const pinNote = r => r.pinRemovedAt ? `<div class="note" role="status">The parent PIN was reset with "Forgot PIN" on ${esc(new Date(r.pinRemovedAt).toLocaleDateString())}. <button class="btn ghost small" id="dismiss" type="button">Dismiss</button></div>` : '';
+  function wireDismiss(box, again) { const dm = box.querySelector('#dismiss'); if (dm) dm.onclick = () => { SB.dismissPinNote(); again(box); }; }
   function pPin(box) {
     const r = SB.root();
     box.innerHTML = `<h2>Parent PIN</h2>
       <p class="lead">The PIN protects resetting progress, changing profiles, and backups. It keeps kids from erasing things by accident. It is not real security.</p>
-      ${r.pinRemovedAt ? `<div class="note">The PIN was removed with "Forgot PIN" on ${new Date(r.pinRemovedAt).toLocaleDateString()} and a new one was set. <button class="btn ghost small" id="dismiss">Dismiss</button></div>` : ''}
+      ${pinNote(r)}
       <button class="btn" id="chg">Change PIN</button>`;
     box.querySelector('#chg').onclick = () => SB.newPinDialog('Change the parent PIN', 'Choose 4 to 8 digits.', () => pPin(box));
-    const dm = box.querySelector('#dismiss'); if (dm) dm.onclick = () => { SB.dismissPinNote(); pPin(box); };
+    wireDismiss(box, pPin);
   }
 
   /* ---------- router ----------
@@ -255,6 +262,7 @@
     const [view, arg] = location.hash.replace(/^#\/?/, '').split('/');
     if (!SB.profiles().length) SB.ensureGuest();
     if (SB.profiles().length === 1 && !SB.activeProfile()) SB.setActive(SB.profiles()[0].id);
+    if (view !== 'parent') SB.lock();
     if (view === 'parent') viewParent(arg);
     else {
       const kid = SB.activeProfile(), many = SB.profiles().length > 1;

@@ -40,7 +40,7 @@ const LIQUIDS = ['Br', 'Hg'];
 const ELEMENTS = ELEMENT_LINES.trim().split(/[|\n]/).map(line => {
   const [n, sym, name, cat, group, period] = line.trim().split(' ');
   return { n: +n, sym, name, cat, group: group === '-' ? null : +group, period: +period,
-    state: cat === 'un' ? 'Unknown' : GASES.includes(sym) ? 'Gas' : LIQUIDS.includes(sym) ? 'Liquid' : 'Solid' };
+    state: (cat === 'un' || +n >= 100) ? 'Unknown' : GASES.includes(sym) ? 'Gas' : LIQUIDS.includes(sym) ? 'Liquid' : 'Solid' };
 });
 
 /* Short facts for well-known elements. */

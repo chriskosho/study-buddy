@@ -21,9 +21,12 @@ STUB = """Object.defineProperty(window,'speechSynthesis',{configurable:true,valu
 window.SpeechSynthesisUtterance=function(t){this.text=t};"""
 
 async def finish_parts_deck(pg, base):
-    await pg.goto(base + POS + '?tool=cards'); await pg.wait_for_selector('#tab-cards .fcard')
-    for i in range(8):
-        await pg.click('#tab-cards [data-a="knew"]'); await pg.wait_for_timeout(40)
+    """Finish a scored round (the Parts of Speech sort). Flashcards are practice only, so they no longer count as a round."""
+    await pg.goto(base + POS + '?tool=sort'); await pg.wait_for_selector('#tab-sort .sortTray .chip')
+    while await pg.locator('#tab-sort .sortTray .chip').count():
+        c = pg.locator('#tab-sort .sortTray .chip').first; pp = await c.get_attribute('data-b')
+        if 'sel' not in (await c.get_attribute('class')): await c.click()
+        await pg.click(f'#tab-sort .bucket[data-b="{pp}"]'); await pg.wait_for_timeout(30)
 
 async def main():
     threading.Thread(target=serve, daemon=True).start()
@@ -62,7 +65,7 @@ async def main():
         check(await pg.locator('.sb-invite').count() == 0, 'invite shows at most once per visit')
 
         # ---- add a name from the chip: keeps progress ----
-        before = await pg.evaluate("SB.toolRecord('parts-of-speech','cards')")
+        before = await pg.evaluate("SB.toolRecord('parts-of-speech','sort')")
         await pg.click('#sbAddName'); await pg.wait_for_selector('.sb-dlg')
         await pg.click('[data-x="yes"]')
         check('Type a name' in await pg.locator('.sb-err').inner_text(), 'empty name rejected')
@@ -71,7 +74,7 @@ async def main():
         await pg.fill('[data-x="a"]', 'Hazel'); await pg.click('[data-x="yes"]')
         await pg.wait_for_load_state('load'); await pg.wait_for_selector('.kidpill')
         check('Hazel' in await pg.locator('.kidpill').inner_text(), 'module header now shows the name')
-        after = await pg.evaluate("SB.toolRecord('parts-of-speech','cards')")
+        after = await pg.evaluate("SB.toolRecord('parts-of-speech','sort')")
         check(before and after and after['attempts'] == before['attempts'] and not await pg.evaluate("SB.isGuest(SB.activeProfile())"), 'progress kept after adding a name')
         await pg.evaluate("sessionStorage.clear()")
         await finish_parts_deck(pg, base); await pg.wait_for_timeout(1800)
@@ -80,10 +83,14 @@ async def main():
         # ---- first protected action offers a PIN; Skip lets it through ----
         await pg.click('#sbReset'); await pg.wait_for_selector('.sb-dlg')
         check('Protect this with a parent PIN' in await pg.locator('.sb-dlg').inner_text(), 'first reset offers a PIN')
-        await pg.click('[data-x="skip"]'); await pg.wait_for_timeout(200)
-        check(await pg.evaluate("(SB.toolRecord('parts-of-speech','cards') || {}).best == null"), 'Skip, then the reset happens (scores erased)')
-        await pg.click('#sbReset'); await pg.wait_for_timeout(200)
-        check(await pg.locator('.sb-dlg').count() == 0, 'after skipping, no PIN prompt on later resets')
+        await pg.click('[data-x="skip"]'); await pg.wait_for_selector('.sb-dlg [data-x="yes"]')
+        check('Reset' in await pg.locator('.sb-dlg h3').inner_text(), 'after Skip, a reset confirmation still asks first')
+        await pg.click('[data-x="no"]'); await pg.wait_for_timeout(200)
+        check(await pg.evaluate("(SB.toolRecord('parts-of-speech','sort') || {}).best != null"), 'Cancel keeps the scores')
+        await pg.click('#sbReset'); await pg.wait_for_selector('.sb-dlg [data-x="yes"]')
+        check('Protect this' not in await pg.locator('.sb-dlg').inner_text(), 'after skipping, the PIN offer does not come back')
+        await pg.click('[data-x="yes"]'); await pg.wait_for_timeout(300)
+        check(await pg.evaluate("(SB.toolRecord('parts-of-speech','sort') || {}).best == null"), 'confirming the reset erases the scores')
 
         # ---- parent area without a PIN shows a note; second person triggers one more offer ----
         await pg.goto(base + '#/parent/children'); await pg.wait_for_selector('.kidrow')
@@ -115,9 +122,7 @@ async def main():
 
         # ---- phone: invite fits ----
         await pg2.set_viewport_size({'width': 360, 'height': 780})
-        await pg2.goto(base + POS + '?tool=cards'); await pg2.wait_for_selector('#tab-cards .fcard')
-        for i in range(8):
-            await pg2.click('#tab-cards [data-a="knew"]'); await pg2.wait_for_timeout(40)
+        await finish_parts_deck(pg2, base)
         await pg2.wait_for_selector('.sb-invite', timeout=4000)
         box = await pg2.locator('.sb-invite').bounding_box()
         check(box['x'] >= 0 and box['x'] + box['width'] <= 360, f'invite fits a phone screen {box}')
