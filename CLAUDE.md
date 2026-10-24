@@ -1,6 +1,6 @@
 # Study Buddy: project rules
 
-Study Buddy is a static website of quick-review study tools for the owner's four children. It is hosted free on Netlify and is deployed from this repository. There is no server, no account system, and nothing is saved online: progress is saved in each browser.
+Study Buddy is a static website of quick-review study tools for the owner's four children. It is deployed from this repository: Netlify builds the pull-request previews, and `.github/workflows/pages.yml` publishes `main` to GitHub Pages. There is no server, no account system, and nothing is saved online: progress is saved in each browser.
 
 The site lives in `study-buddy/`. Read these before changing anything:
 - `study-buddy/_dev/docs/ARCHITECTURE.md`: vocabulary, files, saved data, and the module contract

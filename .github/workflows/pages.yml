@@ -1,0 +1,43 @@
+# Publishes the site to GitHub Pages whenever main changes (and when you press "Run workflow").
+# The public address is https://<owner>.github.io/<repository>/ . Developer folders (_dev) are left out.
+name: Publish to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build (rebuilds the South America page and the offline file list)
+        run: node study-buddy/_dev/build.mjs
+      - name: Collect the site, without developer folders
+        run: |
+          mkdir _site
+          cp -r study-buddy/. _site/
+          rm -rf _site/_dev
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
