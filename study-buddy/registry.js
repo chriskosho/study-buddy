@@ -24,7 +24,8 @@ window.SB_REGISTRY = {
     { id: 'math', name: 'Math' },
     { id: 'science', name: 'Science' },
     { id: 'geography', name: 'Geography' },
-    { id: 'history', name: 'History' }
+    { id: 'history', name: 'History' },
+    { id: 'roots', name: 'Greek and Latin Roots' }
   ],
   modules: [
     {
@@ -160,6 +161,22 @@ window.SB_REGISTRY = {
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort characters by where they belong, horse or person, and good or bad for horses. Mastered at 80%.' },
         { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'Put the events of the story in order. Mastered at 80% in place on the first check.' },
         { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences. Mastered at 4 of 5.' }
+      ]
+    },
+    {
+      id: 'greek-latin-roots',
+      subject: 'roots',
+      title: 'Greek and Latin Roots',
+      blurb: 'Memorize what 18 roots mean, like equus, ornis, and circum, and the English words built from them.',
+      tags: [],
+      path: 'modules/roots/greek-latin-roots/index.html',
+      storage: ['greek-latin-roots'],
+      tools: [
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'All 18 roots with their meanings, words, and notes. Practice only.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'easy', blurb: 'Sort roots by meaning, or by Greek and Latin. Mastered at 80%.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', masterAt: 18, blurb: 'Pick the meaning of a root, from Easy to Insane. Missed roots come back first. Mastered when all 18 roots are mastered.' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', masterAt: 18, blurb: 'Type the meaning of a root. Two tries and a hint. Mastered when all 18 roots are mastered.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Use a root word in a complete sentence. Mastered at 4 of 5.' }
       ]
     }
   ],
