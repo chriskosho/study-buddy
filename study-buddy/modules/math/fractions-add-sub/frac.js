@@ -3,8 +3,7 @@
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
   const G = window.FRACGEN, esc = SB.esc;
-  /* n different questions for a round (the same problem should not come up twice) */
-  const many = (fn, n = 10) => { const out = [], seen = new Set(); for (let i = 0; out.length < n && i < 400; i++) { const q = fn(), k = q.q + '|' + (q.html || ''); if (!seen.has(k)) { seen.add(k); out.push(q); } } return out; };
+  const many = SBT.many;   // n different questions for a round
   const F = G.F;
 
   /* ===================== Study guide ===================== */

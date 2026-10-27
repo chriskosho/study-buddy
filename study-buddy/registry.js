@@ -166,6 +166,27 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'fractions-multiply',
+      subject: 'math',
+      title: 'Multiplication of Fractions',
+      blurb: 'Fractions times whole numbers, fractions times fractions, mixed numbers, and reciprocals (Dimensions Math 5, chapter 5).',
+      tags: ['math', 'fractions', 'multiplication'],
+      path: 'modules/math/fractions-multiply/index.html',
+      storage: ['fractions-multiply'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Worked examples, and a helper that shows every step for any two numbers.' },
+        { id: 'whole', name: 'Fractions times whole numbers', difficulty: 'easy', blurb: 'Like 3/4 \u00d7 5. Mastered at 8 of 10.' },
+        { id: 'fractionof', name: 'Fraction of a number', difficulty: 'easy', blurb: 'Like 2/3 of 12, and simple word problems. Mastered at 8 of 10.' },
+        { id: 'models', name: 'Use the area model', difficulty: 'easy', blurb: 'Read a product from overlapping shading. Mastered at 8 of 10.' },
+        { id: 'fraction', name: 'Multiply fractions', difficulty: 'medium', blurb: 'Unit fractions, two fractions, or three factors. Mastered at 8 of 10.' },
+        { id: 'scale', name: 'Bigger, smaller or the same?', difficulty: 'medium', blurb: 'Sort products without working them out.' },
+        { id: 'recip', name: 'Reciprocals', difficulty: 'medium', blurb: 'Swap the top and bottom. Mastered at 8 of 10.' },
+        { id: 'mixed', name: 'Multiply mixed numbers', difficulty: 'hard', blurb: 'By a whole number, a fraction, or a mixed number. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Word problems', difficulty: 'hard', blurb: 'Recipes, gardens, and parts of parts. Mastered at 8 of 10.' },
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Three or more factors, missing factors, and parentheses. Mastered at 8 of 10.' }
+      ]
+    },
+    {
       id: 'planets',
       subject: 'science',
       title: 'The Planets',

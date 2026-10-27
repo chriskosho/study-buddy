@@ -417,5 +417,7 @@
     start();
   }
 
-  window.SBT = { flashcards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
+  /* n different questions for a round (the same problem should not come up twice): many(makeOne, 10) */
+  const many = (fn, n = 10) => { const out = [], seen = new Set(); for (let i = 0; out.length < n && i < 400; i++) { const q = fn(), k = (q.q || '') + '|' + (q.html || '') + '|' + (q.qh || ''); if (!seen.has(k)) { seen.add(k); out.push(q); } } return out; };
+  window.SBT = { many, flashcards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
 })();
