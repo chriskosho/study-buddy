@@ -55,7 +55,11 @@ window.SB_REGISTRY = {
       storage: ['us-states'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Every state with its capital, flag, motto, bird, flower, cities, and year admitted. Search by name.' },
-        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'All 50 states by topic. Practice only.' },
+        { id: 'study', name: 'Study map', kind: 'study', difficulty: 'easy', blurb: 'Every state with its name on the map. Tap one to hear it.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Map shapes, capitals, flags, mottos, birds and flowers, cities, and years. Practice only.' },
+        { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a name, then tap the state. Mastered at 8 of 10 on the first try.' },
+        { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 20, blurb: '60 seconds to find as many states as you can. Mastered at 20 found.' },
+        { id: 'drag', name: 'Drag names', difficulty: 'medium', masterAt: 45, blurb: 'Drag each of the 50 names onto its state. Mastered with 5 misses or fewer.' },
         { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: 'Multiple choice on capitals, flags, mottos, birds, flowers, cities, or when states joined. Mastered at 8 of 10.' },
         { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type capitals, state names, birds, flowers, or years. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' },
         { id: 'order', name: 'Put in order', difficulty: 'insane', blurb: 'Put states in the order they joined the United States. Mastered at 80% in place on the first check.' }

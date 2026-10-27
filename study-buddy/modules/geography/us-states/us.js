@@ -138,6 +138,7 @@
     init(ctx) {
       const say = (s, t) => ctx.sayButton(t, 'Hear it');
       const D = {
+        shapes: s => ({ front: `<div class="tag">Map shape</div>${window.__usMap.miniMap(s.id)}<div class="small">Which state is colored?</div>`, back: `<div class="tag">State</div><div class="defline">${esc(s.name)}</div><div class="exl">Capital: ${esc(s.capital)}</div>${say(s, s.name + '. The capital is ' + s.capital + '.')}`, say: 'Which state is colored?' }),
         capitals: s => ({ front: `<div class="tag">State</div><div class="big">${esc(s.name)}</div><div class="small">What is the capital?</div>`, back: `<div class="tag">Capital</div><div class="defline">${esc(s.capital)}</div><div class="exl">${esc(s.name)} joined in ${s.admitted} as the ${ord(s.order)} state.</div>${say(s, s.name + '. The capital is ' + s.capital + '.')}`, say: 'What is the capital of ' + s.name + '?' }),
         flags: s => ({ front: `<div class="tag">Flag</div>${flag(s, 'us-cardflag')}<div class="small">Which state?</div>`, back: `<div class="tag">State</div><div class="defline">${esc(s.name)}</div><div class="exl">Capital: ${esc(s.capital)}</div>${say(s, 'This is the flag of ' + s.name + '.')}` }),
         mottos: s => ({ front: `<div class="tag">State</div><div class="big">${esc(s.name)}</div><div class="small">What is the motto?</div>`, back: `<div class="tag">Motto</div><div class="defline us-motto">${esc(s.motto)}</div>${s.mottoNote ? `<div class="exl">${esc(s.mottoNote)}</div>` : ''}${say(s, s.name + '. ' + mottoSay(s))}`, say: 'What is the motto of ' + s.name + '?' }),
@@ -147,7 +148,7 @@
       };
       SBT.flashcards(ctx, {
         lead: 'Tap the card to flip it. Say the answer before you flip. Cards you miss come back again.',
-        modes: TOPICS.map(t => ({ id: t.id, label: t.id === 'capitals' ? 'Capitals' : t.id === 'birds' ? 'Birds and flowers' : t.label })),
+        modes: [{ id: 'shapes', label: 'Map shapes' }, ...TOPICS].map(t => ({ id: t.id, label: t.id === 'capitals' ? 'Capitals' : t.id === 'birds' ? 'Birds and flowers' : t.label })),
         build: mode => shuffle(STATES).map(D[mode])
       });
     }
@@ -188,5 +189,5 @@
   };
 
   window.__usTest = { Q, T, quizSet, alts };                                 // a hook so the test can check every state's questions
-  SBM.start({ module: 'us-states', defaults: { topic: {} }, tools: { guide, cards, quiz, answer, order: orderTool } });
+  SBM.start({ module: 'us-states', defaults: { topic: {} }, tools: { guide, ...window.__usTools, cards, quiz, answer, order: orderTool } });
 })();
