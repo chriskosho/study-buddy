@@ -15,7 +15,7 @@ def check(cond, msg):
     print(('PASS ' if cond else 'FAIL ') + msg)
     if not cond: fails.append(msg)
 INIT = """localStorage.getItem('studybuddy.v1.root') || localStorage.setItem('studybuddy.v1.root', JSON.stringify({profiles:[{id:'k1',name:'Joshua',color:'#e4572e'}],active:'k1',pin:null,pinOffered:true}));
-window.__spoken=[];
+window.__spoken=[];window.__clips=[];window.__clipFail=false;window.Audio=function(u){this.u=u;this.pause=function(){};this.play=function(){window.__clips.push(u);if(window.__clipFail){var s=this;setTimeout(function(){s.onerror&&s.onerror()},10)}return Promise.resolve()}};
 Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak(u){window.__spoken.push(u.text);setTimeout(()=>u.onend&&u.onend(),30)},cancel(){},getVoices(){return[]},addEventListener(){}}});
 window.SpeechSynthesisUtterance=function(t){this.text=t};"""
 async def overflow(pg):
@@ -110,7 +110,11 @@ async def main():
         await pg.click('.phrow .spkb >> nth=1 >> .spk'); await pg.wait_for_timeout(200)
         check('car, city' in await pg.evaluate('window.__spoken'), 'Words reads the example words')
         await pg.click('.phrow .spkb >> nth=0 >> .spk'); await pg.wait_for_timeout(200)
-        check('kuh. suh.' in await pg.evaluate('window.__spoken'), 'Sounds says the sounds, one after the other')
+        check((await pg.evaluate('window.__clips'))[-1:] == ['audio/p01.mp3'] or (await pg.evaluate('window.__clips'))[-1].startswith('audio/p'), 'Sounds plays the recorded clip')
+        check(await pg.evaluate('window.__spoken.indexOf("kuh. suh.")') < 0, 'Sounds does not use the device voice when the clip plays')
+        await pg.evaluate('window.__clipFail=true'); await pg.keyboard.press('Escape'); await pg.click('.phrow .spkb >> nth=0 >> .spk'); await pg.wait_for_timeout(300)
+        check(await pg.evaluate('window.__spoken.length') > 0 and 'kuh' in ' '.join(await pg.evaluate('window.__spoken')), 'Sounds falls back to the device voice if the clip will not play')
+        await pg.evaluate('window.__clipFail=false')
         miss = await pg.evaluate("PH.flatMap(p => soundTokens(p)).filter(t => !SOUNDSAY[t])")
         check(not miss, f'every sound has a respelling {miss}')
         check(await pg.evaluate("PH.every(p => soundTokens(p).length >= 1 && soundSay(p).endsWith('.'))"), 'every phonogram has sounds to say')

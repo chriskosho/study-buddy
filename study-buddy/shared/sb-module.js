@@ -76,7 +76,7 @@
         slip() { SB.slip(); renderStreak(); },
         result(score, max) { SB.result(mod.id, t.id, score, max); },
         say: (text, opts) => SB.say(text, opts),
-        sayButton: (text, label) => SB.sayButton(text, label || 'Hear it'),
+        sayButton: (text, label, audio) => SB.sayButton(text, label || 'Hear it', '', audio || ''),
         sfx: SB.sfx, toast: SB.toast
       };
     }
