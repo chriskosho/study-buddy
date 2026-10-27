@@ -1,5 +1,5 @@
 /* Phonograms: tools. Content is in data.js (the 72 phonograms sheet plus its 4 extras).
-   Sounds are shown on screen; the speaker buttons read the example WORDS only, because speech cannot say a bare sound like /k/ reliably. */
+   Two speaker buttons: Sounds (SOUNDSAY respellings in data.js, a best try) and Words (the example words). */
 (function () {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
@@ -10,6 +10,8 @@
   const pick = (a, n) => shuffle(a.slice()).slice(0, n);
   const byP = Object.fromEntries(CORE.map(p => [p.p, p]));
   const words = p => p.ex.join(', ');
+  /* two speakers: the sounds (a best try) and the example words */
+  const pair = (ctx, p) => `<span class="spkpair"><span class="spkb">${ctx.sayButton(soundSay(p), 'Say the sounds of ' + p.p)}<span class="spkcap">Sounds</span></span><span class="spkb">${ctx.sayButton(words(p), 'Say the words: ' + words(p))}<span class="spkcap">Words</span></span></span>`;
   const exHtml = p => p.ex.map(w => hiWord(w, p.p)).join(', ');
   const mask = (w, p) => { const i = w.indexOf(p); return i < 0 ? w : w.slice(0, i) + '___' + w.slice(i + p.length); };
   const hook = (k, v) => { (window.__phTest = window.__phTest || {})[k] = v; return v; };   // a hook so the test can read the questions
@@ -25,11 +27,11 @@
   const guide = {
     init(ctx) {
       const P = ctx.panel;
-      P.innerHTML = `<h2>Study guide</h2><p class="lead">The 72 phonograms (English spelling patterns), with their sounds and example words. Press the speaker to hear the example words.</p>
+      P.innerHTML = `<h2>Study guide</h2><p class="lead">The 72 phonograms (English spelling patterns), with their sounds and example words. Press Sounds to hear the sounds (the device voice does its best, so some may sound a little off), or Words to hear the example words.</p>
         <div class="seg gtabs" role="group" aria-label="Phonogram group">${GROUPS.map((g, i) => `<button data-g="${g.id}" aria-pressed="${i === 0}">${esc(g.label)}</button>`).join('')}</div><div class="gbody"></div>`;
       const body = $('.gbody', P);
       const row = p => `<div class="phrow"><span class="pn">${p.n}</span><span class="pl" aria-label="Phonogram ${esc(p.p)}">${esc(p.p)}</span>
-        <div><span class="ps">${esc(p.s)}</span>${p.note ? `<span class="pnote">${esc(p.note)}</span>` : ''}<span class="pex">${exHtml(p)}</span></div>${ctx.sayButton(words(p), 'Hear ' + words(p))}</div>`;
+        <div><span class="ps">${esc(p.s)}</span>${p.note ? `<span class="pnote">${esc(p.note)}</span>` : ''}<span class="pex">${exHtml(p)}</span></div>${pair(ctx, p)}</div>`;
       function show(id) {
         const g = GROUPS.find(x => x.id === id);
         if (!g.f) { body.innerHTML = `<div class="keybox"><b>How to read the sounds</b><ul>${KEY.map(k => `<li>${esc(k)}</li>`).join('')}</ul></div>`; return; }
@@ -43,11 +45,11 @@
   /* ===================== Flashcards (practice only) ===================== */
   const cards = {
     init(ctx) {
-      const say = p => ctx.sayButton(words(p), 'Hear the example words');
+      const say = p => pair(ctx, p);
       const D = {
         p2s: p => ({ front: `<div class="tag">Phonogram ${p.n}</div><div class="big ph">${esc(p.p)}</div><div class="small">What sounds does it make?</div>`,
           back: `<div class="tag">Sounds</div><div class="snd">${esc(p.s)}</div>${p.note ? `<div class="note">${esc(p.note)}</div>` : ''}<div class="exl">${exHtml(p)}</div>${say(p)}` }),
-        s2p: p => ({ front: `<div class="tag">Sounds</div><div class="snd">${esc(p.s)}</div>${p.note ? `<div class="note">${esc(p.note)}</div>` : ''}<div class="small">Which phonogram is it?</div>`,
+        s2p: p => ({ front: `<div class="tag">Sounds</div><div class="snd">${esc(p.s)}</div>${p.note ? `<div class="note">${esc(p.note)}</div>` : ''}<div class="small">Which phonogram is it?</div>${ctx.sayButton(soundSay(p), 'Say the sounds')}`,
           back: `<div class="tag">Phonogram ${p.n}</div><div class="big ph">${esc(p.p)}</div><div class="exl">${exHtml(p)}</div>${say(p)}` }),
         rules: p => ({ front: `<div class="tag">Phonogram ${p.n}</div><div class="big ph">${esc(p.p)}</div><div class="small">What is the rule or note?</div>`,
           back: `<div class="tag">Rule</div><div class="defline">${esc(p.note)}</div><div class="exl">${esc(p.s)} as in ${exHtml(p)}</div>${say(p)}` })

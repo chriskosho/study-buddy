@@ -267,7 +267,7 @@
     if (SB.profiles().length === 1 && !SB.activeProfile()) SB.setActive(SB.profiles()[0].id);
     if (view !== 'parent') SB.lock();
     const kid = SB.activeProfile(), many = SB.profiles().length > 1;
-    const INFO = { settings: 'Settings', help: 'Help', faq: 'FAQ', about: 'About' };
+    const INFO = { settings: 'Settings', help: 'Help', faq: 'FAQ', about: 'About', changelog: 'Change log' };
     let crumbs = [], shellOpts = null;
     if (view === 'parent') { viewParent(arg); crumbs = [{ label: 'Parent area' }]; }
     else if (INFO[view] && (kid || view !== 'settings')) { window.HUBPAGES[view](app, kid); crumbs = [{ label: INFO[view] }]; }

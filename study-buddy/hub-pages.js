@@ -138,6 +138,8 @@
         <li>Names, scores, and settings are saved only in your browser, on your device. Nothing is sent to a server.</li>
         <li>Links to Wikipedia open another website, which has its own privacy rules.</li>
         <li>A parent can erase everything for a child, or all of it, in the parent area.</li></ul>
+      <h3>What is new</h3>
+      <p>See the <a href="#/changelog">Change log</a> for what has changed, newest first.</p>
       <h3>Credits</h3>
       <ul><li>Fonts: OpenDyslexic, Andika, and Playwrite US Trad, used under the SIL Open Font License.</li>
         <li>Study guide notes about what historians say link to Wikipedia as their source.</li>
@@ -145,5 +147,15 @@
     </section>`;
   }
 
-  window.HUBPAGES = { settings, help, faq, about };
+  /* ---------- Change log ---------- */
+  function changelog(app) {
+    document.title = 'Change log \u00b7 Study Buddy';
+    const fmt = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    app.innerHTML = top('Change log') + `<section class="panel infopanel">
+      <p class="lead">What is new in Study Buddy, newest first. See <a href="#/settings">Settings</a> if a change is not showing yet.</p>
+      ${(window.SB_CHANGELOG || []).map(e => `<h3>${esc(e.title)} <span class="hint">${esc(fmt(e.date))}</span></h3><ul>${e.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`).join('')}
+      <p><a href="#/about">Back to About</a></p></section>`;
+  }
+
+  window.HUBPAGES = { settings, help, faq, about, changelog };
 })();
