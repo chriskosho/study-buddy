@@ -529,6 +529,14 @@
   /* ---------- swipe for flashcards ----------
      Drag the card right for "I knew it", left for "Still learning". A tap still flips it, and the arrow keys work too.
      stage: the element that moves; card: the element that gets clicked to flip. */
+  /* a brief confirmation over the flashcard; onUndo adds a small Undo link. Announced to screen readers. */
+  function cardToast(zone, text, onUndo) {
+    let t = zone.querySelector('.card-toast');
+    if (!t) { t = document.createElement('div'); t.className = 'card-toast'; t.setAttribute('role', 'status'); zone.appendChild(t); }
+    t.innerHTML = '<span>' + esc(text) + '</span>' + (onUndo ? '<button type="button">Undo</button>' : '');
+    if (onUndo) t.querySelector('button').onclick = () => { t.classList.remove('show'); onUndo(); };
+    t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 1100);
+  }
   function swipeCard(stage, card, { onRight, onLeft }) {
     let st = null, dragged = false;
     const tag = document.createElement('div'); tag.className = 'sb-swipe-tag'; tag.setAttribute('aria-hidden', 'true'); stage.appendChild(tag);
@@ -688,7 +696,7 @@
     getSetting, setSetting,
     credit, slip, streakInfo, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
     moduleKey, requireProfile,
-    tone, sfx, say, stopSpeech, stopAll, voicesFor, voiceId, voiceLabels, pickVoice, applyVoice, sayButton, toast, applyDisplay, displayDialog, swipeCard,
+    tone, sfx, say, stopSpeech, stopAll, voicesFor, voiceId, voiceLabels, pickVoice, applyVoice, sayButton, toast, applyDisplay, displayDialog, swipeCard, cardToast,
     dialog, confirm: confirmDlg, requirePin, newPinDialog, hasPin, dismissPinNote, isUnlocked, lock,
     exportAll, checkBackup, importAll, download
   };

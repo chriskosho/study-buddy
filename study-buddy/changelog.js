@@ -1,6 +1,9 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-27', title: 'Flashcards: Undo and a confirmation', items: [
+    'Every flashcard tool now has an Undo button. It steps back one card at a time, and brings the card back face-down. Ctrl+Z (Cmd+Z on a Mac) does the same.',
+    'Swiping or pressing I knew it, Still learning or Skip now shows a short message over the card for about a second ("Knew it", "Still learning", "Skipped"), with a small Undo link in it.' ] },
   { date: '2026-10-27', title: 'Real phonogram sounds', items: [
     'Phonograms: the Sounds button now plays a recorded sound for every phonogram, made from exact sounds instead of the device voice. If a clip cannot play, the device voice is used instead. Every sound lasts at least a second, and sounds like m, n and s are held long enough to hear.' ] },
   { date: '2026-10-27', title: 'Ham Radio Technician, in a new Other subject', items: [

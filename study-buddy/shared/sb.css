@@ -376,3 +376,10 @@ a:focus-visible{border-radius:6px}
 html.sb-dark .diff.easy{color:#6fd39b} html.sb-dark .diff.medium{color:#f3c76a} html.sb-dark .diff.hard{color:#f39a7e}
 /* the round counter ("Question 1 of 10 · Score 0") may wrap on a narrow phone with large dyslexic text, instead of pushing the page sideways */
 @media (max-width:760px){.roundbar{flex-wrap:wrap;gap:4px 12px}.roundbar .bar{flex:1 1 100%}.roundbar .hint{white-space:normal}}
+
+/* ---------- flashcard confirmation toast (over the card) and Undo ---------- */
+.cardzone{position:relative}
+.card-toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:5;display:inline-flex;align-items:center;gap:12px;background:var(--navy);color:#fff;padding:8px 16px;border-radius:999px;font-weight:700;font-size:16px;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity .15s,visibility 0s .15s;pointer-events:none}
+.card-toast.show{opacity:1;visibility:visible;transition:opacity .15s;pointer-events:auto}
+.card-toast button{background:none;border:0;border-bottom:2px solid currentColor;color:inherit;font:inherit;padding:0;cursor:pointer}
+.deckbar .undo{padding:6px 14px;font-size:14px;flex:none}
