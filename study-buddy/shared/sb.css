@@ -368,3 +368,5 @@ a:focus-visible{border-radius:6px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 html.sb-dark .diff.easy{color:#6fd39b} html.sb-dark .diff.medium{color:#f3c76a} html.sb-dark .diff.hard{color:#f39a7e}
+/* the round counter ("Question 1 of 10 · Score 0") may wrap on a narrow phone with large dyslexic text, instead of pushing the page sideways */
+@media (max-width:760px){.roundbar{flex-wrap:wrap;gap:4px 12px}.roundbar .bar{flex:1 1 100%}.roundbar .hint{white-space:normal}}

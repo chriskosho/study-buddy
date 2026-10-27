@@ -11,10 +11,12 @@
 
      SBT.quiz(ctx, { lead, rounds, build() -> [{ q, a, wrong: [..], why? }] })
          Multiple choice, one round of `rounds` questions. Result: right answers out of rounds.
+         Optional onAnswer(question, right) is called after each question.
 
      SBT.answer(ctx, { lead, rounds, build() -> [{ q, a, show?, why?, hint?, say? }], kind: 'number'|'text', typo? })
          Type the answer. q is HTML. a is a number (kind 'number') or a list of accepted strings. Two tries, a hint,
          and the explanation (why) after each question. Result: first-try answers without a hint, out of rounds.
+         Optional onAnswer(item, scoredFirstTry) is called when each question ends.
 
      SBT.order(ctx, { lead, sets: [{ id, label, items: [{ text, sub? }], pick? }] })
          Put the items in order (drag, or the arrow buttons). items are listed in the right order.
@@ -152,7 +154,7 @@
   /* ---------------- Multiple-choice quiz ---------------- */
   function quiz(ctx, opt) {
     const P = ctx.panel, n = opt.rounds || 10, Q = { qs: [], i: 0, score: 0, answered: false };
-    function start() { Q.qs = shuffle(opt.build()).slice(0, n); Q.i = 0; Q.score = 0; show(); }
+    function start() { Q.qs = (opt.keepOrder ? opt.build() : shuffle(opt.build())).slice(0, n); Q.i = 0; Q.score = 0; show(); }
     function show() {
       if (Q.i >= Q.qs.length) {
         ctx.result(Q.score, Q.qs.length); ctx.sfx.win();
@@ -170,6 +172,7 @@
         const ok = b.dataset.v === q.a;
         $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
         if (ok) { Q.score++; ctx.credit(); ctx.sfx.good(); } else { b.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); }
+        if (opt.onAnswer) opt.onAnswer(q, ok);
         $('.explain', P).innerHTML = (ok ? '<b style="color:var(--good)">Correct!</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + esc(q.why || ('The answer is: ' + q.a + '.'));
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
       });
@@ -195,7 +198,7 @@
       const t = txtNorm(v), list = [].concat(item.a);
       if (opt.exactCase) { const tv = String(v).trim(); if (list.includes(tv)) return 'ok'; if (list.some(a => String(a).toLowerCase() === tv.toLowerCase())) return 'case'; return 'no'; }
       if (list.some(a => txtNorm(a) === t)) return 'ok';
-      if (opt.typo && list.some(a => txtNorm(a).length >= 5 && editDist(txtNorm(a), t) <= 1)) return 'close';
+      if (opt.typo && !item.noTypo && list.some(a => txtNorm(a).length >= 5 && editDist(txtNorm(a), t) <= 1)) return 'close';
       return 'no';
     };
     const shown = item => item.show || (kind === 'number' ? Number(item.a).toLocaleString('en-US', { maximumFractionDigits: 10 }) : [].concat(item.a)[0]);
@@ -215,7 +218,7 @@
         <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
       const inp = $('input', P), err = $('.err', P), why = $('.why', P), next = $('[data-a="next"]', P), hb = $('[data-a="hint"]', P);
       inp.focus();
-      const done = () => { inp.disabled = true; $('form button', P).disabled = true; if (hb) hb.hidden = true; next.hidden = false; next.focus(); if (item.why) why.textContent = item.why; };
+      const done = pt => { inp.disabled = true; $('form button', P).disabled = true; if (hb) hb.hidden = true; next.hidden = false; next.focus(); if (item.why) why.textContent = item.why; if (opt.onAnswer) opt.onAnswer(item, !!pt); };
       inp.oninput = () => { inp.classList.remove('bad'); err.textContent = ''; };
       if (hb) hb.onclick = () => { R.hinted = true; err.style.color = 'var(--ink2)'; err.textContent = item.hint; inp.focus(); };
       $('form', P).onsubmit = e => {
@@ -226,13 +229,13 @@
         if (r === 'bad') { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Type a number, like 4,000 or 2.5.'; return; }
         if (r === 'case') { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Almost! Check the capital and small letters, then try again.'; return; }
         if (r === 'ok' || r === 'close') {
-          if (!R.hinted && R.tries === 0) R.score++;
+          const pt = !R.hinted && R.tries === 0; if (pt) R.score++;
           ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good-ink)';
           err.textContent = (r === 'close' ? 'Close enough! It is spelled ' + shown(item) + '.' : 'Correct! ' + shown(item) + '.') + (R.hinted ? ' (Hint used, so no point.)' : '');
-          done();
+          done(pt);
         } else {
           R.tries++; ctx.slip(); ctx.sfx.bad(); inp.classList.add('bad'); err.style.color = '';
-          if (R.tries >= 2) { err.textContent = 'The answer is ' + shown(item) + '.'; done(); }
+          if (R.tries >= 2) { err.textContent = 'The answer is ' + shown(item) + '.'; done(false); }
           else err.textContent = 'Not quite. Try again.';
         }
       };
