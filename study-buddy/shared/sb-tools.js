@@ -4,6 +4,8 @@
      SBT.flashcards(ctx, { lead, modes: [{ id, label }], build(modeId) -> [{ front, back, say }] })
          front/back are HTML; say is spoken when the card shows (only if Read aloud is on).
          Result: cards known on the first try out of the deck size.
+         Optional sections: { list: [{ id, label, group?, noStep? }], start?: id, noun?: 'section' } adds a section menu with
+         Previous and Next buttons; build(modeId, sectionId) then returns that section's cards. group puts the entry under a menu heading.
 
      SBT.sort(ctx, { lead, sets: [{ id, label, buckets: [{ id, name, html? }], items: [{ text, b }], perBucket? }],
                      right?(item, bucket), wrong?(item, bucket) })
@@ -42,20 +44,27 @@
   /* ---------------- Flashcards ---------------- */
   function flashcards(ctx, opt) {
     const P = ctx.panel, modes = opt.modes || [{ id: 'all', label: 'All' }];
-    const FC = { mode: modes[0].id, queue: [], cur: null, missed: new Set(), total: 0, flipped: false, busy: false };
+    const SEC = opt.sections, noun = (SEC && SEC.noun) || 'section';
+    const FC = { mode: modes[0].id, sec: SEC ? (SEC.start || SEC.list[0].id) : null, queue: [], cur: null, missed: new Set(), total: 0, flipped: false, busy: false };
+    const secMenu = () => { if (!SEC) return ''; const groups = []; SEC.list.forEach(e => { const g = e.group || ''; let o = groups.find(x => x.g === g); if (!o) groups.push(o = { g, items: [] }); o.items.push(e); });
+      const optHtml = e => `<option value="${esc(e.id)}"${e.id === FC.sec ? ' selected' : ''}>${esc(e.label)}</option>`;
+      return `<div class="secnav"><button class="btn ghost" data-a="prevsec" aria-label="Previous ${noun}">&lsaquo;</button><select class="secsel" aria-label="Jump to a ${noun}">${groups.map(o => o.g ? `<optgroup label="${esc(o.g)}">${o.items.map(optHtml).join('')}</optgroup>` : o.items.map(optHtml).join('')).join('')}</select><button class="btn ghost" data-a="nextsec" aria-label="Next ${noun}">&rsaquo;</button></div>`; };
     P.innerHTML = `<h2>${esc(opt.title || 'Flashcards')}</h2><p class="lead">${esc(opt.lead || 'Tap the card to flip it. Be honest: did you know it? Cards you miss come back again.')}<span class="swipe-tip"> Swipe right if you knew it, left if you are still learning.</span></p>
-      <div class="deckbar">${modes.length > 1 ? `<div class="seg" role="group" aria-label="Card type">${modes.map((m, i) => `<button data-m="${esc(m.id)}" aria-pressed="${i === 0}">${esc(m.label)}</button>`).join('')}</div>` : ''}
+      <div class="deckbar">${secMenu()}${modes.length > 1 ? `<div class="seg" role="group" aria-label="Card type">${modes.map((m, i) => `<button data-m="${esc(m.id)}" aria-pressed="${i === 0}">${esc(m.label)}</button>`).join('')}</div>` : ''}
         <div class="bar" aria-hidden="true"><i></i></div><span class="hint count"></span></div>
       <div class="cardstage"><div class="fcard" role="button" tabindex="0" aria-label="Flashcard. Press to flip"><div class="face front"></div><div class="face back"></div></div></div>
       <div class="row center cardbtns"><button class="btn warn" data-a="again">Still learning</button><button class="btn ghost" data-a="skip">Skip</button><button class="btn good" data-a="knew">I knew it</button></div>`;
     const card = $('.fcard', P), F = $('.front', P), B = $('.back', P);
     const flip = on => { FC.flipped = on; card.classList.toggle('flip', on); };
     const bar = () => { const done = FC.total - FC.queue.length; $('.bar i', P).style.width = (FC.total ? done / FC.total * 100 : 0) + '%'; $('.count', P).textContent = done + ' of ' + FC.total + ' done'; };
-    function build() { FC.missed = new Set(); FC.busy = false; FC.queue = opt.build(FC.mode); FC.total = FC.queue.length; next(); }
+    const secIdx = () => SEC.list.findIndex(e => e.id === FC.sec);
+    const secStep = d => { for (let i = secIdx() + d; i >= 0 && i < SEC.list.length; i += d) if (!SEC.list[i].noStep) return i; return -1; };   // entries with noStep (like "All") are in the menu but skipped by the arrows
+    function syncSec() { if (!SEC) return; $('.secsel', P).value = FC.sec; $('[data-a="prevsec"]', P).disabled = secStep(-1) < 0; $('[data-a="nextsec"]', P).disabled = secStep(1) < 0; }
+    function build() { FC.missed = new Set(); FC.busy = false; FC.queue = opt.build(FC.mode, FC.sec); FC.total = FC.queue.length; syncSec(); next(); }
     function next() {
       SB.stopSpeech(); flip(false);
       if (!FC.queue.length) {
-        F.innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards. Press a button to go again.</div>`;
+        F.innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards. ${SEC ? 'Use the arrows to open the next ' + noun + ', or press a button to go again.' : 'Press a button to go again.'}</div>`;
         B.innerHTML = ''; FC.cur = null; ctx.sfx.win(); bar(); return;
       }
       const c = FC.cur = FC.queue[0];
@@ -68,6 +77,12 @@
     $('[data-a="knew"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { FC.queue.shift(); ctx.sfx.good(); next(); }); };
     $('[data-a="again"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { const c = FC.queue.shift(); FC.missed.add(c); FC.queue.splice(Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)), 0, c); ctx.sfx.bad(); next(); }); };
     $('[data-a="skip"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { FC.queue.push(FC.queue.shift()); next(); }); };
+    if (SEC) {
+      const go = i => { if (FC.busy || i < 0) return; FC.sec = SEC.list[i].id; build(); };
+      $('.secsel', P).onchange = e => { FC.sec = e.target.value; build(); };
+      $('[data-a="prevsec"]', P).onclick = () => go(secStep(-1));
+      $('[data-a="nextsec"]', P).onclick = () => go(secStep(1));
+    }
     SB.swipeCard($('.cardstage', P), card, { onRight: () => $('[data-a="knew"]', P).click(), onLeft: () => $('[data-a="again"]', P).click() });
     $$('.seg button', P).forEach(b => b.onclick = () => { FC.mode = b.dataset.m; $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); build(); });
     build();
