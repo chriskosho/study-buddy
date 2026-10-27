@@ -95,6 +95,11 @@ h3{margin:0 0 4px;font-size:21px}
 
 /* ---------- flashcards (for new tools) ---------- */
 .deckbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0}
+/* section menu for flashcards (SBT.flashcards with opt.sections) */
+.secnav{display:flex;align-items:center;gap:6px;min-width:0;max-width:100%}
+.secnav .btn{padding:6px 14px;font-size:20px;line-height:1;min-height:40px}
+.secnav .btn:disabled{opacity:.4;cursor:default;transform:none}
+.secsel{min-width:0;max-width:min(520px,60vw);background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:8px 12px;font:inherit;font-size:15px;font-weight:700;text-overflow:ellipsis}
 .cardstage{perspective:1200px;height:calc(100vh - var(--chrome) - 420px);min-height:320px;aspect-ratio:5/4;max-width:100%;margin:6px auto 16px}
 .fcard{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s;cursor:pointer;border:0;background:none;padding:0;display:block}
 .fcard.flip{transform:rotateY(180deg)}

@@ -25,9 +25,23 @@ window.SB_REGISTRY = {
     { id: 'science', name: 'Science' },
     { id: 'geography', name: 'Geography' },
     { id: 'history', name: 'History' },
-    { id: 'roots', name: 'Greek and Latin Roots' }
+    { id: 'roots', name: 'Greek and Latin Roots' },
+    { id: 'other', name: 'Other' }
   ],
   modules: [
+    {
+      id: 'ham-technician',
+      subject: 'other',
+      title: 'Ham Radio Technician',
+      blurb: 'Practice for the FCC Technician license exam (2026 to 2030): all 409 official questions as flashcards by topic, and a 35-question mock exam with explanations.',
+      tags: ['science', 'electronics'],
+      path: 'modules/other/ham-technician/index.html',
+      storage: ['ham-technician'],
+      tools: [
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Every question, one topic at a time. Jump to any section.' },
+        { id: 'exam', name: 'Mock exam', difficulty: 'hard', masterAt: 26, blurb: '35 random questions, one from each topic group. 26 right to pass.' }
+      ]
+    },
     {
       id: 'south-america',
       subject: 'geography',
