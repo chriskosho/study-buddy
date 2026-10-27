@@ -187,6 +187,24 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'fractions-divide',
+      subject: 'math',
+      title: 'Division of Fractions',
+      blurb: 'Unit fractions and fractions divided by whole numbers, whole numbers divided by fractions, and word problems (Dimensions Math 5, chapter 6).',
+      tags: ['math', 'fractions', 'division'],
+      path: 'modules/math/fractions-divide/index.html',
+      storage: ['fractions-divide'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Worked examples, and a helper that shows every step for any two numbers.' },
+        { id: 'share', name: 'Share a unit fraction', difficulty: 'easy', blurb: 'Read the answer from a bar model. Mastered at 8 of 10.' },
+        { id: 'fracwhole', name: 'Fractions divided by whole numbers', difficulty: 'easy', blurb: 'Like 3/4 \u00f7 2. Mastered at 8 of 10.' },
+        { id: 'fit', name: 'How many fit?', difficulty: 'medium', blurb: 'Whole numbers divided by unit fractions, with pictures. Mastered at 8 of 10.' },
+        { id: 'wholefrac', name: 'Whole numbers divided by fractions', difficulty: 'medium', blurb: 'Like 4 \u00f7 1/3 and 3 \u00f7 3/4. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Word problems', difficulty: 'hard', blurb: 'Sharing equally, and how many fit. Mastered at 8 of 10.' },
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Mixed numbers, fractions divided by fractions, and missing numbers. Mastered at 8 of 10.' }
+      ]
+    },
+    {
       id: 'planets',
       subject: 'science',
       title: 'The Planets',
