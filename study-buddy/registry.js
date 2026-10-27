@@ -146,6 +146,26 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'fractions-add-sub',
+      subject: 'math',
+      title: 'Add and Subtract Fractions',
+      blurb: 'Fractions as division, adding and subtracting with unlike denominators, and mixed numbers (Dimensions Math 5, chapter 4).',
+      tags: ['math', 'fractions', 'mixed numbers'],
+      path: 'modules/math/fractions-add-sub/index.html',
+      storage: ['fractions-add-sub'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Worked examples, and a helper that shows every step for any two fractions.' },
+        { id: 'division', name: 'Fractions and division', difficulty: 'easy', blurb: 'Like 3 \u00f7 4 as a fraction, and sharing things equally. Mastered at 8 of 10.' },
+        { id: 'models', name: 'Use the models', difficulty: 'easy', blurb: 'Add and subtract fractions with pictures. Mastered at 8 of 10.' },
+        { id: 'improper', name: 'Improper fractions and mixed numbers', difficulty: 'easy', blurb: 'Change between the two, in simplest form. Mastered at 8 of 10.' },
+        { id: 'unlike', name: 'Unlike denominators', difficulty: 'medium', blurb: 'Add two or three fractions, or subtract two. Mastered at 8 of 10.' },
+        { id: 'mixedadd', name: 'Add mixed numbers', difficulty: 'medium', blurb: 'Like 2 1/3 + 1 3/4. Mastered at 8 of 10.' },
+        { id: 'mixedsub', name: 'Subtract mixed numbers', difficulty: 'hard', blurb: 'With and without renaming. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Word problems', difficulty: 'hard', blurb: 'Fractions and mixed numbers in real situations. Mastered at 8 of 10.' },
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Missing numbers, three fractions at once, whole numbers minus mixed numbers, and bigger mixed numbers. Mastered at 8 of 10.' }
+      ]
+    },
+    {
       id: 'planets',
       subject: 'science',
       title: 'The Planets',
