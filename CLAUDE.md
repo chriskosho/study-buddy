@@ -15,6 +15,7 @@ The site lives in `study-buddy/`. Read these before changing anything:
 - Flashcards are practice only: no credit, streak, or mastery. Credit comes only from checked tools.
 - Statements in a study guide that historians dispute keep the teacher's wording, with a "Historians say" note that links a Wikipedia article as its source.
 - Keep the Explorer's Atlas tools Study map, Drag names, Find it, and Listen and tap as they are unless asked. (The owner approved keyboard access for the map activities and Say names following Read aloud.) Flashcards show the whole continent, and sound plays only from the speaker button.
+- Every geography unit is based on the South America module (Study map, Flashcards with map shapes, Listen and tap, Find it, Drag names, plus the unit's own quiz tools) unless the owner says otherwise. US States follows it.
 - Hide unused features instead of deleting them.
 - Desktop first, phone friendly. No scroll bars on tool screens at 1440×900, and no sideways scroll at 360px wide (Galaxy S23).
 - Progress is saved locally only. No cloud.

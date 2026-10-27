@@ -26,6 +26,9 @@ async def state(pg):
 async def type_q(pg, text):
     await pg.fill('.us-body input', text); await pg.press('.us-body input', 'Enter')
 
+async def tap(pg, sel):    # concave shapes (Maine) can miss a center click, so click the element itself
+    await pg.evaluate("(s)=>document.querySelector(s).dispatchEvent(new MouseEvent('click',{bubbles:true}))", sel)
+
 async def main():
     threading.Thread(target=lambda: http.server.ThreadingHTTPServer(('127.0.0.1', PORT), functools.partial(Q, directory=SITE)).serve_forever(), daemon=True).start()
     async with async_playwright() as p:
@@ -40,7 +43,7 @@ async def main():
         pg = await page()
         reg = await pg.evaluate("(() => { const m = SB_REGISTRY.modules.find(m => m.id === 'us-states'); return {subject: m.subject, tags: m.tags, tools: m.tools.map(t => t.id + ':' + t.difficulty + (t.kind ? ':' + t.kind : ''))}; })()")
         check(reg['subject'] == 'geography' and reg['tags'] == [], 'US States is in Geography with no tags')
-        check(reg['tools'] == ['guide:easy:study', 'cards:easy:study', 'quiz:medium', 'answer:hard', 'order:insane'], f'tools and difficulties (easy to insane only) {reg["tools"]}')
+        check(reg['tools'] == ['guide:easy:study', 'study:easy:study', 'cards:easy:study', 'listen:medium', 'find:medium', 'drag:medium', 'quiz:medium', 'answer:hard', 'order:insane'], f'tools and difficulties (easy to insane only) {reg["tools"]}')
         await pg.goto(BASE + 'index.html#/home/geography'); await pg.wait_for_selector('a.mod')
         check(await pg.locator('a.mod[href="#/module/us-states"]').count() == 1, 'the module is on the Geography page')
         await pg.goto(BASE + 'index.html#/home/english'); await pg.wait_for_selector('a.mod')
@@ -89,9 +92,9 @@ async def main():
         # ---- flashcards ----
         pg = await page('cards')
         await pg.wait_for_selector('.fcard'); await pg.wait_for_timeout(300)
-        check(await pg.locator('.deckbar .seg button').count() == 7, 'flashcards have 7 topic decks')
+        check(await pg.locator('.deckbar .seg button').count() == 8, 'flashcards have 8 decks (map shapes plus 7 topics)')
         check('0 of 50' in await pg.inner_text('.deckbar .count'), 'every deck has all 50 states')
-        await pg.click('.deckbar .seg button >> nth=1'); await pg.wait_for_timeout(300)
+        await pg.click('.deckbar .seg button >> nth=2'); await pg.wait_for_timeout(300)
         check(await pg.locator('.front svg').count() == 1, 'the Flags deck shows a flag')
         await pg.click('[data-a="knew"]'); await pg.wait_for_timeout(900)
         check('1 of 50' in await pg.inner_text('.deckbar .count'), 'I knew it moves through the deck')
@@ -221,7 +224,7 @@ async def main():
             o = await pg.evaluate("[document.documentElement.scrollHeight - innerHeight, document.documentElement.scrollWidth - innerWidth]")
             check(o[0] <= 0 and o[1] <= 0, f'1440x900: no scroll bars on {tool} {o}')
             await pg.context.close()
-        for tool in ['guide', 'cards', 'quiz', 'answer', 'order']:
+        for tool in ['guide', 'study', 'listen', 'find', 'drag', 'cards', 'quiz', 'answer', 'order']:
             pg = await page(tool, vp=(360, 780))
             if tool in ('quiz', 'answer'): await pg.click('.us-topics button[data-t="flags"]'); await pg.wait_for_selector('.us-body .us-qflag')
             if tool == 'guide':
@@ -232,6 +235,60 @@ async def main():
             await pg.evaluate("SB.setSetting('font','dyslexic'); SB.setSetting('size','large'); SB.applyDisplay()"); await pg.wait_for_timeout(300)
             check(await pg.evaluate("document.documentElement.scrollWidth - innerWidth") <= 0, f'360px, dyslexic font and larger text: no sideways scroll on {tool}')
             await pg.context.close()
+
+        # ---- map tools (ported from the South America module) ----
+        pg = await page('study')
+        check(await pg.locator('#mapStudy .cpath').count() == 50, 'Study map: 50 state shapes')
+        check(await pg.locator('#mapStudy .cpath[aria-label="Ohio"]').count() == 1, 'Study map: states are named for keyboard and screen readers')
+        await tap(pg, f'#mapStudy .cpath[data-id="oh"]'); await pg.wait_for_timeout(100)
+        check('Ohio' in await pg.evaluate('window.__spoken'), 'Study map: tapping a state says its name')
+        for t in ['study', 'listen', 'find', 'drag']:
+            pg2 = await page(t)
+            check(await pg2.evaluate("document.documentElement.scrollHeight - innerHeight") <= 0 and await pg2.evaluate("document.documentElement.scrollWidth - innerWidth") <= 0, f'1440x900: no page scroll bars on {t}')
+            await pg2.screenshot(path=f'/tmp/us_{t}.png'); await pg2.context.close()
+        # Listen and tap
+        pg = await page('listen')
+        check(await pg.locator('#mapListen .cpath[aria-label="State on the map"]').count() == 50, 'Listen: map does not name states')
+        sid = await pg.evaluate('window.__usMap.cur')
+        wrong = 'tx' if sid != 'tx' else 'ca'
+        await tap(pg, f'#mapListen .cpath[data-id="{wrong}"]'); check('That is' in await pg.inner_text('#lMsg'), 'Listen: wrong tap is corrected')
+        await tap(pg, f'#mapListen .cpath[data-id="{sid}"]'); await pg.wait_for_timeout(1100)
+        check((await pg.inner_text('#lScore')).startswith('0/'), 'Listen: a retry does not score')
+        for _ in range(9):
+            sid = await pg.evaluate('window.__usMap.cur')
+            await tap(pg, f'#mapListen .cpath[data-id="{sid}"]'); await pg.wait_for_timeout(1000)
+        check('All done' in await pg.inner_text('#lPrompt'), 'Listen: round ends after 10')
+        # leaving during the pause after a right answer must not leave the round stuck, and a second quick tap is ignored
+        pg = await page('listen'); sid = await pg.evaluate('window.__usMap.cur')
+        await tap(pg, f'#mapListen .cpath[data-id="{sid}"]'); sid2 = await pg.evaluate('window.__usMap.cur')
+        await tap(pg, f'#mapListen .cpath[data-id="{sid2}"]'); await pg.wait_for_timeout(1100); check((await pg.inner_text('#lRound')) == '2' and (await pg.inner_text('#lScore')) == '1/10', 'Listen: a tap during the pause is ignored')
+        await pg.evaluate("document.querySelector('nav.tabs [data-tool=find], nav.tabs button:nth-child(5)').click()"); await pg.wait_for_timeout(200)
+        await pg.evaluate("document.querySelector('nav.tabs button:nth-child(4)').click()"); await pg.wait_for_timeout(300)
+        check(await pg.evaluate("window.__usMap.cur") is not None and 'Which state' in await pg.inner_text('#lPrompt'), 'Listen: coming back after leaving mid-pause is not stuck')
+        # Find it
+        pg = await page('find'); await pg.click('#fStart'); await pg.wait_for_timeout(150)
+        for _ in range(3):
+            sid = await pg.evaluate('window.__usMap.cur')
+            await tap(pg, f'#mapFind .cpath[data-id="{sid}"]')
+        check(await pg.inner_text('#fScore') == '3', 'Find it: right taps score')
+        await pg.evaluate("document.querySelector('#mapFind').dispatchEvent(new Event('x'))")
+        # Drag names
+        pg = await page('drag')
+        check(await pg.locator('#tray .chip').count() == 50, 'Drag: 50 name chips')
+        await pg.click('#tray .chip[data-id="ca"]'); await tap(pg, f'#mapDrag .cpath[data-id="ny"]')
+        check(await pg.inner_text('#dMiss') == '1', 'Drag: a wrong drop is a miss')
+        await tap(pg, f'#mapDrag .cpath[data-id="ca"]')    # the name stays selected after a miss
+        check(await pg.inner_text('#dPlaced') == '1/50', 'Drag: tap a name, tap its state places it')
+        box = await pg.locator('#tray .chip[data-id="tx"]').bounding_box(); tb = await pg.locator('#mapDrag .cpath[data-id="tx"]').bounding_box()
+        await pg.mouse.move(box['x'] + 8, box['y'] + 8); await pg.mouse.down(); await pg.mouse.move(box['x'] + 30, box['y'] + 30, steps=4)
+        await pg.mouse.move(tb['x'] + tb['width'] * .5, tb['y'] + tb['height'] * .5, steps=8); await pg.mouse.up()
+        check(await pg.inner_text('#dPlaced') == '2/50', 'Drag: dragging a name onto its state places it')
+        for sid in await pg.evaluate("[...document.querySelectorAll('#tray .chip')].map(c=>c.dataset.id)"):
+            await pg.evaluate("(id)=>{document.querySelector(`#tray .chip[data-id=${id}]`).dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,clientX:0,clientY:0,pointerId:1}))}", sid) if False else None
+        await pg.click('#dragMode button[data-m="reveal"]'); check(await pg.inner_text('#dPlaced') == '0/50', 'Drag: changing the map style starts over')
+        # flashcards: shapes deck
+        pg = await page('cards'); await pg.wait_for_timeout(100)
+        check(await pg.locator('.us-mini').count() >= 1 or await pg.evaluate("!!document.querySelector('#tab-cards svg.mini')"), 'Flashcards: Map shapes deck shows a map')
         check(not errors, f'no page errors {errors[:3]}')
         await b.close()
     print('\n' + ('ALL PASSED' if not fails else f'{len(fails)} FAILED')); sys.exit(1 if fails else 0)
