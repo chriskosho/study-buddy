@@ -110,7 +110,7 @@
 
   /* ---------- search ---------- */
   const PAGES = [
-    { title: 'Settings', blurb: 'Theme, font, text size, sound, read aloud, and the voice', href: PAGE('settings'), words: 'display dark mode dyslexic larger text volume voice' },
+    { title: 'Settings', blurb: 'Theme, font, text size, sound, read aloud, and the voice', href: PAGE('settings'), words: 'display dark mode dyslexic larger text volume voice update refresh latest reload' },
     { title: 'Help', blurb: 'How to use Study Buddy', href: PAGE('help'), words: 'how to guide tutorial' },
     { title: 'FAQ', blurb: 'Common questions and answers', href: PAGE('faq'), words: 'questions questions answers' },
     { title: 'About', blurb: 'What Study Buddy is, and your privacy', href: PAGE('about'), words: 'privacy data credits' },
@@ -118,7 +118,7 @@
   ];
   function searchIndex() {
     const R = REG(), out = [];
-    R.modules.forEach(m => {
+    R.modules.filter(m => !m.archived).forEach(m => {
       out.push({ kind: 'Module', title: m.title, ctx: subjectOf(m.subject).name, blurb: m.blurb || '', words: (m.tags || []).join(' '), href: BASE + 'index.html#/module/' + m.id });
       (m.tools || []).forEach(t => out.push({ kind: 'Tool', title: t.name, ctx: 'in ' + m.title, blurb: t.blurb || '', words: m.title + ' ' + (m.tags || []).join(' '), href: BASE + m.path + '?tool=' + encodeURIComponent(t.id) }));
     });
@@ -175,7 +175,7 @@
         <div class="sbsearch" id="sbSearch" role="search">
           <button type="button" class="sbbtn sbsearch-toggle" aria-label="Search" aria-expanded="false">${ICON.search}</button>
           <div class="sbsearch-box">${ICON.search}<input type="search" id="sbQ" placeholder="Search" aria-label="Search modules and tools" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sbResults" aria-autocomplete="list"></div>
-          <ul class="sbresults" id="sbResults" role="listbox" aria-label="Search results" hidden></ul>
+          <ul class="sbresults" id="sbResults" role="listbox" tabindex="-1" aria-label="Search results" hidden></ul>
         </div>
         ${kidChip()}
         <a class="sbbtn" href="${PAGE('settings')}" aria-label="Settings">${ICON.gear}<span class="lbl">Settings</span></a>

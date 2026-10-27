@@ -322,7 +322,8 @@ a.mod:hover{border-color:var(--teal);transform:translateY(-2px)}
   .bucket .bname{font-size:12.5px;padding:3px 8px}
   .bucket .got span{font-size:14px;padding:2px 7px}
   .qrow{justify-content:flex-start}
-  .xgrid{grid-template-columns:1fr;gap:10px}
+  .xgrid{grid-template-columns:minmax(0,1fr);gap:10px}
+  .xgrid .btn{white-space:normal;max-width:100%}
   .answer{font-size:16px;min-height:120px}
   .model p{font-size:16px}
   .otext b{font-size:16px}

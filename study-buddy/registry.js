@@ -168,8 +168,10 @@ window.SB_REGISTRY = {
     },
     {
       id: 'black-beauty',
+      archived: true,
+      archivedNote: 'The first Black Beauty review, replaced by the version built from the class study guide.',
       subject: 'english',
-      title: 'Black Beauty',
+      title: 'Black Beauty (old version)',
       blurb: 'Review the novel by Anna Sewell: the horses and people, Beauty\'s homes, the order of events, and the big ideas.',
       tags: ['english', 'literature', 'reading'],
       path: 'modules/english/black-beauty/index.html',
@@ -181,6 +183,40 @@ window.SB_REGISTRY = {
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort characters by where they belong, horse or person, and good or bad for horses. Mastered at 80%.' },
         { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'Put the events of the story in order. Mastered at 80% in place on the first check.' },
         { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences. Mastered at 4 of 5.' }
+      ]
+    },
+    {
+      id: 'black-beauty-guide',
+      subject: 'english',
+      title: 'Black Beauty',
+      blurb: 'The class study guide for Black Beauty, chapter by chapter: comprehension questions, quiz, typing the answers, the order of events, and explaining the big ideas.',
+      tags: ['english', 'literature', 'reading'],
+      path: 'modules/english/black-beauty-guide/index.html',
+      storage: ['black-beauty-guide'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Every comprehension question and answer from the class guide, by part of the book.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Question on the front, the guide\'s answer on the back. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions from the guide. Mastered at 8 of 10.' },
+        { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'Put the events of the story in order. Mastered at 80% in place on the first check.' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type the answer to a guide question. Two tries, and a Skip button. Mastered at 8 of 10.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences, checked against the guide\'s answers. Mastered at 4 of 5.' }
+      ]
+    },
+    {
+      id: 'phonograms',
+      subject: 'english',
+      title: 'Phonograms',
+      blurb: 'The 72 phonograms (English spelling patterns) plus 4 extras: their sounds, rules, and example words.',
+      tags: ['english', 'spelling', 'reading'],
+      path: 'modules/english/phonograms/index.html',
+      storage: ['phonograms'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'All 76 phonograms with their sounds, notes, and example words. Press the speaker to hear the words.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Letters to sounds, sounds to letters, and the rules. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions on sounds, spellings, and rules. Mastered at 8 of 10.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort phonograms by end-of-word use, sound, or spelling. Mastered at 80%.' },
+        { id: 'answer', name: 'Type the phonogram', difficulty: 'hard', blurb: 'Type the missing phonogram from its sounds. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' },
+        { id: 'spell', name: 'Spell it', difficulty: 'insane', blurb: 'Hear an example word and type it. Mastered at 8 of 10.' }
       ]
     },
     {

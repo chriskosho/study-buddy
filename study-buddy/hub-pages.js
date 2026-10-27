@@ -29,6 +29,9 @@
       <p class="lead">Saved for ${esc(kid.name)} on this device. ${many ? `Not ${esc(kid.name)}? <a href="#/">Switch child</a>.` : ''}</p>
       ${OPTS.map(g => `<div class="setgroup"><h3>${g.group}</h3>${g.items.map(i => seg(...i)).join('')}</div>`).join('')}
       ${speech}
+      <div class="setgroup"><h3>Updates</h3>
+        <div class="setrow"><span>Show the newest version of Study Buddy</span><button type="button" class="btn ghost small" id="refreshLatest">Refresh for the latest</button></div>
+        <p class="hint" id="refreshHint" role="status" aria-live="polite">Use this if a new tool or change is not showing up yet. It reloads the site's files. Names, progress, and settings are not touched.</p></div>
       <div class="setgroup"><h3>Parents</h3>
         <div class="setrow"><span>Progress, children, backup, and the parent PIN</span><a class="btn ghost small" href="#/parent">Open the parent area</a></div>
         <p class="hint">The parent area asks for the PIN if one is set.</p></div>
@@ -45,6 +48,17 @@
       if (k === 'sound' && v) SB.sfx.good();
       if (k === 'readAloud' && v) SB.say('Read aloud is on.');
     });
+    app.querySelector('#refreshLatest').onclick = async function () {
+      const btn = this, hint = app.querySelector('#refreshHint'); btn.disabled = true; hint.textContent = 'Getting the newest files...';
+      try {
+        if ('serviceWorker' in navigator) (await navigator.serviceWorker.getRegistrations()).forEach(r => r.unregister());
+        if (window.caches) (await caches.keys()).filter(k => k.startsWith('study-buddy-')).forEach(k => caches.delete(k));
+        const sw = await (await fetch('sw.js', { cache: 'reload' })).text();                                   // the file list inside sw.js
+        const files = [...sw.matchAll(/"([^"\s]+\.(?:js|css|html|json|webmanifest))"/g)].map(m => m[1]);
+        await Promise.all(files.map(f => fetch(f, { cache: 'reload' }).catch(() => {})));                    // refresh the browser's own copies
+      } catch (e) { /* offline: just reload */ }
+      hint.textContent = 'Done. Reloading...'; setTimeout(() => location.reload(), 300);
+    };
     const names = SB.profiles().map(p => p.name).join(', ');
     app.querySelector('#resetProg').onclick = () => SB.requirePin('Enter the parent PIN to reset all progress.', () => { SB.resetAllProgress(); SB.toast('All progress was reset'); },
       null, { confirm: { title: 'Reset all progress?', text: 'This erases best scores, streaks, and module progress for ' + names + '. Names and settings stay.', ok: 'Reset all progress' } });

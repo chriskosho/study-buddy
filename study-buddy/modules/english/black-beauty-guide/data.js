@@ -1,0 +1,470 @@
+/* Black Beauty (study guide version): content.
+   SOURCE: the teacher's "Black Beauty Study Guide" (8 pages of comprehension questions, chapters 1 to 49). Questions and answers keep the teacher's wording.
+   Small spelling fixes only (whinnie, affect/effect, a stray "the"). The guide does NOT include chapters 38, 39, or 45, and it repeats the
+   question lists for chapters 25, 28, 29, 36, and 37 (each is kept once). Where the guide says "Various, pages 94-95" the module says so.
+   The answers are the guide's; the final review compared every item with the PDF. */
+
+/* c: chapter label; k: true when the guide marks it a checkpoint; part: 1-4 (the book's four parts); qa: [question, answer] */
+const CH = [
+  { c: '1', k: true, part: 1, qa: [
+    ['Who does Darkie stay with everyday?', 'His mother'],
+    ['What was her name? Nickname?', 'Duchess, Pet'],
+    ['What advice did she give her son?', 'To grow up gentle and good, to never kick or bite (even in play)'],
+    ['What was Duchess’ job for her master?', 'To take him into town to the market'],
+    ['What did Dick do to the horses?', 'Throw stones at them'],
+    ['Was this charitable?', 'No'] ] },
+  { c: '2', k: false, part: 1, qa: [
+    ['What were the men hunting?', 'A hare'],
+    ['What happened to one of the horses?', 'It fell and broke its neck'],
+    ['What happened to George Gordon?', 'He fell off the horse and died'],
+    ['What was the horse’s name?', 'Rob Roy'],
+    ['What did the men do to Rob Roy?', 'They shot him'],
+    ['What did Duchess refuse to do after this?', 'Go in that part of the field'] ] },
+  { c: '3', k: true, part: 1, qa: [
+    ['What are some things that it means to be “broken in?”', 'Wearing a saddle and a bridle; carrying a man or woman; do as the driver/rider wishes; carry a cart'],
+    ['Ultimately, the horse has no _____ of his own, but follows his master’s.', 'Will'],
+    ['What part of the bridle goes in the horse’s mouth?', 'The bit'],
+    ['What terrible thing did Darkie get used to?', 'The train'],
+    ['What allowed Darkie to be so fearless?', 'His good master'],
+    ['What does Duchess tell Darkie about other masters?', 'Some masters are cruel, foolish, careless'],
+    ['What does she tell Darkie to do, no matter what kind of master?', 'To do his best and keep his good name'] ] },
+  { c: '4', k: false, part: 1, qa: [
+    ['Who was Darkie’s new master?', 'Squire Gordon'],
+    ['What does Merrylegs not want in a neighbor?', 'A bad temper'],
+    ['What are Ginger’s bad habits?', 'Biting and snapping'] ] },
+  { c: '5', k: true, part: 1, qa: [
+    ['Who gave Black Beauty his name?', 'Lady Gordon'],
+    ['Why do Black Beauty and Rob Roy look alike?', 'They are brothers'],
+    ['Whom does Black Beauty start pulling a cart with?', 'Ginger'] ] },
+  { c: '6', k: true, part: 1, qa: [
+    ['What does a horse give up?', 'Its liberty'],
+    ['Why?', 'So that it can do what his master wants'],
+    ['What would happen if all horses did whatever they wanted all the time?', 'No work would get done'] ],
+    talk: 'Would they be living up to their full potential, contributing to the world? Discuss.' },
+  { c: '7', k: false, part: 1, qa: [
+    ['What was Ginger’s breaking in like?', 'Forceful, violent, unkind'],
+    ['A _____ tempered man will never make a _________ tempered horse.', 'Bad, good'],
+    ['How was Ginger affected by her forceful upbringing?', 'It gave her a bad temper'],
+    ['Who helped Ginger after she was hurt by Samson?', 'Samson’s father'] ] },
+  { c: '8', k: true, part: 1, qa: [
+    ['How was Ginger treated in London?', 'Awfully, they only cared about style, but showed no kindness'],
+    ['What did this cause her to start doing?', 'Kicking, biting, snapping'],
+    ['Who were Ginger’s enemies?', 'Men'],
+    ['What started happening to Ginger as the weeks went on?', 'She became kinder and gentler'] ] },
+  { c: '9', k: true, part: 1, qa: [
+    ['What did Merrylegs do to the children?', 'Threw them off'],
+    ['Why? (Merrylegs and the children)', 'To teach them a lesson'],
+    ['He says boys need to be _____ like horses.', 'Broken in'],
+    ['Why would Merrylegs never want to hurt the children?', 'Because he loves his good home too much to risk losing it'] ] },
+  { c: '10', k: false, part: 1, qa: [
+    ['What happened to Sir Oliver’s tail? Why?', 'It was cut off for fashion'],
+    ['Besides the pain, why was this hard for him?', 'He couldn’t brush the flies off anymore'],
+    ['Sir Oliver says less accidents would happen if horses didn’t wear …', 'Blinkers'] ] },
+  { c: '11', k: true, part: 1, qa: [
+    ['How does Mr. Sawyer hold his horse’s head?', 'Up very tight'],
+    ['He is trying to get the horse to submit to his own …', 'Will'],
+    ['What does Squire Gordon think about this?', 'You can’t get a horse to submit to your will if you do not treat them with kindness'],
+    ['Squire Gordon says to act more according to __________ and less according to _________.', 'Common sense, fashion'] ] },
+  { c: '12', k: true, part: 1, qa: [
+    ['What did BB know about the bridge?', 'That it was not safe'],
+    ['Squire Gordon says that “Horses do not act according to _______________ but according to _________.”', 'Reason / instinct'],
+    ['Did BB cross the bridge?', 'No, he knew something was wrong with it.'] ] },
+  { c: '13', k: true, part: 1, qa: [
+    ['Why did the farmer’s son get thrown off the horse?', 'He was being unkind, whipping and kicking the horse'],
+    ['John said this should teach him a …', 'Lesson'],
+    ['What is the devil’s trademark?', 'Cruelty'],
+    ['What is God’s trademark?', 'Love'] ] },
+  { c: '14', k: true, part: 1, qa: [
+    ['Where does Squire Gordon want to send James?', 'Clifford Hall'],
+    ['How old is James?', '19'],
+    ['What does James practice while he waits to go to Clifford Hall?', 'Driving the carriage'] ] },
+  { c: '15–16', k: true, part: 1, qa: [
+    ['What did Dick Trowler set down in the barn?', 'His pipe'],
+    ['What did this start?', 'A fire'],
+    ['What gave Ginger the courage to come out of the barn?', 'BB’s whinny'],
+    ['Who led the horses out of the barn?', 'James'],
+    ['What virtue did he show?', 'Fortitude'],
+    ['How many horses did not survive the fire?', 'Two'] ] },
+  { c: '17', k: true, part: 1, qa: [
+    ['Who is coming to take James’ place?', 'Little Joe Green'],
+    ['How old is he?', '14 and a half'],
+    ['What happened to John Manly when he was that age?', 'Both his parents died, leaving him and his crippled sister alone'],
+    ['John says it is _____ to only look after “number one.”', 'Selfish'],
+    ['Why was John afraid to leave?', 'Because he is leaving everyone he loves behind, and will not know anyone at Clifford Hall'] ] },
+  { c: '18', k: true, part: 1, qa: [
+    ['Who was sick?', 'The mistress'],
+    ['Why did John want to give Black Beauty a rest?', 'Because he galloped all the way to Doctor White’s'],
+    ['How did Black Beauty feel back at home?', 'In pain, trembling'],
+    ['Black Beauty’s _______ were inflamed.', 'Lungs'] ] },
+  { c: '19', k: true, part: 1, qa: [
+    ['Whom does John think is responsible for BB’s illness? Why?', 'Joe Green, because he did not put BB’s coat on when he came back'],
+    ['What does Tom say the reason for Joe’s mistake was?', 'Ignorance'],
+    ['John says ignorance is the worst thing in the world, next to …', 'Wickedness'],
+    ['Why? (ignorance and wickedness)', 'Even if someone did not mean to do bad, the bad still happens'],
+    ['What is an example John gives?', 'Various, pages 94–95'] ] },
+  { c: '20', k: true, part: 1, qa: [
+    ['Why couldn’t the two horses move?', 'Their cart was too heavy'],
+    ['What did Joe Green do when the driver refused to stop?', 'Went to the brickmaster, Mr. Clay'],
+    ['John says that most people would have thought …', 'It was not their business to interfere'],
+    ['John says that with ______ and _______, everyone has a right to interfere.', 'Cruelty and oppression'],
+    ['What did Joe have to give to the magistrate?', 'His evidence, that he saw the man whipping the horses'],
+    ['What consequence might the man earn?', '2–3 months in prison'],
+    ['This caused Joe to go from a ______ to a ______.', 'Boy to a man'] ] },
+  { c: '21', k: true, part: 1, qa: [
+    ['Why must the master and mistress leave England?', 'Because the mistress is ill'],
+    ['What is happening to all the horses?', 'They are being sold to different owners'],
+    ['Whom is BB staying with?', 'Ginger'],
+    ['To whom are they being sold?', 'The Earl of W--'],
+    ['What does John want to do with horses from now on?', 'Help train / break them in'] ],
+    talk: 'Sometimes the names of places are left out of books when they referred to real places and the author or a later editor did not want everyone to know where it was.' },
+  { c: '22', k: true, part: 2, qa: [
+    ['Where are BB and Ginger now living?', 'Earlshall Park'],
+    ['Who is their new coachman?', 'Mr. York'],
+    ['What new kind of rein will the horses have to use at Earlshall?', 'Bearing rein'],
+    ['What does this mean?', 'They will have to hold their heads high'],
+    ['Who is the person that wants this?', 'The lady'],
+    ['Did they tighten it all at once?', 'No, a little more each day'],
+    ['How do Ginger and BB feel at the end of the chapter?', 'Ginger is angry, BB says he will try to do his duty'] ] },
+  { c: '23', k: true, part: 2, qa: [
+    ['What did Ginger do when York tried to tighten her reins?', 'Kicked and reared up'],
+    ['Who told York to tighten the reins?', 'The lady'],
+    ['What was she not allowed to do after this?', 'Drive the carriage'],
+    ['Who is BB’s new driving partner?', 'Max'],
+    ['What happened to BB’s mouth during the four months?', 'He started foaming at the mouth'],
+    ['BB feels like he has no …', 'Friends'] ] },
+  { c: '24', k: true, part: 2, qa: [
+    ['Who has started riding BB?', 'Lady Anne'],
+    ['Which horse does she try to ride?', 'Lizzie'],
+    ['Why was Blantyre warning Anne against this?', 'Because Lizzie can be very nervous and unsafe'],
+    ['What happened to Lizzie while Blantyre was inside?', 'A cold ran toward her and scared her'],
+    ['What did Lizzie do?', 'Galloped away'],
+    ['What happened at the dyke?', 'Lizzie fell, Anne was unconscious'],
+    ['By the end of the chapter, how is Lady Anne?', 'Stable and will be able to ride again soon'],
+    ['What is happening to Ginger?', 'She is being strained too much by Lord George'] ] },
+  { c: '25', k: true, part: 2, qa: [
+    ['Who minds the stables when York is in London?', 'Reuben Smith'],
+    ['What is his major fault?', 'He drinks'],
+    ['What did he have to promise in order to keep working at Earlshall?', 'That he would never drink again'],
+    ['What started coming loose on BB?', 'A nail from his horseshoe'],
+    ['What happened when Reuben Smith was riding BB home?', 'BB’s shoe came off'],
+    ['What happened to BB on the cobblestone road?', 'He fell'],
+    ['What happened to Reuben Smith?', 'He fell off and did not get up'] ] },
+  { c: '26', k: true, part: 2, qa: [
+    ['What happened to Reuben? How could the men tell?', 'He was dead, his hands were cold'],
+    ['What injuries does BB have?', 'Wounded hoof and knees'],
+    ['What was the cause of all of this?', 'Reuben’s drinking'] ] },
+  { c: '27', k: true, part: 2, qa: [
+    ['What was Ginger ruined by?', 'Lord George’s hard riding'],
+    ['When did he push her too hard?', 'During a race'],
+    ['What does the Earl say must happen to BB? Why?', 'He must be sold because of his wounded knees'],
+    ['Who is BB leaving behind?', 'Ginger'],
+    ['What is his new home like?', 'Not as large of stables, standing on slope, but a good master so far'] ] },
+  { c: '28', k: true, part: 2, qa: [
+    ['What kind of a horse is BB in this new home?', 'A “job horse” that is lent to anyone who needs a certain job done'],
+    ['What are loose rein drivers like?', 'Careless'],
+    ['What happened to BB’s foot because of a careless driver?', 'A stone got caught in it'],
+    ['What did the driver think?', 'That BB was lame'],
+    ['What happened to BB’s foot as a result?', 'It was bruised'] ] },
+  { c: '29', k: true, part: 2, qa: [
+    ['What is the “steam-engine” style of driving like?', 'Drivers expect horses to go on and on, never slowing down or getting tired'],
+    ['What are their drivers called?', 'Cockneys'],
+    ['What do they think horses were made for?', 'Driving humans around'],
+    ['What effect does this have on the horses?', 'Wears them out more than anything else'],
+    ['What happened to Rory?', 'He got hit with a carriage shaft and was disabled'],
+    ['What is Peggy’s major struggle?', 'Short legs'],
+    ['What is her temper like?', 'Good and willing to work with what she is given'],
+    ['Who is BB sold to?', 'Mr. Barry'] ] },
+  { c: '30', k: true, part: 2, qa: [
+    ['Why did Mr. Barry buy BB?', 'For horse exercise'],
+    ['Does he know much about horses?', 'No'],
+    ['Who takes care of BB?', 'Filcher'],
+    ['Why did BB start feeling tired and weak?', 'Because grass was mixed into his oats, so he wasn’t getting the right nutrients to stay strong'],
+    ['What was happening to the corn?', 'Filcher’s son was stealing it'],
+    ['What happened to Filcher and his son?', 'They got caught, Filcher received 2 months in prison'] ] },
+  { c: '31', k: true, part: 2, qa: [
+    ['Who is the new groom?', 'Alfred Smirk'],
+    ['BB says he is a …', 'Humbug'],
+    ['Does he care more about pleasing Mr. Barry or caring for BB?', 'Pleasing Mr. Barry'],
+    ['Does he take time to groom BB well?', 'No, just enough so that BB appears well-groomed'],
+    ['What did Alfred fail to do in BB’s stall?', 'Clean up the litter'],
+    ['What happened to BB’s feet because of this?', 'BB’s hoof got infected with thrush'],
+    ['Why did Mr. Barry sell BB?', 'He was tired of his grooms lying to him, and could not keep a horse himself'] ] },
+  { c: '32', k: true, part: 3, qa: [
+    ['Where was BB taken to be sold?', 'The horse fair'],
+    ['What is BB’s new master like?', 'Kind, gentle, knows about horses'],
+    ['Where does he live?', 'London'] ] },
+  { c: '33', k: true, part: 3, qa: [
+    ['What is BB’s new owner’s name?', 'Jerry'],
+    ['What was different for BB about being in London?', 'Noise, hurry, crowds, many other carriages and horses'],
+    ['What made BB feel at ease?', 'Jerry’s good driving'],
+    ['What is BB’s companion’s name?', 'Captain'] ] },
+  { c: '34', k: true, part: 3, qa: [
+    ['What was Captain trained for?', 'The army'],
+    ['What happened to Captain’s master?', 'He was shot during battle'],
+    ['How many horses returned to the stable after the battle?', 'One in four'] ] },
+  { c: '35', k: true, part: 3, qa: [
+    ['What does Jerry call BB?', 'Jack'],
+    ['What is Jerry’s temper like?', 'Kind, gentle, and good'],
+    ['What did Jerry say to the first man that offered to pay extra to get to the train station quickly?', 'No, extra money will not get the horse to go faster'],
+    ['Why did Jerry help the man with the suitcase get to the train so quickly?', 'He wanted to help him because he was struggling'],
+    ['Did Jerry take the extra money?', 'No'],
+    ['Larry says Jerry will never get …', 'Rich'] ] },
+  { c: '36', k: true, part: 3, qa: [
+    ['How many days a week can Jerry drive his cab?', 'Six'],
+    ['What day does he take off?', 'Sunday'],
+    ['What does Mr. Briggs ask him to do?', 'Get a seven day license so that he can drive Mrs. Briggs to church'],
+    ['Why is it so important to Jerry and Polly for him to have a day off?', 'So he can see his family and go to church'],
+    ['What did Mrs. Briggs do because of this?', 'Stop asking for rides from Jerry altogether'] ] },
+  { c: '37', k: true, part: 3, hw: true, qa: [
+    ['What is the golden rule that Polly says?', 'We should do unto others as we would like them to do unto us'],
+    ['What did Jerry give up? What did Dinah Brown gain because of this?', 'One Sunday, the chance to see her mother before she died'],
+    ['Where did BB get to go? Did Jerry get his Sunday?', 'Into a meadow, yes'] ] },
+  { c: '40', k: true, part: 3, qa: [
+    ['What did Ginger look like?', 'Boney, ill-kept coat, worn out'],
+    ['All of Ginger’s hard work has caused her to become very …', 'Worn out and weak'],
+    ['What work was she given as a result?', 'To be driven by low cabs and “used up”'],
+    ['Ginger used to stand up for herself. Why doesn’t she do this anymore?', 'Men are stronger, she says, and cruel'],
+    ['Ginger wishes she was …', 'Dead'],
+    ['Why? (Ginger wishes she was dead)', 'So she would not suffer / be in pain anymore'],
+    ['What did BB see later on? Whom does he think it is?', 'A dead chestnut horse, Ginger'] ] },
+  { c: '41', k: true, part: 3, qa: [
+    ['Why are butchers’ horses always going so fast?', 'There are lots of customers to please'] ] },
+  { c: '42', k: false, part: 3, qa: [
+    ['What does Jerry refuse to get involved in?', 'The election'],
+    ['What happens to Dolly?', 'She gets mud thrown at her and is called a blue raggamuffin'],
+    ['What does Harry think blue stands for?', 'Freedom'],
+    ['What does Jerry say about this?', 'Liberty does not come from our colors'],
+    ['Jerry says we must vote according to our …', 'Conscience'] ] },
+  { c: '43', k: false, part: 3, qa: [
+    ['Whom did Jerry help first? Where did he take them?', 'A woman and her son, to the hospital because he was sick'],
+    ['What did Mary do for Jerry? Why?', 'Gave him money, to take care of his family'],
+    ['What virtue did Jerry and Mary both show in this chapter?', 'Charity'] ] },
+  { c: '44', k: false, part: 3, qa: [
+    ['What happened to Captain?', 'He was hit with a shaft'],
+    ['What was the other driver doing?', 'Drinking'],
+    ['Jerry says this man can never _______ him for what happened to Captain.', 'Compensate / pay back'],
+    ['What did Jerry decide was the best thing for Captain?', 'To shoot him so that he did not feel pain'],
+    ['Who is BB’s new companion?', 'Hotspur'] ] },
+  { c: '46', k: false, part: 4, qa: [
+    ['Who was BB sold to?', 'A corn dealer and baker'],
+    ['Who works him too hard here?', 'The foreman, Jakes'],
+    ['What does Jakes do when BB is struggling to get up a steep hill?', 'Whips him'],
+    ['What does the Lady persuade Jakes to do?', 'Let out BB’s bearing rein'],
+    ['What is wrong with BB’s stable? What effect does this have on him?', 'There is only one tiny window, it worsens his eyesight because it’s always dark'],
+    ['Who was BB sold to next?', 'A cab owner'] ] },
+  { c: '47', k: false, part: 4, qa: [
+    ['Who is BB’s new owner?', 'Nicholas Skinner'],
+    ['How do Nicholas Skinner’s men treat their horses?', 'Very harshly, whipping, etc.'],
+    ['What does BB start to wish?', 'That he were dead'],
+    ['What happened to BB with the extremely heavy load?', 'He fell'],
+    ['The farrier says this was due to ______ more than disease.', 'Overwork'],
+    ['What is happening to BB again?', 'He’s being sold'] ] },
+  { c: '48', k: false, part: 4, qa: [
+    ['Who bought BB?', 'Mr. Thoroughgood'],
+    ['Who convinced him to buy BB?', 'His grandson'],
+    ['The salesman says BB was not old, just ____.', 'Overworked'],
+    ['What is BB’s new home like?', 'A wide open meadow with a small shed'],
+    ['How did BB change over the next few months?', 'Gained strength and felt young again'] ] },
+  { c: '49', k: false, part: 4, qa: [
+    ['Why are the ladies hesitant to take BB?', 'Because of his weak knees and worn out appearance'],
+    ['What does the groom start noticing about BB?', 'That he looks familiar (white star, white foot)'],
+    ['Who is the groom?', 'Joe Green'],
+    ['How does BB spend the rest of his life?', 'Easy and pleasant work with the ladies and Joe Green, strengthening his spirits'] ],
+    talk: 'Be able to explain how BB’s last home was just after all he had gone through in his life. BB showed fortitude and kept a good attitude even in the hard times. His fortitude paid off in the end.' }
+];
+const PARTS = [
+  { id: 1, label: 'Part 1', range: 'Ch. 1–21' },
+  { id: 2, label: 'Part 2', range: 'Ch. 22–31' },
+  { id: 3, label: 'Part 3', range: 'Ch. 32–44' },
+  { id: 4, label: 'Part 4', range: 'Ch. 46–49' }
+];
+const MISSING = 'The class study guide does not have chapters 38, 39, or 45, so they are not here.';
+
+/* ---- practice items, all taken from the guide above ---- */
+/* Multiple choice: q, a, wrong[3], optional why */
+const QUIZ = [
+  { q: 'Ch. 1: Who is Darkie’s mother?', a: 'Duchess', wrong: ['Ginger', 'Lizzie', 'Peggy'] },
+  { q: 'Ch. 1: What advice did Duchess give her son?', a: 'To grow up gentle and good, and never kick or bite', wrong: ['To run away from every master', 'To always lead the other horses', 'To stay away from people'] },
+  { q: 'Ch. 2: What were the men hunting?', a: 'A hare', wrong: ['A fox', 'A deer', 'A wolf'] },
+  { q: 'Ch. 3: Which part of the bridle goes in the horse’s mouth?', a: 'The bit', wrong: ['The rein', 'The blinker', 'The saddle'] },
+  { q: 'Ch. 3: What does Duchess tell Darkie to do, no matter what kind of master he has?', a: 'Do his best and keep his good name', wrong: ['Run away', 'Refuse to work', 'Bite and kick'] },
+  { q: 'Ch. 4: Who was Darkie’s new master?', a: 'Squire Gordon', wrong: ['Mr. York', 'Jerry', 'Mr. Barry'] },
+  { q: 'Ch. 5: Who gave Black Beauty his name?', a: 'Lady Gordon', wrong: ['Squire Gordon', 'John Manly', 'Duchess'] },
+  { q: 'Ch. 6: What does a horse give up?', a: 'Its liberty', wrong: ['Its food', 'Its stable', 'Its name'] },
+  { q: 'Ch. 7: What gave Ginger a bad temper?', a: 'Her forceful, violent breaking in', wrong: ['Being too well fed', 'Living with Merrylegs', 'Her long mane'] },
+  { q: 'Ch. 8: What did Ginger start doing in London because of how she was treated?', a: 'Kicking, biting, and snapping', wrong: ['Hiding in the stall', 'Refusing to eat', 'Running away'] },
+  { q: 'Ch. 9: Why would Merrylegs never want to hurt the children?', a: 'He loves his good home too much to risk losing it', wrong: ['He is afraid of the children', 'He is too tired', 'The children feed him sweets'] },
+  { q: 'Ch. 10: Why was it hard for Sir Oliver that his tail was cut off?', a: 'He couldn’t brush the flies off anymore', wrong: ['It made him run slower', 'He couldn’t see', 'It made him too hot'] },
+  { q: 'Ch. 11: What does Squire Gordon say you can’t get a horse to do without kindness?', a: 'Submit to your will', wrong: ['Eat his oats', 'Cross a bridge', 'Learn his name'] },
+  { q: 'Ch. 12: Why did BB not cross the bridge?', a: 'He knew it was not safe', wrong: ['He was tired', 'He was afraid of the dark', 'He did not like the driver'] },
+  { q: 'Ch. 13: What is the devil’s trademark?', a: 'Cruelty', wrong: ['Love', 'Fortitude', 'Charity'], why: 'John says cruelty is the devil’s trademark, and love is God’s.' },
+  { q: 'Ch. 14: Where does Squire Gordon want to send James?', a: 'Clifford Hall', wrong: ['Earlshall Park', 'Birtwick', 'The horse fair'] },
+  { q: 'Ch. 15–16: What did Dick Trowler set down in the barn that started the fire?', a: 'His pipe', wrong: ['A lantern', 'A candle', 'A match'] },
+  { q: 'Ch. 15–16: What virtue did James show when he led the horses out of the barn?', a: 'Fortitude', wrong: ['Charity', 'Laziness', 'Pride'] },
+  { q: 'Ch. 17: Who is coming to take James’ place?', a: 'Little Joe Green', wrong: ['Reuben Smith', 'Filcher', 'Harry'] },
+  { q: 'Ch. 19: What does John say is the worst thing in the world, next to wickedness?', a: 'Ignorance', wrong: ['Laziness', 'Poverty', 'Hunger'] },
+  { q: 'Ch. 20: What did Joe Green have to give to the magistrate?', a: 'His evidence, that he saw the man whipping the horses', wrong: ['Money for a fine', 'A letter from John', 'A list of horses'] },
+  { q: 'Ch. 22: What new kind of rein will the horses have to use at Earlshall?', a: 'Bearing rein', wrong: ['Loose rein', 'Silk rein', 'Training rein'] },
+  { q: 'Ch. 23: Who is BB’s new driving partner?', a: 'Max', wrong: ['Hotspur', 'Captain', 'Rory'] },
+  { q: 'Ch. 24: Which horse does Lady Anne try to ride?', a: 'Lizzie', wrong: ['Ginger', 'Peggy', 'Merrylegs'] },
+  { q: 'Ch. 25: What is Reuben Smith’s major fault?', a: 'He drinks', wrong: ['He steals', 'He lies', 'He is lazy'] },
+  { q: 'Ch. 27: What was Ginger ruined by?', a: 'Lord George’s hard riding', wrong: ['A fire', 'A fall at the dyke', 'A long illness'] },
+  { q: 'Ch. 28: What kind of horse is BB in his new home?', a: 'A “job horse” lent to anyone who needs a job done', wrong: ['A racehorse', 'An army horse', 'A show horse'] },
+  { q: 'Ch. 29: What are the “steam-engine” style drivers called?', a: 'Cockneys', wrong: ['Squires', 'Farriers', 'Grooms'] },
+  { q: 'Ch. 30: Who was stealing the corn?', a: 'Filcher’s son', wrong: ['Mr. Barry', 'Alfred Smirk', 'Joe Green'] },
+  { q: 'Ch. 31: Why did BB get thrush in his hoof?', a: 'Alfred did not clean up the litter in his stall', wrong: ['He walked in a river', 'He was never ridden', 'His shoe was too tight'] },
+  { q: 'Ch. 33: What made BB feel at ease in London?', a: 'Jerry’s good driving', wrong: ['The quiet streets', 'Having no work', 'Meeting Ginger'] },
+  { q: 'Ch. 34: What was Captain trained for?', a: 'The army', wrong: ['Racing', 'Farm work', 'Pulling a baker’s cart'] },
+  { q: 'Ch. 36: Which day does Jerry take off?', a: 'Sunday', wrong: ['Saturday', 'Monday', 'Friday'] },
+  { q: 'Ch. 40: What did BB see later on that he thinks is Ginger?', a: 'A dead chestnut horse', wrong: ['A sick black horse', 'A horse at the fair', 'A horse in a meadow'] },
+  { q: 'Ch. 42: Jerry says we must vote according to our …', a: 'Conscience', wrong: ['Colors', 'Friends', 'Fashion'] },
+  { q: 'Ch. 44: Who is BB’s new companion after Captain?', a: 'Hotspur', wrong: ['Max', 'Rob Roy', 'Dolly'] },
+  { q: 'Ch. 46: What does the Lady persuade Jakes to let out?', a: 'BB’s bearing rein', wrong: ['BB’s stable door', 'The cart wheel', 'The saddle girth'] },
+  { q: 'Ch. 47: The farrier says BB fell because of overwork more than …', a: 'Disease', wrong: ['Bad weather', 'A bad shoe', 'A slippery road'] },
+  { q: 'Ch. 48: Who convinced Mr. Thoroughgood to buy BB?', a: 'His grandson', wrong: ['The farrier', 'Joe Green', 'The salesman'] },
+  { q: 'Ch. 49: Who is the groom who notices BB looks familiar?', a: 'Joe Green', wrong: ['James', 'Jakes', 'Jerry'] }
+];
+
+/* Type the answer: q is plain text; a is the list of accepted answers (the first is shown); say is what the speaker reads */
+const TYPE = [
+  { q: 'Ch. 1: What was Duchess’ nickname?', a: ['Pet'], noTypo: true },
+  { q: 'Ch. 1: What did Dick do to the horses?', a: ['Throw stones at them', 'threw stones at them', 'throw stones', 'threw stones'] },
+  { q: 'Ch. 2: What were the men hunting?', a: ['A hare', 'hare'] },
+  { q: 'Ch. 2: What was the horse’s name?', a: ['Rob Roy'] },
+  { q: 'Ch. 3: What part of the bridle goes in the horse’s mouth?', a: ['The bit', 'bit'], noTypo: true },
+  { q: 'Ch. 3: What terrible thing did Darkie get used to?', a: ['The train', 'train'] },
+  { q: 'Ch. 3: Ultimately, the horse has no _____ of his own, but follows his master’s.', a: ['Will'], noTypo: true },
+  { q: 'Ch. 4: Who was Darkie’s new master?', a: ['Squire Gordon'] },
+  { q: 'Ch. 4: What are Ginger’s bad habits?', a: ['Biting and snapping', 'biting, snapping', 'biting & snapping'] },
+  { q: 'Ch. 5: Who gave Black Beauty his name?', a: ['Lady Gordon'] },
+  { q: 'Ch. 6: What does a horse give up?', a: ['Its liberty', 'liberty'] },
+  { q: 'Ch. 7: Who helped Ginger after she was hurt by Samson?', a: ['Samson’s father', 'Samsons father', 'his father'] },
+  { q: 'Ch. 9: He says boys need to be _____ like horses.', a: ['Broken in', 'broken'] },
+  { q: 'Ch. 10: Sir Oliver says less accidents would happen if horses didn’t wear …', a: ['Blinkers'] },
+  { q: 'Ch. 11: Squire Gordon says to act more according to __________ and less according to _________.', a: ['Common sense, fashion', 'common sense and fashion'] },
+  { q: 'Ch. 13: What is God’s trademark?', a: ['Love'], noTypo: true },
+  { q: 'Ch. 13: What is the devil’s trademark?', a: ['Cruelty'] },
+  { q: 'Ch. 14: Where does Squire Gordon want to send James?', a: ['Clifford Hall'] },
+  { q: 'Ch. 15–16: What virtue did James show?', a: ['Fortitude'] },
+  { q: 'Ch. 15–16: How many horses did not survive the fire?', a: ['Two', '2'], noTypo: true },
+  { q: 'Ch. 17: Who is coming to take James’ place?', a: ['Little Joe Green', 'Joe Green'] },
+  { q: 'Ch. 17: John says it is _____ to only look after “number one.”', a: ['Selfish'] },
+  { q: 'Ch. 18: Black Beauty’s _______ were inflamed.', a: ['Lungs'] },
+  { q: 'Ch. 19: John says ignorance is the worst thing in the world, next to …', a: ['Wickedness'] },
+  { q: 'Ch. 20: John says that with ______ and _______, everyone has a right to interfere.', a: ['Cruelty and oppression', 'cruelty, oppression'] },
+  { q: 'Ch. 22: Who is their new coachman at Earlshall?', a: ['Mr. York', 'York'] },
+  { q: 'Ch. 23: Who is BB’s new driving partner?', a: ['Max'], noTypo: true },
+  { q: 'Ch. 24: Who has started riding BB?', a: ['Lady Anne', 'Anne'] },
+  { q: 'Ch. 25: Who minds the stables when York is in London?', a: ['Reuben Smith', 'Reuben'] },
+  { q: 'Ch. 25: What is Reuben Smith’s major fault?', a: ['He drinks', 'drinking', 'drinks', 'drinking too much'] },
+  { q: 'Ch. 27: What was Ginger ruined by?', a: ['Lord George’s hard riding', 'hard riding', 'Lord Georges hard riding'] },
+  { q: 'Ch. 28: What kind of a horse is BB in this new home?', a: ['A job horse', 'job horse'] },
+  { q: 'Ch. 29: What are the “steam-engine” style drivers called?', a: ['Cockneys', 'cockney'] },
+  { q: 'Ch. 29: Who is BB sold to?', a: ['Mr. Barry', 'Barry'] },
+  { q: 'Ch. 30: Who takes care of BB at Mr. Barry’s?', a: ['Filcher'] },
+  { q: 'Ch. 31: BB says Alfred Smirk is a …', a: ['Humbug'] },
+  { q: 'Ch. 32: Where was BB taken to be sold?', a: ['The horse fair', 'horse fair', 'a horse fair'] },
+  { q: 'Ch. 33: What is BB’s new owner’s name?', a: ['Jerry'], noTypo: true },
+  { q: 'Ch. 33: What is BB’s companion’s name?', a: ['Captain'] },
+  { q: 'Ch. 34: What was Captain trained for?', a: ['The army', 'army'] },
+  { q: 'Ch. 35: What does Jerry call BB?', a: ['Jack'], noTypo: true },
+  { q: 'Ch. 36: How many days a week can Jerry drive his cab?', a: ['Six', '6'], noTypo: true },
+  { q: 'Ch. 36: What day does he take off?', a: ['Sunday'] },
+  { q: 'Ch. 42: Jerry says we must vote according to our …', a: ['Conscience'] },
+  { q: 'Ch. 43: What virtue did Jerry and Mary both show?', a: ['Charity'] },
+  { q: 'Ch. 44: Who is BB’s new companion?', a: ['Hotspur'] },
+  { q: 'Ch. 46: Who works BB too hard?', a: ['Jakes', 'the foreman, Jakes', 'foreman Jakes'] },
+  { q: 'Ch. 47: Who is BB’s new owner?', a: ['Nicholas Skinner', 'Skinner'] },
+  { q: 'Ch. 47: The farrier says this was due to ______ more than disease.', a: ['Overwork'] },
+  { q: 'Ch. 48: Who bought BB?', a: ['Mr. Thoroughgood', 'Thoroughgood'] },
+  { q: 'Ch. 48: The salesman says BB was not old, just ____.', a: ['Overworked'] },
+  { q: 'Ch. 49: Who is the groom?', a: ['Joe Green'] }
+];
+
+/* Put in order: the story's events, from the guide */
+const EVENTS = [
+  { text: 'Duchess tells Darkie to grow up gentle and good, and never to kick or bite' },
+  { text: 'The men hunt a hare, and Rob Roy is shot' },
+  { text: 'Darkie is broken in and learns to wear a saddle and bridle' },
+  { text: 'Squire Gordon is his new master, and Lady Gordon names him Black Beauty' },
+  { text: 'Ginger tells how she was broken in' },
+  { text: 'Merrylegs throws the children to teach them a lesson' },
+  { text: 'Beauty knows the bridge is not safe and will not cross it' },
+  { text: 'Dick Trowler’s pipe starts a fire, and James leads the horses out' },
+  { text: 'Beauty falls ill after Joe Green forgets his coat' },
+  { text: 'Joe Green goes to the magistrate about the horses with the heavy cart' },
+  { text: 'Beauty and Ginger go to Earlshall Park and the bearing rein' },
+  { text: 'Reuben Smith drinks and Beauty falls and hurts his knees' },
+  { text: 'Beauty is sold and becomes a job horse' },
+  { text: 'Mr. Barry buys him, and Filcher\u2019s son steals the corn' },
+  { text: 'Alfred Smirk does not clean the stall and Beauty gets thrush' },
+  { text: 'Beauty is sold at the horse fair and goes to Jerry in London' },
+  { text: 'Captain tells his story of the army' },
+  { text: 'Jerry gives up a Sunday so Dinah Brown can see her mother' },
+  { text: 'Beauty sees a dead chestnut horse and thinks it is Ginger' },
+  { text: 'Captain is hit with a shaft, and Jerry shoots him' },
+  { text: 'Jakes works Beauty too hard, and the Lady has his bearing rein let out' },
+  { text: 'Beauty falls with a heavy load at Nicholas Skinner’s' },
+  { text: 'Mr. Thoroughgood buys Beauty, and he heals in a meadow' },
+  { text: 'Joe Green, the groom, recognizes Beauty' }
+];
+
+/* Explain it: the guide's own answers are the models */
+const EXPLAIN = [
+  { q: 'What does it mean for a horse to be “broken in”?', teacher: true,
+    model: 'A horse that is broken in wears a saddle and a bridle, carries a man or woman, does as the driver or rider wishes, and carries a cart.',
+    ideas: [
+      { label: 'Wearing a saddle and a bridle', all: [['saddle', 'bridle']] },
+      { label: 'Carrying a rider or a cart', all: [['carry', 'cart', 'rider', 'pull']] },
+      { label: 'Doing what the driver or rider wishes', all: [['wish', 'want', 'obey', 'listen', 'do what', 'does what']] }
+    ] },
+  { q: 'What does a horse give up, and why?', teacher: true,
+    model: 'A horse gives up its liberty so that it can do what its master wants. If all horses did whatever they wanted all the time, no work would get done.',
+    ideas: [
+      { label: 'It gives up its liberty (freedom)', all: [['liberty', 'freedom']] },
+      { label: 'So it can do what its master wants', all: [['master', 'owner']] }
+    ] },
+  { q: 'What does Squire Gordon think about Mr. Sawyer holding his horse’s head up very tight?', teacher: true,
+    model: 'You can’t get a horse to submit to your will if you do not treat them with kindness. Squire Gordon says to act more according to common sense and less according to fashion.',
+    ideas: [
+      { label: 'A horse will not submit to your will without kindness', all: [['kind'], ['submit', 'will', 'obey', 'listen']] },
+      { label: 'Common sense, not fashion', all: [['common sense', 'fashion']] }
+    ] },
+  { q: 'Did BB cross the bridge? Why or why not?', teacher: true,
+    model: 'No, he knew something was wrong with it. Squire Gordon says that horses do not act according to reason but according to instinct.',
+    ideas: [
+      { label: 'No, he did not cross', all: [['no,', 'no.', 'did not cross', 'didn’t cross', "didn't cross", 'not cross', 'refused', 'never crossed']] },
+      { label: 'He knew the bridge was not safe (instinct)', all: [['unsafe', 'not safe', 'wrong', 'danger', 'instinct']] }
+    ] },
+  { q: 'What is the devil’s trademark, and what is God’s trademark?', teacher: true,
+    model: 'The devil’s trademark is cruelty. God’s trademark is love.',
+    ideas: [
+      { label: 'The devil’s trademark is cruelty', all: [['cruelty', 'cruel']] },
+      { label: 'God’s trademark is love', all: [['love']] }
+    ] },
+  { q: 'Why does John say ignorance is the worst thing in the world, next to wickedness?', teacher: true,
+    model: 'Even if someone did not mean to do bad, the bad still happens.',
+    ideas: [
+      { label: 'The person did not mean to do bad', all: [['not mean', 'did not mean', 'didn’t mean', 'no harm', 'meant no', 'by accident', 'not on purpose', 'unintentional']] },
+      { label: 'The bad still happens', all: [['still happens', 'still happen', 'bad still', 'anyway', 'still hurt', 'still bad']] }
+    ] },
+  { q: 'John says most people would think it was not their business to interfere. When does he say everyone has a right to interfere?', teacher: true,
+    model: 'With cruelty and oppression, everyone has a right to interfere.',
+    ideas: [
+      { label: 'Cruelty', all: [['cruelty', 'cruel']] },
+      { label: 'Oppression', all: [['oppression', 'oppress']] }
+    ] },
+  { q: 'Why is it so important to Jerry and Polly for Jerry to have a day off?', teacher: true,
+    model: 'So he can see his family and go to church. Jerry takes Sunday off.',
+    ideas: [
+      { label: 'To see his family', all: [['family']] },
+      { label: 'To go to church', all: [['church']] }
+    ] },
+  { q: 'Explain how Black Beauty’s last home was just after all he had gone through in his life.', teacher: true,
+    model: 'BB showed fortitude and kept a good attitude even in the hard times. His fortitude paid off in the end.',
+    ideas: [
+      { label: 'BB showed fortitude', all: [['fortitude', 'courage', 'brave', 'endured', 'kept going']] },
+      { label: 'He kept a good attitude in the hard times', all: [['attitude', 'hard times', 'bad times', 'did not give up', 'didn’t give up', 'never gave up']] },
+      { label: 'It paid off in the end (a good last home)', all: [['paid off', 'in the end', 'rewarded', 'good home', 'happy', 'pleasant']] }
+    ] }
+];
