@@ -73,8 +73,8 @@ async def main():
         check('Easy' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text() and 'Hard' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'automatic difficulty range Easy to Hard')
         o = await overflow(pg); check(o['h'] <= 0, f'home: no sideways scroll (the All list may scroll as modules are added) {o}')
         await pg.screenshot(path=f'{OUT}/sb_home.png')
-        await pg.click('nav.tabs a:has-text("Math")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 1")
-        check(await pg.locator('a.mod').count() == 1, 'math filter shows only Place Value and Zeros')
+        await pg.click('nav.tabs a:has-text("Math")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 2")
+        check(await pg.locator('a.mod').count() == 2, 'math filter shows Place Value and Zeros and Add and Subtract Fractions')
         await pg.click('nav.tabs a:has-text("Geography")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 2")
         check(await pg.locator('a.mod').count() == 2, 'geography filter shows South America and US States')
 
