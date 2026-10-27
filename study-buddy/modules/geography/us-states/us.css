@@ -1,4 +1,5 @@
 /* US States: styles only this module needs. */
+.us-flag{display:block}
 .us-flag svg{display:block;width:100%;height:auto;border-radius:4px;box-shadow:0 0 0 1.5px var(--line)}
 .us-thumb{width:54px}
 .us-qflag{width:clamp(120px,16vh,170px);margin:6px auto 0}
@@ -31,6 +32,7 @@
   .us-guide tr:last-child{border-bottom:0}
   .us-guide th,.us-guide td{border:0;padding:2px 14px;width:auto!important;white-space:normal!important}
   .us-guide td.s{position:absolute;right:4px;top:8px;padding:0}
+  .us-guide td[data-label]:not([data-label=""])::before{content:attr(data-label) ": ";font-weight:700;color:var(--ink2)}
   .us-flags{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 .us-note{margin-top:4px;font-size:14px;color:var(--ink2)}

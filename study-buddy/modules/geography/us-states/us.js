@@ -10,7 +10,8 @@
   const BY = Object.fromEntries(STATES.map(s => [s.id, s]));
   const pick = a => a[Math.floor(Math.random() * a.length)];
   const ord = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
-  const flag = (s, cls = '') => `<div class="us-flag ${cls}">${FLAGS[s.id]}</div>`;
+  /* A flag. In questions and cards the picture's label must not give the answer away to a screen reader. */
+  const flag = (s, cls = '') => `<span class="us-flag ${cls}" data-s="${s.id}">${/us-qflag|us-cardflag/.test(cls) ? FLAGS[s.id].replace(/aria-label="[^"]*"/, 'aria-label="A state flag"') : FLAGS[s.id]}</span>`;
   const motto = s => s.motto.replace(/\s*\(.*\)\s*$/, '');                  // the motto as written (Latin etc.)
   const mottoSay = s => { const m = s.motto.match(/\((.*)\)\s*$/); return m ? m[1] : s.motto; };
   const alts = (txt, kind) => {                                              // accepted spellings for a typed answer
@@ -19,11 +20,13 @@
     if (kind === 'name') { if (txt === 'Washington') out.add('Washington State'); }
     const w = txt.split(' ');
     if (kind === 'bird') { if (w.length === 2 && /^(Northern|Eastern|Western|American|Mountain|Common|Ruffed|Black-capped|Mourning)$/.test(w[0])) out.add(w[1]); if (w[w.length - 1] === 'Chicken') out.add(w.slice(0, -1).join(' ')); }
-    if (kind === 'flower') { const t = txt.replace(/ (Blossom|Flower|Blossoms)$/, ''); out.add(t); if (!/s$/.test(t)) out.add(t + 's'); if (w.length === 2 && /^(American|Flowering|Wild|Common|Yellow|White|Rocky)$/.test(w[0])) out.add(w[1]); if (/Dogwood$/.test(txt)) ['Dogwood', 'American Dogwood', 'Flowering Dogwood'].forEach(x => out.add(x)); if (/Violet$/.test(txt)) out.add('Violet'); }
+    if (kind === 'flower') { const t = txt.replace(/ (Blossom|Flower|Blossoms)$/, ''); out.add(t); if (!/s$/.test(t)) out.add(t + 's'); if (w.length >= 2) { out.add(w[w.length - 1]); out.add(w.slice(1).join(' ').replace(/ (Blossom|Flower|Blossoms)$/, '')); } if (/Dogwood$/.test(txt)) ['Dogwood', 'American Dogwood', 'Flowering Dogwood'].forEach(x => out.add(x)); if (/Violet$/.test(txt)) out.add('Violet'); }
     return [...out];
   };
   const firstHint = txt => `It starts with "${txt[0]}".`;
 
+  /* city names that belong to more than one state in real life (so a choice could be right for two states) */
+  const AMBIG = new Set(['Aberdeen', 'Alexandria', 'Augusta', 'Aurora', 'Bellevue', 'Bowling Green', 'Burlington', 'South Burlington', 'Cambridge', 'Charleston', 'Columbia', 'Columbus', 'Davenport', 'Fayetteville', 'Greenville', 'Henderson', 'Huntington', 'Jacksonville', 'Kansas City', 'Lafayette', 'Lawrence', 'Lewiston', 'Lexington', 'Lowell', 'Manchester', 'Meridian', 'Middletown', 'Newark', 'Newport', 'Norfolk', 'Peoria', 'Portland', 'Portsmouth', 'Rochester', 'Springfield', 'Warwick', 'Wilmington']);
   /* how many times each city name appears, so a city that only one state has can ask "which state?" */
   const CITYCOUNT = {};
   STATES.forEach(s => [s.capital, ...s.cities].forEach(c => { CITYCOUNT[c] = (CITYCOUNT[c] || 0) + 1; }));
@@ -50,6 +53,11 @@
 
   /* ---------- Quiz questions ---------- */
   const others = (s, f, n = 3) => { const used = new Set([f(s)]), out = []; for (const o of shuffle(STATES)) { const v = f(o); if (!used.has(v)) { used.add(v); out.push(v); if (out.length === n) break; } } return out; };
+  const lastWord = t => t.toLowerCase().split(/[ -]/).pop().replace(/(blossom|flower)s?$/, '').replace(/s$/, '');
+  const othersKeyed = (s, f, n = 3) => {                                      // wrong choices that are not close cousins of the right one (Rose and Wild Rose, Violet and Wood Violet)
+    const key = v => lastWord(v) || v.toLowerCase(), used = new Set([key(f(s))]), out = [];
+    for (const o of shuffle(STATES)) { const v = f(o), k = key(v); if (!used.has(k)) { used.add(k); out.push(v); if (out.length === n) break; } } return out;
+  };
   const near = (s, key, fmt) => {                                            // years or numbers close to the right one
     const a = s[key], pool = shuffle(STATES.filter(o => o[key] !== a)).sort((x, y) => Math.abs(x[key] - a) - Math.abs(y[key] - a)).slice(0, 10);
     const out = []; for (const o of shuffle(pool)) { const v = fmt(o[key]); if (!out.includes(v)) out.push(v); if (out.length === 3) break; } return out;
@@ -60,12 +68,12 @@
       : { q: `What is the capital of ${s.name}?`, a: s.capital, wrong: others(s, o => o.capital), why: `The capital of ${s.name} is ${s.capital}.` },
     flags: s => ({ q: 'Which state has this flag?', html: flag(s, 'us-qflag'), a: s.name, wrong: others(s, o => o.name), why: `That is the flag of ${s.name}.` }),
     mottos: s => ({ q: `Which state's motto is "${s.motto}"?`, a: s.name, wrong: others(s, o => o.name), why: `${s.name}'s motto is "${s.motto}". ${s.mottoNote || ''}`.trim() }),
-    birds: s => ({ q: `What is the state bird of ${s.name}?`, a: s.bird, wrong: others(s, o => o.bird), why: `The state bird of ${s.name} is the ${s.bird}.` }),
-    flowers: s => ({ q: `What is the state flower of ${s.name}?`, a: s.flower, wrong: others(s, o => o.flower), why: `The state flower of ${s.name} is the ${s.flower}. ${s.flowerNote || ''}`.trim() }),
+    birds: s => ({ q: `What is the state bird of ${s.name}?`, a: s.bird, wrong: othersKeyed(s, o => o.bird), why: `The state bird of ${s.name} is the ${s.bird}.` }),
+    flowers: s => ({ q: `What is the state flower of ${s.name}?`, a: s.flower, wrong: othersKeyed(s, o => o.flower), why: `The state flower of ${s.name} is the ${s.flower}. ${s.flowerNote || ''}`.trim() }),
     cities: (s, i) => {
-      const c = pick(s.cities);
-      if (i % 2 && CITYCOUNT[c] === 1) return { q: `${c} is a notable city in which state?`, a: s.name, wrong: others(s, o => o.name), why: `${c} is a city in ${s.name}. The capital is ${s.capital}.` };
-      const mine = new Set([s.capital, ...s.cities]), pool = shuffle(STATES.flatMap(o => o === s ? [] : o.cities)).filter(x => !mine.has(x)), wrong = [...new Set(pool)].slice(0, 3);
+      const clear = s.cities.filter(x => !AMBIG.has(x)), c = pick(clear.length ? clear : s.cities);
+      if (i % 2 && CITYCOUNT[c] === 1 && !AMBIG.has(c)) return { q: `${c} is a notable city in which state?`, a: s.name, wrong: others(s, o => o.name), why: `${c} is a city in ${s.name}. The capital is ${s.capital}.` };
+      const mine = new Set([s.capital, ...s.cities]), pool = shuffle(STATES.flatMap(o => o === s ? [] : o.cities)).filter(x => !mine.has(x) && !AMBIG.has(x)), wrong = [...new Set(pool)].slice(0, 3);
       return { q: `Which of these is a notable city in ${s.name}?`, a: c, wrong, why: `${c} is a notable city in ${s.name}. Others: ${s.cities.filter(x => x !== c).join(', ')}.` };
     },
     admitted: (s, i) => i % 2
@@ -111,10 +119,14 @@
       const filter = () => {
         const q = find.value.trim().toLowerCase();
         $$('[data-k]', body).forEach(el => { el.hidden = !!q && !el.dataset.k.includes(q); });
-        let none = $('.us-none', body); if (!none) { none = document.createElement('p'); none.className = 'hint us-none'; none.textContent = 'No state matches that.'; body.appendChild(none); }
+        let none = $('.us-none', body); if (!none) { none = document.createElement('p'); none.className = 'hint us-none'; none.setAttribute('role', 'status'); none.textContent = 'No state matches that.'; body.appendChild(none); }
         none.hidden = !q || $$('[data-k]', body).some(el => !el.hidden);
       };
-      const show = id => { cur = id; body.innerHTML = VIEWS[id](); filter(); };
+      const show = id => {
+        cur = id; body.innerHTML = VIEWS[id]();
+        $$('.us-guide', body).forEach(t => { const heads = $$('thead th', t).map(h => h.textContent.trim()); $$('tbody tr', t).forEach(tr => $$('td', tr).forEach((td, i) => { if (!td.classList.contains('s') && !td.classList.contains('f')) td.dataset.label = heads[i + 1] || ''; })); });
+        filter();
+      };
       find.oninput = filter;
       $$('.gtabs button', P).forEach(b => b.onclick = () => { $$('.gtabs button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); show(b.dataset.g); });
       show('overview');

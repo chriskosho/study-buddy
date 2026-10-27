@@ -81,6 +81,9 @@ async def main():
         await pg.evaluate("window.__spoken.length = 0"); await pg.click('.spk >> nth=0'); await pg.wait_for_timeout(100)
         check(len(await pg.evaluate("window.__spoken")) == 1, 'a speaker button speaks')
         check(not (await state(pg)).get('topic'), 'the guide gives no credit')
+        await pg.set_viewport_size({'width': 360, 'height': 780}); await pg.click('.gtabs button[data-g="birds"]')
+        lab = await pg.evaluate("getComputedStyle(document.querySelector('.us-guide td[data-label]'), '::before').content")
+        check('bird' in lab.lower() or 'flower' in lab.lower(), f'on a phone each cell is labeled {lab}')
         await pg.context.close()
 
         # ---- flashcards ----
@@ -123,6 +126,15 @@ async def main():
         acc = await pg.evaluate("""(() => { const H = window.__usTest, a = id => STATES.find(s => s.id === id), out = {};
           out.mn = H.T.capitals(a('mn')).a; out.nc = H.T.flowers(a('nc')).a; out.oh = H.T.birds(a('oh')).a; out.nj = H.T.flowers(a('nj')).a; out.wa = H.T.states(a('wa')).a; return out; })()""")
         check('St. Paul' in acc['mn'] and 'Dogwood' in acc['nc'] and 'Cardinal' in acc['oh'] and 'Violet' in acc['nj'], f'accepted spellings: St. Paul, Dogwood, Cardinal, Violet {acc}')
+        amb = await pg.evaluate("""(() => { const H = window.__usTest, a = id => STATES.find(s => s.id === id), bad = [];
+          for (let k = 0; k < 150; k++) {
+            for (const [id, nope] of [['wa', ['Bellevue']], ['ne', ['Lafayette', 'Portland']], ['in', ['Lafayette']], ['la', ['Alexandria']], ['va', ['Alexandria']]]) { const q = H.Q.cities(a(id), k); if (q.wrong.some(w => nope.includes(w)) || (q.a === a(id).name && nope.some(n => q.q.startsWith(n + ' ')))) bad.push(['city', id, q.q, q.wrong]); }
+            for (const [id, nope] of [['wa', ['Rhododendron']], ['wv', ['Coast Rhododendron']], ['nj', ['Violet', 'Wood Violet']], ['nc', ['American Dogwood']], ['ok', ['Wild Rose', 'Cherokee Rose']]]) { const q = H.Q.flowers(a(id), k); if (q.wrong.some(w => nope.includes(w))) bad.push(['flower', id, q.wrong]); }
+          }
+          return bad.slice(0, 3); })()""")
+        check(not amb, f'city and flower choices never include a second right answer {amb}')
+        acc2 = await pg.evaluate("(() => { const H = window.__usTest, a = id => STATES.find(s => s.id === id); return [H.T.flowers(a('wa')).a, H.T.flowers(a('ok')).a, H.T.flowers(a('nd')).a]; })()")
+        check('Rhododendron' in acc2[0] and 'Rose' in acc2[1] and 'Rose' in acc2[2], f'typed flowers accept the short name {acc2}')
         await pg.context.close()
 
         # ---- Quiz ----
@@ -137,7 +149,7 @@ async def main():
         # play a full flags round, answering from the flag itself
         for i in range(10):
             await pg.wait_for_selector('.opt')
-            ans = await pg.evaluate("""() => { return document.querySelector('.us-qflag svg').getAttribute('aria-label').replace('Flag of ', ''); }""")
+            ans = await pg.evaluate("""() => { return STATES.find(s => s.id === document.querySelector('.us-qflag').dataset.s).name; }""")
             await pg.evaluate("v => [...document.querySelectorAll('.opt')].find(b => b.dataset.v === v).click()", ans)
             await pg.click('[data-a="next"]')
         await pg.wait_for_selector('.result'); check('10 out of 10' in await pg.inner_text('.result'), 'a perfect flags round scores 10 of 10')
@@ -175,7 +187,8 @@ async def main():
         await type_q(pg, str(o)); check('Correct' in await pg.inner_text('.err'), f'an order number is accepted ({o})')
         await pg.click('.us-topics button[data-t="flags"]'); await pg.wait_for_selector('.us-body input')
         check(await pg.locator('.us-body .us-qflag svg').count() == 1, 'Type: Flags shows the flag')
-        nm = await pg.evaluate("() => { return document.querySelector('.us-qflag svg').getAttribute('aria-label').replace('Flag of ', ''); }")
+        check(await pg.evaluate("document.querySelector('.us-qflag svg').getAttribute('aria-label')") == 'A state flag' and await pg.evaluate("document.querySelector('.qtext').children.length") >= 1, 'a flag question does not name the state in its label, and sits inside the question')
+        nm = await pg.evaluate("() => { return STATES.find(s => s.id === document.querySelector('.us-qflag').dataset.s).name; }")
         await type_q(pg, nm); check('Correct' in await pg.inner_text('.err'), f'flag typed as {nm}')
         await pg.context.close()
         # look-alikes are not accepted

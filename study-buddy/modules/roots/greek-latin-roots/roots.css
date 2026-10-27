@@ -39,4 +39,5 @@
   .rl-guide tr:last-child{border-bottom:0}
   .rl-guide th,.rl-guide td{border:0;padding:2px 14px;width:auto!important;white-space:normal!important}
   .rl-guide td.s{position:absolute;right:4px;top:8px;padding:0}
+  .rl-guide td[data-label]::before{content:attr(data-label) ": ";font-weight:700;color:var(--ink2)}
 }
