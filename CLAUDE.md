@@ -32,4 +32,5 @@ The site lives in `study-buddy/`. Read these before changing anything:
 4. Commit the rebuilt files too (`sw.js` and `study-buddy/modules/geography/south-america/index.html`). Netlify also rebuilds them on deploy.
 5. To add a module, use the shared tools in `shared/sb-tools.js` where they fit, copy the Parts of Speech or Ancient Rome folder pattern and use `shared/sb-module.js` (ARCHITECTURE.md section 5), then add its entry to `study-buddy/registry.js`. Write its content in a `data.js`, and have a separate pass review the content for accuracy.
 6. Modules made from photos of homework or study guides: follow ARCHITECTURE.md section 7 (teacher's wording, mark anything not on the photos, separate review against the photos).
-7. Update the docs when behavior changes. Keep new modules consistent with the Explorer's Atlas screens.
+7. Add an entry to `study-buddy/changelog.js` (newest first, plain words) for each change the owner would notice.
+8. Update the docs when behavior changes. Keep new modules consistent with the Explorer's Atlas screens.

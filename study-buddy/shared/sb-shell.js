@@ -114,6 +114,7 @@
     { title: 'Help', blurb: 'How to use Study Buddy', href: PAGE('help'), words: 'how to guide tutorial' },
     { title: 'FAQ', blurb: 'Common questions and answers', href: PAGE('faq'), words: 'questions questions answers' },
     { title: 'About', blurb: 'What Study Buddy is, and your privacy', href: PAGE('about'), words: 'privacy data credits' },
+    { title: 'Change log', blurb: 'What is new in Study Buddy', href: PAGE('changelog'), words: 'changes new updates history release notes whats new' },
     { title: 'Parent area', blurb: 'Progress, children, backup, and the PIN (needs the PIN)', href: PAGE('parent'), words: 'backup pin children progress reset' }
   ];
   function searchIndex() {

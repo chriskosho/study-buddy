@@ -101,3 +101,15 @@ const ENDPAIRS = [
   { use: 'ew', not: 'eu', sound: '/oo/ /U/', word: 'new', wait: 'neutral' },
   { use: 'ey', not: 'ei', sound: '/A/ /E/', word: 'they', wait: 'veil' }
 ];
+
+/* How the device voice is asked to say each sound. Speech cannot say a bare sound, so each one is a respelling (a "kuh" for /k/).
+   These are best tries and some will sound a little off. To change one, edit its respelling here. */
+const SOUNDSAY = {
+  b: 'buh', c: 'kuh', d: 'duh', f: 'fuh', g: 'guh', h: 'huh', j: 'juh', k: 'kuh', l: 'luh', m: 'muh', n: 'nuh', p: 'puh', r: 'ruh', s: 'suh', t: 'tuh', v: 'vuh', w: 'wuh', y: 'yuh', z: 'zuh',
+  ks: 'kuhs', kw: 'kwuh', hw: 'hwuh', ch: 'chuh', sh: 'shh', th: 'thhh', TH: 'thuh', ng: 'ung', zh: 'zhuh',
+  a: 'aeh', A: 'ay', aw: 'aw', o: 'ah', O: 'oh', oo: 'ooh', OO: 'uuh', e: 'eh', E: 'ee', i: 'ih', I: 'eye', u: 'uh', U: 'yoo', er: 'er', ar: 'ar', or: 'or', ow: 'ow', oy: 'oy',
+  uff: 'uff', off: 'off', ed: 'ed'
+};
+const soundTokens = p => (p.s.match(/\/[^/]+\//g) || []).map(t => t.slice(1, -1));
+/* the text the speaker says for a phonogram's sounds: each sound, with a pause between */
+const soundSay = p => soundTokens(p).map(t => SOUNDSAY[t] || t).join('. ') + '.';

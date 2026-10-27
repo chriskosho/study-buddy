@@ -67,8 +67,9 @@ async def main():
         await pg.goto(BASE + 'index.html#/parent/archived'); await pg.wait_for_timeout(400)
         txt = await pg.inner_text('#psec')
         check('Black Beauty (old version)' in txt and 'Open' in txt, 'the parent area has an Archived list showing the old Black Beauty')
-        await pg.fill('header input[type=search], #sbQ', 'black beauty') if await pg.locator('#sbQ').count() else None
-        found = await pg.evaluate("(() => { const q = document.querySelector('#sbQ'); if (!q) return 'noinput'; q.value = 'black beauty'; q.dispatchEvent(new Event('input', {bubbles: true})); return [...document.querySelectorAll('#sbResults [role=option], #sbResults li, #sbResults a')].map(e => e.textContent).join('|'); })()")
+        await pg.fill('#sbQ', 'black beauty'); await pg.wait_for_selector('#sbResults li')
+        found = await pg.evaluate("[...document.querySelectorAll('#sbResults li')].map(e => e.textContent).join('|')")
+        check('Black Beauty' in found, 'search finds the new Black Beauty')
         check('old version' not in found, f'search leaves the archived module out ({found[:80]})')
 
         # ---- Settings: Refresh for the latest ----
@@ -77,6 +78,20 @@ async def main():
         async with pg.expect_navigation(wait_until='load', timeout=15000):
             await pg.click('#refreshLatest')
         check(await pg.evaluate("localStorage.getItem('keep.me')") == 'yes' and await pg.evaluate("SB.profiles().length") == 1, 'Refresh for the latest reloads the page and keeps saved data')
+
+        # ---- Change log ----
+        await pg.goto(BASE + 'index.html#/about'); await pg.wait_for_selector('.infopanel')
+        await pg.click('.infopanel a[href="#/changelog"]'); await pg.wait_for_selector('.infopanel h3')
+        check('Change log' in await pg.inner_text('h1'), 'About links to the Change log page')
+        dates = await pg.evaluate("SB_CHANGELOG.map(e => e.date)")
+        check(dates == sorted(dates, reverse=True) and len(dates) >= 6, f'change log entries are newest first {dates}')
+        check(await pg.locator('.infopanel h3').count() == len(dates) and 'Phonogram' in await pg.inner_text('.infopanel'), 'every change log entry is shown')
+        o = await overflow(pg); check(o['h'] <= 0, 'change log: no sideways scroll at 1440')
+        await pg.set_viewport_size({'width': 360, 'height': 780}); o = await overflow(pg); check(o['h'] <= 0, 'change log: no sideways scroll at 360px')
+        await pg.set_viewport_size({'width': 1440, 'height': 900})
+        await pg.fill('#sbQ', 'change log'); await pg.wait_for_selector('#sbResults li')
+        found = await pg.evaluate("[...document.querySelectorAll('#sbResults li')].map(e => e.textContent).join('|')")
+        check('Change log' in found, 'search finds the Change log')
 
         # ---- Phonograms: data ----
         await pg.goto(PH + '?tool=guide'); await pg.wait_for_selector('.gtabs')
@@ -90,8 +105,17 @@ async def main():
             o = await overflow(pg); check(o['v'] <= 0 or g in ('a', 'b', 'c'), f'guide {g} fits (extras)')
         check('not used frequently' in await pg.inner_text('.gbody'), 'the extras group explains why they are extra')
         await pg.click('.gtabs button[data-g="k"]'); check('square brackets' in await pg.inner_text('.gbody'), 'the sound key is shown')
-        await pg.click('.gtabs button[data-g="a"]'); await pg.click('.phrow .spk >> nth=0')
-        await pg.wait_for_timeout(150); check('car, city' in await pg.evaluate('window.__spoken'), 'the speaker reads the example words only')
+        await pg.click('.gtabs button[data-g="a"]')
+        check(await pg.locator('.phrow').first.locator('.spk').count() == 2 and (await pg.locator('.phrow .spkpair').first.inner_text()).upper().split() == ['SOUNDS', 'WORDS'], 'each phonogram has a Sounds button and a Words button')
+        await pg.click('.phrow .spkb >> nth=1 >> .spk'); await pg.wait_for_timeout(200)
+        check('car, city' in await pg.evaluate('window.__spoken'), 'Words reads the example words')
+        await pg.click('.phrow .spkb >> nth=0 >> .spk'); await pg.wait_for_timeout(200)
+        check('kuh. suh.' in await pg.evaluate('window.__spoken'), 'Sounds says the sounds, one after the other')
+        miss = await pg.evaluate("PH.flatMap(p => soundTokens(p)).filter(t => !SOUNDSAY[t])")
+        check(not miss, f'every sound has a respelling {miss}')
+        check(await pg.evaluate("PH.every(p => soundTokens(p).length >= 1 && soundSay(p).endsWith('.'))"), 'every phonogram has sounds to say')
+        sp = await pg.evaluate("['o', 'ou', 'ough', 'sh'].map(l => soundSay(PH.find(p => p.p === l)))")
+        check(sp == ['ah. oh. ooh.', 'ow. oh. ooh. uh.', 'oh. ooh. uff. off. aw. ow.', 'shh.'], f'sounds follow the sheet in order {sp}')
 
         # ---- Phonograms: flashcards ----
         await pg.goto(PH + '?tool=cards'); await pg.wait_for_selector('.fcard')
@@ -101,6 +125,10 @@ async def main():
         check('0 of 4' in await pg.inner_text('.deckbar .count'), 'the extra deck has 4 cards')
         for _ in range(4): await pg.click('#tab-cards [data-a="knew"]'); await pg.wait_for_timeout(30)
         rec = await record(pg, 'phonograms', 'cards'); check(not rec or rec.get('best') is None, 'flashcards are practice only')
+        await pg.click('.deckbar .seg button >> nth=0'); await pg.wait_for_selector('.fcard'); await pg.click('.fcard'); await pg.wait_for_timeout(500)
+        check(await pg.locator('.fcard .back .spk').count() == 2, 'the card back has Sounds and Words buttons')
+        await pg.click('.deckbar .seg button >> nth=1'); await pg.wait_for_timeout(300)
+        check(await pg.locator('.fcard .front .spk').count() == 1, 'the sounds-to-letters card front has a Sounds button')
 
         # ---- Phonograms: quiz, sort, type, spell ----
         await pg.goto(PH + '?tool=quiz'); await pg.wait_for_selector('#tab-quiz .opt')

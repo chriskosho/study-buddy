@@ -27,3 +27,11 @@
   .phrow{grid-template-columns:26px 62px minmax(0,1fr) auto;gap:4px 8px;padding:8px 10px}
   .phrow .pl{font-size:26px}
 }
+
+.spkpair{display:inline-flex;gap:10px;align-items:flex-start}
+.spkb{display:flex;flex-direction:column;align-items:center;gap:1px}
+.spkcap{font-size:11px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.5px}
+.face .spkpair{margin-top:10px}
+@media (max-width:760px){
+  .phrow .spkpair{grid-column:2 / -1;justify-self:start}
+}
