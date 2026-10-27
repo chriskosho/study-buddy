@@ -46,6 +46,8 @@ async def play_quiz(pg, wrong_last=False):
         seen.append((q, ans, opts)); await pg.click('[data-a="next"]')
     await pg.wait_for_selector('.result')
     return seen
+async def state_has_no_credit(pg):
+    st = await state(pg); return not st.get('roots')
 async def type_q(pg, text):
     await pg.fill('.rl-body input', text); await pg.press('.rl-body input', 'Enter')
 
@@ -64,7 +66,7 @@ async def main():
         reg = await pg.evaluate("({subj: SB_REGISTRY.subjects.find(s => s.id === 'roots'), mods: SB_REGISTRY.modules.filter(m => m.subject === 'roots').map(m => m.id), tags: SB_REGISTRY.modules.find(m => m.id === 'greek-latin-roots').tags, tagged: SB_REGISTRY.modules.filter(m => m.id !== 'greek-latin-roots' && m.tags.includes('roots')).length, tools: SB_REGISTRY.modules.find(m => m.id === 'greek-latin-roots').tools.map(t => t.id + ':' + t.difficulty)})")
         check(reg['subj'] and reg['subj']['name'] == 'Greek and Latin Roots' and reg['mods'] == ['greek-latin-roots'], 'new subject Greek and Latin Roots has this module as its only entry')
         check(reg['tags'] == [] and reg['tagged'] == 0, 'the module has no tags, and no other module is tagged roots')
-        check(reg['tools'] == ['cards:easy', 'sort:easy', 'quiz:medium', 'answer:hard', 'explain:insane'], f'five tools, difficulties only easy/medium/hard/insane {reg["tools"]}')
+        check(reg['tools'] == ['guide:easy', 'cards:easy', 'sort:easy', 'quiz:medium', 'answer:hard', 'explain:insane'], f'study guide plus five tools, difficulties only easy/medium/hard/insane {reg["tools"]}')
         await pg.goto(f'http://127.0.0.1:{PORT}/index.html#/home/roots'); await pg.wait_for_selector('a.mod')
         check(await pg.locator('a.mod[href="#/module/greek-latin-roots"]').count() == 1, 'the module is on the Greek and Latin Roots subject page')
         for s in ['english', 'math', 'science', 'geography', 'history']:
@@ -85,6 +87,53 @@ async def main():
         check(all(2 <= r[4] <= 3 and r[5] and r[6] for r in d['roots']), 'every root has 2 or 3 English words, a kid-friendly note, and an example sentence')
         check(d['two'] >= 14 and d['twoBad'] == 0, f'Insane two-root words are all well formed ({d["two"]})')
         check(all('ambi' in c and 'amphi' in c and 'Greek' in c and 'Latin' in c for c in d['contrast']), 'ambi and amphi each explain how they differ')
+        await pg.context.close()
+
+        # ---- study guide ----
+        pg = await page(tool='guide')
+        tabs = await pg.locator('.gtabs button').all_inner_texts()
+        check(len(tabs) == 5, f'study guide has 5 sections {tabs}')
+        seen = set()
+        for lv in ['easy', 'medium', 'hard']:
+            await pg.click(f'.gtabs button[data-g="{lv}"]')
+            seen |= set(x.lower() for x in await pg.locator('.rl-guide tbody th .rl-parts').all_inner_texts())
+        check(seen == {'equus','caballus','hippos','porcus','canis','leon','feles','ornis','avis','malus','omnis','ex','eu','amphi','ambi','archos','kyklos','circum'}, f'the guide lists all 18 roots {len(seen)}')
+        await pg.click('.gtabs button[data-g="hard"]')
+        check('cousins' in (await pg.inner_text('.rl-guide')).lower(), 'the guide keeps the ambi and amphi note')
+        await pg.click('.gtabs button[data-g="insane"]'); check(await pg.locator('.rl-guide tbody tr').count() == 20, 'the guide lists the 20 two-root words')
+        await pg.click('.gtabs button[data-g="hard"]'); check(await pg.locator('.spk').count() >= 2, 'the guide has speaker buttons')
+        await pg.click('.gtabs button[data-g="lang"]'); check('equus' in (await pg.inner_text('.gbody')) and 'hippos' in (await pg.inner_text('.gbody')), 'the guide has a Greek or Latin page')
+        check(await state_has_no_credit(pg), 'the guide gives no credit')
+        await pg.context.close()
+        pg = await page(tool='guide', vp=(360, 780))
+        check(await pg.evaluate("document.documentElement.scrollWidth <= innerWidth"), 'study guide: no sideways scroll at 360px')
+        await pg.context.close()
+
+        # ---- skip and mark for review ----
+        pg = await page({'roots': {}, 'missed': [], 'level': {'quiz': 'easy'}}, 'quiz')
+        await pg.wait_for_selector('.opt'); q = await pg.inner_text('.qtext'); ans = await pg.evaluate(RIGHT, q)
+        rid = await pg.evaluate("q => ROOTS.find(r => q.includes('root ' + r.id) || q.includes('<b>' + r.id)).id" if False else "q => (q.match(/root (\\w+)/) || [])[1]", q)
+        await pg.click('[data-a="skip"]')
+        check(await pg.locator('.opt.right').count() == 1 and 'Marked for review' in await pg.inner_text('.explain'), 'Quiz: Skip shows the answer and marks it for review')
+        check(await pg.is_visible('[data-a="next"]') and not await pg.is_visible('[data-a="skip"]'), 'Quiz: after Skip, Next is available')
+        st = await state(pg)
+        check(rid in st.get('missed', []) and st['roots'].get(rid) == [0], f'Quiz: a skipped root is marked for review ({rid}, {st.get("missed")})')
+        await pg.click('[data-a="next"]'); await pg.wait_for_selector('.opt')
+        check('Score 0' in await pg.inner_text('.rl-body .hint'), 'Quiz: a skip gives no point')
+        await pg.context.close()
+        pg = await page({'roots': {}, 'missed': [], 'level': {'quiz': 'easy'}}, 'quiz')
+        await pg.wait_for_selector('.opt'); await pg.click('.opt >> nth=0')
+        check(not await pg.is_visible('[data-a="skip"]'), 'Quiz: Skip hides once an answer is picked')
+        await pg.context.close()
+        pg = await page({'roots': {}, 'missed': ['canis'], 'level': {'answer': 'easy'}}, 'answer')
+        await pg.wait_for_selector('.rl-body input')
+        check(await pg.is_visible('[data-a="skip"]'), 'Type the answer has a Skip button')
+        await pg.click('[data-a="skip"]')
+        txt = await pg.inner_text('.err')
+        check('Marked for review' in txt and 'dog' in txt and await pg.is_visible('[data-a="next"]'), f'Type: Skip shows the answer {txt}')
+        st = await state(pg); check('canis' in st['missed'] and st['roots']['canis'] == [0], 'Type: the skipped root is marked for review')
+        await pg.click('[data-a="next"]'); await pg.wait_for_selector('.rl-body input')
+        check(not await pg.is_disabled('.rl-body input'), 'Type: can move on to the next question after a skip')
         await pg.context.close()
 
         # ---- flashcards: all roots, practice only ----

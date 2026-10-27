@@ -120,6 +120,33 @@
   }
   const onAnswer = ctx => (q, right) => { record(q.root, right); const n = $('.rl-note', ctx.panel.parentNode); if (n && !/Words built/.test(n.textContent)) { const lv = $('.rl-levels [aria-pressed="true"]', ctx.panel.parentNode).dataset.l, ids = POOL(lv).map(r => r.id); n.textContent = `Roots mastered at this level: ${ids.filter(mastered).length} of ${ids.length}.`; } };
 
+
+  /* ===================== Study guide ===================== */
+  const guide = {
+    init(ctx) {
+      current = ctx; ensurePill(); paintPill();
+      const P = ctx.panel;
+      const TABS = [...LEVELS.filter(l => l.id !== 'insane').map(l => ({ id: l.id, label: l.label + ': ' + l.sub })), { id: 'insane', label: 'Insane: Two-root words' }, { id: 'lang', label: 'Greek or Latin' }];
+      P.innerHTML = `<h2>Study guide</h2><p class="lead">All 18 roots in one place. Read them out loud, then try the Quiz.</p>
+        <div class="seg gtabs" role="group" aria-label="Study guide section">${TABS.map((t, i) => `<button data-g="${t.id}" aria-pressed="${i === 0}">${esc(t.label)}</button>`).join('')}</div>
+        <div class="gbody"></div>`;
+      const body = $('.gbody', P);
+      const rootRow = r => `<tr><th scope="row"><span class="rl-parts">${esc(r.root)}</span><small>${esc(r.lang)}</small></th><td><b>${esc(r.meaning)}</b></td><td>${esc(r.words.join(', '))}</td><td>${esc(r.use)}${r.contrast ? `<div class="rl-contrast">${esc(r.contrast)}</div>` : ''}</td><td class="s">${ctx.sayButton(r.root + ' means ' + r.meaning + '. Words: ' + r.words.join(', ') + '.', 'Hear ' + r.root)}</td></tr>`;
+      const table = list => `<div class="tablewrap"><table class="ttable rl-guide"><thead><tr><th scope="col">Root</th><th scope="col">Meaning</th><th scope="col">Words</th><th scope="col">How the words are used</th><th scope="col"><span class="sr-only">Hear it</span></th></tr></thead><tbody>${list.map(rootRow).join('')}</tbody></table></div>`;
+      function show(id) {
+        if (id === 'insane') {
+          body.innerHTML = `<p class="hint">Words built from two roots. One part is a root you memorize. The other part is explained here.</p>
+            <div class="tablewrap"><table class="ttable rl-guide"><thead><tr><th scope="col">Word</th><th scope="col">Built from</th><th scope="col">What it means</th><th scope="col"><span class="sr-only">Hear it</span></th></tr></thead><tbody>${TWO.map(w => `<tr><th scope="row"><span class="rl-parts">${esc(w.w)}</span></th><td>${esc(w.root)} (${esc(BY[w.root].meaning)}) + ${esc(w.other[0])} (${esc(w.other[1])})</td><td>${esc(w.def)}${w.note ? `<div class="rl-contrast">${esc(w.note)}</div>` : ''}</td><td class="s">${ctx.sayButton(w.w + ' is built from ' + w.root + ' plus ' + w.other[0] + '. ' + w.def + '.', 'Hear ' + w.w)}</td></tr>`).join('')}</tbody></table></div>`;
+        } else if (id === 'lang') {
+          const by = l => ROOTS.filter(r => r.lang === l);
+          body.innerHTML = `<p class="hint">Greek roots often have letters like ph, y, k, and ch. Latin roots often end in -us, -is, or -um.</p><div class="gcols">${['Greek', 'Latin'].map(l => `<div><h3>${l} roots</h3><ul class="rl-list">${by(l).map(r => `<li><b>${esc(r.root)}</b> means ${esc(r.meaning)}</li>`).join('')}</ul></div>`).join('')}</div>`;
+        } else body.innerHTML = table(POOL(id));
+      }
+      $$('.gtabs button', P).forEach(b => b.onclick = () => { $$('.gtabs button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); show(b.dataset.g); });
+      show('easy');
+    }
+  };
+
   /* ===================== Flashcards (practice only) ===================== */
   const cards = {
     init(ctx) {
@@ -164,7 +191,7 @@
       current = ctx; ensurePill(); paintPill();
       leveled(ctx, 'quiz', (c, lv) => SBT.quiz(c, {
         title: 'Quiz', lead: lv === 'insane' ? 'Pick what the whole word means.' : 'Pick the best meaning.', rounds: lv === 'insane' ? 8 : 10,
-        onAnswer: onAnswer(c), keepOrder: true,
+        onAnswer: onAnswer(c), keepOrder: true, skip: true,
         build: () => lv === 'insane' ? twoWords(8).map(twoQuiz) : plan(POOL(lv).map(r => r.id), 10).map(rootQuiz)
       }));
     }
@@ -177,7 +204,7 @@
       leveled(ctx, 'answer', (c, lv) => SBT.answer(c, {
         title: 'Type the answer', kind: 'text', typo: true, rounds: lv === 'insane' ? 8 : 10,
         lead: lv === 'insane' ? 'Type the missing word. It is the meaning of the root.' : 'Type what the root means, then press Check. You get two tries.',
-        onAnswer: onAnswer(c), keepOrder: true,
+        onAnswer: onAnswer(c), keepOrder: true, skip: true,
         build: () => lv === 'insane' ? twoWords(8).map(twoType) : plan(POOL(lv).map(r => r.id), 10).map(rootType)
       }));
     }
@@ -191,5 +218,5 @@
   }));
   const explain = { init(ctx) { current = ctx; ensurePill(); paintPill(); SBT.explain(ctx, { items: EXPLAIN, rounds: 5, lead: 'Use a word from the root in a complete sentence. Start with a capital letter and end with a period.' }); } };
 
-  SBM.start({ module: 'greek-latin-roots', defaults: { roots: {}, missed: [], level: {} }, tools: { cards, sort, quiz, answer, explain } });
+  SBM.start({ module: 'greek-latin-roots', defaults: { roots: {}, missed: [], level: {} }, tools: { guide, cards, sort, quiz, answer, explain } });
 })();
