@@ -130,5 +130,43 @@ fracCheck('mixedadd', FG.mixedAddQ); fracCheck('mixedsub', () => FG.mixedSubQ(Ma
 /* mixedSubQ(true) always needs renaming and mixedSubQ(false) never does */
 const needsRename = q => { const [x, y] = shownNums(q.q); const px = [x[0] % x[1], x[1]], py = [y[0] % y[1], y[1]]; return px[0] * py[1] < py[0] * px[1]; };
 for (let i = 0; i < 4000; i++) { const t = FG.mixedSubQ(true), f = FG.mixedSubQ(false); if (!needsRename(t)) bad('mixedsub', t, 'should need renaming'); if (needsRename(f)) bad('mixedsub', f, 'should not need renaming'); }
-console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, and the eight fraction problem kinds)`);
+
+/* ---------- Multiplication of Fractions (fractions-multiply/gen.js): solved again; "chk" is a product of fractions ---------- */
+const MG = require('../../modules/math/fractions-multiply/gen.js');
+const fmul = (x, y) => fr(x[0] * y[0], x[1] * y[1]);
+const chkProd = c => c.split('*').map(t => { const m = t.match(/^(\d+)\/(\d+)$/); if (!m) throw new Error('bad chk ' + c); return fr(+m[1], +m[2]); }).reduce(fmul, [1, 1]);
+const mulCheck = (name, fn, o = {}) => { for (let i = 0; i < N; i++) {
+  const q = fn(); if (!q) { bad(name, { q: '(none)' }, 'no problem'); continue; }
+  const QH = q.qh || q.q, plain = QH.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  if (/undefined|NaN|Infinity/.test(q.why + plain) || /(^|[^\d])0\/\d| 0 \d+\/\d/.test(q.why)) bad(name, q, 'odd text: ' + q.why.slice(0, 120));
+  if (!q.why || !q.hint) bad(name, q, 'missing explanation or hint');
+  const a = parseAns(q.a); if (!a) { bad(name, q, 'unreadable answer ' + q.a); continue; }
+  if (a.mixed ? (a.fn >= a.fd || gcdn(a.fn, a.fd) !== 1) : (!a.whole && gcdn(a.n, a.d) !== 1)) bad(name, q, 'answer not in simplest form');
+  if (!o.noForm && !['any', 'mixed', 'improper'].includes(q.form)) bad(name, q, 'no answer form');
+  if (q.form === 'mixed' && !a.mixed && !a.whole) bad(name, q, 'wanted a mixed number'); if (q.form === 'improper' && a.mixed) bad(name, q, 'wanted an improper fraction');
+  const want = chkProd(q.chk);
+  if (!o.recip && key(a.v) !== key(want)) bad(name, q, `wrong answer, expected ${key(want)}`);
+  if (o.recip && key(a.v) !== key(want)) bad(name, q, `reciprocal answer ${q.a} vs ${key(want)}`);
+  if (!q.why.includes(q.a) && !(a.whole && q.why.includes(q.a))) bad(name, q, 'explanation does not state the answer ' + q.a);
+  if (o.shown) { const shown = shownNums(QH).map(key).sort().join(','), used = q.chk.split('*').map(t => key(chkProd(t))).sort().join(','); if (shown !== used) bad(name, q, `shown (${shown}) differs from solved (${used})`); }
+  for (const m3 of QH.matchAll(/(\d+) (yards|yard|cups|cup|miles|mile|pounds|pound|feet|foot)\b/g)) { /* plain integers only */ }
+  { const tok = QH.replace(/<span class="mixed" data-w="(\d+)"><b>\d+<\/b><span class="frac" data-n="(\d+)" data-d="(\d+)">.*?<\/span><\/span><\/span>|<span class="frac" data-n="(\d+)" data-d="(\d+)">.*?<\/span><\/span>|<span class="num" data-w="(\d+)">\d+<\/span>/g,
+      (m0, w, n1, d1, n2, d2, w2) => w ? `<<${+w * +d1 + +n1}/${d1}>>` : n2 ? `<<${n2}/${d2}>>` : `<<${w2}/1>>`);
+    for (const m3 of tok.matchAll(/<<(\d+)\/(\d+)>> (mile|miles|yard|yards|cup|cups|foot|feet|pound|pounds|acre|acres|day|days)\b/g)) {
+      const one = +m3[1] <= +m3[2], sing = /^(mile|yard|cup|foot|pound|acre|day)$/.test(m3[3]); if (one !== sing) bad(name, q, `unit agreement: ${m3[1]}/${m3[2]} ${m3[3]}`); } }
+  if (name === 'mul-models') {
+    const xs = shownNums(QH); if (key(fmul(xs[0], xs[1])) !== key(a.v)) bad(name, q, 'model answer differs');
+    if (!q.wrong || q.wrong.length !== 3 || new Set([q.a, ...q.wrong]).size !== 4) bad(name, q, 'needs 3 different wrong options');
+    q.wrong.forEach(w2 => { const p = parseAns(w2); if (!p || key(p.v) === key(a.v)) bad(name, q, 'a wrong option is right or unreadable: ' + w2); });
+    if (!q.html || !q.html.includes('farea')) bad(name, q, 'no picture');
+  }
+}};
+mulCheck('mul-whole', MG.wholeMulQ, { shown: true }); mulCheck('mul-fractionof', MG.fractionOfQ, { shown: true }); mulCheck('mul-fraction', MG.fractionMulQ, { shown: true });
+mulCheck('mul-models', MG.modelQ, { shown: true, noForm: true }); mulCheck('mul-mixed', MG.mixedMulQ, { shown: true }); mulCheck('mul-recip', MG.reciprocalQ, { recip: true });
+mulCheck('mul-words', MG.wordsQ, { shown: true }); mulCheck('mul-review', MG.reviewQ);
+for (let i = 0; i < 3000; i++) { const s = MG.scaleSet(), seen = new Set();
+  if (s.items.length < 7) bad('mul-scale', s, 'too few items'); ['less', 'equal', 'more'].forEach(b => { if (!s.items.some(x => x.b === b)) bad('mul-scale', s, 'no ' + b); });
+  s.items.forEach(it => { const m = it.text.match(/^(\d+) × (?:(\d+) )?(\d+)\/(\d+)$|^(\d+) × (\d+)$/); let v; if (m && m[3]) v = fr((+m[2] || 0) * +m[4] + +m[3], +m[4]); else if (m) v = [+m[6], 1]; else return bad('mul-scale', it, 'unreadable');
+    const c = v[0] * 1 < v[1] ? 'less' : v[0] === v[1] ? 'equal' : 'more'; if (c !== it.b) bad('mul-scale', it, 'wrong bucket ' + c); if (seen.has(it.text)) bad('mul-scale', it, 'duplicate'); seen.add(it.text); }); }
+console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, the eight fraction problem kinds, and the nine multiplication kinds)`);
 process.exit(fails ? 1 : 0);

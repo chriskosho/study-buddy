@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-27', title: 'New module: Multiplication of Fractions', items: [
+    'New Math module for Dimensions Math 5, chapter 5: fractions times whole numbers, a fraction of a number, fractions times fractions (including unit fractions and three factors), mixed numbers, reciprocals, and word problems.',
+    'A study guide with worked examples and an area-model picture, plus a helper that shows every step for any two numbers you type.',
+    'Ten practice tools from Easy to Insane, including an area-model quiz and a "Bigger, smaller or the same?" sort. Every problem is new each time, with a step-by-step explanation.' ] },
   { date: '2026-10-27', title: 'New module: Add and Subtract Fractions', items: [
     'New Math module for Dimensions Math 5, chapter 4: fractions as division, adding and subtracting with unlike denominators, improper fractions and mixed numbers, mixed-number addition and subtraction (with renaming), and word problems.',
     'A study guide with worked examples and bar models, plus a helper that shows every step for any two fractions you type.',
