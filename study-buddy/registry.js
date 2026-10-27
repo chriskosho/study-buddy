@@ -46,6 +46,22 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'us-states',
+      subject: 'geography',
+      title: 'US States',
+      blurb: 'All 50 states: capitals, flags, mottos, state birds and flowers, notable cities, and when each joined the United States.',
+      tags: [],
+      path: 'modules/geography/us-states/index.html',
+      storage: ['us-states'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Every state with its capital, flag, motto, bird, flower, cities, and year admitted. Search by name.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'All 50 states by topic. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: 'Multiple choice on capitals, flags, mottos, birds, flowers, cities, or when states joined. Mastered at 8 of 10.' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type capitals, state names, birds, flowers, or years. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' },
+        { id: 'order', name: 'Put in order', difficulty: 'insane', blurb: 'Put states in the order they joined the United States. Mastered at 80% in place on the first check.' }
+      ]
+    },
+    {
       id: 'parts-of-speech',
       subject: 'english',
       title: 'Parts of Speech',

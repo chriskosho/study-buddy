@@ -131,7 +131,7 @@
         <div class="seg gtabs" role="group" aria-label="Study guide section">${TABS.map((t, i) => `<button data-g="${t.id}" aria-pressed="${i === 0}">${esc(t.label)}</button>`).join('')}</div>
         <div class="gbody"></div>`;
       const body = $('.gbody', P);
-      const rootRow = r => `<tr><th scope="row"><span class="rl-parts">${esc(r.root)}</span><small>${esc(r.lang)}</small></th><td><b>${esc(r.meaning)}</b></td><td>${esc(r.words.join(', '))}</td><td>${esc(r.use)}${r.contrast ? `<div class="rl-contrast">${esc(r.contrast)}</div>` : ''}</td><td class="s">${ctx.sayButton(r.root + ' means ' + r.meaning + '. Words: ' + r.words.join(', ') + '.', 'Hear ' + r.root)}</td></tr>`;
+      const rootRow = r => `<tr><th scope="row"><span class="rl-parts">${esc(r.root)}</span><small>${esc(r.lang)}</small></th><td data-label="Meaning"><b>${esc(r.meaning)}</b></td><td data-label="Words">${esc(r.words.join(', '))}</td><td>${esc(r.use)}${r.contrast ? `<div class="rl-contrast">${esc(r.contrast)}</div>` : ''}</td><td class="s">${ctx.sayButton(r.root + ' means ' + r.meaning + '. Words: ' + r.words.join(', ') + '.', 'Hear ' + r.root)}</td></tr>`;
       const table = list => `<div class="tablewrap"><table class="ttable rl-guide"><thead><tr><th scope="col">Root</th><th scope="col">Meaning</th><th scope="col">Words</th><th scope="col">How the words are used</th><th scope="col"><span class="sr-only">Hear it</span></th></tr></thead><tbody>${list.map(rootRow).join('')}</tbody></table></div>`;
       function show(id) {
         if (id === 'insane') {

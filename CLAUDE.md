@@ -25,7 +25,7 @@ The site lives in `study-buddy/`. Read these before changing anything:
 2. One pull request per request from the owner, with a plain description of what changed and how to try it.
 3. Before pushing, run these from the repository root:
    - `node study-buddy/_dev/build.mjs`
-   - `python3 study-buddy/_dev/tests/hub_test.py`, `shell_test.py`, `atlas_test3.py`, `pos_test.py`, `rome_test.py`, `onboarding_test.py`, `handwriting_test.py`, `utilities_display_test.py`, `safety_test.py`, `display_a11y_test.py`, and `new_modules_test.py`, and `greek_latin_roots_test.py` in the same folder (they need Playwright and Chromium)
+   - `python3 study-buddy/_dev/tests/hub_test.py`, `shell_test.py`, `atlas_test3.py`, `pos_test.py`, `rome_test.py`, `onboarding_test.py`, `handwriting_test.py`, `utilities_display_test.py`, `safety_test.py`, `display_a11y_test.py`, and `new_modules_test.py`, `greek_latin_roots_test.py`, and `us_states_test.py` in the same folder (they need Playwright and Chromium)
    - `node study-buddy/_dev/tests/math_gen_check.mjs`
    Add or extend tests for each new module, and look at screenshots of the new screens.
 4. Commit the rebuilt files too (`sw.js` and `study-buddy/modules/geography/south-america/index.html`). Netlify also rebuilds them on deploy.

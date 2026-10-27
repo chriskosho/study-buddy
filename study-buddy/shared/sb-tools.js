@@ -9,7 +9,7 @@
                      right?(item, bucket), wrong?(item, bucket) })
          Drag (or tap, then tap) each item into its bucket. Result: items minus misses, out of items.
 
-     SBT.quiz(ctx, { lead, rounds, build() -> [{ q, a, wrong: [..], why? }] })
+     SBT.quiz(ctx, { lead, rounds, build() -> [{ q, a, wrong: [..], why?, html? }] })   (html: extra markup shown under the question, e.g. a picture)
          Multiple choice, one round of `rounds` questions. Result: right answers out of rounds.
          Optional onAnswer(question, right) is called after each question. Optional skip: true adds a "Skip, review later" button
          (shows the answer, no point, calls onAnswer(question, false)).
@@ -166,7 +166,7 @@
       const q = Q.qs[Q.i], opts = shuffle([q.a, ...q.wrong.slice(0, 3)]); Q.answered = false;
       P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><p class="lead">${esc(opt.lead || 'Pick the best answer.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span class="hint">Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${Q.score}</span></div>
-        <div class="qwrap"><div class="row qrow"><p class="qtext">${esc(q.q)}</p>${ctx.sayButton(q.q, 'Hear the question')}</div>
+        <div class="qwrap"><div class="row qrow"><p class="qtext">${esc(q.q)}</p>${ctx.sayButton(q.q, 'Hear the question')}</div>${q.html || ''}
         <div class="opts">${opts.map(o => `<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>
         <p class="explain"></p><div class="row center">${opt.skip ? '<button class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button class="btn" data-a="next" hidden>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
       $$('.opt', P).forEach(b => b.onclick = () => {
