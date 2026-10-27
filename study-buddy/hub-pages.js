@@ -55,14 +55,14 @@
       const fill = () => {
         if (!sel.isConnected) { try { speechSynthesis.removeEventListener('voiceschanged', fill); } catch (e) {} return; }   // left this page
         const list = SB.voicesFor('en-US'), cur = SB.getSetting('voice') || '';
-        sel.innerHTML = `<option value="">Automatic (recommended)</option>` + list.map(v => `<option value="${esc(v.voiceURI)}">${esc(v.name)}${v.lang ? ' (' + esc(v.lang) + ')' : ''}</option>`).join('');
-        sel.value = list.some(v => v.voiceURI === cur) ? cur : '';
+        sel.innerHTML = `<option value="">Automatic (recommended)</option>` + (() => { const lb = SB.voiceLabels(list); return list.map((v, i) => `<option value="${esc(SB.voiceId(v))}">${esc(lb[i])}${v.lang ? ' (' + esc(v.lang) + ')' : ''}</option>`).join(''); })();
+        { const hit = list.find(v => SB.voiceId(v) === cur) || list.find(v => v.voiceURI === cur); sel.value = hit ? SB.voiceId(hit) : ''; }   // an older saved value was a bare voiceURI
         app.querySelector('#voiceHint').textContent = list.length ? HINT : 'This browser has not listed any English voices yet. Try Chrome or Edge, or reload the page. Automatic will use the device default.';
       };
       fill();
       try { speechSynthesis.addEventListener('voiceschanged', fill); } catch (e) {}
       const now = app.querySelector('#voiceNow');
-      const hear = () => { now.textContent = ''; SB.say('Hello! This is how I sound.', { force: true, onstart: u => { now.textContent = 'Speaking with: ' + (u.voice ? u.voice.name : 'the device default voice') + '.'; },
+      const hear = () => { now.textContent = ''; SB.say('Hello! This is how I sound.', { force: true, onstart: u => { now.textContent = 'Speaking with: ' + (u.voice ? u.voice.name + (u.voice.voiceURI && u.voice.voiceURI !== u.voice.name ? ' [' + u.voice.voiceURI + ']' : '') : 'the device default voice') + '.'; },
         onerror: e => { if (e && /interrupted|canceled/.test(e.error || '')) return; now.textContent = 'That voice did not play on this device. Please choose another.'; } }); };
       sel.onchange = () => { SB.setSetting('voice', sel.value); hear(); };
       app.querySelector('#voicePrev').onclick = hear;

@@ -188,10 +188,11 @@ window.SB_REGISTRY = {
       path: 'modules/roots/greek-latin-roots/index.html',
       storage: ['greek-latin-roots'],
       tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'All 18 roots by level, with their words and notes you can hear.' },
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'All 18 roots with their meanings, words, and notes. Practice only.' },
         { id: 'sort', name: 'Sort it', difficulty: 'easy', blurb: 'Sort roots by meaning, or by Greek and Latin. Mastered at 80%.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', masterAt: 18, blurb: 'Pick the meaning of a root, from Easy to Insane. Missed roots come back first. Mastered when all 18 roots are mastered.' },
-        { id: 'answer', name: 'Type the answer', difficulty: 'hard', masterAt: 18, blurb: 'Type the meaning of a root. Two tries and a hint. Mastered when all 18 roots are mastered.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', masterAt: 18, blurb: 'Pick the meaning of a root, from Easy to Insane. Missed roots come back first, and you can skip a question to review it later. Mastered when all 18 roots are mastered.' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', masterAt: 18, blurb: 'Type the meaning of a root. Two tries, a hint, and a Skip button. Mastered when all 18 roots are mastered.' },
         { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Use a root word in a complete sentence. Mastered at 4 of 5.' }
       ]
     }

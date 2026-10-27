@@ -11,12 +11,14 @@
 
      SBT.quiz(ctx, { lead, rounds, build() -> [{ q, a, wrong: [..], why?, html? }] })   (html: extra markup shown under the question, e.g. a picture)
          Multiple choice, one round of `rounds` questions. Result: right answers out of rounds.
-         Optional onAnswer(question, right) is called after each question.
+         Optional onAnswer(question, right) is called after each question. Optional skip: true adds a "Skip, review later" button
+         (shows the answer, no point, calls onAnswer(question, false)).
 
-     SBT.answer(ctx, { lead, rounds, build() -> [{ q, a, show?, why?, hint?, say? }], kind: 'number'|'text', typo? })
+     SBT.answer(ctx, { lead, rounds, build() -> [{ q, a, show?, why?, hint?, say? }], kind: 'number'|'text', typo?, skip?, onAnswer? })
          Type the answer. q is HTML. a is a number (kind 'number') or a list of accepted strings. Two tries, a hint,
          and the explanation (why) after each question. Result: first-try answers without a hint, out of rounds.
-         Optional onAnswer(item, scoredFirstTry) is called when each question ends.
+         Optional onAnswer(item, scoredFirstTry) is called when each question ends. Optional skip: true adds a "Skip, review later" button
+         (shows the answer, no point, calls onAnswer(item, false)).
 
      SBT.order(ctx, { lead, sets: [{ id, label, items: [{ text, sub? }], pick? }] })
          Put the items in order (drag, or the arrow buttons). items are listed in the right order.
@@ -166,9 +168,10 @@
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span class="hint">Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${Q.score}</span></div>
         <div class="qwrap"><div class="row qrow"><p class="qtext">${esc(q.q)}</p>${ctx.sayButton(q.q, 'Hear the question')}</div>${q.html || ''}
         <div class="opts">${opts.map(o => `<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>
-        <p class="explain"></p><div class="row center"><button class="btn" data-a="next" hidden>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
+        <p class="explain"></p><div class="row center">${opt.skip ? '<button class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button class="btn" data-a="next" hidden>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
       $$('.opt', P).forEach(b => b.onclick = () => {
         if (Q.answered) return; Q.answered = true;
+        const skb = $('[data-a="skip"]', P); if (skb) skb.hidden = true;
         const ok = b.dataset.v === q.a;
         $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
         if (ok) { Q.score++; ctx.credit(); ctx.sfx.good(); } else { b.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); }
@@ -176,6 +179,14 @@
         $('.explain', P).innerHTML = (ok ? '<b style="color:var(--good)">Correct!</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + esc(q.why || ('The answer is: ' + q.a + '.'));
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
       });
+      const sk = $('[data-a="skip"]', P);
+      if (sk) sk.onclick = () => {                              // not sure? show the answer, mark it for review, and move on (no point, no streak change)
+        if (Q.answered) return; Q.answered = true; sk.hidden = true;
+        $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
+        if (opt.onAnswer) opt.onAnswer(q, false);
+        $('.explain', P).innerHTML = '<b>Marked for review.</b> ' + esc(q.why || ('The answer is: ' + q.a + '.'));
+        const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
+      };
       $('[data-a="next"]', P).onclick = () => { Q.i++; show(); };
       ctx.say(q.q);
     }
@@ -215,10 +226,11 @@
         <div class="row qrow"><p class="qtext">${item.q}</p>${item.say ? ctx.sayButton(item.say, 'Hear it') : ''}</div>
         <form class="spellrow" autocomplete="off"><input aria-label="Your answer" placeholder="Answer" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off"'} spellcheck="false"><button class="btn" type="submit">Check</button></form>
         <div class="err" role="alert"></div><p class="explain why"></p>
-        <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
+        <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
       const inp = $('input', P), err = $('.err', P), why = $('.why', P), next = $('[data-a="next"]', P), hb = $('[data-a="hint"]', P);
       inp.focus();
-      const done = pt => { inp.disabled = true; $('form button', P).disabled = true; if (hb) hb.hidden = true; next.hidden = false; next.focus(); if (item.why) why.textContent = item.why; if (opt.onAnswer) opt.onAnswer(item, !!pt); };
+      const sk = $('[data-a="skip"]', P);
+      const done = pt => { inp.disabled = true; $('form button', P).disabled = true; if (hb) hb.hidden = true; if (sk) sk.hidden = true; next.hidden = false; next.focus(); if (item.why) why.textContent = item.why; if (opt.onAnswer) opt.onAnswer(item, !!pt); };
       inp.oninput = () => { inp.classList.remove('bad'); err.textContent = ''; };
       if (hb) hb.onclick = () => { R.hinted = true; err.style.color = 'var(--ink2)'; err.textContent = item.hint; inp.focus(); };
       $('form', P).onsubmit = e => {
@@ -238,6 +250,9 @@
           if (R.tries >= 2) { err.textContent = 'The answer is ' + shown(item) + '.'; done(false); }
           else err.textContent = 'Not quite. Try again.';
         }
+      };
+      if (sk) sk.onclick = () => {                              // not sure? show the answer, mark it for review, and move on (no point, no streak change)
+        err.style.color = 'var(--ink2)'; err.textContent = 'Marked for review. The answer is ' + shown(item) + '.'; done(false);
       };
       next.onclick = () => { R.i++; show(); };
       if (item.say) ctx.say(item.say);
