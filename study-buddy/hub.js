@@ -11,6 +11,8 @@
   const esc = SB.esc;
   const subjectName = id => (REG.subjects.find(s => s.id === id) || { name: id }).name;
   const modById = id => REG.modules.find(m => m.id === id);
+  const LIVE = REG.modules.filter(m => !m.archived);      // archived modules stay on disk (and open by direct link) but leave the hub, search, and totals
+  const ARCHIVED = REG.modules.filter(m => m.archived);
   const toolOf = (m, id) => m && m.tools.find(t => t.id === id);
   const DIFF_ORDER = d => SB.DIFFS.indexOf(d);
   const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -66,9 +68,9 @@
     const kid = SB.activeProfile();
     document.title = 'Study Buddy';
     const subj = REG.subjects.find(s => s.id === filter) ? filter : 'all';
-    const count = id => REG.modules.filter(m => m.subject === id).length;
+    const count = id => LIVE.filter(m => m.subject === id).length;
     const tabs = `<nav class="tabs" aria-label="Subjects">
-      <a href="#/home" aria-selected="${subj === 'all'}">All<span class="n">${REG.modules.length}</span></a>
+      <a href="#/home" aria-selected="${subj === 'all'}">All<span class="n">${LIVE.length}</span></a>
       ${REG.subjects.map(s => `<a href="#/home/${s.id}" aria-selected="${subj === s.id}">${esc(s.name)}<span class="n">${count(s.id)}</span></a>`).join('')}
       ${(REG.utilities || []).length ? `<a href="#/utilities" aria-selected="${filter === 'utilities'}" class="utab">Utilities</a>` : ''}
     </nav>`;
@@ -86,11 +88,11 @@
     let body;
     if (subj === 'all') {
       const order = id => REG.subjects.findIndex(s => s.id === id);
-      const all = [...REG.modules].sort((a, b) => order(a.subject) - order(b.subject));   // each card names its subject
+      const all = [...LIVE].sort((a, b) => order(a.subject) - order(b.subject));   // each card names its subject
       body = all.length ? `<div class="grid">${all.map(modCard).join('')}</div>` : '<p class="empty">No modules yet.</p>';
     } else {
-      const mine = REG.modules.filter(m => m.subject === subj);
-      const sugg = REG.modules.filter(m => m.subject !== subj && m.tags.includes(subj));
+      const mine = LIVE.filter(m => m.subject === subj);
+      const sugg = LIVE.filter(m => m.subject !== subj && m.tags.includes(subj));
       body = `<div style="margin-bottom:12px"><h3>${esc(subjectName(subj))}</h3></div>` +
         (mine.length ? `<div class="grid">${mine.map(modCard).join('')}</div>` : `<p class="empty">No ${esc(subjectName(subj))} modules yet.</p>`) +
         (sugg.length ? `<div class="sectionhead"><h3>Suggested</h3><p class="lead" style="margin:2px 0 0">From other subjects, with ${esc(subjectName(subj))} mixed in.</p></div><div class="grid">${sugg.map(modCard).join('')}</div>` : '');
@@ -122,7 +124,7 @@
   }
 
   /* ---------- parent area ---------- */
-  const PSECTIONS = [['progress', 'Progress'], ['children', 'Children'], ['backup', 'Backup'], ['pin', 'PIN']];
+  const PSECTIONS = [['progress', 'Progress'], ['children', 'Children'], ['backup', 'Backup'], ['archived', 'Archived'], ['pin', 'PIN']];
   function viewParent(section) {
     document.title = 'Parent area · Study Buddy';
     if (!SB.hasPin() && !SB.root().pinOffered) {
@@ -141,7 +143,7 @@
     app.innerHTML = header('Parent area') + `<div class="bar2">${tabs}</div>${nopin}<section class="panel" id="psec"></section>`;
     if (nopin) document.getElementById('setPin').onclick = () => SB.newPinDialog('Set a parent PIN', 'Choose 4 to 8 digits. Only a parent should know it.', route);
     document.getElementById('lockBtn').onclick = () => { SB.lock(); location.hash = '#/'; };
-    ({ progress: pProgress, children: pChildren, backup: pBackup, pin: pPin })[sec](document.getElementById('psec'));
+    ({ progress: pProgress, children: pChildren, backup: pBackup, archived: pArchived, pin: pPin })[sec](document.getElementById('psec'));
   }
 
   function pProgress(box) {
@@ -149,15 +151,15 @@
     if (!ps.length) { box.innerHTML = '<p class="empty">No children yet. Add them under Children.</p>'; return; }
     const sums = ps.map(p => {
       const d = SB.child(p.id), s = SB.streakInfo(p.id);
-      const mastered = REG.modules.reduce((a, m) => a + SB.moduleProgress(m, p.id).mastered, 0);
-      const total = REG.modules.reduce((a, m) => a + SB.moduleProgress(m, p.id).total, 0);
+      const mastered = LIVE.reduce((a, m) => a + SB.moduleProgress(m, p.id).mastered, 0);
+      const total = LIVE.reduce((a, m) => a + SB.moduleProgress(m, p.id).total, 0);
       const lm = d.last && modById(d.last.module), lt = toolOf(lm, d.last && d.last.tool);
       return `<div class="kidsum"><div class="row">${SB.avatar(p)}<b>${esc(p.name)}</b></div>
         <span class="hint">Tools mastered: <b>${mastered} of ${total}</b></span>
         <span class="hint">Today: <b>${Math.min(s.daily, s.goal)}/${s.goal}</b> right · Best streak: <b>${s.best}</b></span>
         <span class="hint">Last: ${lt ? `<b>${esc(lt.name)}</b> in ${esc(lm.title)}, ${ago(d.last.at)}` : 'nothing yet'}</span></div>`;
     }).join('');
-    const tables = REG.modules.map(m => {
+    const tables = LIVE.map(m => {
       const tools = [...m.tools].sort((a, b) => DIFF_ORDER(a.difficulty) - DIFF_ORDER(b.difficulty));
       const cell = (t, p) => {
         const r = SB.toolRecord(m.id, t.id, p.id);
@@ -171,6 +173,14 @@
     }).join('');
     box.innerHTML = `<h2>Progress</h2>${pinNote(SB.root())}<p class="lead">A tool counts as mastered once its best score reaches the goal in its description. Study tools have no score. Flashcards are practice only and do not count toward mastery.</p><div class="cards2">${sums}</div>${tables}`;
     wireDismiss(box, pProgress);
+  }
+
+  function pArchived(box) {
+    const ps = SB.profiles();
+    box.innerHTML = `<h2>Archived modules</h2><p class="lead">Old versions that no longer show in the hub or search. Their files and each child's saved progress are kept. Open one to look at it again.</p>` +
+      (ARCHIVED.length ? ARCHIVED.map(m => `<div class="kidrow"><div class="grow"><b>${esc(m.title)}</b> <span class="hint">${esc(subjectName(m.subject))}</span><div class="hint">${esc(m.archivedNote || m.blurb || '')}</div>
+        <div class="hint">${ps.map(p => { const pr = SB.moduleProgress(m, p.id); return esc(p.name) + ': ' + pr.mastered + ' of ' + pr.total + ' tools mastered'; }).join(' · ')}</div></div>
+        <a class="btn ghost small" href="${m.path}">Open</a></div>`).join('') : '<p class="empty">Nothing is archived.</p>');
   }
 
   function swatches(sel, name) {
