@@ -82,6 +82,18 @@ const chkValue = c => { const ts = chkTerms(c); let tot = [0, 1]; ts.forEach((t,
 const fracCheck = (name, fn, n = N) => { for (let i = 0; i < n; i++) {
   const q = fn(); if (!q) { bad(name, { q: '(none)' }, 'no problem'); continue; }
   const QH = q.qh || q.q;   // the question as shown
+  const plain = QH.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  if (/undefined|NaN/.test(q.why + plain) || /(^|[^\d])0\/\d| 0 \d+\/\d|\+ 0 =|\u2212 0 =/.test(q.why)) bad(name, q, 'odd text in the explanation: ' + q.why.slice(0, 120));
+  if (/(^| )1 (sandwiches|pizzas|pies|liters of|yards of|loaves)/.test(plain)) bad(name, q, 'singular and plural: ' + plain.slice(0, 100));
+  { /* a number followed by a unit: one (or less) takes the singular, more than one takes the plural */
+    const tok = QH.replace(/<span class="mixed" data-w="(\d+)"><b>\d+<\/b><span class="frac" data-n="(\d+)" data-d="(\d+)">.*?<\/span><\/span><\/span>|<span class="frac" data-n="(\d+)" data-d="(\d+)">.*?<\/span><\/span>|<span class="num" data-w="(\d+)">\d+<\/span>/g,
+      (m0, w, n1, d1, n2, d2, w2) => w ? `<<${+w * +d1 + +n1}/${d1}>>` : n2 ? `<<${n2}/${d2}>>` : `<<${w2}/1>>`);
+    for (const m3 of tok.matchAll(/<<(\d+)\/(\d+)>> (mile|miles|yard|yards|cup|cups|foot|feet|pound|pounds|hour|hours)\b/g)) {
+      const one = +m3[1] <= +m3[2], sing = /^(mile|yard|cup|foot|pound|hour)$/.test(m3[3]);
+      if (one !== sing) bad(name, q, `unit agreement: ${m3[1]}/${m3[2]} ${m3[3]}`);
+    }
+  }
+  { const m2 = q.why.match(/common denominator of (\d+) and (\d+) /); if (m2 && m2[1] === m2[2]) bad(name, q, 'common denominator of the same number'); }
   const a = parseAns(q.a); if (!a) { bad(name, q, 'answer is not written as a fraction, mixed number or whole number'); continue; }
   if (name !== 'models' && !['any', 'mixed', 'improper'].includes(q.form)) bad(name, q, 'no answer form');
   const want = chkValue(q.chk), missingDivisor = name === 'division' && / = \d+ ÷ \?/.test(q.q.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '));

@@ -3,7 +3,8 @@
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
   const G = window.FRACGEN, esc = SB.esc;
-  const many = (fn, n = 10) => Array.from({ length: n }, fn);
+  /* n different questions for a round (the same problem should not come up twice) */
+  const many = (fn, n = 10) => { const out = [], seen = new Set(); for (let i = 0; out.length < n && i < 400; i++) { const q = fn(), k = q.q + '|' + (q.html || ''); if (!seen.has(k)) { seen.add(k); out.push(q); } } return out; };
   const F = G.F;
 
   /* ===================== Study guide ===================== */
@@ -14,28 +15,28 @@
         <form class="fgform" autocomplete="off"><input class="textin" value="1/2" aria-label="First fraction or mixed number" inputmode="text"><select aria-label="Add or subtract"><option value="+">+</option><option value="-">&minus;</option></select><input class="textin" value="1/3" aria-label="Second fraction or mixed number" inputmode="text"><button class="btn small" type="submit">Show the steps</button></form>
         <div class="fgout" aria-live="polite"></div>
         <div class="rules">
-          <div class="rule"><h3>A fraction is a division</h3><p><b>3 &divide; 4 = ${f(3, 4)}</b>. The top number is shared among the bottom number.</p><p>When the top is bigger, you get a mixed number: <b>7 &divide; 3 = ${f(7, 3)} = ${G.html(F(7, 3))}</b>.</p></div>
-          <div class="rule"><h3>Pieces must be the same size</h3><p>To add or subtract, the denominators must match. Find a <b>common denominator</b>: a number both denominators go into.</p><p>${f(1, 2)} + ${f(1, 3)}: both fit into 6. ${f(3, 6)} + ${f(2, 6)} = <b>${f(5, 6)}</b>.</p>${G.bars(F(1, 2), F(1, 3))}</div>
-          <div class="rule"><h3>Subtract unlike fractions</h3><p>Same idea: ${f(3, 4)} &minus; ${f(1, 6)}. Both fit into 12, so ${f(9, 12)} &minus; ${f(2, 12)} = <b>${f(7, 12)}</b>.</p>${G.bars(F(3, 4), F(1, 6))}</div>
-          <div class="rule"><h3>Improper fractions and mixed numbers</h3><p><b>${f(17, 5)}</b>: 17 &divide; 5 = 3 with 2 left over, so it is <b>${G.html(F(17, 5))}</b>.</p><p>Back again: ${G.html(F(17, 5))} is (3 &times; 5) + 2 = 17 fifths, <b>${f(17, 5)}</b>.</p><p>Simplest form: divide the top and bottom by the same number. ${f(6, 8)} = <b>${f(3, 4)}</b>.</p></div>
-          <div class="rule"><h3>Add mixed numbers</h3><p>${G.html(F(7, 3))} + ${G.html(F(17, 4))}: add the wholes (2 + 4 = 6), then the fractions (${f(4, 12)} + ${f(3, 12)} = ${f(7, 12)}).</p><p>If the fractions make 1 or more, regroup: ${f(13, 12)} = ${G.html(F(13, 12))}, so add that 1 to the wholes.</p></div>
-          <div class="rule"><h3>Subtract mixed numbers</h3><p>If the first fraction is too small, <b>rename 1 whole</b>.</p><p>${G.html(F(17, 4))} &minus; ${G.html(F(5, 3))}: ${f(3, 12)} is less than ${f(8, 12)}, so 4 ${f(3, 12)} becomes 3 ${f(15, 12)}. Now subtract: 3 &minus; 1 = 2 and ${f(15, 12)} &minus; ${f(8, 12)} = ${f(7, 12)}. The answer is <b>${G.html(F(31, 12))}</b>.</p></div>
+          <div class="rule"><h3>A fraction is a division</h3><p><b>3 &divide; 4 = ${f(3, 4)}</b>: 3 shared among 4 equal parts, so each part is ${f(3, 4)}.</p><p>When the top is bigger, you get a mixed number: <b>7 &divide; 3 = ${f(7, 3)} = ${G.html(F(7, 3))}</b>. If it divides evenly, you get a whole number: 8 &divide; 4 = 2.</p></div>
+          <div class="rule"><h3>Pieces must be the same size</h3><p>To add or subtract, the denominators must match. Find a <b>common denominator</b>: a number both denominators go into.</p><p>${f(1, 2)} + ${f(1, 3)}: both go into 6. ${f(1, 2)} = ${f(3, 6)} and ${f(1, 3)} = ${f(2, 6)}, so ${f(3, 6)} + ${f(2, 6)} = <b>${f(5, 6)}</b>.</p>${G.bars(F(1, 2), F(1, 3))}</div>
+          <div class="rule"><h3>Subtract unlike fractions</h3><p>Same idea: ${f(3, 4)} &minus; ${f(1, 6)}. Both go into 12. ${f(3, 4)} = ${f(9, 12)} and ${f(1, 6)} = ${f(2, 12)}, so ${f(9, 12)} &minus; ${f(2, 12)} = <b>${f(7, 12)}</b>.</p>${G.bars(F(3, 4), F(1, 6))}</div>
+          <div class="rule"><h3>Improper fractions and mixed numbers</h3><p>An <b>improper fraction</b> has a top that is at least as big as the bottom, like ${f(17, 5)}. A <b>mixed number</b> is a whole number and a fraction, like ${G.html(F(17, 5))}.</p><p>${f(17, 5)}: 17 &divide; 5 = 3 with 2 left over, so it is <b>${G.html(F(17, 5))}</b>. Back again: (3 &times; 5) + 2 = 17 fifths.</p><p>Simplest form: keep dividing the top and bottom by the same number until only 1 goes into both. ${f(6, 8)} = <b>${f(3, 4)}</b>.</p></div>
+          <div class="rule"><h3>Add mixed numbers</h3><p>${G.html(F(7, 3))} + ${G.html(F(17, 4))}: ${f(1, 3)} = ${f(4, 12)} and ${f(1, 4)} = ${f(3, 12)}. Add the wholes: 2 + 4 = 6. Add the fractions: ${f(4, 12)} + ${f(3, 12)} = ${f(7, 12)}. The answer is <b>${G.html(F(79, 12))}</b>.</p><p>If the fractions make 1 or more, regroup: ${f(3, 4)} + ${f(2, 3)} = ${f(17, 12)} = ${G.html(F(17, 12))}, so add the 1 to the wholes. You can add in any order, so look for fractions that make a whole.</p></div>
+          <div class="rule"><h3>Subtract mixed numbers</h3><p>If the first fraction is too small, <b>rename 1 whole</b>.</p><p>${G.html(F(17, 4))} &minus; ${G.html(F(5, 3))}: ${f(1, 4)} = ${f(3, 12)} and ${f(2, 3)} = ${f(8, 12)}. ${f(3, 12)} is less than ${f(8, 12)}. 1 whole = ${f(12, 12)}, and ${f(3, 12)} + ${f(12, 12)} = ${f(15, 12)}, so 4 ${f(3, 12)} = 3 ${f(15, 12)}. Subtract the wholes: 3 &minus; 1 = 2. Subtract the fractions: ${f(15, 12)} &minus; ${f(8, 12)} = ${f(7, 12)}. The answer is <b>${G.html(F(31, 12))}</b>.</p></div>
         </div>`;
       const parse = raw => {
         const t = raw.trim().replace(/\s+/g, ' '); let m;
-        if ((m = t.match(/^(\d+) (\d+) ?\/ ?(\d+)$/))) return +m[3] && +m[2] < +m[3] ? { v: F(+m[1] * +m[3] + +m[2], +m[3]), mixed: true } : null;
-        if ((m = t.match(/^(\d+) ?\/ ?(\d+)$/))) return +m[2] ? { v: F(+m[1], +m[2]), mixed: false, proper: +m[1] < +m[2] } : null;
-        if ((m = t.match(/^(\d+)$/))) return { v: F(+m[1], 1), mixed: true };
+        if ((m = t.match(/^(\d+) (\d+) ?\/ ?(\d+)$/))) return +m[3] && +m[2] < +m[3] ? { v: { n: +m[1] * +m[3] + +m[2], d: +m[3] }, mixed: true } : null;   // kept as typed, not reduced
+        if ((m = t.match(/^(\d+) ?\/ ?(\d+)$/))) return +m[2] ? { v: { n: +m[1], d: +m[2] }, mixed: false } : null;
+        if ((m = t.match(/^(\d+)$/))) return { v: { n: +m[1], d: 1 }, mixed: true };
         return null;
       };
       const show = () => {
         const [a, b] = [...P.querySelectorAll('.fgform .textin')].map(i => parse(i.value)), op = $('.fgform select', P).value, out = $('.fgout', P);
         if (!a || !b || a.v.d > 24 || b.v.d > 24 || a.v.n > 500 || b.v.n > 500) { out.textContent = 'Use fractions like 3/4, mixed numbers like 2 1/3, or whole numbers. (Mixed numbers need a proper fraction part, and keep the denominators to 24 or less.)'; return; }
         if (op === '-' && G.cmp(a.v, b.v) < 0) { out.textContent = 'The first number must be at least as big as the second to subtract.'; return; }
-        const mixed = a.mixed || b.mixed || a.v.d === 1 || b.v.d === 1;
+        const mixed = a.mixed || b.mixed;
         const res = op === '+' ? G.add(a.v, b.v) : G.sub(a.v, b.v);
         const showBars = !mixed && a.v.n < a.v.d && b.v.n < b.v.d && a.v.d !== b.v.d;
-        out.innerHTML = `<p>${G.html(a.v, a.mixed ? 'mixed' : 'improper')} ${op === '+' ? '+' : '&minus;'} ${G.html(b.v, b.mixed ? 'mixed' : 'improper')} = <b>${G.html(res)}</b></p><p>${esc(G.whyTwo(op, a.v, b.v, mixed && (a.v.d > 1 || b.v.d > 1) && (a.v.n >= a.v.d || b.v.n >= b.v.d || a.mixed || b.mixed)))}</p>${showBars ? G.bars(a.v, b.v) : ''}`;
+        out.innerHTML = `<p>${G.html(a.v, a.mixed ? 'mixed' : 'improper')} ${op === '+' ? '+' : '&minus;'} ${G.html(b.v, b.mixed ? 'mixed' : 'improper')} = <b>${G.html(res)}</b></p><p>${esc(G.whyTwo(op, a.v, b.v, mixed))}</p>${showBars ? G.bars(a.v, b.v) : ''}`;
       };
       $('.fgform', P).onsubmit = e => { e.preventDefault(); show(); };
       show();

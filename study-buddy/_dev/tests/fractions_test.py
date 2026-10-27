@@ -62,6 +62,9 @@ async def main():
         t = await helper('2 1/3', '+', '1 3/4'); check('4 1/12' in t, f'helper adds mixed numbers: {t[-90:]!r}')
         t = await helper('4 1/4', '-', '1 2/3'); check('2 7/12' in t and 'rename' in t, f'helper subtracts with renaming: {t[-110:]!r}')
         t = await helper('1/4', '-', '1/2'); check('at least as big' in t, 'helper refuses a negative answer')
+        t = await helper('3/6', '+', '1/3'); check('3/6 + 1/3' in re.sub(r'\s+', '', t).replace('+', ' + ') or '3/6' in t, f'helper shows unreduced input as typed: {t[:60]!r}')
+        t = await helper('3', '-', '1 1/2'); check('1 1/2' in t and 'rename' in t and '0/' not in t, f'helper subtracts a mixed number from a whole number: {t[-130:]!r}')
+        t = await helper('2', '+', '1/2'); check('2 1/2' in t and '0/' not in t, f'helper adds a whole number and a fraction: {t[-90:]!r}')
         t = await helper('abc', '+', '1/2'); check('Use fractions' in t, 'helper explains bad input')
         t = await helper('7/4', '+', '3/8'); check('17/8' in t and '2 1/8' in t, f'helper handles improper fractions: {t[:70]!r}')
 
