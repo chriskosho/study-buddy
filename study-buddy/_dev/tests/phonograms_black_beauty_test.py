@@ -82,6 +82,7 @@ async def main():
         # ---- Change log ----
         await pg.goto(BASE + 'index.html#/about'); await pg.wait_for_selector('.infopanel')
         await pg.click('.infopanel a[href="#/changelog"]'); await pg.wait_for_selector('.infopanel h3')
+        await pg.wait_for_function("document.querySelector('h1') && document.querySelector('h1').innerText.includes('Change log')", timeout=5000)
         check('Change log' in await pg.inner_text('h1'), 'About links to the Change log page')
         dates = await pg.evaluate("SB_CHANGELOG.map(e => e.date)")
         check(dates == sorted(dates, reverse=True) and len(dates) >= 6, f'change log entries are newest first {dates}')
