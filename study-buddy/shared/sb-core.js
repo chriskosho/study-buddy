@@ -193,7 +193,32 @@
   const SPK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
   /* Voices: the browser lists what the device has. "Automatic" prefers natural-sounding voices over the plain robotic ones. */
   let voiceList = [];
-  function loadVoices() { try { voiceList = (speechSynthesis.getVoices && speechSynthesis.getVoices()) || []; } catch (e) { voiceList = []; } return voiceList; }
+  const voiceIds = new Map();
+  function loadVoices() {
+    try { voiceList = (speechSynthesis.getVoices && speechSynthesis.getVoices()) || []; } catch (e) { voiceList = []; }
+    // Android Chrome can list many voices with the same name (and sometimes the same voiceURI), so every voice gets its own id
+    voiceIds.clear(); const seen = {};
+    voiceList.forEach(v => { const base = (v.voiceURI || '') + '|' + (v.name || '') + '|' + (v.lang || ''); const n = seen[base] = (seen[base] || 0) + 1; voiceIds.set(v, n > 1 ? base + '#' + n : base); });
+    return voiceList;
+  }
+  const voiceId = v => { if (!voiceIds.has(v)) loadVoices(); return voiceIds.get(v) || (v && v.voiceURI) || ''; };
+  /* a label a person can tell apart: same names get the voice code or a number added */
+  function voiceLabels(list) {
+    const names = {}; list.forEach(v => { names[v.name] = (names[v.name] || 0) + 1; });
+    const count = {};
+    const used = {};
+    return list.map(v => {
+      let t = v.name || 'Voice';
+      if (names[v.name] > 1) {
+        count[v.name] = (count[v.name] || 0) + 1;
+        const code = String(v.voiceURI || '').replace(/^.*?(-x-)/i, '').replace(/^.*[\/:]/, '');
+        t += ' - ' + (code && code !== v.name && /[a-z]/i.test(code) && code.length < 28 ? code : 'voice ' + count[v.name]);
+      }
+      if (v.localService === false) t += ' (online)';
+      used[t] = (used[t] || 0) + 1; if (used[t] > 1) t += ' #' + used[t];   // two voices with exactly the same details
+      return t;
+    });
+  }
   if (CAN_SPEAK) { loadVoices(); try { speechSynthesis.addEventListener('voiceschanged', loadVoices); } catch (e) {} }
   const langBase = l => String(l || '').toLowerCase().replace('_', '-').split('-')[0];
   function voiceScore(v, lang) {
@@ -211,7 +236,7 @@
   function voicesFor(lang = 'en-US') { const b = langBase(lang); return loadVoices().filter(v => langBase(v.lang) === b).sort((a, c) => voiceScore(c, lang) - voiceScore(a, lang)); }
   function pickVoice(lang = 'en-US') {
     const list = voicesFor(lang), want = getSetting('voice');
-    return (want && list.find(v => v.voiceURI === want)) || list[0] || null;   // a saved choice only applies to its own language
+    return (want && (list.find(v => voiceId(v) === want) || list.find(v => v.voiceURI === want))) || list[0] || null;   // a saved choice only applies to its own language
   }
   function applyVoice(u) { try { const v = pickVoice(u.lang); if (v) { u.voice = v; if (v.lang) u.lang = v.lang; } } catch (e) {} }   // browsers often ignore the voice unless the utterance language matches it
   let sayTok = 0, sayTimer = null;
@@ -649,7 +674,7 @@
     getSetting, setSetting,
     credit, slip, streakInfo, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
     moduleKey, requireProfile,
-    tone, sfx, say, stopSpeech, stopAll, voicesFor, pickVoice, applyVoice, sayButton, toast, applyDisplay, displayDialog, swipeCard,
+    tone, sfx, say, stopSpeech, stopAll, voicesFor, voiceId, voiceLabels, pickVoice, applyVoice, sayButton, toast, applyDisplay, displayDialog, swipeCard,
     dialog, confirm: confirmDlg, requirePin, newPinDialog, hasPin, dismissPinNote, isUnlocked, lock,
     exportAll, checkBackup, importAll, download
   };

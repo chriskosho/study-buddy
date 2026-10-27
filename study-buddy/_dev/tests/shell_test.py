@@ -82,17 +82,34 @@ async def main():
         await pg.evaluate("window.__spoken.length = 0")
         await pg.click('#voicePrev'); spoken = await pg.evaluate("window.__spoken")
         check(spoken and spoken[-1]['voice'] == 'aria', f'Automatic picks the natural voice, not the robotic one {spoken}')
-        await pg.select_option('#voiceSel', 'david'); spoken = await pg.evaluate("window.__spoken")
-        check(await pg.evaluate("SB.getSetting('voice')") == 'david' and spoken[-1]['voice'] == 'david', 'a chosen voice is saved and used, with a preview')
-        await pg.select_option('#voiceSel', 'george'); spoken = await pg.evaluate("window.__spoken")
+        await pg.select_option('#voiceSel', label='Microsoft David - English (United States) (en-US)'); spoken = await pg.evaluate("window.__spoken")
+        check((await pg.evaluate("SB.getSetting('voice')")).startswith('david|') and spoken[-1]['voice'] == 'david', 'a chosen voice is saved and used, with a preview')
+        await pg.select_option('#voiceSel', label='Microsoft George - English (United Kingdom) (en-GB)'); spoken = await pg.evaluate("window.__spoken")
         check(spoken[-1]['voice'] == 'george' and spoken[-1]['lang'] == 'en-GB', f'the speech language follows the chosen voice {spoken[-1]}')
         await pg.wait_for_function("document.querySelector('#voiceNow').textContent.includes('George')")
         check(True, 'Settings says which voice is speaking')
-        await pg.select_option('#voiceSel', 'david')
+        await pg.select_option('#voiceSel', label='Microsoft David - English (United States) (en-US)')
         await pg.goto(base + 'modules/science/planets/index.html?tool=guide'); await pg.wait_for_selector('.spk')
         await pg.evaluate("window.__spoken.length = 0"); await pg.click('.spk >> nth=0')
         check((await pg.evaluate("window.__spoken"))[-1]['voice'] == 'david', 'speaker buttons in modules use the chosen voice')
         await pg.select_option if False else None
+        c3 = await b.new_context(service_workers='block'); await c3.add_init_script(SEED + STUB)
+        p3 = await c3.new_page(); await p3.goto(base + 'index.html#/settings'); await p3.wait_for_selector('#voiceSel')
+        await p3.evaluate("SB.setSetting('voice', 'aria')"); await p3.reload(); await p3.wait_for_selector('#voiceSel')
+        check((await p3.evaluate("document.querySelector('#voiceSel').selectedOptions[0].textContent")).startswith('Microsoft Aria'), 'an older saved voice (a bare voiceURI) still shows as chosen')
+        await c3.close()
+        # ---- Android-style voices: the same name for every voice, and two with the same everything ----
+        ANDROID = """window.__spoken=[];window.SpeechSynthesisUtterance=function(t){this.text=t};
+const V=[{name:'English United States',lang:'en_US',voiceURI:'en-us-x-tpf-local',localService:true},{name:'English United States',lang:'en_US',voiceURI:'en-us-x-iom-network',localService:false},{name:'English United States',lang:'en_US',voiceURI:'en-us-x-sfg-local',localService:true},{name:'English United States',lang:'en_US',voiceURI:'en-us-x-same',localService:true},{name:'English United States',lang:'en_US',voiceURI:'en-us-x-same',localService:true}];
+Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak(u){window.__spoken.push({voice:u.voice&&V.indexOf(u.voice),lang:u.lang});setTimeout(()=>u.onstart&&u.onstart({}),0)},cancel(){},getVoices(){return V},addEventListener(){}}});"""
+        c2 = await b.new_context(viewport={'width': 412, 'height': 900}, service_workers='block'); await c2.add_init_script(SEED + ANDROID)
+        p2 = await c2.new_page(); await p2.goto(base + 'index.html#/settings'); await p2.wait_for_selector('#voiceSel option >> nth=1', state='attached')
+        labels = await p2.locator('#voiceSel option').all_inner_texts(); vals = await p2.locator('#voiceSel option').evaluate_all("o => o.map(x => x.value)")
+        check(len(set(labels)) == len(labels) and len(set(vals)) == len(vals), f'voices with the same name get different labels and ids {labels}')
+        for k in range(1, 6):
+            await p2.select_option('#voiceSel', index=k); await p2.wait_for_timeout(250)
+            sp = await p2.evaluate("window.__spoken"); check(sp and sp[-1]['voice'] == k - 1, f'choice {k} speaks with its own voice (voice {sp[-1] if sp else None})')
+        await c2.close()
         # ---- stopping sound ----
         check(await pg.locator('.spk.playing').count() == 1, 'the speaker button shows it is playing')
         cancels = await pg.evaluate("window.__cancels")
