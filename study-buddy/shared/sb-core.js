@@ -240,7 +240,8 @@
   }
   function applyVoice(u) { try { const v = pickVoice(u.lang); if (v) { u.voice = v; if (v.lang) u.lang = v.lang; } } catch (e) {} }   // browsers often ignore the voice unless the utterance language matches it
   let sayTok = 0, sayTimer = null;
-  function stopSpeech() { try { speechSynthesis.cancel(); } catch (e) {} sayTok++; clearTimeout(sayTimer); document.querySelectorAll('[data-sb-say].playing').forEach(b => b.classList.remove('playing')); }
+  let clip = null;
+  function stopSpeech() { try { speechSynthesis.cancel(); } catch (e) {} try { if (clip) { clip.onended = clip.onerror = null; clip.pause(); clip = null; } } catch (e) {} sayTok++; clearTimeout(sayTimer); document.querySelectorAll('[data-sb-say].playing').forEach(b => b.classList.remove('playing')); }
   /* force: speak even when Read aloud is off (speaker buttons use this) */
   function say(text, opts = {}) {
     if (!CAN_SPEAK || !text || (!opts.force && !getSetting('readAloud'))) return;
@@ -257,12 +258,25 @@
       if (busy) setTimeout(() => { if (tok === sayTok) { try { speechSynthesis.speak(u); } catch (e) {} } }, 80); else speechSynthesis.speak(u);
     } catch (e) {}
   }
+  /* play a recorded sound file; if it will not play, say the fallback text with the device voice instead */
+  function playClip(url, fallback, opts = {}) {
+    stopSpeech(); const tok = sayTok; const btn = opts.button;
+    const fb = () => { if (tok === sayTok) { if (btn) btn.classList.remove('playing'); say(fallback, { force: true, button: btn, lang: opts.lang }); } };
+    try {
+      const a = new Audio(url); clip = a;
+      const done = () => { if (tok === sayTok) { clip = null; if (btn) btn.classList.remove('playing'); } };
+      a.onended = done; a.onerror = fb;
+      if (btn) btn.classList.add('playing');
+      const r = a.play(); if (r && r.catch) r.catch(fb);
+    } catch (e) { fb(); }
+  }
   /* stop everything that is making sound: speech and tones */
   function stopAll() { stopSpeech(); stopTones(); try { window.__sbStopHook && window.__sbStopHook(); } catch (e) {} }
-  const sayButton = (text, label = 'Hear it', lang = '') => CAN_SPEAK ? `<button type="button" class="spk" data-sb-say="${esc(text)}" data-lang="${esc(lang)}" aria-label="${esc(label)}" title="${esc(label)}">${SPK_ICON}</button>` : '';
+  const sayButton = (text, label = 'Hear it', lang = '', audio = '') => CAN_SPEAK ? `<button type="button" class="spk" data-sb-say="${esc(text)}" data-lang="${esc(lang)}"${audio ? ` data-sb-audio="${esc(audio)}"` : ''} aria-label="${esc(label)}" title="${esc(label)}">${SPK_ICON}</button>` : '';
   document.addEventListener('click', e => {
     const b = e.target.closest && e.target.closest('[data-sb-say]');
     if (b && b.classList.contains('playing')) { e.stopPropagation(); stopAll(); return; }   // pressing the speaker while it plays stops it
+    if (b && b.dataset.sbAudio) { e.stopPropagation(); playClip(b.dataset.sbAudio, b.dataset.sbSay, { button: b, lang: b.dataset.lang || undefined }); return; }
     if (b) { e.stopPropagation(); say(b.dataset.sbSay, { force: true, lang: b.dataset.lang || undefined, button: b }); }
   }, true);
 

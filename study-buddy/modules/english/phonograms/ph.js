@@ -11,7 +11,8 @@
   const byP = Object.fromEntries(CORE.map(p => [p.p, p]));
   const words = p => p.ex.join(', ');
   /* two speakers: the sounds (a best try) and the example words */
-  const pair = (ctx, p) => `<span class="spkpair"><span class="spkb">${ctx.sayButton(soundSay(p), 'Say the sounds of ' + p.p)}<span class="spkcap">Sounds</span></span><span class="spkb">${ctx.sayButton(words(p), 'Say the words: ' + words(p))}<span class="spkcap">Words</span></span></span>`;
+  const clipUrl = p => 'audio/p' + String(p.n).padStart(2, '0') + '.mp3';   // recorded sounds made with eSpeak NG
+  const pair = (ctx, p) => `<span class="spkpair"><span class="spkb">${ctx.sayButton(soundSay(p), 'Say the sounds of ' + p.p, clipUrl(p))}<span class="spkcap">Sounds</span></span><span class="spkb">${ctx.sayButton(words(p), 'Say the words: ' + words(p))}<span class="spkcap">Words</span></span></span>`;
   const exHtml = p => p.ex.map(w => hiWord(w, p.p)).join(', ');
   const mask = (w, p) => { const i = w.indexOf(p); return i < 0 ? w : w.slice(0, i) + '___' + w.slice(i + p.length); };
   const hook = (k, v) => { (window.__phTest = window.__phTest || {})[k] = v; return v; };   // a hook so the test can read the questions
@@ -49,7 +50,7 @@
       const D = {
         p2s: p => ({ front: `<div class="tag">Phonogram ${p.n}</div><div class="big ph">${esc(p.p)}</div><div class="small">What sounds does it make?</div>`,
           back: `<div class="tag">Sounds</div><div class="snd">${esc(p.s)}</div>${p.note ? `<div class="note">${esc(p.note)}</div>` : ''}<div class="exl">${exHtml(p)}</div>${say(p)}` }),
-        s2p: p => ({ front: `<div class="tag">Sounds</div><div class="snd">${esc(p.s)}</div>${p.note ? `<div class="note">${esc(p.note)}</div>` : ''}<div class="small">Which phonogram is it?</div>${ctx.sayButton(soundSay(p), 'Say the sounds')}`,
+        s2p: p => ({ front: `<div class="tag">Sounds</div><div class="snd">${esc(p.s)}</div>${p.note ? `<div class="note">${esc(p.note)}</div>` : ''}<div class="small">Which phonogram is it?</div>${ctx.sayButton(soundSay(p), 'Say the sounds', clipUrl(p))}`,
           back: `<div class="tag">Phonogram ${p.n}</div><div class="big ph">${esc(p.p)}</div><div class="exl">${exHtml(p)}</div>${say(p)}` }),
         rules: p => ({ front: `<div class="tag">Phonogram ${p.n}</div><div class="big ph">${esc(p.p)}</div><div class="small">What is the rule or note?</div>`,
           back: `<div class="tag">Rule</div><div class="defline">${esc(p.note)}</div><div class="exl">${esc(p.s)} as in ${exHtml(p)}</div>${say(p)}` })
