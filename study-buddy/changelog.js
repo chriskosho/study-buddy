@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-27', title: 'New module: Add and Subtract Fractions', items: [
+    'New Math module for Dimensions Math 5, chapter 4: fractions as division, adding and subtracting with unlike denominators, improper fractions and mixed numbers, mixed-number addition and subtraction (with renaming), and word problems.',
+    'A study guide with worked examples and bar models, plus a helper that shows every step for any two fractions you type.',
+    'Eight practice tools from Easy to Insane. You type answers like 3/4 or 1 3/4. If the amount is right but not in simplest form, it tells you instead of marking it wrong. Every problem is new each time, with a step-by-step explanation.' ] },
   { date: '2026-10-27', title: 'Flashcards: Undo and a confirmation', items: [
     'Every flashcard tool now has an Undo button. It steps back one card at a time, and brings the card back face-down. Ctrl+Z (Cmd+Z on a Mac) does the same.',
     'Swiping or pressing I knew it, Still learning or Skip now shows a short message over the card for about a second ("Knew it", "Still learning", "Skipped"), with a small Undo link in it.' ] },

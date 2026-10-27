@@ -11,13 +11,17 @@
                      right?(item, bucket), wrong?(item, bucket) })
          Drag (or tap, then tap) each item into its bucket. Result: items minus misses, out of items.
 
-     SBT.quiz(ctx, { lead, rounds, build() -> [{ q, a, wrong: [..], why?, html? }] })   (html: extra markup shown under the question, e.g. a picture)
+     SBT.quiz(ctx, { lead, rounds, build() -> [{ q, a, wrong: [..], why?, html? }] })   (html: extra markup shown under the question, e.g. a picture;
+         qh: the question as HTML instead of plain text, e.g. stacked fractions, with say as the text to read aloud)
          Multiple choice, one round of `rounds` questions. Result: right answers out of rounds.
          Optional onAnswer(question, right) is called after each question. Optional skip: true adds a "Skip, review later" button
          (shows the answer, no point, calls onAnswer(question, false)).
 
-     SBT.answer(ctx, { lead, rounds, build() -> [{ q, a, show?, why?, hint?, say? }], kind: 'number'|'text', typo?, skip?, onAnswer? })
-         Type the answer. q is HTML. a is a number (kind 'number') or a list of accepted strings. Two tries, a hint,
+     SBT.answer(ctx, { lead, rounds, build() -> [{ q, a, show?, why?, hint?, say? }], kind: 'number'|'text'|'fraction', typo?, skip?, onAnswer? })
+         Type the answer. q is HTML. a is a number (kind 'number') or a list of accepted strings.
+         kind 'fraction': a is the answer written like "3/4", "1 3/4" or "2", and the typed answer is judged by its value. Each item has
+         form: 'any' (7/4 or 1 3/4), 'mixed' (must be a mixed number) or 'improper' (must be n/d). The right value that is not in
+         simplest form (or not in the asked form) gets a nudge and does not use up a try. Two tries, a hint,
          and the explanation (why) after each question. Result: first-try answers without a hint, out of rounds.
          Optional onAnswer(item, scoredFirstTry) is called when each question ends. Optional skip: true adds a "Skip, review later" button
          (shows the answer, no point, calls onAnswer(item, false)).
@@ -187,7 +191,7 @@
       const q = Q.qs[Q.i], opts = shuffle([q.a, ...q.wrong.slice(0, 3)]); Q.answered = false;
       P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><p class="lead">${esc(opt.lead || 'Pick the best answer.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span class="hint">Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${Q.score}</span></div>
-        <div class="qwrap"><div class="row qrow"><p class="qtext">${esc(q.q)}</p>${ctx.sayButton(q.q, 'Hear the question')}</div>${q.html || ''}
+        <div class="qwrap"><div class="row qrow"><p class="qtext">${q.qh || esc(q.q)}</p>${ctx.sayButton(q.say || q.q, 'Hear the question')}</div>${q.html || ''}
         <div class="opts">${opts.map(o => `<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>
         <p class="explain"></p><div class="row center">${opt.skip ? '<button class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button class="btn" data-a="next" hidden>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
       $$('.opt', P).forEach(b => b.onclick = () => {
@@ -215,6 +219,15 @@
   }
 
   /* ---------------- Type the answer ---------------- */
+  const gcdI = (a, b) => b ? gcdI(b, a % b) : Math.abs(a);
+  /* "3/4", "1 3/4" or "2" -> { n, d } (improper); mixed numbers also carry w, fn, fd. null when it is not a fraction */
+  const parseFrac = v => {
+    const t = String(v).trim().replace(/\u2212/g, '-').replace(/\s+/g, ' '); let m;
+    if ((m = t.match(/^(\d+) (\d+) ?\/ ?(\d+)$/))) { const w = +m[1], fn = +m[2], fd = +m[3]; return fd ? { n: w * fd + fn, d: fd, w, fn, fd } : null; }
+    if ((m = t.match(/^(\d+) ?\/ ?(\d+)$/))) return +m[2] ? { n: +m[1], d: +m[2] } : null;
+    if ((m = t.match(/^(\d+)$/))) return { n: +m[1], d: 1 };
+    return null;
+  };
   const numNorm = s => String(s).replace(/[,\s]/g, '').replace(/^\+/, '').replace(/^\./, '0.').replace(/−/g, '-');
   const txtNorm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^(the|a|an)\s+/, '').replace(/[^a-z0-9]/g, '');
   function editDist(a, b) {
@@ -226,6 +239,16 @@
   function answer(ctx, opt) {
     const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', R = { list: [], i: 0, score: 0, tries: 0, hinted: false };
     const check = (item, v) => {
+      if (kind === 'fraction') {
+        const x = parseFrac(v); if (!x) return 'bad'; const t = parseFrac(item.a);
+        if (x.n * t.d !== t.n * x.d) return 'no';
+        const form = item.form || 'any', mixedTyped = x.w !== null && x.w !== undefined;
+        if (x.d !== 1 && !mixedTyped && x.n % x.d === 0 && t.d === 1) return 'whole';   // 4/2 for 2
+        if (mixedTyped ? (x.fn >= x.fd || gcdI(x.fn, x.fd) > 1) : (x.d !== 1 && gcdI(x.n, x.d) > 1)) return 'unreduced';
+        if (form === 'mixed' && !mixedTyped && x.d !== 1 && x.n > x.d) return 'wantMixed';
+        if (form === 'improper' && mixedTyped) return 'wantImproper';
+        return 'ok';
+      }
       if (kind === 'number') { const x = numNorm(v); if (!/^-?\d*\.?\d+$/.test(x)) return 'bad'; return Math.abs(parseFloat(x) - Number(item.a)) < 1e-9 ? 'ok' : 'no'; }
       const t = txtNorm(v), list = [].concat(item.a);
       if (opt.exactCase) { const tv = String(v).trim(); if (list.includes(tv)) return 'ok'; if (list.some(a => String(a).toLowerCase() === tv.toLowerCase())) return 'case'; return 'no'; }
@@ -233,7 +256,7 @@
       if (opt.typo && !item.noTypo && list.some(a => txtNorm(a).length >= 5 && editDist(txtNorm(a), t) <= 1)) return 'close';
       return 'no';
     };
-    const shown = item => item.show || (kind === 'number' ? Number(item.a).toLocaleString('en-US', { maximumFractionDigits: 10 }) : [].concat(item.a)[0]);
+    const shown = item => item.show || (kind === 'fraction' ? String(item.a) : kind === 'number' ? Number(item.a).toLocaleString('en-US', { maximumFractionDigits: 10 }) : [].concat(item.a)[0]);
     function start() { R.list = opt.build().slice(0, n); R.i = 0; R.score = 0; show(); }
     function show() {
       if (R.i >= R.list.length) {
@@ -245,7 +268,7 @@
       P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><p class="lead">${esc(opt.lead || 'Type your answer, then press Check.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Question ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span></div>
         <div class="row qrow"><p class="qtext">${item.q}</p>${item.say ? ctx.sayButton(item.say, 'Hear it') : ''}</div>
-        <form class="spellrow" autocomplete="off"><input aria-label="Your answer" placeholder="Answer" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off"'} spellcheck="false"><button class="btn" type="submit">Check</button></form>
+        <form class="spellrow" autocomplete="off"><input aria-label="Your answer" placeholder="${kind === 'fraction' ? 'Like 3/4 or 1 3/4' : 'Answer'}" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off"'}${kind === 'fraction' ? ' size="14"' : ''} spellcheck="false"><button class="btn" type="submit">Check</button></form>
         <div class="err" role="alert"></div><p class="explain why"></p>
         <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
       const inp = $('input', P), err = $('.err', P), why = $('.why', P), next = $('[data-a="next"]', P), hb = $('[data-a="hint"]', P);
@@ -259,7 +282,9 @@
         const v = inp.value.trim();
         if (!v) { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Type an answer first.'; return; }
         const r = check(item, v);
-        if (r === 'bad') { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Type a number, like 4,000 or 2.5.'; return; }
+        if (r === 'bad') { inp.classList.add('bad'); err.style.color = ''; err.textContent = kind === 'fraction' ? 'Type a fraction like 3/4, a mixed number like 1 3/4, or a whole number.' : 'Type a number, like 4,000 or 2.5.'; return; }
+        const nudge = { unreduced: 'That is the right amount, but not in simplest form. Reduce it and try again.', whole: 'That is the right amount! Write it as a whole number.', wantMixed: 'That is the right amount! Now write it as a mixed number, like 1 3/4.', wantImproper: 'That is the right amount! Now write it as an improper fraction, like 7/4.' }[r];
+        if (nudge) { inp.classList.add('bad'); err.style.color = ''; err.textContent = nudge; return; }
         if (r === 'case') { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Almost! Check the capital and small letters, then try again.'; return; }
         if (r === 'ok' || r === 'close') {
           const pt = !R.hinted && R.tries === 0; if (pt) R.score++;
