@@ -93,7 +93,7 @@
         <li>Everyone starts as a <b>Guest</b>. Choose <b>Add a name</b> at the top to keep progress under your name.</li>
         <li>Use <b>Search</b> at the top to find a module or tool by name. Press <b>/</b> to jump to it.</li></ol>`, true)}
       ${sec('The kinds of tools', `<ul><li><b>Study guide</b>: read it first. No score.</li>
-        <li><b>Flashcards</b>: practice only. Tap or press Enter to flip, swipe right for "I knew it" and left for "Still learning". They never change your streak or score.</li>
+        <li><b>Flashcards</b>: practice only. Tap or press Enter to flip, swipe right for "I knew it" and left for "Still learning". A short message confirms each choice, and Undo (or Ctrl+Z) takes it back. They never change your streak or score.</li>
         <li><b>Quiz</b>, <b>Sort it</b>, <b>Put in order</b>, <b>Fill it in</b>, and the Atlas games are checked tools. They give credit, streaks, and mastery.</li>
         <li><b>Explain it</b>: write your answer in your own words. It checks for the main ideas and complete sentences.</li></ul>`)}
       ${sec('Streak, daily goal, and mastered', `<p>The <b>Streak</b> counts right answers in a row. <b>Today</b> counts toward the daily goal. A tool is <b>Mastered</b> when the best score reaches the goal shown in its description.</p>`)}

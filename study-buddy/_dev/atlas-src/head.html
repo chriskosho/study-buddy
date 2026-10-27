@@ -379,6 +379,13 @@ html.sb-dark .opt.right,html.sb-dark .vbtn.right,html.sb-dark .mcard.done .f.bac
 html.sb-dark .opt.wrong,html.sb-dark .vbtn.wrong{background:#43262a}
 html.sb-dark .stars .off{color:#34465c}
 html.sb-dark .spellrow input{color:var(--ink);border-color:#a9c4f0}
+
+/* ---------- flashcard confirmation toast (over the card) and Undo ---------- */
+.cardzone{position:relative}
+.card-toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:5;display:inline-flex;align-items:center;gap:12px;background:var(--navy);color:#fff;padding:8px 16px;border-radius:999px;font-weight:700;font-size:16px;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity .15s,visibility 0s .15s;pointer-events:none}
+.card-toast.show{opacity:1;visibility:visible;transition:opacity .15s;pointer-events:auto}
+.card-toast button{background:none;border:0;border-bottom:2px solid currentColor;color:inherit;font:inherit;padding:0;cursor:pointer}
+.deckbar .undo{padding:6px 14px;font-size:14px;flex:none}
 </style>
 </head>
 <body>
@@ -434,8 +441,9 @@ html.sb-dark .spellrow input{color:var(--ink);border-color:#a9c4f0}
       </div>
       <div class="bar" aria-hidden="true"><i id="cardBar"></i></div>
       <span class="hint" id="cardCount"></span>
+      <button class="btn ghost undo" id="cardUndo" disabled>Undo</button>
     </div>
-    <div class="cardstage"><div class="fcard" id="fcard" role="button" tabindex="0" aria-label="Flashcard. Press to flip"><div class="face front" id="faceF"></div><div class="face back" id="faceB"></div></div></div>
+    <div class="cardzone"><div class="cardstage"><div class="fcard" id="fcard" role="button" tabindex="0" aria-label="Flashcard. Press to flip"><div class="face front" id="faceF"></div><div class="face back" id="faceB"></div></div></div></div>
     <div class="row center">
       <button class="btn warn" id="cardAgain">Still learning</button>
       <button class="btn ghost" id="cardSkip">Skip</button>
