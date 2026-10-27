@@ -12,13 +12,13 @@
   const COLORS = ['#f2b880', '#a6d27a', '#9bc7e6', '#f4a9c8'];
   const colorOf = id => COLORS[MAPDATA.states[id].c % COLORS.length];
   const pickN = (a, n) => shuffle(a.slice()).slice(0, n);
-  const GREY = '#d6d2c4', BLANK = '#ece4cc';
+  const GREY = '#d6d2c4', BLANK = '#ece4cc';   // placed / blank state fills (the pastel map stays the same in dark mode)
   const W = MAPDATA.width, H = MAPDATA.height;
 
   /* ---------- map rendering ---------- */
   /* small states get their label in the ocean, with a thin line back to the state */
   const OUT = ['vt', 'nh', 'ma', 'ri', 'ct', 'nj', 'md', 'de'];
-  const outPos = id => ({ x: W - 36, y: 112 + OUT.indexOf(id) * 16 });
+  const outPos = id => ({ x: W - 36, y: 112 + OUT.indexOf(id) * 16 + (id === 'md' || id === 'de' ? 22 : 0) });   // MD and DE labels sit lower so their lines slope down past NJ and DE
   function buildMap(svg, named) {
     const vb = svg._vb || { x: 0, y: 0, w: W, h: H };
     svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
@@ -43,7 +43,7 @@
   function labelSpec(id) {
     const m = MAPDATA.states[id].label, name = BYID[id].name, r = m[2], words = name.split(' ');
     const one = r * 1.8 / (name.length * 0.56), two = words.length > 1 ? Math.min(r * 1.8 / (Math.max(...words.map(w => w.length)) * 0.56), r * 1.5 / 2.2) : 0;
-    if (Math.max(one, two) >= 6.5) return two > one ? { lines: words.length === 2 ? words : [words.slice(0, -1).join(' '), words.slice(-1)[0]], size: Math.min(11, two), x: m[0], y: m[1] } : { lines: [name], size: Math.min(11, one), x: m[0], y: m[1] };
+    if (Math.max(one, two) >= 8) return two > one ? { lines: words.length === 2 ? words : [words.slice(0, -1).join(' '), words.slice(-1)[0]], size: Math.min(11, two), x: m[0], y: m[1] } : { lines: [name], size: Math.min(11, one), x: m[0], y: m[1] };
     return { lines: [id.toUpperCase()], size: Math.min(9, Math.max(6, r * 1.1)), x: m[0], y: m[1] };
   }
   function addLabel(svg, id) {
@@ -53,7 +53,8 @@
       const o = outPos(id), ln = mk('line');
       ln.setAttribute('class', 'lead-line'); ln.setAttribute('x1', m[0]); ln.setAttribute('y1', m[1]); ln.setAttribute('x2', o.x - 2); ln.setAttribute('y2', o.y); ln.dataset.id = id;
       const t = mk('text'); t.setAttribute('class', 'lbl lbl-out'); t.setAttribute('x', o.x); t.setAttribute('y', o.y + 3); t.style.fontSize = '8.5px'; t.textContent = id.toUpperCase(); t.dataset.id = id;
-      svg._labels.appendChild(ln); svg._labels.appendChild(t); return;
+      const dot = mk('circle'); dot.setAttribute('class', 'lead-dot'); dot.setAttribute('cx', m[0]); dot.setAttribute('cy', m[1]); dot.setAttribute('r', 1.6); dot.dataset.id = id;
+      svg._labels.appendChild(ln); svg._labels.appendChild(dot); svg._labels.appendChild(t); return;
     }
     const sp = labelSpec(id), t = mk('text');
     t.setAttribute('class', 'lbl'); t.style.fontSize = sp.size + 'px'; t.dataset.id = id;
@@ -98,7 +99,7 @@
     const m = MAPDATA.states[id].label, ring = m[2] < 10 ? `<circle cx="${m[0]}" cy="${m[1]}" r="17" fill="none" stroke="#e4572e" stroke-width="2.5"/>` : '';
     return `<svg class="mini us-mini" viewBox="0 0 ${W} ${H}" aria-hidden="true">${ctx}${all}${ring}</svg>`;
   }
-  window.__usMap = { miniMap, cur: null };   // cur: the state being asked for (a hook for the test)
+  window.__usMap = { miniMap, cur: null };   // cur: the state being asked for. A test hook only (us_states_test.py); nothing else reads it.
 
   /* ===================== Study map ===================== */
   const study = {
@@ -113,6 +114,7 @@
   };
 
   /* ===================== Listen and tap ===================== */
+  let listenState = null, findStop = null;
   const listen = {
     init(ctx) {
       const P = ctx.panel, N = 10;
@@ -120,33 +122,34 @@
         <div class="scorebar"><div class="stat"><b id="lScore">0/${N}</b><span>Right</span></div><div class="stat"><b id="lRound">1</b><span>Round</span></div></div>
         <div class="mapgrid">${mapBox('mapListen', 'Map of the United States')}<div><div class="prompt" id="lPrompt">Press play</div>
           <div class="row"><button class="btn" id="lPlay" type="button">Play the name</button><button class="btn ghost" id="lSkip" type="button">Skip</button></div><p class="msg" id="lMsg"></p></div></div>`;
-      const L = { svg: $('#mapListen', P), order: [], i: 0, score: 0, tries: 0, done: false };
+      const L = listenState = { svg: $('#mapListen', P), order: [], i: 0, score: 0, tries: 0, done: false, locked: false, t: null };
       makeZoom(L.svg);
-      const stop = () => { clearTimeout(L.t); };
-      function newRound() {
-        L.order = pickN(STATES.map(s => s.id), N); L.i = 0; L.score = 0; L.tries = 0; L.done = false;
+            function newRound() {
+        L.order = pickN(STATES.map(s => s.id), N); L.i = 0; L.score = 0; L.tries = 0; L.done = false; L.locked = false;
         buildMap(L.svg); Object.entries(L.svg._paths).forEach(([id, p]) => p.addEventListener('click', () => tap(id)));
         show();
       }
-      function show() {
+      function show(quiet) {
+        L.locked = false; L.t = null;
         $('#lScore', P).textContent = L.score + '/' + N; $('#lRound', P).textContent = Math.min(L.i + 1, N);
         if (L.i >= N) { L.done = true; ctx.result(L.score, N); $('#lPrompt', P).textContent = 'All done!'; $('#lMsg', P).className = 'msg good'; $('#lMsg', P).textContent = `You got ${L.score} of ${N} on the first try.`; $('#lPlay', P).textContent = 'Play again'; ctx.sfx.win(); return; }
         $('#lPrompt', P).textContent = 'Which state did you hear?'; $('#lPlay', P).textContent = 'Play the name again'; L.tries = 0;
-        window.__usMap.cur = L.order[L.i]; speakName(L.order[L.i]);
+        window.__usMap.cur = L.order[L.i]; if (!quiet) speakName(L.order[L.i]);
       }
       function tap(id) {
-        if (L.done || !clickOK(L.svg)) return;
+        if (L.done || L.locked || !clickOK(L.svg)) return;
         const want = L.order[L.i], p = L.svg._paths[id], msg = $('#lMsg', P);
-        if (id === want) { if (L.tries === 0) L.score++; ctx.credit(); ctx.sfx.good(); flash(p, 'flash-good'); msg.className = 'msg good'; msg.textContent = 'Yes! ' + BYID[id].name + '.'; L.i++; L.t = setTimeout(show, 900); }
+        if (id === want) { if (L.tries === 0) L.score++; ctx.credit(); ctx.sfx.good(); flash(p, 'flash-good'); msg.className = 'msg good'; msg.textContent = 'Yes! ' + BYID[id].name + '.'; L.i++; L.locked = true; L.t = setTimeout(show, 900); }
         else { L.tries++; ctx.slip(); ctx.sfx.bad(); flash(p, 'flash-bad'); msg.className = 'msg bad'; msg.textContent = 'That is ' + BYID[id].name + '. Listen again and try another.'; }
       }
       $('#lPlay', P).onclick = () => { if (L.done) { newRound(); $('#lMsg', P).textContent = ''; } else speakName(L.order[L.i]); };
-      $('#lSkip', P).onclick = () => { if (L.done) return; L.order.push(L.order.splice(L.i, 1)[0]); show(); };
+      $('#lSkip', P).onclick = () => { if (L.done || L.locked) return; L.order.push(L.order.splice(L.i, 1)[0]); show(); };
+      L.show = show;
       if (!('speechSynthesis' in window)) { $('#lPrompt', P).textContent = 'This browser cannot speak. Try Chrome, Edge, or Safari.'; return; }
       newRound();
-      this.leave = stop;
     },
-    leave() {}
+    // leaving mid-pause: finish the pending step now (quietly) so coming back is never stuck and the last result is recorded
+    leave() { if (listenState && listenState.t) { clearTimeout(listenState.t); listenState.show(true); } }
   };
 
   /* ===================== Find it ===================== */
@@ -183,9 +186,9 @@
       buildMap(F.svg); makeZoom(F.svg);
       Object.entries(F.svg._paths).forEach(([id, p]) => p.addEventListener('click', () => tap(id)));
       $('#fBest', P).textContent = ctx.state.bestFind || 0; $('#fStart', P).onclick = start;
-      this.leave = () => stopFind(true);
+      findStop = () => stopFind(true);
     },
-    leave() {}
+    leave() { if (findStop) findStop(); }
   };
 
   /* ===================== Drag names ===================== */
@@ -202,7 +205,7 @@
       function paint(id, placed) {
         const p = DR.svg._paths[id], col = colorOf(id);
         if (DR.mode === 'grey') p.style.fill = placed ? GREY : col; else if (DR.mode === 'reveal') p.style.fill = placed ? col : BLANK; else p.style.fill = col;
-        p.style.strokeWidth = placed ? (DR.mode === 'grey' ? '1.6' : '3') : ''; p.style.stroke = placed && DR.mode !== 'grey' ? '#2b4162' : '';
+        p.classList.toggle('placed-grey', placed && DR.mode === 'grey'); p.classList.toggle('placed', placed && DR.mode !== 'grey');
         if (placed && DR.mode !== 'grey') DR.svg.insertBefore(p, DR.svg._labels);
       }
       const score = () => { $('#dPlaced', P).textContent = DR.placed.size + '/' + N; $('#dMiss', P).textContent = DR.miss; };

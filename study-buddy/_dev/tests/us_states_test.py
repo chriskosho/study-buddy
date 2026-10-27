@@ -258,6 +258,13 @@ async def main():
             sid = await pg.evaluate('window.__usMap.cur')
             await tap(pg, f'#mapListen .cpath[data-id="{sid}"]'); await pg.wait_for_timeout(1000)
         check('All done' in await pg.inner_text('#lPrompt'), 'Listen: round ends after 10')
+        # leaving during the pause after a right answer must not leave the round stuck, and a second quick tap is ignored
+        pg = await page('listen'); sid = await pg.evaluate('window.__usMap.cur')
+        await tap(pg, f'#mapListen .cpath[data-id="{sid}"]'); sid2 = await pg.evaluate('window.__usMap.cur')
+        await tap(pg, f'#mapListen .cpath[data-id="{sid2}"]'); await pg.wait_for_timeout(1100); check((await pg.inner_text('#lRound')) == '2' and (await pg.inner_text('#lScore')) == '1/10', 'Listen: a tap during the pause is ignored')
+        await pg.evaluate("document.querySelector('nav.tabs [data-tool=find], nav.tabs button:nth-child(5)').click()"); await pg.wait_for_timeout(200)
+        await pg.evaluate("document.querySelector('nav.tabs button:nth-child(4)').click()"); await pg.wait_for_timeout(300)
+        check(await pg.evaluate("window.__usMap.cur") is not None and 'Which state' in await pg.inner_text('#lPrompt'), 'Listen: coming back after leaving mid-pause is not stuck')
         # Find it
         pg = await page('find'); await pg.click('#fStart'); await pg.wait_for_timeout(150)
         for _ in range(3):

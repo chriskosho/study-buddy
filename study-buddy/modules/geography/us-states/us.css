@@ -38,25 +38,30 @@
 .us-note{margin-top:4px;font-size:14px;color:var(--ink2)}
 
 /* ---- map tools (same look as the Explorer's Atlas) ---- */
+:root{--map-edge:#fff;--map-sea-edge:#b7d8e4;--map-ctx:#ece6d3;--map-ctx-edge:#cfc7ae;--map-lead:#6b7686}
+html.sb-dark{--map-edge:#e9e4d6;--map-sea-edge:#3b6074;--map-ctx:#33423f;--map-ctx-edge:#4b5c58;--map-lead:#b7c3d1}
 .mapgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(16px,2.4vw,36px);align-items:start}
 .mapgrid.study{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
 .mapgrid>*{min-width:0}
-.mapbox{background:var(--sea);border-radius:22px;border:2px solid #b7d8e4;padding:8px;position:relative}
+.mapbox{background:var(--sea);border-radius:22px;border:2px solid var(--map-sea-edge);padding:8px;position:relative}
 .mapbox svg{display:block;width:100%;height:auto;max-height:calc(100vh - var(--chrome) - 300px);touch-action:manipulation}
 .mapbox svg.zoomed{touch-action:none;cursor:grab}
-.ctx{fill:#ece6d3;stroke:#cfc7ae;stroke-width:1}
-.cpath{cursor:pointer;stroke:#fff;stroke-width:1.1;stroke-linejoin:round}
+.ctx{fill:var(--map-ctx);stroke:var(--map-ctx-edge);stroke-width:1}
+.cpath{cursor:pointer;stroke:var(--map-edge);stroke-width:1.1;stroke-linejoin:round}
 .cpath:focus{outline:none}
 .cpath:focus-visible{stroke:var(--navy-ink);stroke-width:2.4}
 .cpath.hover{filter:brightness(1.07);stroke:var(--navy-ink);stroke-width:1.8}
 .cpath.flash-bad{animation:badflash .5s}
 .cpath.flash-good{animation:goodflash .7s}
-@keyframes badflash{0%,100%{stroke:#fff}30%,70%{stroke:var(--bad);stroke-width:3}}
-@keyframes goodflash{0%{stroke:var(--good);stroke-width:4}100%{stroke:#fff}}
+@keyframes badflash{0%,100%{stroke:var(--map-edge)}30%,70%{stroke:var(--bad);stroke-width:3}}
+@keyframes goodflash{0%{stroke:var(--good);stroke-width:4}100%{stroke:var(--map-edge)}}
 .cpath.target{stroke:var(--coral);stroke-width:2.6}
 .lbl{font-weight:800;fill:#23313f;paint-order:stroke;stroke:#fff;stroke-width:2.6px;stroke-linejoin:round;pointer-events:none;text-anchor:middle;font-family:inherit}
 .lbl-out{text-anchor:start}
-.lead-line{stroke:#6b7686;stroke-width:.7;pointer-events:none}
+.lead-dot{fill:var(--map-lead);pointer-events:none}
+.cpath.placed{stroke:var(--navy-ink);stroke-width:3}.cpath.placed-grey{stroke-width:1.6}
+.cpath.placed:focus-visible,.cpath.placed-grey:focus-visible{stroke-width:3.4}
+.lead-line{stroke:var(--map-lead);stroke-width:.7;pointer-events:none}
 .zoombar{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
 .zoombar button{width:36px;height:36px;border-radius:10px;border:2px solid var(--navy-ink);background:var(--surface);color:var(--navy-ink);font-size:20px;font-weight:800;line-height:1;padding:0}
 .zoombar button:hover{background:var(--sun);color:#23313f}
@@ -67,7 +72,7 @@
 .srow .sf{width:40px;flex:0 0 40px}
 .srow .st{flex:1;min-width:0}.srow .st b{display:block;line-height:1.15;font-size:16px}.srow .st span{font-size:12.5px;color:var(--ink2)}
 #tab-study .studylist{max-height:calc(100vh - var(--chrome) - 300px);overflow-y:auto;padding-right:4px}
-.us-mini{background:var(--sea);border-radius:14px;width:92%;height:auto;max-height:70%;border:2px solid #b7d8e4}
+.us-mini{background:var(--sea);border-radius:14px;width:92%;height:auto;max-height:70%;border:2px solid var(--map-sea-edge)}
 @media (max-width:760px){
   .mapgrid,.mapgrid.study{grid-template-columns:minmax(0,1fr);gap:12px}
   .mapbox{padding:6px;border-radius:16px}
