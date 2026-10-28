@@ -8,6 +8,7 @@
      SBM.start({
        module: 'parts-of-speech',            // id in registry.js
        defaults: { ... },                     // the module's saved state, per student
+       toggle: { get, set, label, title },    // optional: one switch in the settings row (Black Beauty's Highlighted / All questions)
        tools: {
          guide: { init(ctx) { ... }, leave() { ... } },   // leave() is optional (stop timers, etc.)
          ...
@@ -45,6 +46,7 @@
           <div class="settings">
             <button class="iconbtn" id="sbSound"></button>
             ${SB.CAN_SPEAK ? '<button class="iconbtn" id="sbRead" title="Reads questions out loud"></button>' : ''}
+            ${cfg.toggle ? '<button class="iconbtn" id="sbTog"></button>' : ''}
             <button class="iconbtn" id="sbReset" title="Erase this module's progress (admin PIN)">Reset</button>
           </div></div>
       </header>
@@ -57,12 +59,21 @@
     const paint = () => {
       const snd = SB.getSetting('sound'), rd = SB.getSetting('readAloud');
       const s = $('#sbSound'); s.textContent = 'Sound: ' + (snd ? 'on' : 'off'); s.setAttribute('aria-pressed', snd);
+      const g = $('#sbTog'); if (g) { const on = cfg.toggle.get(state); g.textContent = cfg.toggle.label(on); g.title = cfg.toggle.title || ''; g.setAttribute('aria-pressed', on); }
       const r = $('#sbRead'); if (r) { r.textContent = 'Read aloud: ' + (rd ? 'on' : 'off'); r.setAttribute('aria-pressed', rd); }
     };
     renderStreak(); paint();
     SB.shell({ module: mod.id });
     $('#sbSound').onclick = () => { SB.setSetting('sound', !SB.getSetting('sound')); paint(); if (SB.getSetting('sound')) SB.sfx.good(); else SB.stopAll(); };
     if ($('#sbRead')) $('#sbRead').onclick = () => { const on = !SB.getSetting('readAloud'); SB.setSetting('readAloud', on); paint(); if (on) SB.say('Read aloud is on.'); else SB.stopAll(); };
+
+    /* an optional module switch in the settings row: cfg.toggle = { get(state), set(state, on), label(on), title }. The tools read it when they
+       build their questions, so changing it reloads the page on the same tool. */
+    if (cfg.toggle) $('#sbTog').onclick = () => {
+      cfg.toggle.set(state, !cfg.toggle.get(state)); save();
+      const go = () => { location.href = location.pathname + '?tool=' + encodeURIComponent(current || ''); };
+      if (window.SBPad && SBPad.isOpen()) SBPad.guard(go); else go();
+    };
 
     function ctxFor(t) {
       return {

@@ -170,7 +170,7 @@ async def main():
         check('38' not in d['n'] and '39' not in d['n'] and '45' not in d['n'] and d['n'][0] == '1' and d['n'][-1] == '49', f'chapters from the guide, with 38, 39, 45 absent {d["n"]}')
         check(d['q'] >= 30 and d['t'] >= 40 and d['e'] >= 20 and d['x'] >= 8, f'enough practice items {d}')
         check(len(set(d['n'])) == len(d['n']), 'each chapter appears once (the guide repeats some)')
-        await pg.click('.gbar [data-f="0"]')                       # the guide opens on the highlighted questions; All questions shows everything
+        await pg.click('#sbTog'); await pg.wait_for_selector('.chlist .chcard')   # the guide opens on the highlighted questions; All questions shows everything
         for i in range(1, 5):
             await pg.click(f'.gtabs button[data-g="{i}"]'); await pg.wait_for_timeout(60)
             check(await pg.locator('.bq').count() == await pg.evaluate(f"CH.filter(c => c.part === {i}).reduce((a, c) => a + c.qa.length, 0)"), f'guide part {i} shows every question')
