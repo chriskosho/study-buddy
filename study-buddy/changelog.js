@@ -1,6 +1,8 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'A way to say thanks', items: [
+    'The footer and the About page have a "Support Study Buddy" link to PayPal for anyone who wants to donate. Study Buddy stays free, nothing is locked, and nothing is sent to PayPal until you choose to open the link.' ] },
   { date: '2026-10-28', title: 'Saved modules, and the words Student and Admin', items: [
     'You can save a module with the bookmark button on its card or at the top of the module. A Saved tab appears next to All when you have saved modules. It shows them from every subject, and the home screen opens on it. Each student has their own list.',
     'Child is now Student and Parent is now Admin everywhere you read: the Admin area (and Admin PIN), Settings, Help, the FAQ, and the dialogs. The link is now #/admin (the old #/parent link still works). Saved progress is not affected.' ] },

@@ -247,3 +247,6 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - **Utilities page:** `utilities/scratchpad/` (`sp.js`) opens `SBPad` with no question (source 'Scratch pad') and lists notes with `SBPad.renderList`. It is registered in `registry.js` under utilities.
 - **Toast:** `SB.toast` is a rounded box (not a pill) with padding, centered text, a max width of 440px (less on phones, and divided by the 1.15 zoom with Larger text), and a duration that grows with the message length.
 
+
+## 22. Support link (October 2026)
+- A "Support Study Buddy" link to PayPal is in the footer (`footHTML()` in `sb-shell.js`, constant `DONATE`) and in a Support section of the About page. It is a plain link that opens a new tab with `rel="noopener noreferrer"`: no widget or script from PayPal is ever loaded, and nothing about a student is sent. The About text says it is a gift, not a charitable donation. Change the address in one place (`DONATE`) and in the About text.
