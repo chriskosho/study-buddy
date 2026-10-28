@@ -75,11 +75,11 @@
   .sbfoot a:hover{text-decoration:underline}
   .sbfoot p{margin:0}
   @media (max-width:760px){
-    .sbhead-in{padding:6px 14px;gap:6px 8px}
+    .sbhead-in{padding:6px 12px;gap:6px 6px}
     .sbbrand span{display:none}
-    .sbbtn{padding:6px 10px}
+    .sbbtn{padding:5px 8px;gap:5px}
     .sbbtn .lbl{display:none}
-    .sbhead-r{flex-wrap:wrap;justify-content:flex-end;gap:6px}
+    .sbhead-r{flex-wrap:wrap;justify-content:flex-end;gap:4px}
     .sbbtn.kidpill .hint{display:none}
     .sbcrumbs{order:5;flex:1 1 100%}
     .sbcrumbs ol{font-size:14px}

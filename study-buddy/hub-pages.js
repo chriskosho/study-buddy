@@ -170,9 +170,13 @@
       <p class="lead">${SB.isGuest(kid) ? 'Notes you keep from the scratch pad for this session are here. Add your name at the top to save notes to your profile.' : 'Notes you saved from the scratch pad. They stay on this device, under ' + esc(kid.name) + "'s profile. Open one to keep writing, or download it as a picture."}</p>
       <div id="notesBox"></div></section>`;
     const box = app.querySelector('#notesBox');
-    if (!window.SBPad) { box.innerHTML = '<p class="hint">Notes could not load. Reload the page and try again.</p>'; return; }
-    const draw = () => SBPad.renderList(box, { onOpen: note => SBPad.open({ note, source: note.mod, onClose: draw }) });
-    draw();
+    const draw = () => SBPad.renderList(box, { onOpen: (note, scope) => SBPad.open({ note, scope, source: note.mod, onClose: draw }) });
+    if (window.SBPad) return draw();
+    box.innerHTML = '<p class="hint">Loading notes...</p>';                      // the scratch pad code loads only when it is needed
+    const sc = document.createElement('script'); sc.src = SB.BASE + 'shared/sb-scratchpad.js';
+    sc.onload = () => { if (box.isConnected) draw(); };
+    sc.onerror = () => { box.innerHTML = '<p class="hint">Notes could not load. Reload the page and try again.</p>'; };
+    document.head.appendChild(sc);
   }
   window.HUBPAGES = { settings, help, faq, about, changelog, notes };
 })();

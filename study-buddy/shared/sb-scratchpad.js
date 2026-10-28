@@ -81,6 +81,12 @@
       if (list.length > lim.notes || JSON.stringify(list).length > lim.bytes) return { ok: false, why: 'The notes are full. Delete an older note first.' };
       return this.write(scope, list, kid) ? { ok: true } : { ok: false, why: 'There was no room to save that note. Delete an older note first.' };
     },
+    replace(scope, note, kid = SB.activeId()) {
+      const list = this.list(scope, kid), i = list.findIndex(n => n.id === note.id);
+      if (i < 0) return this.add(scope, note, kid);
+      list[i] = note; if (JSON.stringify(list).length > LIMITS[scope].bytes) return { ok: false, why: 'The notes are full. Delete an older note first.' };
+      return this.write(scope, list, kid) ? { ok: true } : { ok: false, why: 'There was no room to save that note. Delete an older note first.' };
+    },
     remove(scope, id, kid = SB.activeId()) { this.write(scope, this.list(scope, kid).filter(n => n.id !== id), kid); }
   };
 
@@ -220,7 +226,7 @@
   .sbp-seg{display:inline-flex;border:2px solid var(--line);border-radius:12px;overflow:hidden}
   .sbp-seg button{border:0;background:var(--surface);padding:5px 10px;min-height:34px;font-weight:700;font-size:13px}
   .sbp-seg button[aria-pressed="true"]{background:var(--teal-fill);color:#fff}
-  .sbp-stage{position:relative;flex:1 1 0;min-height:200px;border:2px solid var(--line);border-radius:14px;overflow:hidden;background-color:${PAPER.bg};touch-action:none}
+  .sbp-stage{position:relative;flex:1 1 0;min-height:200px;border:2px solid var(--line);border-radius:14px;overflow:hidden;background-color:${PAPER.bg};touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   .sbp-stage.lines{background-image:repeating-linear-gradient(to bottom,transparent 0,transparent ${PAPER.LINE - 1}px,${PAPER.line} ${PAPER.LINE - 1}px,${PAPER.line} ${PAPER.LINE}px);background-position:0 0}
   .sbp-stage.graph{background-image:linear-gradient(to right,${PAPER.major} 1px,transparent 1px),linear-gradient(to bottom,${PAPER.major} 1px,transparent 1px),linear-gradient(to right,${PAPER.grid} 1px,transparent 1px),linear-gradient(to bottom,${PAPER.grid} 1px,transparent 1px);background-size:${PAPER.GRID * PAPER.MAJOR}px ${PAPER.GRID * PAPER.MAJOR}px,${PAPER.GRID * PAPER.MAJOR}px ${PAPER.GRID * PAPER.MAJOR}px,${PAPER.GRID}px ${PAPER.GRID}px,${PAPER.GRID}px ${PAPER.GRID}px}
   .sbp-ink{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;display:block}
@@ -253,16 +259,18 @@
 
   /* ---------------- the pad ---------------- */
   let P = null;
+  let penSeen = false, penOnlyChoice = null;   // once a stylus touches any pad this visit, finger touches stop drawing (unless the child turns Pen only off)
+  const draftKey = kid => NS + '.paddraft.' + kid;
   const isOpen = () => !!P;
   const hasInk = items => items.some(i => i.k === 't' || i.t !== 'erase');
   const dirty = () => !!P && hasInk(P.items) && P.items !== P.saved;
 
   function open(o = {}) {
-    if (P) { if (o.question != null) setQuestion(o.question); if (o.note) { P.onClose = o.onClose || P.onClose; loadNote(o.note); return; } const f = $('.sbp-t[aria-pressed="true"]', P.el) || $('.sbp-b', P.el); if (f) f.focus(); return; }
+    if (P) { if (o.question != null) setQuestion(o.question); if (o.note) { P.onClose = o.onClose || P.onClose; loadNote(o.note, false, o.scope); return; } const f = $('.sbp-t[aria-pressed="true"]', P.el) || $('.sbp-b', P.el); if (f) f.focus(); return; }
     injectCSS();
     const el = document.createElement('div'); el.className = 'sbp'; el.setAttribute('role', 'region'); el.setAttribute('aria-label', 'Scratch pad');
     P = {
-      el, items: [], past: [], future: [], saved: null, tool: 'pen', color: COLORS[0][1], size: 4, erMode: 'area', paper: 'blank', penOnly: false,
+      el, items: [], past: [], future: [], saved: null, tool: 'pen', color: COLORS[0][1], size: 4, erMode: 'area', paper: 'blank', penOnly: penOnlyChoice != null ? penOnlyChoice : penSeen, from: null,
       kid: SB.activeId(), question: '', source: o.source || '', font: getComputedStyle(document.body).fontFamily || 'sans-serif', cur: null, editor: null, opener: o.opener || null, onClose: o.onClose || null, listeners: []
     };
     el.innerHTML = `
@@ -288,14 +296,21 @@
     P.stage = $('.sbp-stage', el); P.cv = $('canvas', el); P.g = P.cv.getContext('2d'); P.ring = $('.sbp-ring', el);
     wire();
     setQuestion(o.question || '');
-    if (o.note) loadNote(o.note, true);
+    if (o.note) loadNote(o.note, true, o.scope);
+    else offerDraft();
     fit(); refresh();
+    if (window.matchMedia && matchMedia('(max-width:899px)').matches) { [...document.body.children].forEach(c => { if (c !== el && !c.classList.contains('sb-ov') && !c.inert) { c.inert = true; P.inerted = (P.inerted || []).concat(c); } }); }
     const first = $('.sbp-t[aria-pressed="true"]', el); if (first) first.focus();
     const on = (t, ev, fn, opt) => { t.addEventListener(ev, fn, opt); P.listeners.push(() => t.removeEventListener(ev, fn, opt)); };
     on(document, 'keydown', onKey);
     on(window, 'beforeunload', e => { if (dirty()) { e.preventDefault(); e.returnValue = ''; } });
     on(document, 'click', guardLinks, true);
-    on(window, 'hashchange', () => { if (P && !dirty()) closePad(); else if (P) requestClose(); });
+    on(window, 'hashchange', e => {
+      if (!P) return; if (P.ignoreHash) { P.ignoreHash = false; return; }
+      if (!dirty()) return closePad();
+      const back = e.oldURL;      // the page already changed: if the child keeps working, go back to the page they were on
+      saveDialog(true, null, () => { if (P && back) { P.ignoreHash = true; location.replace(back); } });
+    });
     if (window.ResizeObserver) { const ro = new ResizeObserver(() => fit()); ro.observe(P.stage); P.listeners.push(() => ro.disconnect()); } else on(window, 'resize', fit);
   }
 
@@ -324,10 +339,24 @@
   /* ---- history: every change swaps in a new list, so undo and redo just swap back ---- */
   function commit(next) {
     P.past.push(P.items); if (P.past.length > 200) P.past.shift();
-    P.items = next; P.future = []; refresh();
+    P.items = next; P.future = []; refresh(); saveDraft();
   }
-  function undo() { if (!P) return; commitEditor(); if (!P.past.length) return; P.future.push(P.items); P.items = P.past.pop(); render(); refresh(); }
-  function redo() { if (!P) return; commitEditor(); if (!P.future.length) return; P.past.push(P.items); P.items = P.future.pop(); render(); refresh(); }
+  function undo() { if (!P) return; commitEditor(); if (!P.past.length) return; P.future.push(P.items); P.items = P.past.pop(); render(); refresh(); saveDraft(); }
+  function redo() { if (!P) return; commitEditor(); if (!P.future.length) return; P.past.push(P.items); P.items = P.future.pop(); render(); refresh(); saveDraft(); }
+  /* iPhone and iPad give no warning when a tab is closed or reloaded, so unsaved writing is kept as a draft for this tab and offered back */
+  function saveDraft() {
+    if (!P) return;
+    try { if (dirty()) sessionStorage.setItem(draftKey(P.kid), JSON.stringify({ at: Date.now(), question: P.question, mod: P.source, paper: P.paper, items: P.items })); else sessionStorage.removeItem(draftKey(P.kid)); } catch (e) {}
+  }
+  function dropDraft(kid) { try { sessionStorage.removeItem(draftKey(kid)); } catch (e) {} }
+  function offerDraft() {
+    let d = null; try { d = JSON.parse(sessionStorage.getItem(draftKey(P.kid)) || 'null'); } catch (e) {}
+    const n = d && cleanNote(Object.assign({ id: 'draft' }, d));
+    if (!n || !hasInk(n.items)) return;
+    SB.confirm({ title: 'Bring back your writing?', text: 'The scratch pad closed before your last writing was saved' + (n.mod ? ' (' + n.mod + ')' : '') + '.', ok: 'Bring it back', cancel: 'Start fresh' },
+      () => { if (!P) return; P.items = n.items; P.past = []; P.future = []; P.saved = null; P.paper = n.paper; render(); refresh(); },
+      () => { if (P) dropDraft(P.kid); });
+  }
   function refresh() {
     if (!P) return; const el = P.el;
     $('[data-a="undo"]', el).disabled = !P.past.length; $('[data-a="redo"]', el).disabled = !P.future.length; $('[data-a="clear"]', el).disabled = !P.items.length;
@@ -382,7 +411,7 @@
     el.querySelectorAll('[data-er]').forEach(b => b.onclick = () => { P.erMode = b.dataset.er; refresh(); });
     $('input[type="range"]', el).oninput = e => { P.size = +e.target.value; if (P.editor) { P.editor.style.fontSize = textSize() + 'px'; P.editorAt[2] = textSize(); } };
     el.querySelectorAll('[data-paper]').forEach(b => b.onclick = () => { P.paper = P.paper === b.dataset.paper ? 'blank' : b.dataset.paper; refresh(); });
-    $('[data-a="penonly"]', el).onclick = () => { P.penOnly = !P.penOnly; refresh(); SB.toast(P.penOnly ? 'Pen only: finger touches will not draw.' : 'Pen only is off.'); };
+    $('[data-a="penonly"]', el).onclick = () => { P.penOnly = penOnlyChoice = !P.penOnly; refresh(); SB.toast(P.penOnly ? 'Pen only: finger touches will not draw.' : 'Pen only is off.'); };
     $('[data-a="undo"]', el).onclick = undo; $('[data-a="redo"]', el).onclick = redo;
     $('[data-a="clear"]', el).onclick = () => { commitEditor(); if (!P.items.length) return; SB.confirm({ title: 'Erase everything?', text: 'This clears the whole page. You can press Undo to get it back.', ok: 'Erase everything', cancel: 'Keep it', danger: true }, () => { commit([]); render(); }); };
     $('[data-a="close"]', el).onclick = () => requestClose();
@@ -392,18 +421,25 @@
     let last = null;
     cv.addEventListener('pointerdown', e => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (e.pointerType === 'pen' && !penSeen) {
+        penSeen = true;
+        if (penOnlyChoice == null && !P.penOnly) { P.penOnly = true; refresh(); SB.toast('Pen found. Finger touches will not draw. Turn off Pen only to use a finger.'); }
+      }
       if (P.penOnly && e.pointerType === 'touch') return;
+      if (e.pointerType === 'pen' && (P.cur || P.estroke) && P.curType === 'touch') { P.cur = null; P.estroke = null; P.pid = null; render(); }   // a resting palm started first: the pen wins
       if (P.cur || P.estroke) return;
       const [x, y] = point(e);
       if (P.tool === 'text') { e.preventDefault(); commitEditor(); openEditor(x, y); return; }
       commitEditor(); e.preventDefault();
       try { cv.setPointerCapture(e.pointerId); } catch (er) {}
-      P.pid = e.pointerId;
-      const mode = pen();
+      P.pid = e.pointerId; P.curType = e.pointerType;
+      const penEraser = e.pointerType === 'pen' && (e.button === 5 || (e.buttons & 32));   // the eraser end of a pen
+      const mode = penEraser ? 'erase' : pen();
       if (mode === 'estroke') { P.estroke = { items: P.items, r: P.size * 1.5 + 6 }; eraseAt(x, y); return; }
       const t = mode, q = pressure(e, null);
       P.cur = { k: 's', t, c: t === 'erase' ? '#000000' : P.color, w: Math.round(widthFor(t, P.size) * 10) / 10, p: [x, y, q] };
       last = { cx: e.clientX, cy: e.clientY, t: e.timeStamp, q };
+      if (PATHY[t]) { const b = P.base || (P.base = document.createElement('canvas')); b.width = P.cv.width; b.height = P.cv.height; b.getContext('2d').drawImage(P.cv, 0, 0); }
       render();
     });
     cv.addEventListener('pointermove', e => {
@@ -419,7 +455,8 @@
         if (dx * dx + dy * dy < 2.25) continue;
         const q = pressure(ev, last); last = { cx: ev.clientX, cy: ev.clientY, t: ev.timeStamp, q };
         P.cur.p.push(x, y, q);
-        if (PATHY[P.cur.t]) render(); else seg(P.g, P.cur, P.cur.p.length / 3 - 1);
+        if (PATHY[P.cur.t] && P.base) { P.g.save(); P.g.setTransform(1, 0, 0, 1, 0, 0); P.g.clearRect(0, 0, P.cv.width, P.cv.height); P.g.drawImage(P.base, 0, 0); P.g.restore(); drawStroke(P.g, P.cur); }
+        else if (PATHY[P.cur.t]) render(); else seg(P.g, P.cur, P.cur.p.length / 3 - 1);
       }
     });
     cv.addEventListener('pointerleave', () => { if (P) P.ring.style.display = 'none'; });
@@ -428,7 +465,7 @@
       if (P.estroke) { const E = P.estroke; P.estroke = null; if (E.items !== P.items) commit(E.items); render(); return; }
       if (!P.cur) return; const s = P.cur; P.cur = null; commit([...P.items, s]); render();
     };
-    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('lostpointercapture', up);
     cv.addEventListener('contextmenu', e => e.preventDefault());
   }
   /* The whole-line eraser: while dragging, the page shows the trimmed list; the history entry is made when the finger lifts. */
@@ -470,11 +507,11 @@
     const set = on => { box.hidden = !on; P.el.classList.toggle('showing-saved', on); btn.setAttribute('aria-expanded', String(on)); btn.querySelector('.l').textContent = on ? 'Back to pad' : 'Saved notes'; if (!on) fit(); };
     if (!box.hidden) return set(false);
     commitEditor(); set(true);
-    renderList(box, { onOpen: note => loadNote(note) });
+    renderList(box, { onOpen: (note, scope) => loadNote(note, false, scope) });
   }
-  function loadNote(note, quiet) {
+  function loadNote(note, quiet, scope) {
     const go = () => {
-      P.items = JSON.parse(JSON.stringify(note.items)); P.past = []; P.future = []; P.saved = P.items; P.paper = ['lines', 'graph'].includes(note.paper) ? note.paper : 'blank';
+      P.items = JSON.parse(JSON.stringify(note.items)); P.past = []; P.future = []; P.saved = P.items; P.from = scope && note.id ? { scope, id: note.id } : null; P.paper = ['lines', 'graph'].includes(note.paper) ? note.paper : 'blank';
       if (note.question && !P.question) setQuestion(note.question);
       const box = $('.sbp-saved', P.el); if (!box.hidden) toggleSaved();
       render(); refresh();
@@ -490,14 +527,17 @@
     if (!P) return false; const note = snapshotNote();
     if (kind === 'device') {
       try { const blob = await toBlob(compose({ items: note.items, w: note.w, h: note.h, paper: note.paper, question: withQuestion ? note.question : '', font: P.font, scale: 2 })); download(blob, fileName(note.at)); } catch (e) { SB.toast('Could not make the picture.'); return false; }
-      if (P) P.saved = P.items; SB.toast('Picture saved to this device.'); return true;
+      if (P) { P.saved = P.items; dropDraft(P.kid); } SB.toast('Picture saved to this device.'); return true;
     }
-    const r = store.add(kind, note, P.kid);
+    const same = P.from && P.from.scope === kind;
+    if (same) { note.id = P.from.id; }
+    const r = same ? store.replace(kind, note, P.kid) : store.add(kind, note, P.kid);
     if (!r.ok) { SB.toast(r.why); return false; }
-    P.saved = P.items; SB.toast(kind === 'profile' ? 'Saved to your notes.' : 'Kept for this session.'); return true;
+    P.saved = P.items; P.from = { scope: kind, id: note.id }; dropDraft(P.kid);
+    SB.toast(same ? 'Note updated.' : kind === 'profile' ? 'Saved to your notes.' : 'Kept for this session.'); return true;
   }
   /* The save choices. From Save the pad stays open; from closing, a choice (or Don't save) closes it. */
-  function saveDialog(closing, after) {
+  function saveDialog(closing, after, onKeep) {
     if (!P) return;
     if (!hasInk(P.items)) { SB.toast('There is nothing to save yet.'); return; }
     const canProfile = store.canProfile(P.kid);
@@ -510,14 +550,14 @@
         <button type="button" class="sb-btn" data-k="session">Keep for this session only</button></div>
       ${canProfile ? '' : '<p class="sbp-hint">Add your name to keep notes in your profile.</p>'}
       <div class="sb-row">${closing ? '<button type="button" class="sb-btn warn" data-k="discard">Do not save</button>' : ''}<button type="button" class="sb-btn ghost" data-k="keep">${closing ? 'Keep working' : 'Cancel'}</button></div>`, (box, close, ov) => {
-      ov._cancel = () => { close(); };
+      ov._cancel = () => { close(); onKeep && onKeep(); };
       box.querySelectorAll('[data-k]').forEach(b => b.onclick = async () => {
         const k = b.dataset.k, withQ = !!(box.querySelector('#sbpQ') || {}).checked;
-        if (k === 'keep') return close();
-        if (k === 'discard') { close(); closePad(); after && after(true); return; }
+        if (k === 'keep') { close(); onKeep && onKeep(); return; }
+        if (k === 'discard') { close(); if (P) dropDraft(P.kid); closePad(); after && after(true); return; }
         box.querySelectorAll('button').forEach(x => x.disabled = true);
         const ok = await saveTo(k, withQ); close();
-        if (ok && closing) { closePad(); after && after(true); }
+        if (ok && closing) { closePad(); after && after(true); } else if (!ok && closing) onKeep && onKeep();
       });
     });
   }
@@ -528,7 +568,8 @@
     saveDialog(true, after);
   }
   function closePad() {
-    if (!P) return; commitEditor(); const p = P; P = null;
+    if (!P) return; commitEditor(); if (!dirty()) dropDraft(P.kid); const p = P; P = null;
+    (p.inerted || []).forEach(c => { c.inert = false; });
     p.listeners.forEach(f => f()); p.el.remove(); document.body.classList.remove('sb-padopen');
     try { p.onClose && p.onClose(); } catch (e) {}
     const back = (p.opener && p.opener.isConnected) ? p.opener : document.getElementById('sbPad');
@@ -556,5 +597,5 @@
     });
   }
 
-  window.SBPad = { open, setQuestion, guard, isOpen, renderList, store, compose, requestClose, debug: () => P && ({ items: P.items, tool: P.tool, paper: P.paper, penOnly: P.penOnly, question: P.question, dirty: dirty() }) };
+  window.SBPad = { open, setQuestion, guard, isOpen, renderList, store, compose, requestClose, debug: () => P && ({ items: P.items, tool: P.tool, paper: P.paper, penOnly: P.penOnly, from: P.from, question: P.question, dirty: dirty() }) };
 })();

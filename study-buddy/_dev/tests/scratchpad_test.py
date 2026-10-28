@@ -301,13 +301,58 @@ async def main():
         check('Add your name' in await gp.inner_text('#notesBox'), 'Guest My notes page explains profile notes')
         await gx.close()
 
+        # ---- second review: palm then pen, re-saving a note, drafts, Back, lazy loading ----
+        rx = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block'); await rx.add_init_script(INIT)
+        rp = await rx.new_page(); rp.on('pageerror', lambda e: errors.append(str(e))); rp.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
+        await rp.goto(BASE + 'index.html#/home'); await rp.wait_for_selector('.grid')
+        check(not await rp.evaluate("!!window.SBPad"), 'the hub does not load the scratch pad code until it is needed')
+        await rp.goto(VOL + '?tool=cubes'); await rp.wait_for_selector('#sbPad'); await rp.click('#sbPad'); await rp.wait_for_selector('.sbp')
+        await rp.evaluate("""() => { const c = document.querySelector('.sbp-ink'), r = c.getBoundingClientRect();
+          const ev = (t, x, y, ty, id) => c.dispatchEvent(new PointerEvent(t, { bubbles: true, cancelable: true, pointerId: id, pointerType: ty, pressure: .5, clientX: r.left + x, clientY: r.top + y, isPrimary: ty === 'touch', button: 0, buttons: t === 'pointerup' ? 0 : 1 }));
+          ev('pointerdown', 300, 300, 'touch', 31); ev('pointermove', 320, 330, 'touch', 31);        /* the palm lands first */
+          ev('pointerdown', 40, 40, 'pen', 32); ev('pointermove', 90, 60, 'pen', 32); ev('pointermove', 140, 80, 'pen', 32); ev('pointerup', 140, 80, 'pen', 32);
+          ev('pointermove', 340, 350, 'touch', 31); ev('pointerup', 340, 350, 'touch', 31);
+          ev('pointerdown', 300, 100, 'touch', 33); ev('pointermove', 350, 120, 'touch', 33); ev('pointerup', 350, 120, 'touch', 33); }""")
+        st = await state(rp)
+        check(len(st['items']) == 1 and st['items'][0]['p'][0] == 40, f'a resting palm does not block the pen: only the pen stroke is kept ({len(st["items"])} items)')
+        check(st['penOnly'], 'after the first pen touch, Pen only turns itself on')
+        await rp.click('.sbp [data-a="close"]'); await rp.click('.sb-ov [data-k="profile"]'); await rp.wait_for_selector('.sbp', state='detached')
+        await rp.click('#sbPad'); await rp.wait_for_selector('.sbp'); check((await state(rp))['penOnly'], 'Pen only stays on for the next pad this visit')
+        await rp.click('.sbp [data-a="notes"]'); await rp.click('.sbp-saved [data-scope="profile"] [data-a="open"]')
+        await stroke(rp, [(200, 200), (260, 240)], steps=3)
+        n0 = await rp.evaluate("SBPad.store.list('profile').length")
+        await rp.click('.sbp [data-a="save"]'); await rp.click('.sb-ov [data-k="profile"]'); await rp.wait_for_timeout(100)
+        lst = await rp.evaluate("SBPad.store.list('profile')")
+        check(len(lst) == n0 and len(lst[0]['items']) == 2, f'saving an opened note again updates it instead of making a copy ({n0} -> {len(lst)})')
+        await rp.click('.sbp [data-a="save"]'); await rp.click('.sb-ov [data-k="session"]'); await rp.wait_for_timeout(100)
+        check(await rp.evaluate("SBPad.store.list('profile').length") == n0 and await rp.evaluate("SBPad.store.list('session').length") == 1, 'saving it somewhere else still makes a new note there')
+        # a draft survives a reload (iPhone and iPad give no warning)
+        await stroke(rp, [(60, 300), (160, 340)], steps=3)
+        await rp.reload(); await rp.wait_for_selector('#sbPad'); await rp.click('#sbPad'); await rp.wait_for_selector('.sb-ov')
+        check('Bring back' in await rp.inner_text('.sb-ov'), 'reopening after a reload offers the unsaved writing back')
+        await rp.click('.sb-ov [data-x="yes"]'); st = await state(rp)
+        check(len(st['items']) == 3 and st['dirty'], f'the writing comes back, still unsaved ({len(st["items"])} items)')
+        await rp.click('.sbp [data-a="close"]'); await rp.click('.sb-ov [data-k="discard"]'); await rp.wait_for_selector('.sbp', state='detached')
+        await rp.click('#sbPad'); await rp.wait_for_timeout(200)
+        check(await rp.locator('.sb-ov').count() == 0, 'after Do not save, no draft is offered')
+        await close_clean(rp)
+        # Back with unsaved writing
+        await rp.goto(BASE + 'index.html#/home'); await rp.goto(BASE + 'index.html#/notes'); await rp.wait_for_selector('#notesBox .sbn')
+        await rp.click('#notesBox [data-a="open"]'); await rp.wait_for_selector('.sbp'); await stroke(rp, [(30, 30), (90, 90)], steps=3)
+        await rp.go_back(); await rp.wait_for_selector('.sb-ov'); await rp.click('.sb-ov [data-k="keep"]'); await rp.wait_for_timeout(200)
+        check(rp.url.endswith('#/notes') and await rp.locator('.sbp').count() == 1, f'Keep working after Back returns to the page the pad was on ({rp.url[-12:]})')
+        await close_clean(rp); await rx.close()
+
         # ---- layout: phone, display options, dark mode ----
         for label, extra in (('plain', ''), ('dyslexic + larger', "SB.setSetting('font','dyslexic'); SB.setSetting('size','large'); SB.applyDisplay()")):
-            m = await b.new_context(viewport={'width': 360, 'height': 740}, service_workers='block', has_touch=True)   # (mobile emulation plus body zoom widens the layout viewport on every page, so it is left off); await m.add_init_script(INIT)
+            m = await b.new_context(viewport={'width': 360, 'height': 740}, service_workers='block', has_touch=True); await m.add_init_script(INIT)   # (mobile emulation plus body zoom widens the layout viewport on every page, so it is left off)
             q = await m.new_page(); q.on('pageerror', lambda e: errors.append(str(e)))
             await q.goto(VOL + '?tool=cubes'); await q.wait_for_selector('#sbPad')
             if extra: await q.evaluate(extra); await q.wait_for_timeout(150)
             ovx = await overflow(q); check(ovx['h'] <= 0, f'360px {label}: no sideways scroll before opening {ovx}')
+            if not extra:
+                hb, hr = await q.locator('.sbbrand').bounding_box(), await q.locator('.sbhead-r').bounding_box()
+                check(abs(hb['y'] - hr['y']) < 12 and hr['height'] < 60, f'360px: the header buttons (with Notes) fit on one row beside Home ({hb["y"]:.0f} vs {hr["y"]:.0f}, {hr["height"]:.0f}px)')
             await q.click('#sbPad'); await q.wait_for_selector('.sbp'); await q.wait_for_timeout(150)
             r = await q.locator('.sbp').bounding_box()
             check(r['x'] <= 1 and 355 <= r['width'] <= 361, f'360px {label}: the pad fills the screen {r}')
