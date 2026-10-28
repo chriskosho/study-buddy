@@ -450,7 +450,8 @@ details.pmod[open]>summary{margin-bottom:6px}
 .sb-dlg .sb-field{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:12px}
 .sb-dlg p.sb-hint{font-size:15px;color:var(--coral-ink)}
 @media print{
-  :root,html.sb-dark{--paper:#fff;--card:#fff;--surface:#fff;--ink:#000;--ink2:#444;--line:#bbb;--track:#ddd;--teal-fill:#0e7468}
+  :root,html.sb-dark{--paper:#fff;--card:#fff;--surface:#fff;--ink:#000;--ink2:#444;--line:#bbb;--track:#ddd;--navy:#2b4162;--navy-ink:#2b4162;--teal:#1b998b;--coral:#e4572e;--good:#2e9e5b;--bad:#d64545;--teal-ink:#0e7569;--good-ink:#1e7340;--coral-ink:#b23a15;--bad-ink:#b32d2d;--teal-fill:#0e7468;--good-fill:#1d7442;--tint-good:#dff3e6;--tint-bad:#fbe0e0;--tint-note:#fff7e3;--note-line:#f1d9a0;color-scheme:light}
+  html.sb-dark .diff.easy{color:#23784a} html.sb-dark .diff.medium{color:#8a5a00} html.sb-dark .diff.hard{color:#b73e1b}
   body{background:#fff;color:#000}
   .sbhead,.sbfoot,.bar2,.noprint,.note,#sbPad,.sb-toast,#sb-toast{display:none!important}
   section.panel{border:0;padding:0}

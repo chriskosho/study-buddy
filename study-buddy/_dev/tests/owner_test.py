@@ -80,6 +80,10 @@ async def main():
         check(await pg.evaluate("[...document.querySelectorAll('details.pmod')].some(d => !d.open)"), 'and closes them again afterwards')
         await pg.emulate_media(media='print')
         check(await pg.evaluate("getComputedStyle(document.querySelector('.sbhead')).display === 'none' && getComputedStyle(document.querySelector('#printBtn')).display === 'none' && getComputedStyle(document.querySelector('.bar2')).display === 'none'"), 'the printout leaves out the header, tabs, and buttons')
+        await pg.evaluate("SB.setSetting('theme', 'dark', 'k1'); SB.applyDisplay()"); await pg.wait_for_timeout(50)
+        pc = await pg.evaluate("[getComputedStyle(document.querySelector('.diff.easy')).color, getComputedStyle(document.body).backgroundColor]")
+        check(pc == ['rgb(35, 120, 74)', 'rgb(255, 255, 255)'], f'a child in dark mode still prints dark text on white {pc}')
+        await pg.evaluate("SB.setSetting('theme', 'light', 'k1'); SB.applyDisplay()")
         await pg.emulate_media(media='screen')
         await shot(pg, 'owner-progress')
         for theme in ['dark']:
@@ -103,9 +107,27 @@ async def main():
         await pg.goto(BASE + 'index.html#/parent/children'); await pg.wait_for_selector('.kidrow[data-id]')
         check(await pg.locator('.movebox').count() == 1 and await pg.locator('.kidrow[data-id="g1"] .movebox').count() == 1, 'only Guest offers to move its progress')
         await shot(pg, 'owner-children')
+        # a full device: nothing is lost, Guest stays
+        await pg.evaluate("window.__set = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (String(k).includes('.child.k2')) throw new DOMException('full', 'QuotaExceededError'); return window.__set.call(this, k, v); }; 0")
         await pg.select_option('.moveTo', 'k2'); await pg.click('[data-act="move"]'); await pg.click('.sb-dlg [data-x="yes"]'); await pg.wait_for_timeout(80)
-        st = await pg.evaluate("({ ids: SB.profiles().map(p => p.id), tools: Object.keys(SB.child('k2').tools), days: Object.values(SB.child('k2').days || {}) })")
-        check(st['ids'] == ['k1', 'k2'] and 'place-value/place' in st['tools'] and st['days'] == [1], f"Guest's scores and history now belong to Hazel, and Guest is gone {st}")
+        st = await pg.evaluate("({ ids: SB.profiles().map(p => p.id), g: Object.keys(SB.child('g1').tools) })")
+        check(st['ids'] == ['k1', 'k2', 'g1'] and st['g'] == ['place-value/place'], f'when the device is full, the move changes nothing and Guest keeps its progress {st}')
+        await pg.evaluate("Storage.prototype.setItem = window.__set; 0")
+        # odd saved data does not stop the move; too many notes are named in the question
+        await pg.evaluate("""(() => {
+          const g = JSON.parse(localStorage.getItem('studybuddy.v1.child.g1')); g.misses = { volume: null, 'place-value': { 'Q (answer: 1)': 2 } }; localStorage.setItem('studybuddy.v1.child.g1', JSON.stringify(g));
+          const n = i => ({ id: 'n' + i, at: i, items: [] });
+          localStorage.setItem('studybuddy.v1.notes.k2', JSON.stringify([...Array(20).keys()].map(i => n(100 + i))));
+          localStorage.setItem('studybuddy.v1.notes.g1', JSON.stringify([...Array(10).keys()].map(i => n(i))));
+          localStorage.setItem('studybuddy.v1.m.k2.stamps', JSON.stringify(['peru'])); localStorage.setItem('studybuddy.v1.m.g1.stamps', JSON.stringify(['chile', 'peru']));
+        })()""")
+        await pg.goto(BASE + 'index.html#/parent/children'); await pg.wait_for_selector('.movebox')
+        await pg.select_option('.moveTo', 'k2'); await pg.click('[data-act="move"]')
+        check('5 oldest notes will be left out' in await pg.inner_text('.sb-dlg'), 'the question says which notes will not fit')
+        await pg.click('.sb-dlg [data-x="yes"]'); await pg.wait_for_timeout(80)
+        st = await pg.evaluate("({ ids: SB.profiles().map(p => p.id), tools: Object.keys(SB.child('k2').tools), days: Object.values(SB.child('k2').days), today: SB.child('k2').daily.n, miss: SB.child('k2').misses['place-value'], notes: JSON.parse(localStorage.getItem('studybuddy.v1.notes.k2')).length, stamps: JSON.parse(localStorage.getItem('studybuddy.v1.m.k2.stamps')) })")
+        check(st['ids'] == ['k1', 'k2'] and 'place-value/place' in st['tools'] and st['days'] == [1] and st['today'] == 1, f"Guest's scores, today's count and history now belong to Hazel, and Guest is gone {st}")
+        check(st['miss'] == {'Q (answer: 1)': 2} and st['notes'] == 25 and st['stamps'] == ['peru', 'chile'], f"missed questions, notes (up to 25) and module lists are combined {st}")
 
         # ---- load one child from a backup ----
         backup = await pg.evaluate("SB.exportAll()")
@@ -115,7 +137,9 @@ async def main():
         await pg.set_input_files('#imp1', files=[{'name': 'b.json', 'mimeType': 'application/json', 'buffer': backup.encode()}])
         await pg.wait_for_selector('.sb-dlg #oneFrom')
         await pg.select_option('#oneFrom', 'k2'); await pg.wait_for_timeout(30)
-        check(await pg.evaluate("document.querySelector('#oneTo').value") == 'k2' and await pg.locator('#oneWarn').is_visible(), 'a child with the same name is picked to replace, with a warning')
+        check(await pg.evaluate("document.querySelector('#oneTo').value") == '' and not await pg.locator('#oneWarn').is_visible(), 'loading one child starts as a new child')
+        await pg.select_option('#oneTo', 'k2'); await pg.wait_for_timeout(30)
+        check(await pg.locator('#oneWarn').is_visible(), 'choosing to replace a child shows a warning')
         await shot(pg, 'owner-loadone')
         await pg.click('.sb-dlg [data-x="yes"]'); await pg.wait_for_timeout(80)
         k2 = await pg.evaluate("Object.keys(SB.child('k2').tools)")

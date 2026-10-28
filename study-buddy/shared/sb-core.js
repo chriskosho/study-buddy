@@ -54,6 +54,7 @@
   const allKeys = () => { const out = []; try { for (let i = 0; i < localStorage.length; i++) out.push(localStorage.key(i)); } catch (e) {} return out; };
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
   const uid = () => Math.random().toString(36).slice(2, 7) + Date.now().toString(36).slice(-4);
+  const objOr = v => v && typeof v === 'object' && !Array.isArray(v) ? v : {};
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   function root() { return Object.assign({ profiles: [], active: null, pin: null, pinRemovedAt: null }, read(ROOT, {})); }
@@ -65,6 +66,7 @@
     if (!d.daily || typeof d.daily !== 'object') d.daily = { d: '', n: 0, done: false };
     d.daily.n = Number(d.daily.n) || 0;
     if (!d.tools || typeof d.tools !== 'object') d.tools = {};
+    d.days = objOr(d.days); d.misses = objOr(d.misses);   // the parent area's history and missed questions
     if (d.daily.d !== today()) d.daily = { d: today(), n: 0, done: false };
     return d;
   }
@@ -148,27 +150,49 @@
     const keys = Object.keys(m); if (keys.length > 40) keys.sort((a, b) => m[a] - m[b]).slice(0, keys.length - 40).forEach(k => delete m[k]);
     all[moduleId] = m; d.misses = all; saveChild(id, d);
   }
-  /* move everything one profile earned into another (used for Guest): best scores by share, counts added, then the first profile is deleted */
+  /* move everything one profile earned into another (used for Guest). Nothing is deleted unless every save worked. */
+  const NOTES_MAX = 25, NOTES_BYTES = 1200000;   // the scratch pad's own limits for notes saved to a profile
+  function mergedNotes(fromId, toId) {
+    const na = read(NS + '.notes.' + fromId, []), nb = read(NS + '.notes.' + toId, []);
+    const all = (Array.isArray(nb) ? nb : []).concat(Array.isArray(na) ? na : []).sort((x, y) => (y.at || 0) - (x.at || 0));
+    let keep = all.slice(0, NOTES_MAX); while (keep.length > 1 && JSON.stringify(keep).length > NOTES_BYTES) keep = keep.slice(0, -1);
+    return { keep, dropped: all.length - keep.length, any: Array.isArray(na) && na.length > 0 };
+  }
+  /* module state both profiles have: lists are joined, records are combined (the child's value wins a clash), anything else stays the child's */
+  function mergeState(mine, theirs) {
+    let x, y; try { x = JSON.parse(mine); y = JSON.parse(theirs); } catch (e) { return mine; }
+    if (Array.isArray(x) && Array.isArray(y)) { const seen = new Set(x.map(v => JSON.stringify(v))); return JSON.stringify(x.concat(y.filter(v => !seen.has(JSON.stringify(v))))); }
+    if (x && y && typeof x === 'object' && typeof y === 'object' && !Array.isArray(x) && !Array.isArray(y)) return JSON.stringify(Object.assign({}, y, x));
+    return mine;
+  }
+  const mergePreview = (fromId, toId) => ({ notesDropped: mergedNotes(fromId, toId).dropped });
   function mergeProfile(fromId, toId) {
     if (fromId === toId) return; const a = child(fromId), b = child(toId);
     Object.entries(a.tools).forEach(([k, r]) => {
+      if (!r || typeof r !== 'object') return;
       const t = b.tools[k];
-      if (!t) { b.tools[k] = r; return; }
-      t.attempts = (t.attempts || 0) + (r.attempts || 0); t.visits = (t.visits || 0) + (r.visits || 0); t.last = Math.max(t.last || 0, r.last || 0);
+      if (!t || typeof t !== 'object') { b.tools[k] = r; return; }
+      t.attempts = (Number(t.attempts) || 0) + (Number(r.attempts) || 0); t.visits = (Number(t.visits) || 0) + (Number(r.visits) || 0); t.last = Math.max(Number(t.last) || 0, Number(r.last) || 0);
       const better = t.best == null || (r.best != null && (r.max && t.max ? r.best / r.max > t.best / t.max : r.best > t.best));
       if (better) { t.best = r.best; t.max = r.max; }
     });
     b.bestStreak = Math.max(b.bestStreak, a.bestStreak);
-    Object.entries(a.days || {}).forEach(([k, n]) => { b.days = b.days || {}; b.days[k] = (Number(b.days[k]) || 0) + (Number(n) || 0); });
-    Object.entries(a.misses || {}).forEach(([mod, m]) => { b.misses = b.misses || {}; const t = b.misses[mod] = b.misses[mod] || {}; Object.entries(m).forEach(([q, n]) => { t[q] = (Number(t[q]) || 0) + (Number(n) || 0); }); });
+    if (a.daily.d === b.daily.d) { b.daily.n += a.daily.n; b.daily.done = b.daily.done || a.daily.done || b.daily.n >= DAILY_GOAL; }
+    Object.entries(a.days).forEach(([k, n]) => { b.days[k] = (Number(b.days[k]) || 0) + (Number(n) || 0); });
+    Object.entries(a.misses).forEach(([mod, m]) => { const t = b.misses[mod] = objOr(b.misses[mod]); Object.entries(objOr(m)).forEach(([q, n]) => { t[q] = (Number(t[q]) || 0) + (Number(n) || 0); }); });
     if (!b.last || (a.last && a.last.at > b.last.at)) b.last = a.last;
-    saveChild(toId, b);
-    allKeys().filter(k => k && k.startsWith(MODPREFIX(fromId))).forEach(k => { const nk = MODPREFIX(toId) + k.slice(MODPREFIX(fromId).length); if (localStorage.getItem(nk) == null) { try { localStorage.setItem(nk, localStorage.getItem(k)); } catch (e) { storageFull(); } } });
-    const na = read(NS + '.notes.' + fromId, []), nb = read(NS + '.notes.' + toId, []);
-    if (Array.isArray(na) && na.length) {
-      let all = (Array.isArray(nb) ? nb : []).concat(na).sort((x, y) => (y.at || 0) - (x.at || 0)).slice(0, 25);
-      while (all.length > 1 && JSON.stringify(all).length > 1200000) all = all.slice(0, -1);   // the scratch pad's own limits
-      write(NS + '.notes.' + toId, all);
+    /* every write goes through one list, so a full device puts everything back the way it was */
+    const writes = { [CHILD(toId)]: JSON.stringify(b) };
+    allKeys().filter(k => k && k.startsWith(MODPREFIX(fromId))).forEach(k => {
+      const nk = MODPREFIX(toId) + k.slice(MODPREFIX(fromId).length), mine = localStorage.getItem(nk), theirs = localStorage.getItem(k);
+      writes[nk] = mine == null ? theirs : mergeState(mine, theirs);
+    });
+    const notes = mergedNotes(fromId, toId); if (notes.any) writes[NS + '.notes.' + toId] = JSON.stringify(notes.keep);
+    const old = {}; Object.keys(writes).forEach(k => { old[k] = localStorage.getItem(k); });
+    try { Object.entries(writes).forEach(([k, v]) => localStorage.setItem(k, v)); }
+    catch (e) {
+      Object.entries(old).forEach(([k, v]) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e2) {} });
+      throw new Error('There was not enough room on this device to move the progress. Nothing was changed.');
     }
     const r = root(); if (r.active === fromId) { r.active = toId; saveRoot(r); }
     deleteProfile(fromId);
@@ -192,7 +216,10 @@
       Object.entries(old).forEach(([k, v]) => { try { localStorage.setItem(k, v); } catch (e2) {} });
       throw new Error('There was not enough room to load that child. Nothing was changed.');
     }
-    if (isNew) { r.profiles.push({ id: to, name: String(src.name).trim().slice(0, 24) || 'Child', color: safeColor(src.color) }); saveRoot(r); }
+    if (isNew) {
+      r.profiles.push({ id: to, name: String(src.name).trim().slice(0, 24) || 'Child', color: safeColor(src.color) });
+      if (!write(ROOT, r)) { allKeys().filter(k => k && mine(k)).forEach(remove); throw new Error('There was not enough room to load that child. Nothing was changed.'); }
+    }
     bumpEpoch(); return to;
   }
   function slip() { const id = activeId(); if (!id) return; const d = child(id); d.streak = 0; saveChild(id, d); }
@@ -732,6 +759,7 @@
         if ((j.streak != null && !num(j.streak)) || (j.bestStreak != null && !num(j.bestStreak))) throw new Error('This backup is damaged, so nothing was changed.');
         if (j.daily != null && (!isObj(j.daily) || !num(j.daily.n) || typeof j.daily.d !== 'string')) throw new Error('This backup is damaged, so nothing was changed.');
         if (j.settings != null && !isObj(j.settings)) throw new Error('This backup is damaged, so nothing was changed.');
+        if ((j.days != null && !isObj(j.days)) || (j.misses != null && !isObj(j.misses))) throw new Error('This backup is damaged, so nothing was changed.');
         if (j.tools != null) {
           if (!isObj(j.tools)) throw new Error('This backup is damaged, so nothing was changed.');
           for (const t of Object.values(j.tools)) if (!isObj(t) || ['attempts', 'visits', 'best', 'max', 'lastScore', 'last'].some(f => t[f] != null && !num(t[f]))) throw new Error('This backup is damaged, so nothing was changed.');
@@ -799,7 +827,7 @@
     root, profiles, profile, activeProfile, activeId, setActive, addProfile, isGuest, ensureGuest, nameDialog, afterProfileAdded, offerPin, updateProfile, deleteProfile, resetChild, resetAllProgress, eraseEverything, resetModule,
     avatar, colorInk, initial, child,
     getSetting, setSetting,
-    credit, slip, streakInfo, pillHTML, noteMiss, mergeProfile, importChild, dayKey, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
+    credit, slip, streakInfo, pillHTML, noteMiss, mergeProfile, mergePreview, importChild, dayKey, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
     moduleKey, requireProfile,
     tone, sfx, say, stopSpeech, stopAll, voicesFor, voiceId, voiceLabels, pickVoice, applyVoice, sayButton, toast, applyDisplay, displayDialog, swipeCard, cardToast,
     dialog, confirm: confirmDlg, requirePin, newPinDialog, hasPin, dismissPinNote, isUnlocked, lock,

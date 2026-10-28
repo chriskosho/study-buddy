@@ -273,7 +273,11 @@
       r.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { const k = b.dataset.set; SB.setSetting(k, !SB.getSetting(k, id), id); pChildren(box); });
       r.querySelector('[data-act="reset"]').onclick = () => SB.confirm({ title: 'Reset ' + p.name + "'s progress?", text: 'This erases best scores, streaks, and module progress (like passport stamps) for ' + p.name + '. Settings stay.', ok: 'Reset progress', danger: true }, () => { SB.resetChild(id); SB.toast(p.name + "'s progress was reset"); pChildren(box); });
       const mv = r.querySelector('[data-act="move"]');
-      if (mv) mv.onclick = () => { const to = SB.profile(r.querySelector('.moveTo').value); if (!to) return; SB.confirm({ title: "Move Guest's progress to " + to.name + '?', text: 'Best scores, streaks, history, and notes from Guest are added to ' + to.name + ', and the Guest profile is removed.', ok: 'Move progress' }, () => { SB.mergeProfile(id, to.id); SB.toast("Guest's progress now belongs to " + to.name); pChildren(box); }); };
+      if (mv) mv.onclick = () => { const to = SB.profile(r.querySelector('.moveTo').value); if (!to) return; const lost = SB.mergePreview(id, to.id).notesDropped;
+        SB.confirm({ title: "Move Guest's progress to " + to.name + '?', text: "Guest's scores, rounds, today's count, history, missed questions, module progress, and notes are added to " + to.name + '. Where both saved the same thing, ' + to.name + "'s stays. Then the Guest profile is removed." + (lost ? ' Only 25 notes fit, so the ' + plural(lost, 'oldest note') + ' will be left out.' : ''), ok: 'Move progress' }, () => {
+          try { SB.mergeProfile(id, to.id); SB.toast("Guest's progress now belongs to " + to.name); } catch (err) { SB.toast(err.message); }
+          pChildren(box);
+        }); };
       r.querySelector('[data-act="delete"]').onclick = () => SB.confirm({ title: 'Delete ' + p.name + '?', text: 'This removes the profile and all of its progress from this device.', ok: 'Delete', danger: true }, () => { SB.deleteProfile(id); SB.toast(p.name + ' was removed'); pChildren(box); });
     });
     box.querySelectorAll('#newSw .swatch').forEach(s => s.onclick = () => { newColor = s.dataset.c; box.querySelectorAll('#newSw .swatch').forEach(x => x.setAttribute('aria-pressed', x === s)); });
@@ -316,9 +320,8 @@
         <p class="sb-hint" id="oneWarn" hidden>This replaces that child's progress, settings, and notes here.</p>
         <div class="sb-row"><button class="sb-btn ghost" data-x="no">Cancel</button><button class="sb-btn" data-x="yes">Load child</button></div>`, (dlg, close) => {
         const to = dlg.querySelector('#oneTo'), warn = dlg.querySelector('#oneWarn'), yes = dlg.querySelector('[data-x="yes"]');
-        const match = () => { const name = (kids.find(k => k.id === dlg.querySelector('#oneFrom').value) || {}).name; const same = here.find(p => p.name === name); to.value = same ? same.id : ''; sync(); };
-        const sync = () => { warn.hidden = !to.value; yes.classList.toggle('warn', !!to.value); };
-        dlg.querySelector('#oneFrom').onchange = match; to.onchange = sync; match();
+        const sync = () => { warn.hidden = !to.value; yes.classList.toggle('warn', !!to.value); };   // starts as a new child; replacing is a choice, with a warning
+        to.onchange = sync; sync();
         dlg.querySelector('[data-x="no"]').onclick = close;
         yes.onclick = () => {
           const from = dlg.querySelector('#oneFrom').value, target = to.value || null, kid = kids.find(k => k.id === from);
