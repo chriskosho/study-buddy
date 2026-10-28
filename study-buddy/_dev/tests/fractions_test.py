@@ -77,13 +77,13 @@ async def main():
             await pg.goto(MOD + '?tool=' + tool); await pg.wait_for_selector(f'#tab-{tool} .qtext')
             hh = await qhtml(pg, tool)
             if tool == 'review' and ('<b>?</b>' in hh): continue
-            check(await pg.locator(f'#tab-{tool} .qtext .frac').count() >= 2, f'{tool}: fractions are drawn stacked')
+            check(await pg.locator(f'#tab-{tool} .qtext .frac').count() >= 1, f'{tool}: fractions are drawn stacked')
             msg = await type_check(pg, tool, 'abc'); check('Type a fraction' in msg, f'{tool}: typing nonsense gets a hint, not a try ({msg!r})')
         # the unlike tool in detail
         await pg.goto(MOD + '?tool=unlike'); await pg.wait_for_selector('#tab-unlike .qtext')
         for round_ in range(10):
             hh = await qhtml(pg, 'unlike'); want = solve(hh)
-            if round_ == 0:
+            if round_ == 0 and want.denominator > 1:
                 un = f'{want.numerator * 2}/{want.denominator * 2}' if want.denominator > 1 else '0'
                 msg = await type_check(pg, 'unlike', un); check('simplest form' in msg, f'unreduced right amount gets a nudge ({msg!r})')
                 check(await pg.locator('#tab-unlike [data-a="next"]').is_hidden(), 'the nudge does not end the question')

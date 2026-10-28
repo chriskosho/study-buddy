@@ -13,9 +13,9 @@
         <div class="fgout" aria-live="polite"></div>
         <div class="rules">
           <div class="rule"><h3>Changing units</h3><p>Going to a <b>smaller</b> unit, you need more of them: multiply. ${f(3, 4)} foot &times; 12 = <b>9 inches</b>.</p><p>Going to a <b>bigger</b> unit, you need fewer: divide. 90 minutes &divide; 60 = <b>${L.html(F(3, 2))} hours</b>.</p></div>
-          <div class="rule"><h3>Rectangle</h3><p>Area = length &times; width.</p>${G.rectQ().q.match(/<span class="mfigwrap">.*?<\/span>(?=What)/)[0].replace(/aria-label="[^"]*"/, 'aria-label="A rectangle"')}<p>${f(1, 2)} &times; ${f(1, 3)} = <b>${f(1, 6)}</b> square unit.</p></div>
+          <div class="rule"><h3>Rectangle</h3><p>Area = length &times; width.</p>${G.rectFig(F(1, 2), F(1, 3))}<p>${f(1, 2)} &times; ${f(1, 3)} = <b>${f(1, 6)}</b> square unit.</p></div>
           <div class="rule"><h3>Area model with mixed numbers</h3><p>${L.html(F(5, 2))} &times; ${L.html(F(7, 3))} = (2 + ${f(1, 2)}) &times; (2 + ${f(1, 3)}). Add four small rectangles: 4 + ${f(2, 3)} + 1 + ${f(1, 6)} = <b>${L.html(F(35, 6))}</b>.</p></div>
-          <div class="rule"><h3>Triangle</h3><p>Area = ${f(1, 2)} &times; base &times; height. The height goes straight from the base to the top, even if it falls outside an obtuse triangle.</p><p>Base 8, height 5: ${f(1, 2)} &times; 8 &times; 5 = <b>20</b>.</p></div>
+          <div class="rule"><h3>Triangle</h3><p>Area = ${f(1, 2)} &times; base &times; height. The height makes a square corner with the base, even if it falls outside an obtuse triangle.</p><p>Base 8, height 5: ${f(1, 2)} &times; 8 &times; 5 = <b>20</b>.</p></div>
           <div class="rule"><h3>Trapezoid</h3><p>Area = ${f(1, 2)} &times; (base 1 + base 2) &times; height.</p><p>Bases 4 and 10, height 6: ${f(1, 2)} &times; 14 &times; 6 = <b>42</b>.</p></div>
           <div class="rule"><h3>Composite figures</h3><p>Split the figure into rectangles and triangles, or take a missing part away from a bigger rectangle. Find each area, then add or subtract.</p></div>
         </div>`;
@@ -44,7 +44,7 @@
   };
 
   const fa = (title, lead, fn) => ({ init(ctx) { SBT.answer(ctx, { title, lead, kind: 'fraction', rounds: 10, build: () => many(fn) }); } });
-  const FORM = ' Type whole numbers, fractions like 3/4, and mixed numbers like 1 3/4. Do not type the units.';
+  const FORM = ' Type whole numbers, fractions like 3/4, or mixed numbers like 1 3/4. No units.';
   const units = fa('Convert customary units', 'Feet, yards, pounds and gallons, with fractions.' + FORM, G.customaryQ);
   const time = fa('Convert units of time', 'Hours, minutes, seconds, days, weeks and years.' + FORM, G.timeQ);
   const rect = fa('Area of a rectangle', 'Sides can be fractions or mixed numbers.' + FORM, G.rectQ);

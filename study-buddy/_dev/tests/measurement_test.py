@@ -60,7 +60,8 @@ async def main():
                 ('pound', 'ounces'): 16, ('pounds', 'ounces'): 16, ('gallon', 'quarts'): 4, ('gallons', 'quarts'): 4, ('quart', 'pints'): 2, ('quarts', 'pints'): 2, ('pint', 'cups'): 2, ('pints', 'cups'): 2,
                 ('gallon', 'cups'): 16, ('gallons', 'cups'): 16, ('hour', 'minutes'): 60, ('hours', 'minutes'): 60, ('minute', 'seconds'): 60, ('minutes', 'seconds'): 60, ('day', 'hours'): 24, ('days', 'hours'): 24,
                 ('week', 'days'): 7, ('weeks', 'days'): 7, ('year', 'months'): 12, ('years', 'months'): 12}
-        BIG = {k[0] for k in FACT}
+        SING = {'foot': 'feet', 'inch': 'inches', 'ounce': 'ounces', 'pint': 'pints', 'cup': 'cups', 'quart': 'quarts', 'minute': 'minutes', 'second': 'seconds', 'hour': 'hours', 'day': 'days', 'month': 'months', 'pound': 'pounds', 'week': 'weeks', 'yard': 'yards', 'gallon': 'gallons', 'year': 'years'}
+        def pl(u): return SING.get(u, u)
         async def solve(tool):
             hh = await pg.inner_html(f'#tab-{tool} .qtext'); text = re.sub(r'<svg.*?</svg>', ' ', hh, flags=re.S); text = re.sub(r'<[^>]+>', ' ', text); text = re.sub(r'\s+', ' ', text)
             labels = [re.sub(r'<[^>]+>', '', t) for t in re.findall(r'<text[^>]*>(.*?)</text>', hh)]
@@ -71,9 +72,9 @@ async def main():
             if board: return values(hh)[0] * FACT[(board[1], board[2])]
             conv = re.search(r'= \? (\w+)', text)
             if conv and 'area' not in text:
-                v = values(hh)[0]; m = re.search(r'\? ?.*?(\w+) = \?', text) ; unit_from = re.findall(r'([a-z]+) = \?', text)[0]
-                f = FACT.get((unit_from, conv[1]))
-                return v * f if f else v / FACT[(conv[1], unit_from)]
+                v = values(hh)[0]; m = re.search(r'\? ?.*?(\w+) = \?', text) ; unit_from = pl(re.findall(r'([a-z]+) = \?', text)[0])
+                f = FACT.get((unit_from, pl(conv[1])))
+                return v * f if f else v / FACT[(pl(conv[1]), unit_from)]
             ar = (re.search(r'aria-label="([^"]*)"', hh) or [None, 'NONE ' + text])[1]
             if ar.startswith('A rectangle') and 'cut out' not in ar and 'triangle' not in ar: return num(labels[0]) * num(labels[1])
             if 'triangle' in ar and 'on top' not in ar: return Fraction(1, 2) * num(labels[0]) * num(labels[1])
@@ -81,7 +82,7 @@ async def main():
             if ar.startswith('An L-shaped'):
                 a, W, H, b = [int(x) for x in labels]; return Fraction(W * H - (W - a) * (H - b))
             if 'cut out' in ar:
-                W = int(labels[0].split()[0]); H = int(labels[1]); w, h = [int(x) for x in labels[2].split(' by ')]; return Fraction(W * H - w * h)
+                W = int(labels[0].split()[0]); H = int(labels[1]); w, h = [int(x) for x in labels[2].replace('cut out ', '').split(' by ')]; return Fraction(W * H - w * h)
             w, h, t = [int(x) for x in labels]; return Fraction(w * h) + Fraction(w * t, 2)
         for tool in ['units', 'time', 'rect', 'triangle', 'trapezoid', 'composite', 'review']:
             await pg.goto(MOD + '?tool=' + tool); await pg.wait_for_selector(f'#tab-{tool} .qtext')
