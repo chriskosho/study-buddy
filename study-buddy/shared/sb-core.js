@@ -88,14 +88,14 @@
   function clearModuleData(id) { allKeys().filter(k => k && k.startsWith(MODPREFIX(id))).forEach(remove); }
   function deleteProfile(id) {
     const r = root(); r.profiles = r.profiles.filter(p => p.id !== id); if (r.active === id) r.active = null; saveRoot(r);
-    remove(CHILD(id)); clearModuleData(id);
+    remove(CHILD(id)); remove(NS + '.notes.' + id); try { sessionStorage.removeItem(NS + '.sessnotes.' + id); } catch (e) {} clearModuleData(id);
   }
   function resetChild(id) {           // erase progress, keep the child's settings
     const old = child(id), fresh = child('__none__'); fresh.settings = old.settings;
     saveChild(id, fresh); clearModuleData(id);
   }
   function resetAllProgress() { profiles().forEach(p => resetChild(p.id)); }   // every child's progress, but names and settings stay
-  function eraseEverything() { allKeys().filter(k => k && k.startsWith(NS)).forEach(remove); lock(); }   // all profiles, progress, settings, and the PIN
+  function eraseEverything() { allKeys().filter(k => k && k.startsWith(NS)).forEach(remove); try { Object.keys(sessionStorage).filter(k => k.startsWith(NS + '.sessnotes.')).forEach(k => sessionStorage.removeItem(k)); } catch (e) {} lock(); }   // all profiles, progress, settings, and the PIN
   function resetModule(id, moduleId, storageKeys) {
     const d = child(id);
     Object.keys(d.tools).forEach(k => { if (k.startsWith(moduleId + '/')) delete d.tools[k]; });
@@ -616,7 +616,7 @@
   const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
   const num = v => typeof v === 'number' && isFinite(v);
   function checkBackup(text) {
-    if (typeof text !== 'string' || text.length > 4e6) throw new Error('That file is too big to be a Study Buddy backup.');
+    if (typeof text !== 'string' || text.length > 12e6) throw new Error('That file is too big to be a Study Buddy backup.');
     let o; try { o = JSON.parse(text); } catch (e) { throw new Error(BAD); }
     if (!isObj(o) || o.app !== 'study-buddy' || !isObj(o.data)) throw new Error(BAD);
     const entries = Object.entries(o.data);
@@ -647,6 +647,15 @@
         if (j.tools != null) {
           if (!isObj(j.tools)) throw new Error('This backup is damaged, so nothing was changed.');
           for (const t of Object.values(j.tools)) if (!isObj(t) || ['attempts', 'visits', 'best', 'max', 'lastScore', 'last'].some(f => t[f] != null && !num(t[f]))) throw new Error('This backup is damaged, so nothing was changed.');
+        }
+        continue;
+      }
+      const nt = k.match(/^studybuddy\.v1\.notes\.([a-z0-9]+)$/i);   // scratch pad notes saved to a profile
+      if (nt) {
+        if (!ids.has(nt[1]) || !Array.isArray(j) || j.length > 60) throw new Error('This backup is damaged, so nothing was changed.');
+        for (const n of j) {
+          const okItem = it => isObj(it) && ((it.k === 't' && typeof it.t === 'string' && num(it.x) && num(it.y) && num(it.s)) || (it.k === 's' && typeof it.t === 'string' && Array.isArray(it.p) && it.p.length % 3 === 0 && it.p.every(num) && num(it.w)));
+          if (!isObj(n) || typeof n.id !== 'string' || !Array.isArray(n.items) || n.items.length > 6000 || !n.items.every(okItem) || (n.w != null && !num(n.w)) || (n.h != null && !num(n.h)) || (n.at != null && !num(n.at))) throw new Error('This backup is damaged, so nothing was changed.');
         }
         continue;
       }

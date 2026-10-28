@@ -19,6 +19,8 @@
      masterPct   mastered when best / max reaches this share (default 0.8)
 */
 window.SB_REGISTRY = {
+  /* The scratch pad button shows on question tools in these subjects (and in any module marked scratchpad: true). Add a subject id to turn it on there. */
+  scratchpad: { subjects: ['math'] },
   subjects: [
     { id: 'english', name: 'English' },
     { id: 'math', name: 'Math' },

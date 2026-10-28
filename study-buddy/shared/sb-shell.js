@@ -21,6 +21,7 @@
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
     gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.8 L10.6 2.2 L13.4 2.2 L13.7 4.8 L15.9 5.7 L18.0 4.1 L19.9 6.0 L18.3 8.1 L19.2 10.3 L21.8 10.6 L21.8 13.4 L19.2 13.7 L18.3 15.9 L19.9 18.0 L18.0 19.9 L15.9 18.3 L13.7 19.2 L13.4 21.8 L10.6 21.8 L10.3 19.2 L8.1 18.3 L6.0 19.9 L4.1 18.0 L5.7 15.9 L4.8 13.7 L2.2 13.4 L2.2 10.6 L4.8 10.3 L5.7 8.1 L4.1 6.0 L6.0 4.1 L8.1 5.7z"/><circle cx="12" cy="12" r="3"/></svg>',
     help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 1 1 3.6 2.4c-.8.4-1.1.9-1.1 1.8M12 17h.01"/></svg>',
+    notes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg>'
   };
 
@@ -78,6 +79,7 @@
     .sbbrand span{display:none}
     .sbbtn{padding:6px 10px}
     .sbbtn .lbl{display:none}
+    .sbhead-r{flex-wrap:wrap;justify-content:flex-end;gap:6px}
     .sbbtn.kidpill .hint{display:none}
     .sbcrumbs{order:5;flex:1 1 100%}
     .sbcrumbs ol{font-size:14px}
@@ -111,6 +113,7 @@
   /* ---------- search ---------- */
   const PAGES = [
     { title: 'Settings', blurb: 'Theme, font, text size, sound, read aloud, and the voice', href: PAGE('settings'), words: 'display dark mode dyslexic larger text volume voice update refresh latest reload' },
+    { title: 'My notes', blurb: 'Notes saved from the scratch pad', href: PAGE('notes'), words: 'scratch pad notebook saved drawings math work' },
     { title: 'Help', blurb: 'How to use Study Buddy', href: PAGE('help'), words: 'how to guide tutorial' },
     { title: 'FAQ', blurb: 'Common questions and answers', href: PAGE('faq'), words: 'questions questions answers' },
     { title: 'About', blurb: 'What Study Buddy is, and your privacy', href: PAGE('about'), words: 'privacy data credits' },
@@ -179,6 +182,7 @@
           <ul class="sbresults" id="sbResults" role="listbox" tabindex="-1" aria-label="Search results" hidden></ul>
         </div>
         ${kidChip()}
+        <a class="sbbtn" href="${PAGE('notes')}" aria-label="My notes" title="Notes saved from the scratch pad">${ICON.notes}<span class="lbl">Notes</span></a>
         <a class="sbbtn" href="${PAGE('settings')}" aria-label="Settings">${ICON.gear}<span class="lbl">Settings</span></a>
         <div class="sbmenu"><button type="button" class="sbbtn" id="sbHelpBtn" aria-haspopup="true" aria-expanded="false" aria-controls="sbHelpMenu" aria-label="Help menu">${ICON.help}<span class="lbl">Help</span></button>
           <ul class="sbmenu-list" id="sbHelpMenu" hidden><li><a href="${PAGE('help')}">Help</a></li><li><a href="${PAGE('faq')}">FAQ</a></li><li><a href="${PAGE('about')}">About</a></li></ul></div>

@@ -131,3 +131,6 @@ Meaning of color is never the only signal: right/wrong also use text, and select
 4. One activity per tab, one feedback line, right/wrong colors and tones as above.
 5. Save progress locally (see BUILD_APPROACH.md, "Persistence").
 6. Test at 1440×900 for zero overflow before delivering.
+
+## Scratch pad
+The scratch pad toolbar uses the theme tokens like every other screen. The writing paper is the one exception: it stays light (and the default ink dark) in dark mode, like real paper. No emoji; the notepad-and-pencil mark is an inline SVG.

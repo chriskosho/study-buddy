@@ -45,6 +45,47 @@
   const starsHTML = (s, n) => { const k = s / n >= 0.9 ? 3 : s / n >= 0.7 ? 2 : s / n >= 0.5 ? 1 : 0; return `<div class="stars">${[0, 1, 2].map(i => `<span class="${i < k ? '' : 'off'}">&#9733;</span>`).join('')}</div>`; };
   const FLIP_MS = 520;
 
+  /* ---------------- Scratch pad button ----------------
+     Every question tool (type the answer, multiple choice, sort, order, explain) can show a "Scratch pad" button.
+     It is on for the Math subject only for now: registry.js has  scratchpad: { subjects: ['math'] }  and a module can say
+     scratchpad: true or false to override. To turn it on for another subject later, add its id there. */
+  const PAD_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3" width="12.5" height="18" rx="2"/><path d="M7 8h5.5M7 12h3"/><path d="M18.2 8.3l2.6 2.6-6.6 6.6-3.3.7.7-3.3z"/></svg>';
+  const padOn = ctx => { const m = ctx.mod || {}, c = (window.SB_REGISTRY || {}).scratchpad || {}; return m.scratchpad != null ? !!m.scratchpad : (c.subjects || []).includes(m.subject); };
+  const plainText = html => {
+    const d = document.createElement('div'); d.innerHTML = String(html || ''); d.querySelectorAll('svg,.fignote,button').forEach(x => x.remove());
+    d.querySelectorAll('.mixed').forEach(m => { const f = m.querySelector('.frac'); m.replaceWith(' ' + (m.dataset.w || '') + (f ? ' ' + f.dataset.n + '/' + f.dataset.d : '') + ' '); });
+    d.querySelectorAll('.frac').forEach(f => f.replaceWith(' ' + f.dataset.n + '/' + f.dataset.d + ' '));
+    return (d.textContent || '').replace(/\s+/g, ' ').trim();
+  };
+  let padLoading = null;
+  function loadPad() {
+    if (window.SBPad) return Promise.resolve();
+    if (!padLoading) padLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = SB.BASE + 'shared/sb-scratchpad.js'; s.onload = () => res(); s.onerror = () => { padLoading = null; rej(); }; document.head.appendChild(s); });
+    return padLoading;
+  }
+  /* One Scratch pad button lives in the module's settings row (next to Sound, Read aloud and Reset), so it takes no room from the question.
+     A tool calls addPad(ctx, getQuestionText) after it draws; the shell calls padTab(toolId) when a tool is shown, which hides the
+     button on tools that have no pad (study guides, flashcards). */
+  const PADS = {};
+  function addPad(ctx, getQ) {
+    if (!padOn(ctx)) return;
+    const id = ctx.tool && ctx.tool.id; PADS[id] = getQ;
+    let b = document.getElementById('sbPad');
+    if (!b) {
+      const host = document.querySelector('.settings'); if (!host) return;
+      b = document.createElement('button'); b.type = 'button'; b.id = 'sbPad'; b.className = 'iconbtn padbtn'; b.setAttribute('aria-label', 'Open the scratch pad'); b.innerHTML = PAD_ICON + '<span>Scratch pad</span>';
+      b.onclick = () => { const q = PADS[b._cur] ? PADS[b._cur]() : ''; loadPad().then(() => SBPad.open({ question: q, source: b._mod || '', opener: b }), () => SB.toast('The scratch pad could not load. Check the connection and try again.')); };
+      host.insertBefore(b, host.firstChild);
+    }
+    b._cur = id; b._mod = (ctx.mod || {}).title || ''; b.hidden = false;
+    if (window.SBPad && SBPad.isOpen()) SBPad.setQuestion(getQ());
+  }
+  function padTab(id) {
+    const b = document.getElementById('sbPad'); if (!b) return;
+    b._cur = id; b.hidden = !PADS[id];
+    if (PADS[id] && window.SBPad && SBPad.isOpen()) SBPad.setQuestion(PADS[id]());
+  }
+
   /* ---------------- Flashcards ---------------- */
   function flashcards(ctx, opt) {
     const P = ctx.panel, modes = opt.modes || [{ id: 'all', label: 'All' }];
@@ -111,6 +152,7 @@
       <div class="buckets"></div>
       <div class="row" style="margin-top:14px"><button class="btn warn" data-a="restart">Start over</button></div>`;
     const msg = $('.msg', P), tray = $('.sortTray', P), bucketsEl = $('.buckets', P);
+    addPad(ctx, () => plainText(opt.title || 'Sort it') + '. ' + plainText(opt.lead || 'Drag each one into its group.'));
     const bucketOf = id => S.set.buckets.find(b => b.id === id);
     const score = () => { $('.placed', P).textContent = S.placed + '/' + S.total; $('.miss', P).textContent = S.miss; };
     function select(chip) {
@@ -194,6 +236,7 @@
         <div class="qwrap"><div class="row qrow"><p class="qtext">${q.qh || esc(q.q)}</p>${ctx.sayButton(q.say || q.q, 'Hear the question')}</div>${q.html || ''}
         <div class="opts">${opts.map(o => `<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>
         <p class="explain"></p><div class="row center">${opt.skip ? '<button class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button class="btn" data-a="next" hidden>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
+      addPad(ctx, () => q.qh ? plainText(q.qh) : q.q);
       $$('.opt', P).forEach(b => b.onclick = () => {
         if (Q.answered) return; Q.answered = true;
         const skb = $('[data-a="skip"]', P); if (skb) skb.hidden = true;
@@ -271,6 +314,7 @@
         <form class="spellrow" autocomplete="off"><input aria-label="Your answer" placeholder="${kind === 'fraction' ? 'Like 3/4 or 1 3/4' : 'Answer'}" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off"'}${kind === 'fraction' ? ' size="14"' : ''} spellcheck="false"><button class="btn" type="submit">Check</button></form>
         <div class="err" role="alert"></div><p class="explain why"></p>
         <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
+      addPad(ctx, () => plainText(item.q));
       const inp = $('input', P), err = $('.err', P), why = $('.why', P), next = $('[data-a="next"]', P), hb = $('[data-a="hint"]', P);
       inp.focus();
       const sk = $('[data-a="skip"]', P);
@@ -314,6 +358,7 @@
       <ol class="olist"></ol><p class="msg"></p>
       <div class="row"><button class="btn" data-a="check">Check order</button><button class="btn ghost" data-a="new">New order</button></div>`;
     const list = $('.olist', P), msg = $('.msg', P);
+    addPad(ctx, () => plainText(opt.title || 'Put in order') + '. ' + plainText(opt.lead || 'Put the cards in the right order.'));
     function round() {
       const s = O.set, pool = s.pick ? s.items.map((it, k) => ({ ...it, k })).filter((_, k, a) => true) : s.items.map((it, k) => ({ ...it, k }));
       let chosen = pool;
@@ -397,6 +442,7 @@
           <textarea class="answer" rows="5" aria-label="Your answer" placeholder="Write your answer here."></textarea>
           <div class="row"><button class="btn" data-a="check">Check my answer</button><button class="btn" data-a="next" hidden>${X.i === X.list.length - 1 ? 'See results' : 'Next question'}</button></div>
         </div><div class="feedback" hidden></div></div>`;
+      addPad(ctx, () => ex.q);
       const ta = $('.answer', P), fb = $('.feedback', P), check = $('[data-a="check"]', P), next = $('[data-a="next"]', P);
       ta.focus();
       check.onclick = () => {
@@ -419,5 +465,5 @@
 
   /* n different questions for a round (the same problem should not come up twice): many(makeOne, 10) */
   const many = (fn, n = 10) => { const out = [], seen = new Set(); for (let i = 0; out.length < n && i < 400; i++) { const q = fn(), k = (q.q || '') + '|' + (q.html || '') + '|' + (q.qh || ''); if (!seen.has(k)) { seen.add(k); out.push(q); } } return out; };
-  window.SBT = { many, flashcards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
+  window.SBT = { loadPad, padTab, many, flashcards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
 })();
