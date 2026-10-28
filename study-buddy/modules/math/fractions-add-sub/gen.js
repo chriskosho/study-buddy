@@ -99,9 +99,9 @@
     cand.push(raw(op === '+' ? x.n + y.n : Math.abs(x.n - y.n), op === '+' ? x.d + y.d : Math.max(x.d, y.d)));   // the common mistake: add the tops and the bottoms
     [1, -1, 2, -2].forEach(k => cand.push(raw(rl + k, L)));
     cand.push(raw(x.n + y.n, L)); cand.push(raw(Math.abs(x.n - y.n), Math.min(x.d, y.d)));
-    const w3 = [], okc = c => c.n > 0 && c.d > 0 && c.n * r.d !== r.n * c.d && !w3.includes(txt(F(c.n, c.d), 'mixed'));
-    shuffle(cand).forEach(c => { if (w3.length < 3 && okc(c)) w3.push(c.d === x.d + y.d ? txt(c, 'improper') : txt(F(c.n, c.d))); });   // the add-tops-and-bottoms mistake stays as written, like 4/16
-    for (let i = 3; w3.length < 3; i++) { const c = raw(rl + i, L); if (okc(c)) w3.push(txt(F(c.n, c.d))); }
+    const w3 = [], vals = [], okc = c => c.n > 0 && c.d > 0 && c.n * r.d !== r.n * c.d && !vals.some(v => v.n * c.d === c.n * v.d);   // no two choices with the same value (3/9 and 1/3)
+    shuffle(cand).forEach(c => { if (w3.length < 3 && okc(c)) { vals.push(c); w3.push(c.d === x.d + y.d ? txt(c, 'improper') : txt(F(c.n, c.d))); } });   // the add-tops-and-bottoms mistake stays as written, like 4/16
+    for (let i = 3; w3.length < 3; i++) { const c = raw(rl + i, L); if (okc(c)) { vals.push(c); w3.push(txt(F(c.n, c.d))); } }
     return { q: qq.t, qh: qq.h, say: qq.s, html: bars(x, y), a: good, wrong: w3, chk: `${x.n}/${x.d}${op}${y.n}/${y.d}`,
       why: whyTwo(op, x, y, false), hint: 'The dashed lines cut both bars into pieces of the same size.' };
   }

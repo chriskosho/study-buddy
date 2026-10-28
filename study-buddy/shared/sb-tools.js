@@ -230,7 +230,7 @@
         P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><div class="result">${starsHTML(Q.score, Q.qs.length)}<p class="prompt">${Q.score} out of ${Q.qs.length}</p><p class="lead">${Q.score / Q.qs.length >= 0.9 ? 'Amazing! You really know this.' : Q.score / Q.qs.length >= 0.7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'}</p><button class="btn" data-a="again">Play again</button></div>`;
         $('[data-a="again"]', P).onclick = start; return;
       }
-      const q = Q.qs[Q.i], opts = shuffle([q.a, ...q.wrong.slice(0, 3)]); Q.answered = false;
+      const q = Q.qs[Q.i], opts = shuffle([q.a, ...shuffle(q.wrong).slice(0, 3)]); Q.answered = false;
       P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><p class="lead">${esc(opt.lead || 'Pick the best answer.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span class="hint">Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${Q.score}</span></div>
         <div class="qwrap"><div class="row qrow"><p class="qtext">${q.qh || esc(q.q)}</p>${ctx.sayButton(q.say || q.q, 'Hear the question')}</div>${q.html || ''}
@@ -256,7 +256,7 @@
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
       };
       $('[data-a="next"]', P).onclick = () => { Q.i++; show(); };
-      ctx.say(q.q);
+      ctx.say(q.say || q.q);
     }
     start();
   }
@@ -264,11 +264,17 @@
   /* ---------------- Type the answer ---------------- */
   const gcdI = (a, b) => b ? gcdI(b, a % b) : Math.abs(a);
   /* "3/4", "1 3/4" or "2" -> { n, d } (improper); mixed numbers also carry w, fn, fd. null when it is not a fraction */
+  const VULGAR = { '½': ' 1/2', '⅓': ' 1/3', '⅔': ' 2/3', '¼': ' 1/4', '¾': ' 3/4', '⅕': ' 1/5', '⅖': ' 2/5', '⅗': ' 3/5', '⅘': ' 4/5', '⅙': ' 1/6', '⅚': ' 5/6', '⅛': ' 1/8', '⅜': ' 3/8', '⅝': ' 5/8', '⅞': ' 7/8' };
+  /* what a child might type around a number: a unit word ("3/4 cup", "1,728 cubic feet"), "1-3/4", "1 and 3/4", ½, thousands commas */
+  const stripUnit = v => { const t = String(v).trim(), m = t.match(/^(.*\d)\s*([a-z][a-z .]*)$/i); return m && !/^(and)$/i.test(m[2].trim()) ? { v: m[1].trim(), unit: true } : { v: t, unit: false }; };
+  const fracPrep = v => String(v).trim().replace(/\u2212/g, '-').replace(/[\u2044\u2215]/g, '/').replace(/[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]/g, c => VULGAR[c])
+    .replace(/^(\d+)\s*(?:-|and|\+)\s*(\d+\s*\/\s*\d+)$/i, '$1 $2').replace(/(\d),(?=\d{3}(?!\d))/g, '$1').replace(/^(\d{1,3})(?: (\d{3}))+$/, m => m.replace(/ /g, '')).replace(/\s+/g, ' ').trim();
   const parseFrac = v => {
-    const t = String(v).trim().replace(/\u2212/g, '-').replace(/\s+/g, ' '); let m;
+    const t = fracPrep(v); let m;
     if ((m = t.match(/^(\d+) (\d+) ?\/ ?(\d+)$/))) { const w = +m[1], fn = +m[2], fd = +m[3]; return fd ? { n: w * fd + fn, d: fd, w, fn, fd } : null; }
     if ((m = t.match(/^(\d+) ?\/ ?(\d+)$/))) return +m[2] ? { n: +m[1], d: +m[2] } : null;
     if ((m = t.match(/^(\d+)$/))) return { n: +m[1], d: 1 };
+    if ((m = t.match(/^(\d*)\.(\d{1,6})$/))) { const d = Math.pow(10, m[2].length); return { n: (+m[1] || 0) * d + +m[2], d, dec: true }; }   // a decimal: judged by value, then nudged
     return null;
   };
   const numNorm = s => String(s).replace(/[,\s]/g, '').replace(/^\+/, '').replace(/^\./, '0.').replace(/−/g, '-');
@@ -279,26 +285,31 @@
     for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
     return d[a.length][b.length];
   }
+  /* the answer judge, on its own so it can be tested: 'ok', 'close', 'no', 'bad' (not an answer), or a nudge name */
+  function judge(item, v, kind, opt = {}) {
+    if (kind === 'fraction') {
+      const x = parseFrac(v); if (!x) return 'bad'; const t = parseFrac(item.a);
+      if (x.n * t.d !== t.n * x.d) return 'no';
+      if (x.dec && t.d !== 1) return 'decimal';                                     // 2.5 for 2 1/2: the right amount, asked as a fraction
+      const form = item.form || 'any', mixedTyped = x.w !== null && x.w !== undefined;
+      if (x.d !== 1 && !mixedTyped && x.n % x.d === 0 && t.d === 1) return 'whole';   // 4/2 for 2
+      if (mixedTyped ? (x.fn >= x.fd || gcdI(x.fn, x.fd) > 1) : (x.d !== 1 && gcdI(x.n, x.d) > 1)) return 'unreduced';
+      if (form === 'mixed' && !mixedTyped && x.d !== 1 && x.n > x.d) return 'wantMixed';
+      if (form === 'improper' && mixedTyped) return 'wantImproper';
+      return 'ok';
+    }
+    if (kind === 'number') { const x = numNorm(v); if (!/^-?\d*\.?\d+$/.test(x)) return 'bad'; return Math.abs(parseFloat(x) - Number(item.a)) < 1e-9 ? 'ok' : 'no'; }
+
+    const t = txtNorm(v), list = [].concat(item.a);
+    if (opt.exactCase) { const tv = String(v).trim(); if (list.includes(tv)) return 'ok'; if (list.some(a => String(a).toLowerCase() === tv.toLowerCase())) return 'case'; return 'no'; }
+    if (list.some(a => txtNorm(a) === t)) return 'ok';
+    if (opt.typo && !item.noTypo && list.some(a => txtNorm(a).length >= 5 && editDist(txtNorm(a), t) <= 1)) return 'close';
+    return 'no';
+  }
+
   function answer(ctx, opt) {
     const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', R = { list: [], i: 0, score: 0, tries: 0, hinted: false };
-    const check = (item, v) => {
-      if (kind === 'fraction') {
-        const x = parseFrac(v); if (!x) return 'bad'; const t = parseFrac(item.a);
-        if (x.n * t.d !== t.n * x.d) return 'no';
-        const form = item.form || 'any', mixedTyped = x.w !== null && x.w !== undefined;
-        if (x.d !== 1 && !mixedTyped && x.n % x.d === 0 && t.d === 1) return 'whole';   // 4/2 for 2
-        if (mixedTyped ? (x.fn >= x.fd || gcdI(x.fn, x.fd) > 1) : (x.d !== 1 && gcdI(x.n, x.d) > 1)) return 'unreduced';
-        if (form === 'mixed' && !mixedTyped && x.d !== 1 && x.n > x.d) return 'wantMixed';
-        if (form === 'improper' && mixedTyped) return 'wantImproper';
-        return 'ok';
-      }
-      if (kind === 'number') { const x = numNorm(v); if (!/^-?\d*\.?\d+$/.test(x)) return 'bad'; return Math.abs(parseFloat(x) - Number(item.a)) < 1e-9 ? 'ok' : 'no'; }
-      const t = txtNorm(v), list = [].concat(item.a);
-      if (opt.exactCase) { const tv = String(v).trim(); if (list.includes(tv)) return 'ok'; if (list.some(a => String(a).toLowerCase() === tv.toLowerCase())) return 'case'; return 'no'; }
-      if (list.some(a => txtNorm(a) === t)) return 'ok';
-      if (opt.typo && !item.noTypo && list.some(a => txtNorm(a).length >= 5 && editDist(txtNorm(a), t) <= 1)) return 'close';
-      return 'no';
-    };
+    const check = (item, v) => judge(item, v, kind, opt);
     const shown = item => item.show || (kind === 'fraction' ? String(item.a) : kind === 'number' ? Number(item.a).toLocaleString('en-US', { maximumFractionDigits: 10 }) : [].concat(item.a)[0]);
     function start() { R.list = opt.build().slice(0, n); R.i = 0; R.score = 0; show(); }
     function show() {
@@ -311,7 +322,7 @@
       P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><p class="lead">${esc(opt.lead || 'Type your answer, then press Check.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Question ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span></div>
         <div class="row qrow"><p class="qtext">${item.q}</p>${item.say ? ctx.sayButton(item.say, 'Hear it') : ''}</div>
-        <form class="spellrow" autocomplete="off"><input aria-label="Your answer" placeholder="${kind === 'fraction' ? 'Like 3/4 or 1 3/4' : 'Answer'}" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off"'}${kind === 'fraction' ? ' size="14"' : ''} spellcheck="false"><button class="btn" type="submit">Check</button></form>
+        <form class="spellrow" autocomplete="off"><input aria-label="Your answer" placeholder="${kind === 'fraction' ? 'Like 3/4 or 1 3/4' : 'Answer'}" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off" autocorrect="off"'}${kind === 'fraction' ? ' size="14"' : ''} spellcheck="false"><button class="btn" type="submit">Check</button></form>
         <div class="err" role="alert"></div><p class="explain why"></p>
         <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
       addPad(ctx, () => plainText(item.q));
@@ -325,15 +336,16 @@
         e.preventDefault();
         const v = inp.value.trim();
         if (!v) { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Type an answer first.'; return; }
-        const r = check(item, v);
-        if (r === 'bad') { inp.classList.add('bad'); err.style.color = ''; err.textContent = kind === 'fraction' ? 'Type a fraction like 3/4, a mixed number like 1 3/4, or a whole number.' : 'Type a number, like 4,000 or 2.5.'; return; }
-        const nudge = { unreduced: 'That is the right amount, but not in simplest form. Reduce it and try again.', whole: 'That is the right amount! Write it as a whole number.', wantMixed: 'That is the right amount! Now write it as a mixed number, like 1 3/4.', wantImproper: 'That is the right amount! Now write it as an improper fraction, like 7/4.' }[r];
+        let r = check(item, v), unitNote = '';
+        if (r === 'bad' && kind !== 'text') { const su = stripUnit(v); if (su.unit) { r = check(item, su.v); if (r !== 'bad') unitNote = ' (No units needed next time, just the number.)'; } }
+        if (r === 'bad') { inp.classList.add('bad'); err.style.color = ''; err.textContent = kind === 'fraction' ? 'Type a fraction like 3/4, a mixed number like 1 3/4, or a whole number like 1,200.' : 'Type a number, like 4,000 or 2.5.'; return; }
+        const nudge = { decimal: 'That is the right amount! Now write it as a fraction or a mixed number, like 2 1/2.', unreduced: 'That is the right amount, but not in simplest form. Reduce it and try again.', whole: 'That is the right amount! Write it as a whole number.', wantMixed: 'That is the right amount! Now write it as a mixed number, like 1 3/4.', wantImproper: 'That is the right amount! Now write it as an improper fraction, like 7/4.' }[r];
         if (nudge) { inp.classList.add('bad'); err.style.color = ''; err.textContent = nudge; return; }
         if (r === 'case') { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Almost! Check the capital and small letters, then try again.'; return; }
         if (r === 'ok' || r === 'close') {
           const pt = !R.hinted && R.tries === 0; if (pt) R.score++;
           ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good-ink)';
-          err.textContent = (r === 'close' ? 'Close enough! It is spelled ' + shown(item) + '.' : 'Correct! ' + shown(item) + '.') + (R.hinted ? ' (Hint used, so no point.)' : '');
+          err.textContent = (r === 'close' ? 'Close enough! It is spelled ' + shown(item) + '.' : 'Correct! ' + shown(item) + '.') + unitNote + (R.hinted ? ' (Hint used, so no point.)' : '');
           done(pt);
         } else {
           R.tries++; ctx.slip(); ctx.sfx.bad(); inp.classList.add('bad'); err.style.color = '';
@@ -420,7 +432,9 @@
   function gradeExplain(text, ex) {
     text = String(text).replace(/[\u2018\u2019\u02bc]/g, "'").replace(/[\u201c\u201d]/g, '"');
     const t = ' ' + text.toLowerCase().replace(/\s+/g, ' ') + ' ';
-    const ideas = ex.ideas.map(idea => ({ label: idea.label, ok: idea.all.every(group => group.some(k => t.includes(k))) }));
+    const kw = k => String(k).toLowerCase().replace(/[\u2018\u2019\u02bc]/g, "'").replace(/[\u201c\u201d]/g, '"');
+    const has = k => { k = kw(k); if (k.length > 4 || !/^[a-z]/.test(k)) return t.includes(k); let i = t.indexOf(k); while (i >= 0) { if (!/[a-z0-9]/.test(t[i - 1] || ' ')) return true; i = t.indexOf(k, i + 1); } return false; };   // "no." should not match "piano."
+    const ideas = ex.ideas.map(idea => ({ label: idea.label, ok: idea.all.every(group => group.some(has)) }));
     const sentences = splitSentences(text);
     const complete = sentences.length > 0 && sentences.every(s => /^[A-Z0-9"']/.test(s) && /[.!?]["']?$/.test(s) && s.split(/\s+/).length >= 3);
     return { ideas, complete, perfect: complete && ideas.every(i => i.ok) };
@@ -464,6 +478,8 @@
   }
 
   /* n different questions for a round (the same problem should not come up twice): many(makeOne, 10) */
-  const many = (fn, n = 10) => { const out = [], seen = new Set(); for (let i = 0; out.length < n && i < 400; i++) { const q = fn(), k = (q.q || '') + '|' + (q.html || '') + '|' + (q.qh || ''); if (!seen.has(k)) { seen.add(k); out.push(q); } } return out; };
-  window.SBT = { loadPad, padTab, many, flashcards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
+  /* 3/4 x 8 and 8 x 3/4 are the same question for this purpose (a sum or product with only that one operation) */
+  const twinKey = q => { const c = String(q.chk || ''); if (!c) return ''; for (const op of ['*', '+']) { const parts = c.split(op); if (parts.length > 1 && !/[-:*+]/.test(parts.join(''))) return op + parts.map(x => x.trim()).sort().join(op) + '|' + (q.form || '') + '|' + (q.a || ''); } return ''; };
+  const many = (fn, n = 10) => { const out = [], seen = new Set(); for (let i = 0; out.length < n && i < 400; i++) { const q = fn(), k = (q.q || '') + '|' + (q.html || '') + '|' + (q.qh || ''), t = twinKey(q); if (!seen.has(k) && !(t && seen.has(t))) { seen.add(k); if (t) seen.add(t); out.push(q); } } return out; };
+  window.SBT = { loadPad, padTab, judge, stripUnit, many, flashcards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
 })();

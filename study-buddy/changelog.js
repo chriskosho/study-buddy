@@ -1,6 +1,14 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'Fairer answer checking', items: [
+    'Typed math answers accept thousands commas (1,728), a unit word (3/4 cup), 1-3/4 or 1 and 3/4, and fraction symbols like ½. A decimal with the right amount, like 2.5 for 2 1/2, gets a nudge to write it as a fraction instead of counting as wrong.',
+    'US States: typed flower answers no longer accept a bare "Blossom", "Rose" or "Susan". Short names like Lilac or Columbine still work.',
+    'Phonograms Spell it no longer says words that sound like another word (wait and weight, no and know).',
+    'Spelling answers turn off phone autocorrect, so the keyboard cannot fix a word for you.',
+    'Black Beauty: "Harry" and "James" are no longer accepted as close spellings of Barry and Jakes, and two Explain it ideas written with "didn\'t" now match. Ancient Rome: dates must be exact (758 BC is not 753 BC).',
+    'Fewer repeated questions: Place Value and Phonograms quizzes no longer repeat a question in a round, and a round never has both 3/4 × 8 and 8 × 3/4. Multiple choice never shows two choices with the same value.',
+    'Read aloud reads fraction questions as words (3 fourths), not as dates.' ] },
   { date: '2026-10-28', title: 'Fixes from the code review: saving, offline, and older iPads', items: [
     'Older iPads (iPadOS 15 and early 16) can open quizzes, sorting, typed answers and flashcards again. One piece of code they could not read was stopping all of them.',
     '"Refresh for the latest" with no internet no longer removes the offline copy. It says there is no internet and changes nothing.',

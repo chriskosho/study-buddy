@@ -14,13 +14,25 @@
   const flag = (s, cls = '') => `<span class="us-flag ${cls}" data-s="${s.id}">${/us-qflag|us-cardflag/.test(cls) ? FLAGS[s.id].replace(/aria-label="[^"]*"/, 'aria-label="A state flag"') : FLAGS[s.id]}</span>`;
   const motto = s => s.motto.replace(/\s*\(.*\)\s*$/, '');                  // the motto as written (Latin etc.)
   const mottoSay = s => { const m = s.motto.match(/\((.*)\)\s*$/); return m ? m[1] : s.motto; };
+  const FLOWER_ALSO = {
+    'Forget-me-not': ['Forget me not', 'Alpine Forget-me-not'], 'Saguaro Blossom': ['Saguaro', 'Saguaro Cactus Blossom'], 'Apple Blossom': ['Apple Blossoms'],
+    'California Poppy': ['Poppy', 'Golden Poppy'], 'Rocky Mountain Columbine': ['Columbine', 'Blue Columbine'], 'Mountain Laurel': ['Laurel'], 'Orange Blossom': ['Orange Blossoms'],
+    'White Pine Cone and Tassel': ['Pine Cone', 'White Pine Cone', 'Pine Cone and Tassel'], 'Black-eyed Susan': ['Black eyed Susan'], "Pink and White Lady's Slipper": ["Lady's Slipper", 'Ladys Slipper', "Showy Lady's Slipper"],
+    'White Hawthorn Blossom': ['Hawthorn', 'White Hawthorn', 'Hawthorn Blossom'], 'Purple Lilac': ['Lilac'], 'Common Meadow Violet': ['Meadow Violet'], 'Scarlet Carnation': ['Carnation', 'Red Carnation'],
+    'Pasque Flower': ['Pasque', 'Pasqueflower'], 'Red Clover': ['Clover'], 'Indian Paintbrush': ['Paintbrush'], 'Wild Rose': ['Wild Roses']
+  };
   const alts = (txt, kind) => {                                              // accepted spellings for a typed answer
     const out = new Set([txt]);
     if (/^Saint /.test(txt)) out.add('St. ' + txt.slice(6));
     if (kind === 'name') { if (txt === 'Washington') out.add('Washington State'); }
     const w = txt.split(' ');
     if (kind === 'bird') { if (w.length === 2 && /^(Northern|Eastern|Western|American|Mountain|Common|Ruffed|Black-capped|Mourning)$/.test(w[0])) out.add(w[1]); if (w[w.length - 1] === 'Chicken') out.add(w.slice(0, -1).join(' ')); }
-    if (kind === 'flower') { const t = txt.replace(/ (Blossom|Flower|Blossoms)$/, ''); out.add(t); if (!/s$/.test(t)) out.add(t + 's'); if (w.length >= 2) { out.add(w[w.length - 1]); out.add(w.slice(1).join(' ').replace(/ (Blossom|Flower|Blossoms)$/, '')); } if (/Dogwood$/.test(txt)) ['Dogwood', 'American Dogwood', 'Flowering Dogwood'].forEach(x => out.add(x)); if (/Violet$/.test(txt)) out.add('Violet'); }
+    if (kind === 'flower') {                                                      // the full name, its plural, and a short hand-made list (never a bare "Blossom" or "Rose")
+      out.add(/[^aeiou]y$/.test(txt) ? txt.slice(0, -1) + 'ies' : /(s|sh|ch|x)$/.test(txt) ? txt + 'es' : txt + 's');
+      (FLOWER_ALSO[txt] || []).forEach(x => out.add(x));
+      if (/Dogwood$/.test(txt)) ['Dogwood', 'American Dogwood', 'Flowering Dogwood'].forEach(x => out.add(x));
+      if (/Violet$/.test(txt)) out.add('Violet');
+    }
     return [...out];
   };
   const firstHint = txt => `It starts with "${txt[0]}".`;

@@ -34,6 +34,25 @@ async def main():
                     SBT.gradeExplain('rome began. it grew', { ideas: [{ label: 'x', all: [['rome']] }] }).complete]; })()""")
         check(g == [True, False], f'Explain it sentence check unchanged {g}')
 
+        # ---- answer checking (PR: answer checking) ----
+        J = await pg.evaluate("""(() => { const j = (a, v, kind, form) => SBT.judge({ a, form: form || 'any' }, SBT.stripUnit(v).v, kind || 'fraction');
+            return {
+              comma: j('1728', '1,728'), space: j('1728', '1 728'), units: j('1728', '1,728 cubic feet'), cup: j('3/4', '3/4 cup'),
+              dec: j('2 1/2', '2.5'), dec34: j('3/4', '0.75'), decWhole: j('3', '3.0'), dash: j('2 1/2', '2-1/2'), and: j('2 1/2', '2 and 1/2'), half: j('2 1/2', '2\u00bd'),
+              slash: j('3/4', '3\u20444'), wrongDec: j('3/4', '0.7'), num: j(12, '12 cm', 'number'), mixedUnreduced: j('1 1/2', '1 2/4'),
+              txt: SBT.judge({ a: ['Barry'] }, 'Harry', 'text', { typo: true }), txt2: SBT.judge({ a: ['Barry'], noTypo: true }, 'Harry', 'text', { typo: true }) }; })()""")
+        want = {'comma': 'ok', 'space': 'ok', 'units': 'ok', 'cup': 'ok', 'dec': 'decimal', 'dec34': 'decimal', 'decWhole': 'whole', 'dash': 'ok', 'and': 'ok', 'half': 'ok',
+                'slash': 'ok', 'wrongDec': 'no', 'num': 'ok', 'mixedUnreduced': 'unreduced', 'txt': 'close', 'txt2': 'no'}
+        diff = {k: (J[k], v) for k, v in want.items() if J.get(k) != v}
+        check(not diff, f'typed answers: commas, units, decimals, 1-3/4, 1 and 3/4, symbols are judged fairly {diff}')
+        E = await pg.evaluate("""[SBT.gradeExplain("He didn't mean to do it.", { ideas: [{ label: 'x', all: [['didn\u2019t mean']] }] }).ideas[0].ok,
+            SBT.gradeExplain('I play the piano.', { ideas: [{ label: 'x', all: [['no.']] }] }).ideas[0].ok,
+            SBT.gradeExplain('No. He did not.', { ideas: [{ label: 'x', all: [['no.']] }] }).ideas[0].ok,
+            SBT.gradeExplain('He was elected twice.', { ideas: [{ label: 'x', all: [['elect']] }] }).ideas[0].ok]""")
+        check(E == [True, False, True, True], f'Explain it: curly-apostrophe keywords match "didn\'t"; short keywords start a word {E}')
+        M = await pg.evaluate("""(() => { let i = 0; const t = SBT.many(() => (i++ % 2 ? { q: '8 x 3/4', chk: '8*3/4', a: '6' } : { q: '3/4 x 8', chk: '3/4*8', a: '6' }), 5); return t.length; })()""")
+        check(M == 1, f'a round never has both 3/4 x 8 and 8 x 3/4 ({M})')
+
         # ---- best score is the best share of a round ----
         r = await pg.evaluate("""(() => { SB.result('greek-latin-roots', 'sort', 6, 6); SB.result('greek-latin-roots', 'sort', 7, 9); const a = SB.toolRecord('greek-latin-roots', 'sort');
             SB.result('greek-latin-roots', 'sort', 18, 18); const b = SB.toolRecord('greek-latin-roots', 'sort'); return [a.best, a.max, b.best, b.max, a.attempts]; })()""")
@@ -93,6 +112,14 @@ async def main():
         await pg.evaluate("SB.resetChild('k1')"); await t2.wait_for_timeout(600)
         check(await t2.evaluate("window.__marker === undefined"), 'an open module reloads when another tab resets that child')
         await t2.close(); await ctx.close()
+
+        # ---- module checks for answer fixes ----
+        mp = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block'); await mp.add_init_script(TWO)
+        q = await mp.new_page(); q.on('pageerror', lambda e: errors.append(str(e)))
+        await q.goto(BASE + 'modules/english/phonograms/index.html?tool=spell'); await q.wait_for_selector('#tab-spell .qtext')
+        words = [x['a'][0] for x in await q.evaluate("window.__phTest.spell")]
+        check(not set(words) & {'no', 'know', 'wait', 'weight', 'to', 'see', 'where', 'new', 'blue'}, f'Spell it never asks a sound-alike word {words}')
+        await mp.close()
 
         # ---- offline worker: installs, opens a module with no internet, and a missing script is not answered with the home page ----
         ox = await b.new_context(viewport={'width': 1440, 'height': 900}); await ox.add_init_script(TWO)
