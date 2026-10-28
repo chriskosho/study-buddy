@@ -190,5 +190,41 @@ const divCheck = (name, fn, o = {}) => { for (let i = 0; i < N; i++) {
 divCheck('div-share', DG.shareQ, { shown: true, noForm: true, quiz: true }); divCheck('div-fit', DG.modelQ, { shown: true, noForm: true, quiz: true });
 divCheck('div-fracwhole', DG.fracByWholeQ, { shown: true }); divCheck('div-wholefrac', DG.wholeByFracQ, { shown: true });
 divCheck('div-words', DG.wordsQ, { shown: true }); divCheck('div-review', DG.reviewQ, { missing: true });
-console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, the eight fraction problem kinds, the nine multiplication kinds, and the six division kinds)`);
+
+/* ---------- Measurement and Area (measurement/gen.js): the area is recomputed from the figure's own measurements ---------- */
+const MEA = require('../../modules/math/measurement/gen.js');
+const tstr = v => { const w = Math.floor(v[0] / v[1]), r = v[0] - w * v[1]; return r === 0 ? String(w) : w ? `${w} ${r}/${v[1]}` : `${r}/${v[1]}`; };
+const meaArea = d => { const m = (...xs) => xs.reduce(fmul, [1, 1]), f = x => fr(x.n, x.d), H = [1, 2];
+  switch (d.kind) {
+    case 'conv': return d.up ? fr(f(d.from)[0], f(d.from)[1] * d.f) : fmul(f(d.from), [d.f, 1]);
+    case 'rect': return m(f(d.a), f(d.b));
+    case 'tri': return m(H, f(d.b), f(d.h));
+    case 'trap': return m(fadd(f(d.a), f(d.b)), H, f(d.h));
+    case 'L': return [d.W * d.H - (d.W - d.a) * (d.H - d.b), 1];
+    case 'frame': return [d.W * d.H - d.w * d.h, 1];
+    case 'house': return fadd([d.w * d.h, 1], fr(d.w * d.t, 2)); } };
+const meaCheck = (name, fn) => { for (let i = 0; i < N; i++) {
+  const q = fn(); if (!q || !q.dims) { bad(name, q || { q: '(none)' }, 'no problem or no dims'); continue; }
+  const plain = q.q.replace(/<svg.*?<\/svg>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  if (/undefined|NaN|Infinity/.test(q.why + plain + q.q) || /(^|[^\d])0\/\d/.test(q.why)) bad(name, q, 'odd text');
+  if (!q.hint || !q.why) bad(name, q, 'missing hint or explanation');
+  const a = parseAns(q.a); if (!a) { bad(name, q, 'unreadable answer ' + q.a); continue; }
+  if (a.mixed ? (a.fn >= a.fd || gcdn(a.fn, a.fd) !== 1) : (!a.whole && gcdn(a.n, a.d) !== 1)) bad(name, q, 'not in simplest form');
+  const want = meaArea(q.dims); if (key(a.v) !== key(want)) bad(name, q, `wrong answer, expected ${key(want)}`);
+  if (key(chkProd(q.chk)) !== key(want)) bad(name, q, 'chk differs from the area ' + q.chk);
+  if (!q.why.includes(q.a)) bad(name, q, 'explanation does not state the answer ' + q.a);
+  const svgText = (q.q.match(/<text[^>]*>(.*?)<\/text>/g) || []).map(t => t.replace(/<[^>]+>/g, '')).join('|'), d = q.dims;
+  const want2 = d.kind === 'rect' ? [d.a, d.b] : d.kind === 'tri' ? [d.b, d.h] : d.kind === 'trap' ? [d.a, d.b, d.h] : [];
+  want2.forEach(v => { if (!svgText.split('|').includes(tstr(fr(v.n, v.d)))) bad(name, q, `figure does not show ${tstr(fr(v.n, v.d))} (shows ${svgText})`); });
+  if (d.kind === 'L' && ['W','H','a','b'].some(k => !svgText.split('|').includes(String(d[k])))) bad(name, q, 'L figure labels');
+  if (d.kind === 'L' && !(d.a < d.W && d.b < d.H)) bad(name, q, 'L is not an L');
+  if (d.kind === 'frame' && !(d.w < d.W - 1 && d.h < d.H - 1)) bad(name, q, 'frame cut-out too big');
+  if (d.kind === 'trap' && L0cmp(d)) bad(name, q, 'trapezoid bases not ordered');
+  if (/\d+ 1 (inches|feet|yards|pounds|gallons|quarts|pints|cups|minutes|hours|days|weeks|years|months)\b/.test(plain)) bad(name, q, 'unit agreement');
+  if (/(^| )1 (inches|feet|yards|pounds|ounces|gallons|quarts|pints|cups|minutes|seconds|hours|days|weeks|years|months) =/.test(plain)) bad(name, q, 'plural with 1: ' + plain.slice(0, 60));
+}};
+const L0cmp = d => d.a.n * d.b.d >= d.b.n * d.a.d;
+meaCheck('mea-units', MEA.customaryQ); meaCheck('mea-time', MEA.timeQ); meaCheck('mea-rect', MEA.rectQ); meaCheck('mea-tri', () => MEA.triQ(Math.random() < 0.5));
+meaCheck('mea-trap', () => MEA.trapQ(Math.random() < 0.5)); meaCheck('mea-composite', MEA.compositeQ); meaCheck('mea-review', MEA.reviewQ);
+console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, the eight fraction problem kinds, the nine multiplication kinds, the six division kinds, and the seven measurement kinds)`);
 process.exit(fails ? 1 : 0);

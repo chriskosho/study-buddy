@@ -205,6 +205,25 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'measurement',
+      subject: 'math',
+      title: 'Measurement and Area',
+      blurb: 'Converting units with fractions, and the area of rectangles, triangles, trapezoids and composite figures (Dimensions Math 5, chapter 7).',
+      tags: ['math', 'measurement', 'area'],
+      path: 'modules/math/measurement/index.html',
+      storage: ['measurement'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Worked examples, and a helper that finds the area of a rectangle, triangle or trapezoid step by step.' },
+        { id: 'units', name: 'Convert customary units', difficulty: 'easy', blurb: 'Feet, yards, pounds and gallons, with fractions. Mastered at 8 of 10.' },
+        { id: 'time', name: 'Convert units of time', difficulty: 'easy', blurb: 'Hours, minutes, days, weeks and years. Mastered at 8 of 10.' },
+        { id: 'rect', name: 'Area of a rectangle', difficulty: 'medium', blurb: 'Fraction and mixed-number sides. Mastered at 8 of 10.' },
+        { id: 'triangle', name: 'Area of a triangle', difficulty: 'medium', blurb: 'Acute, right and obtuse. Mastered at 8 of 10.' },
+        { id: 'trapezoid', name: 'Area of a trapezoid', difficulty: 'hard', blurb: 'Two bases and a height. Mastered at 8 of 10.' },
+        { id: 'composite', name: 'Composite figures', difficulty: 'hard', blurb: 'L-shapes, cut-outs, and a triangle on a rectangle. Mastered at 8 of 10.' },
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Fractions in every shape, and two-step conversions. Mastered at 8 of 10.' }
+      ]
+    },
+    {
       id: 'planets',
       subject: 'science',
       title: 'The Planets',
