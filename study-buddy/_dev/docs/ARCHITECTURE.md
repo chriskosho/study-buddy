@@ -250,3 +250,11 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 
 ## 22. Support link (October 2026)
 - A "Support Study Buddy" link to PayPal is in the footer (`footHTML()` in `sb-shell.js`, constant `DONATE`) and in a Support section of the About page. It is a plain link that opens a new tab with `rel="noopener noreferrer"`: no widget or script from PayPal is ever loaded, and nothing about a student is sent. The About text says it is a gift, not a charitable donation. Change the address in one place (`DONATE`) and in the About text.
+
+## 23. Module screen: Tiles or List, sort, filter (October 2026)
+- **Settings:** `settings.view` (`tiles` default, or `list`) and `settings.sort` (`subject` default, `az`, `recent`, `new`) are per student, saved with `SB.setSetting`, and covered by backups. Unknown values fall back to the defaults.
+- **Drawing:** `viewHome()` in `hub.js` draws the tab, the controls (`.mctl`: filter box `#mQ`, Sort by `#mSort`, the Tiles/List toggle) and the area `#mArea`. Changing a control redraws only `#mArea` (so the focus stays on the control); a bookmark press redraws the whole screen because the Saved tab can appear or go away. `modList()` filters (`matches`: every word must be in the title, description, tags or subject name), sorts (`sortedMods`; Recently used reads the tool records' `last`) and draws tiles (`modCard`) or rows (`modRow`). With Sort by Subject, the All and Saved tabs get a `.mgroup` heading per subject with a count.
+- **Filter text** is kept in `modQ` only while the student stays on one home tab; a tab change or leaving the home screen clears it.
+- **Rows** (`.modrow` > `a.mod.modl` + speaker + bookmark): three columns on wide screens, one column under 900px, the description hidden under 560px. The Utilities page uses the same toggle with simple rows.
+- **Known, not fixed:** at 1024px wide with larger text and OpenDyslexic both on, the shared header (`sb-shell.js`) is about 63px too wide (also on main before this change).
+

@@ -61,7 +61,7 @@
   function saveRoot(r) { write(ROOT, r); }
   function child(id) {
     const d = Object.assign({ settings: {}, streak: 0, bestStreak: 0, daily: { d: '', n: 0, done: false }, tools: {}, last: null }, read(CHILD(id), {}));
-    d.settings = Object.assign({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal', voice: '' }, d.settings);
+    d.settings = Object.assign({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal', voice: '', view: 'tiles', sort: 'subject' }, d.settings);
     d.streak = Number(d.streak) || 0; d.bestStreak = Number(d.bestStreak) || 0;
     if (!d.daily || typeof d.daily !== 'object') d.daily = { d: '', n: 0, done: false };
     d.daily.n = Number(d.daily.n) || 0;
@@ -126,7 +126,7 @@
   const avatar = (p, cls = '') => `<span class="av ${cls}" style="--c:${safeColor(p.color)};--ci:${colorInk(p.color)}" aria-hidden="true">${esc(initial(p.name))}</span>`;
 
   /* ---------- settings ---------- */
-  function getSetting(k, id = activeId()) { return id ? child(id).settings[k] : ({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal', voice: '' })[k]; }
+  function getSetting(k, id = activeId()) { return id ? child(id).settings[k] : ({ sound: true, readAloud: false, theme: 'light', font: 'standard', size: 'normal', voice: '', view: 'tiles', sort: 'subject' })[k]; }
   function setSetting(k, v, id = activeId()) {
     if (!id) return; const d = child(id); d.settings[k] = v; saveChild(id, d);
     if (id === activeId()) { if (k === 'sound' && !v) stopTones(); if (k === 'readAloud' && !v) stopSpeech(); }   // turning a setting off also stops what is playing
