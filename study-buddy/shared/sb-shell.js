@@ -16,6 +16,7 @@
   const SB = window.SB, esc = SB.esc, BASE = SB.BASE;
   const HOME = BASE + 'index.html#/home';
   const PAGE = k => BASE + 'index.html#/' + k;
+  const DONATE = 'https://www.paypal.me/chriskosho';   // a plain link out, never an embedded widget (nothing from PayPal loads on our pages)
 
   const ICON = {
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
@@ -189,7 +190,7 @@
       </div></div>`;
   }
   function footHTML() {
-    return `<div class="sbfoot-in"><nav aria-label="Footer"><a href="${HOME}">Home</a><a href="${HOME}">Subjects</a><a href="${PAGE('utilities')}">Utilities</a><a href="${PAGE('settings')}">Settings</a><a href="${PAGE('admin')}">Admin area</a><a href="${PAGE('help')}">Help</a><a href="${PAGE('faq')}">FAQ</a><a href="${PAGE('about')}">About</a></nav>
+    return `<div class="sbfoot-in"><nav aria-label="Footer"><a href="${HOME}">Home</a><a href="${HOME}">Subjects</a><a href="${PAGE('utilities')}">Utilities</a><a href="${PAGE('settings')}">Settings</a><a href="${PAGE('admin')}">Admin area</a><a href="${PAGE('help')}">Help</a><a href="${PAGE('faq')}">FAQ</a><a href="${PAGE('about')}">About</a><a href="${DONATE}" target="_blank" rel="noopener noreferrer" aria-label="Support Study Buddy with a donation (opens PayPal in a new tab)">Support Study Buddy</a></nav>
       <p>Progress is saved on this device only. Nothing goes online.</p></div>`;
   }
 

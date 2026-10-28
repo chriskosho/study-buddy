@@ -165,6 +165,8 @@
         <li>An admin can erase everything for a student, or all of it, in the admin area.</li></ul>
       <h3>What is new</h3>
       <p>See the <a href="#/changelog">Change log</a> for what has changed, newest first.</p>
+      <h3>Support Study Buddy</h3>
+      <p>Study Buddy is free, and nothing is locked behind a payment. If it helps your family and you would like to say thanks, you can <a href="https://www.paypal.me/chriskosho" target="_blank" rel="noopener noreferrer" aria-label="Donate through PayPal (opens in a new tab)">donate through PayPal</a>. It is a gift to the person who makes Study Buddy, not a charitable donation, so it is not tax-deductible. The link opens PayPal, a different website with its own privacy rules. Nothing about you or your students is sent to it.</p>
       <h3>Credits</h3>
       <ul><li>Fonts: OpenDyslexic, Andika, and Playwrite US Trad, used under the SIL Open Font License.</li>
         <li>Study guide notes about what historians say link to Wikipedia as their source.</li>
