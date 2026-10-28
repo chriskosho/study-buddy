@@ -26,6 +26,8 @@
   const ROOT = NS + '.root';
   const CHILD = id => NS + '.child.' + id;
   const MODPREFIX = id => NS + '.m.' + id + '.';
+  const EPOCH = NS + '.epoch';   // bumped by resets and backup loads, so other open tabs reload instead of writing old progress back
+  const bumpEpoch = () => { try { localStorage.setItem(EPOCH, String(Date.now())); } catch (e) {} };
   const DAILY_GOAL = 20;
   const UNLOCK_MS = 5 * 60 * 1000;
   const DIFFS = ['easy', 'medium', 'hard', 'insane'];
@@ -44,7 +46,10 @@
 
   /* ---------- storage ---------- */
   const read = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
-  const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
+  let fullWarned = false;
+  const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { storageFull(); return false; } };
+  /* a failed save used to be silent: say so once per page, so a parent can make room */
+  function storageFull() { if (fullWarned) return; fullWarned = true; setTimeout(() => { try { toast('This device is out of room, so progress is not being saved. A parent can delete old scratch pad notes or save a backup.'); } catch (e) {} }, 0); }
   const remove = k => { try { localStorage.removeItem(k); } catch (e) {} };
   const allKeys = () => { const out = []; try { for (let i = 0; i < localStorage.length; i++) out.push(localStorage.key(i)); } catch (e) {} return out; };
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
@@ -70,7 +75,8 @@
   const profile = id => profiles().find(p => p.id === id) || null;
   const activeProfile = () => { const r = root(); return r.profiles.find(p => p.id === r.active) || null; };
   const activeId = () => { const p = activeProfile(); return p ? p.id : null; };
-  function setActive(id) { const r = root(); r.active = id; saveRoot(r); }
+  function setActive(id) { const r = root(); r.active = id; saveRoot(r); seenActive = id; }
+  let seenActive = null;
   function addProfile(name, color) {
     const r = root(), p = { id: uid(), name: String(name).trim().slice(0, 24), color: color || COLORS[r.profiles.length % COLORS.length].c };
     r.profiles.push(p); saveRoot(r); saveChild(p.id, child(p.id)); return p;
@@ -88,11 +94,11 @@
   function clearModuleData(id) { allKeys().filter(k => k && k.startsWith(MODPREFIX(id))).forEach(remove); }
   function deleteProfile(id) {
     const r = root(); r.profiles = r.profiles.filter(p => p.id !== id); if (r.active === id) r.active = null; saveRoot(r);
-    remove(CHILD(id)); remove(NS + '.notes.' + id); try { sessionStorage.removeItem(NS + '.sessnotes.' + id); } catch (e) {} clearModuleData(id);
+    bumpEpoch(); remove(CHILD(id)); remove(NS + '.notes.' + id); try { sessionStorage.removeItem(NS + '.sessnotes.' + id); } catch (e) {} clearModuleData(id);
   }
   function resetChild(id) {           // erase progress, keep the child's settings
     const old = child(id), fresh = child('__none__'); fresh.settings = old.settings;
-    saveChild(id, fresh); clearModuleData(id);
+    saveChild(id, fresh); clearModuleData(id); bumpEpoch();
   }
   function resetAllProgress() { profiles().forEach(p => resetChild(p.id)); }   // every child's progress, but names and settings stay
   function eraseEverything() { allKeys().filter(k => k && k.startsWith(NS)).forEach(remove); try { Object.keys(sessionStorage).filter(k => k.startsWith(NS + '.sessnotes.')).forEach(k => sessionStorage.removeItem(k)); } catch (e) {} lock(); }   // all profiles, progress, settings, and the PIN
@@ -101,7 +107,7 @@
     Object.keys(d.tools).forEach(k => { if (k.startsWith(moduleId + '/')) delete d.tools[k]; });
     if (d.last && d.last.module === moduleId) d.last = null;
     saveChild(id, d);
-    (storageKeys || []).forEach(k => remove(MODPREFIX(id) + k));
+    (storageKeys || []).forEach(k => remove(MODPREFIX(id) + k)); bumpEpoch();
   }
   const colorInk = c => (COLORS.find(x => x.c === c) || { ink: '#fff' }).ink;
   const initial = name => (String(name).trim()[0] || '?').toUpperCase();
@@ -132,7 +138,9 @@
   function result(moduleId, toolId, score, max) {
     const id = activeId(); if (!id) return; const d = child(id), r = rec(d, moduleId, toolId);
     r.attempts++; r.lastScore = score; r.last = Date.now();
-    if (r.best == null || score > r.best) { r.best = score; r.max = max == null ? null : max; }
+    /* rounds can have different sizes (sets of 6, 9 or 18), so the best is the best share, not the biggest number */
+    const better = r.best == null || (max && r.max ? (score / max > r.best / r.max || (score / max === r.best / r.max && score > r.best)) : score > r.best);
+    if (better) { r.best = score; r.max = max == null ? null : max; }
     d.last = { module: moduleId, tool: toolId, at: r.last }; saveChild(id, d);
     setTimeout(maybeInvite, 1400);
   }
@@ -176,6 +184,7 @@
     if (!getSetting('sound')) return;
     try {
       actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state !== 'running' && actx.resume) actx.resume().catch(() => {});     // iPhones suspend sound after the screen locks
       freqs.forEach((f, i) => {
         const o = actx.createOscillator(), g = actx.createGain();
         o.type = 'triangle'; o.frequency.value = f;
@@ -380,12 +389,12 @@
     document.addEventListener('keydown', onKey, true);
     ov.addEventListener('pointerdown', e => { if (e.target === ov) (ov._cancel || close)(); });
     wire(ov.firstElementChild, close, ov);
-    const f = ov.querySelector('input,button.sb-btn:not(.ghost)'); if (f) setTimeout(() => f.focus(), 30);
+    const f = ov.querySelector('[data-autofocus]') || ov.querySelector('input,button.sb-btn:not(.ghost)'); if (f) setTimeout(() => f.focus(), 30);
     return close;
   }
 
   function confirmDlg({ title, text, ok = 'Yes', cancel = 'Cancel', danger = false }, onOk, onCancel) {
-    dialog(`<h3>${esc(title)}</h3><p>${esc(text)}</p><div class="sb-row"><button class="sb-btn ghost" data-x="no">${esc(cancel)}</button><button class="sb-btn ${danger ? 'warn' : ''}" data-x="yes">${esc(ok)}</button></div>`, (box, close, ov) => {
+    dialog(`<h3>${esc(title)}</h3><p>${esc(text)}</p><div class="sb-row"><button class="sb-btn ghost" data-x="no"${danger ? ' data-autofocus' : ''}>${esc(cancel)}</button><button class="sb-btn ${danger ? 'warn' : ''}" data-x="yes">${esc(ok)}</button></div>`, (box, close, ov) => {
       ov._cancel = () => { close(); onCancel && onCancel(); };
       box.querySelector('[data-x="no"]').onclick = ov._cancel;
       box.querySelector('[data-x="yes"]').onclick = () => { close(); onOk && onOk(); };
@@ -608,7 +617,8 @@
 
   /* ---------- backup ---------- */
   function exportAll() {
-    const data = {}; allKeys().filter(k => k && k.startsWith(NS)).forEach(k => { data[k] = localStorage.getItem(k); });
+    const ids = new Set(root().profiles.map(p => p.id)), owner = k => { const m = k.match(/^studybuddy\.v1\.(?:child|notes|m)\.([a-z0-9]+)/i); return m ? m[1] : null; };
+    const data = {}; allKeys().filter(k => k && k.startsWith(NS) && k !== EPOCH && (!owner(k) || ids.has(owner(k)))).forEach(k => { data[k] = localStorage.getItem(k); });   // leftovers of deleted children stay out
     return JSON.stringify({ app: 'study-buddy', version: 1, exported: new Date().toISOString(), data }, null, 1);
   }
   /* Check a backup file completely before touching anything. Returns { data, names } or throws an Error with a plain message. */
@@ -636,11 +646,14 @@
     }
     if (r.active != null && !ids.has(r.active)) throw new Error('This backup is damaged, so nothing was changed.');
     if (r.pin != null && typeof r.pin !== 'string') throw new Error('This backup is damaged, so nothing was changed.');
+    const skip = new Set();
     for (const [k, j] of Object.entries(parsed)) {
       if (k === ROOT) continue;
+      if (k === EPOCH) { skip.add(k); continue; }
       const c = k.match(/^studybuddy\.v1\.child\.([a-z0-9]+)$/i);
       if (c) {
-        if (!ids.has(c[1]) || !isObj(j)) throw new Error('This backup is damaged, so nothing was changed.');
+        if (!ids.has(c[1])) { skip.add(k); continue; }
+        if (!isObj(j)) throw new Error('This backup is damaged, so nothing was changed.');
         if ((j.streak != null && !num(j.streak)) || (j.bestStreak != null && !num(j.bestStreak))) throw new Error('This backup is damaged, so nothing was changed.');
         if (j.daily != null && (!isObj(j.daily) || !num(j.daily.n) || typeof j.daily.d !== 'string')) throw new Error('This backup is damaged, so nothing was changed.');
         if (j.settings != null && !isObj(j.settings)) throw new Error('This backup is damaged, so nothing was changed.');
@@ -652,7 +665,8 @@
       }
       const nt = k.match(/^studybuddy\.v1\.notes\.([a-z0-9]+)$/i);   // scratch pad notes saved to a profile
       if (nt) {
-        if (!ids.has(nt[1]) || !Array.isArray(j) || j.length > 60) throw new Error('This backup is damaged, so nothing was changed.');
+        if (!ids.has(nt[1])) { skip.add(k); continue; }
+        if (!Array.isArray(j) || j.length > 60) throw new Error('This backup is damaged, so nothing was changed.');
         for (const n of j) {
           const okItem = it => isObj(it) && ((it.k === 't' && typeof it.t === 'string' && num(it.x) && num(it.y) && num(it.s)) || (it.k === 's' && typeof it.t === 'string' && Array.isArray(it.p) && it.p.length % 3 === 0 && it.p.every(num) && num(it.w)));
           if (!isObj(n) || typeof n.id !== 'string' || !Array.isArray(n.items) || n.items.length > 6000 || !n.items.every(okItem) || (n.w != null && !num(n.w)) || (n.h != null && !num(n.h)) || (n.at != null && !num(n.at))) throw new Error('This backup is damaged, so nothing was changed.');
@@ -660,10 +674,11 @@
         continue;
       }
       const m = k.match(/^studybuddy\.v1\.m\.([a-z0-9]+)\./i);
-      if (m && ids.has(m[1])) continue;
+      if (m) { if (!ids.has(m[1])) skip.add(k); continue; }
       throw new Error('This backup is damaged, so nothing was changed.');
     }
-    return { data: o.data, names: r.profiles.map(p => p.name.slice(0, 24)) };
+    const data = {}; Object.keys(o.data).forEach(k => { if (!skip.has(k)) data[k] = o.data[k]; });   // keys left over from a deleted child are dropped, not fatal
+    return { data, names: r.profiles.map(p => p.name.slice(0, 24)) };
   }
   /* Replace everything with the backup. The old data is kept until the new data is fully written, and put back if it can't be. */
   function importAll(text) {
@@ -678,11 +693,12 @@
       Object.entries(old).forEach(([k, v]) => { try { localStorage.setItem(k, v); } catch (e2) {} });
       throw new Error('There was not enough room to load that backup. Nothing was changed.');
     }
+    bumpEpoch();
     lock();
   }
   function download(name, text, type = 'application/json') {
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
-    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 60000);
   }
 
   /* ---------- offline support (only works on a real web address, not a double-clicked file) ---------- */
@@ -693,8 +709,13 @@
 
   try { applyDisplay(); } catch (e) {}
   try {
-    const loadedActive = activeId();
-    window.addEventListener('storage', e => { if (e.key === ROOT && activeId() !== loadedActive) location.reload(); });
+    seenActive = activeId();
+    window.addEventListener('storage', e => {
+      const a = seenActive;
+      if (e.key === null) return location.reload();                                              // all site data cleared in another tab
+      if (e.key === ROOT) { if (activeId() !== a) location.reload(); return; }
+      if (e.key === EPOCH || (a && e.newValue === null && (e.key === CHILD(a) || e.key.startsWith(MODPREFIX(a))))) location.reload();   // a reset or a backup load in another tab: don't write old progress back
+    });
   } catch (e) {}
 
   window.SB = {

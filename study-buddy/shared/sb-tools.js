@@ -412,7 +412,7 @@
      ("elect" finds "elected"), "B.C." does not end a sentence, and a sentence needs only 3 words. */
   const ABBR = /(?:\b(?:b\.c|a\.d|b\.c\.e|c\.e|mr|mrs|ms|dr|st|vs|etc)\.)$/i;
   function splitSentences(text) {
-    const raw = text.split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(Boolean), out = [];
+    const raw = text.replace(/([.!?])\s+/g, '$1\u0000').split('\u0000').map(x => x.trim()).filter(Boolean), out = [];   // no lookbehind: Safari before 16.4 cannot read it, and the whole file would fail
     // "In 753 B.C. Rome began." stays one sentence: a short piece after a date abbreviation joins the one before it
     raw.forEach(piece => { const prev = out[out.length - 1]; if (prev && ABBR.test(prev) && (/^[a-z]/.test(piece) || piece.split(/\s+/).length < 3)) out[out.length - 1] = prev + ' ' + piece; else out.push(piece); });
     return out;
