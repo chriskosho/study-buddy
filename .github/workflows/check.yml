@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned, so the runner (and its fonts) only changes when we choose
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
