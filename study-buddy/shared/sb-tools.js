@@ -44,6 +44,8 @@
   const esc = s => SB.esc(s);
   const setMsg = (el, text, kind = '') => { el.className = 'msg' + (kind ? ' ' + kind : ''); el.textContent = text; };
   const starsHTML = (s, n) => { const k = s / n >= 0.9 ? 3 : s / n >= 0.7 ? 2 : s / n >= 0.5 ? 1 : 0; return `<div class="stars">${[0, 1, 2].map(i => `<span class="${i < k ? '' : 'off'}">&#9733;</span>`).join('')}</div>`; };
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   const FLIP_MS = 520;
 
   /* ---------------- Scratch pad button ----------------
@@ -98,10 +100,10 @@
     P.innerHTML = `<h2>${esc(opt.title || 'Flashcards')}</h2><p class="lead">${esc(opt.lead || 'Tap the card to flip it. Be honest: did you know it? Cards you miss come back again.')}<span class="swipe-tip"> Swipe right if you knew it, left if you are still learning.</span></p>
       <div class="deckbar">${secMenu()}${modes.length > 1 ? `<div class="seg" role="group" aria-label="Card type">${modes.map((m, i) => `<button data-m="${esc(m.id)}" aria-pressed="${i === 0}">${esc(m.label)}</button>`).join('')}</div>` : ''}
         <div class="bar" aria-hidden="true"><i></i></div><span class="hint count"></span><button class="btn ghost undo" data-a="undo" disabled>Undo</button></div>
-      <div class="cardzone"><div class="cardstage"><div class="fcard" role="button" tabindex="0" aria-label="Flashcard. Press to flip"><div class="face front"></div><div class="face back"></div></div></div></div>
+      <div class="cardzone"><div class="cardstage"><div class="fcard" role="button" tabindex="0" aria-describedby="sbFlipTip"><span class="sr-only" id="sbFlipTip">Press to flip the card.</span><div class="face front" aria-live="polite"></div><div class="face back" aria-hidden="true" aria-live="polite"></div></div></div></div>
       <div class="row center cardbtns"><button class="btn warn" data-a="again">Still learning</button><button class="btn ghost" data-a="skip">Skip</button><button class="btn good" data-a="knew">I knew it</button></div>`;
     const card = $('.fcard', P), F = $('.front', P), B = $('.back', P);
-    const flip = on => { FC.flipped = on; card.classList.toggle('flip', on); };
+    const flip = on => { FC.flipped = on; card.classList.toggle('flip', on); F.setAttribute('aria-hidden', String(on)); B.setAttribute('aria-hidden', String(!on)); };
     const bar = () => { const done = FC.total - FC.queue.length; $('.bar i', P).style.width = (FC.total ? done / FC.total * 100 : 0) + '%'; $('.count', P).textContent = done + ' of ' + FC.total + ' done'; $('[data-a="undo"]', P).disabled = !FC.hist.length; };
     const secIdx = () => SEC.list.findIndex(e => e.id === FC.sec);
     const secStep = d => { for (let i = secIdx() + d; i >= 0 && i < SEC.list.length; i += d) if (!SEC.list[i].noStep) return i; return -1; };   // entries with noStep (like "All") are in the menu but skipped by the arrows
@@ -127,7 +129,7 @@
     $('[data-a="again"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { snap(); const c = FC.queue.shift(); FC.missed.add(c); FC.queue.splice(Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)), 0, c); ctx.sfx.bad(); next(); SB.cardToast(zone, 'Still learning', undo); }); };
     $('[data-a="skip"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { snap(); FC.queue.push(FC.queue.shift()); next(); SB.cardToast(zone, 'Skipped', undo); }); };
     $('[data-a="undo"]', P).onclick = undo;
-    const onKey = e => { if (!P.isConnected) return document.removeEventListener('keydown', onKey); if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !/^(INPUT|SELECT|TEXTAREA)$/.test((e.target || {}).tagName || '') && P.offsetParent) { e.preventDefault(); undo(); } };
+    const onKey = e => { if (!card.isConnected) return document.removeEventListener('keydown', onKey); if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !/^(INPUT|SELECT|TEXTAREA)$/.test((e.target || {}).tagName || '') && P.offsetParent) { e.preventDefault(); undo(); } };
     document.addEventListener('keydown', onKey);
     if (SEC) {
       const go = i => { if (FC.busy || i < 0) return; FC.sec = SEC.list[i].id; build(); };
@@ -158,7 +160,7 @@
     const score = () => { $('.placed', P).textContent = S.placed + '/' + S.total; $('.miss', P).textContent = S.miss; };
     function select(chip) {
       S.sel = S.sel === chip ? null : chip;
-      $$('.chip', tray).forEach(c => c.classList.toggle('sel', c === S.sel));
+      $$('.chip', tray).forEach(c => { c.classList.toggle('sel', c === S.sel); c.setAttribute('aria-pressed', String(c === S.sel)); });
       $$('.bucket', P).forEach(b => b.classList.toggle('ready', !!S.sel));
       if (S.sel) { setMsg(msg, 'Now tap the group for "' + S.sel.textContent + '".'); ctx.say(S.sel.textContent); }
     }
@@ -169,7 +171,7 @@
         const got = $(`.bucket[data-b="${bid}"] .got`, P), s = document.createElement('span');
         if (b.style) s.style.cssText = b.style;
         s.textContent = item.text; got.appendChild(s);
-        chip.remove(); S.sel = null; $$('.bucket', P).forEach(x => x.classList.remove('ready'));
+        chip.remove(); S.sel = null; $$('.chip', tray).forEach(c => { c.classList.remove('sel'); c.setAttribute('aria-pressed', 'false'); }); $$('.bucket', P).forEach(x => x.classList.remove('ready'));
         S.placed++; ctx.credit(); ctx.sfx.good(); setMsg(msg, right(item, b), 'good'); score();
         if (S.placed === S.total) {
           ctx.result(Math.max(0, S.total - S.miss), S.total); ctx.sfx.win();
@@ -211,7 +213,9 @@
       items.forEach(it => {
         const c = document.createElement('button'); c.className = 'chip'; c.type = 'button'; c.textContent = it.text; c._item = it; c.dataset.b = it.b;
         c.addEventListener('pointerdown', e => pointerDown(e, c));
+        c.setAttribute('aria-pressed', 'false');
         c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(c); } });
+        c.addEventListener('click', e => { if (e.detail === 0 && e.pointerType !== 'mouse') select(c); });   // screen readers and switch access send only a click (detail 0); pointer taps are handled above
         tray.appendChild(c);
       });
       setMsg(msg, 'Pick one to begin.'); score();
@@ -229,15 +233,16 @@
       if (Q.i >= Q.qs.length) {
         ctx.result(Q.score, Q.qs.length); ctx.sfx.win();
         P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><div class="result">${starsHTML(Q.score, Q.qs.length)}<p class="prompt">${Q.score} out of ${Q.qs.length}</p><p class="lead">${Q.score / Q.qs.length >= 0.9 ? 'Amazing! You really know this.' : Q.score / Q.qs.length >= 0.7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'}</p><button class="btn" data-a="again">Play again</button></div>`;
-        $('[data-a="again"]', P).onclick = start; return;
+        $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
       const q = Q.qs[Q.i], opts = shuffle([q.a, ...shuffle(q.wrong).slice(0, 3)]); Q.answered = false;
       P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><p class="lead">${esc(opt.lead || 'Pick the best answer.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span class="hint">Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${Q.score}</span></div>
         <div class="qwrap"><div class="row qrow"><p class="qtext">${q.qh || esc(q.q)}</p>${ctx.sayButton(q.say || q.q, 'Hear the question')}</div>${q.html || ''}
         <div class="opts">${opts.map(o => `<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>
-        <p class="explain"></p><div class="row center">${opt.skip ? '<button class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button class="btn" data-a="next" hidden>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
+        <p class="explain" aria-live="polite"></p><div class="row center">${opt.skip ? '<button class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button class="btn" data-a="next" hidden>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
       addPad(ctx, () => q.qh ? plainText(q.qh) : q.q);
+      { const f = $('.opt', P); if (f && P.offsetParent && P.contains(document.activeElement) === false && (document.activeElement === document.body || !document.activeElement || P.dataset.sbFocus)) f.focus({ preventScroll: true }); P.dataset.sbFocus = '1'; }   // keyboard users stay in the quiz
       $$('.opt', P).forEach(b => b.onclick = () => {
         if (Q.answered) return; Q.answered = true;
         const skb = $('[data-a="skip"]', P); if (skb) skb.hidden = true;
@@ -245,7 +250,7 @@
         $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
         if (ok) { Q.score++; ctx.credit(); ctx.sfx.good(); } else { b.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); }
         if (opt.onAnswer) opt.onAnswer(q, ok);
-        $('.explain', P).innerHTML = (ok ? '<b style="color:var(--good)">Correct!</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + esc(q.why || ('The answer is: ' + q.a + '.'));
+        $('.explain', P).innerHTML = (ok ? '<b style="color:var(--good-ink)">Correct!</b> ' : '<b style="color:var(--bad-ink)">Not quite.</b> ') + esc(q.why || ('The answer is: ' + q.a + '.'));
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
       });
       const sk = $('[data-a="skip"]', P);
@@ -317,7 +322,7 @@
       if (R.i >= R.list.length) {
         ctx.result(R.score, R.list.length); ctx.sfx.win();
         P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><div class="result">${starsHTML(R.score, R.list.length)}<p class="prompt">${R.score} out of ${R.list.length}</p><p class="lead">${R.score / R.list.length >= 0.8 ? 'Excellent work!' : 'Good practice. Read the explanations, then try another round.'}</p><button class="btn" data-a="again">Play again</button></div>`;
-        $('[data-a="again"]', P).onclick = start; return;
+        $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
       const item = R.list[R.i]; R.tries = 0; R.hinted = false;
       P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><p class="lead">${esc(opt.lead || 'Type your answer, then press Check.')}</p>
@@ -382,7 +387,7 @@
     }
     function render(marks) {
       list.innerHTML = O.items.map((it, i) => `<li class="oitem${marks ? (marks[i] ? ' right' : ' wrong') : ''}" data-i="${i}">
-        <span class="onum">${i + 1}</span><span class="otext"><b>${esc(it.text)}</b>${it.sub ? `<small>${esc(it.sub)}</small>` : ''}</span>
+        <span class="onum">${i + 1}</span>${marks ? `<span class="omark" aria-hidden="true">${marks[i] ? CHECK : CROSS}</span><span class="sr-only">${marks[i] ? 'In the right place.' : 'Not in the right place.'}</span>` : ''}<span class="otext"><b>${esc(it.text)}</b>${it.sub ? `<small>${esc(it.sub)}</small>` : ''}</span>
         <span class="oarrows"><button type="button" data-mv="-1" aria-label="Move ${esc(it.text)} up" ${i === 0 ? 'disabled' : ''}>&#9650;</button><button type="button" data-mv="1" aria-label="Move ${esc(it.text)} down" ${i === O.items.length - 1 ? 'disabled' : ''}>&#9660;</button></span></li>`).join('');
       $$('.oitem', list).forEach(li => {
         li.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => move(+li.dataset.i, +li.dataset.i + +b.dataset.mv));
@@ -419,8 +424,6 @@
   }
 
   /* ---------------- Explain it (written answers) ---------------- */
-  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-  const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   /* Lenient on purpose: curly quotes (phones type them) count as straight ones, a keyword can sit inside a longer word
      ("elect" finds "elected"), "B.C." does not end a sentence, and a sentence needs only 3 words. */
   const ABBR = /(?:\b(?:b\.c|a\.d|b\.c\.e|c\.e|mr|mrs|ms|dr|st|vs|etc)\.)$/i;
@@ -447,7 +450,7 @@
       if (X.i >= X.list.length) {
         ctx.result(X.score, X.list.length); ctx.sfx.win();
         P.innerHTML = `<h2>${esc(opt.title || 'Explain it')}</h2><div class="result">${starsHTML(X.score, X.list.length)}<p class="prompt">${X.score} out of ${X.list.length} complete</p><p class="lead">${X.score / X.list.length >= 0.8 ? 'Insane work. You can explain it all in your own words.' : 'Explaining is the hardest part. Read the model answers, then try again.'}</p><button class="btn" data-a="again">Play again</button></div>`;
-        $('[data-a="again"]', P).onclick = start; return;
+        $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
       const ex = X.list[X.i]; X.checked = false;
       P.innerHTML = `<h2>${esc(opt.title || 'Explain it')}</h2><p class="lead">${esc(opt.lead || 'Answer in complete sentences, then check your answer.')}</p>
