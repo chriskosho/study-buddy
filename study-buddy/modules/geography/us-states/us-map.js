@@ -160,20 +160,26 @@
         <div class="scorebar"><div class="stat"><b id="fScore">0</b><span>Score</span></div><div class="stat"><b id="fTime">60</b><span>Seconds</span></div><div class="stat"><b id="fBest">0</b><span>Best</span></div></div>
         <div class="mapgrid">${mapBox('mapFind', 'Map of the United States')}<div><div class="prompt" id="fPrompt">Ready?</div>
           <p class="msg" id="fMsg">You get 60 seconds. Each right tap is a point.</p><div class="row"><button class="btn" id="fStart" type="button">Start</button></div></div></div>`;
-      const F = { svg: $('#mapFind', P), score: 0, time: 60, timer: null, target: null, running: false };
+      const F = { svg: $('#mapFind', P), score: 0, time: 60, timer: null, target: null, running: false, hard: new Set() };
       const stopFind = silent => { clearInterval(F.timer); F.running = false; if (silent) { $('#fPrompt', P).textContent = 'Ready?'; $('#fStart', P).textContent = 'Start'; } };
       function next() {
         let s; do { s = pickN(STATES, 1)[0]; } while (F.target && s.id === F.target);
         F.target = window.__usMap.cur = s.id; $('#fPrompt', P).innerHTML = 'Find <em>' + esc(s.name) + '</em> ' + ctx.sayButton(s.name, 'Hear ' + s.name); ctx.say(s.name);
       }
       function end() {
+        if (F.target) F.hard.add(F.target);
         clearInterval(F.timer); F.running = false; F.target = null;
         const prev = ctx.state.bestFind || 0, best = Math.max(prev, F.score);
         ctx.state.bestFind = best; ctx.save(); $('#fBest', P).textContent = best; ctx.result(F.score, null);
         $('#fPrompt', P).textContent = 'Time!'; $('#fMsg', P).className = 'msg good';
         $('#fMsg', P).textContent = 'You found ' + F.score + ' states.' + (F.score > prev && F.score > 0 ? ' New best!' : ''); $('#fStart', P).textContent = 'Play again'; ctx.sfx.win();
+        if (F.hard.size) {                                    // the ones that took more than one try are outlined, with their names to hear
+          F.hard.forEach(id => F.svg._paths[id] && F.svg._paths[id].classList.add('target'));
+          $('#fMsg', P).insertAdjacentHTML('beforeend', '<br><span class="fpractice">Practice these: ' + [...F.hard].map(id => esc(BYID[id].name) + ' ' + ctx.sayButton(BYID[id].name, 'Hear ' + BYID[id].name)).join(', ') + '</span>');
+        }
       }
       function start() {
+        F.hard = new Set(); Object.values(F.svg._paths).forEach(p => p.classList.remove('target'));
         F.score = 0; F.time = 60; F.running = true; $('#fScore', P).textContent = 0; $('#fTime', P).textContent = 60; $('#fMsg', P).className = 'msg'; $('#fMsg', P).textContent = 'Go!'; $('#fStart', P).textContent = 'Restart';
         next(); clearInterval(F.timer); F.timer = setInterval(() => { F.time--; $('#fTime', P).textContent = F.time; if (F.time <= 0) end(); }, 1000);
       }
@@ -181,7 +187,7 @@
         if (!F.running || !clickOK(F.svg)) return;
         const p = F.svg._paths[id], msg = $('#fMsg', P);
         if (id === F.target) { F.score++; $('#fScore', P).textContent = F.score; ctx.credit(); ctx.sfx.good(); flash(p, 'flash-good'); msg.className = 'msg good'; msg.textContent = 'Yes! ' + BYID[id].name + '.'; next(); }
-        else { ctx.slip(); ctx.sfx.bad(); flash(p, 'flash-bad'); msg.className = 'msg bad'; msg.textContent = 'That is ' + BYID[id].name + '. Keep looking for ' + BYID[F.target].name + '.'; }
+        else { F.hard.add(F.target); ctx.slip(); ctx.sfx.bad(); flash(p, 'flash-bad'); msg.className = 'msg bad'; msg.textContent = 'That is ' + BYID[id].name + '. Keep looking for ' + BYID[F.target].name + '.'; }
       }
       buildMap(F.svg); makeZoom(F.svg);
       Object.entries(F.svg._paths).forEach(([id, p]) => p.addEventListener('click', () => tap(id)));

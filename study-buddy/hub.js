@@ -28,7 +28,7 @@
   /* Page title row. The trail, search, child, Settings and Help live in the shared header (sb-shell.js). */
   function header(title, kid = null) {
     let right = '';
-    if (kid) { const s = SB.streakInfo(); right = `<div class="pill" title="Right answers in a row, and today's goal"><b>Streak ${s.streak}</b><b>Today ${Math.min(s.daily, s.goal)}/${s.goal}</b></div>`; }
+    if (kid) right = `<div class="pill" title="Right answers in a row, and today's goal">${SB.pillHTML()}</div>`;
     return `<header class="top"><h1><span>${esc(title)}</span></h1><div class="row">${right}</div></header>`;
   }
 
@@ -43,7 +43,7 @@
   /* ---------- module card ---------- */
   function modCard(m) {
     const p = SB.moduleProgress(m), pct = p.total ? p.mastered / p.total * 100 : 0;
-    return `<a class="mod" href="#/module/${esc(m.id)}">
+    return `<div class="modcard">${SB.sayButton(m.title, 'Hear the name: ' + m.title)}<a class="mod" href="#/module/${esc(m.id)}">
       <div class="eyebrow">${esc(subjectName(m.subject))}</div>
       <h3>${esc(m.title)}</h3>
       <p>${esc(m.blurb)}</p>
@@ -51,7 +51,7 @@
         <div class="tags">${m.tags.map(t => `<span class="tagpill">${esc(t)}</span>`).join('')}</div>
         <div class="row between">${SB.diffRangeHTML(m)}<span class="hint">${plural(m.tools.length, 'tool')}</span></div>
         <div class="prog"><div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div><span class="hint">${p.mastered} of ${p.total} mastered</span></div>
-      </div></a>`;
+      </div></a></div>`;
   }
 
   /* ---------- views ---------- */
@@ -106,11 +106,12 @@
     document.title = m.title + ' · Study Buddy';
     const p = SB.moduleProgress(m);
     const tools = [...m.tools].sort((a, b) => DIFF_ORDER(a.difficulty) - DIFF_ORDER(b.difficulty));
+    const nextT = tools.find(t => t.kind !== 'study' && !SB.isMastered(t, SB.toolRecord(m.id, t.id)));   // the first tool not mastered yet, easiest first
     const card = t => {
-      const r = SB.toolRecord(m.id, t.id), mastered = SB.isMastered(t, r);
-      return `<div class="tool${mastered ? ' mastered' : ''}">
-        <div class="row between">${SB.diffBadge(t.difficulty)}${mastered ? `<span class="done">${CHECK}Mastered</span>` : t.kind === 'study' ? '<span class="kind">Study</span>' : ''}</div>
-        <h3>${esc(t.name)}</h3><p>${esc(t.blurb || '')}</p>
+      const r = SB.toolRecord(m.id, t.id), mastered = SB.isMastered(t, r), isNext = t === nextT && m.tools.some(x => SB.toolRecord(m.id, x.id));   // only once the module has been started, so a new module still begins with its study guide
+      return `<div class="tool${mastered ? ' mastered' : ''}${isNext ? ' next' : ''}">
+        <div class="row between">${SB.diffBadge(t.difficulty)}${mastered ? `<span class="done">${CHECK}Mastered</span>` : isNext ? '<span class="nextlbl">Try next</span>' : t.kind === 'study' ? '<span class="kind">Study</span>' : ''}</div>
+        <div class="tname"><h3>${esc(t.name)}</h3>${SB.sayButton(t.name + '. ' + (t.blurb || ''), 'Hear about ' + t.name)}</div><p>${esc(t.blurb || '')}</p>
         <div class="tstats">${esc(toolStats(m, t, r))}</div>
         <a class="btn small" href="${esc(toolURL(m, t))}">Start</a></div>`;
     };

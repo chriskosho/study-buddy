@@ -95,7 +95,7 @@ inits.drag = () => {
 };
 
 /* ---------- Map: find it ---------- */
-const FD = { svg: null, score: 0, time: 60, timer: null, target: null, running: false };
+const FD = { svg: null, score: 0, time: 60, timer: null, target: null, running: false, hard: new Set() };
 function stopFind(silent) {
   clearInterval(FD.timer); FD.running = false;
   if (silent && tabInit.find) { $('#fPrompt').textContent = 'Ready?'; $('#fStart').textContent = 'Start'; }
@@ -105,13 +105,19 @@ function fdNext() {
   FD.target = c.id; $('#fPrompt').innerHTML = 'Find <em>' + c.name + '</em> ' + spkBtn(c.id); speak(c.id);
 }
 function fdEnd() {
+  if (FD.target) FD.hard.add(FD.target);   // the one still being looked for when time ran out
   clearInterval(FD.timer); FD.running = false; FD.target = null;
   const best = Math.max(state.best.find || 0, FD.score), isNew = FD.score > (state.best.find || 0);
   state.best.find = best; save(); $('#fBest').textContent = best; report('find', FD.score, null);
   $('#fPrompt').textContent = 'Time!'; $('#fMsg').className = 'msg good';
   $('#fMsg').textContent = 'You found ' + FD.score + ' countries.' + (isNew && FD.score > 0 ? ' New best!' : ''); $('#fStart').textContent = 'Play again'; sfx.win();
+  if (FD.hard.size) {                                     // the ones that took more than one try are outlined, with their names to hear
+    FD.hard.forEach(id => FD.svg._paths[id] && FD.svg._paths[id].classList.add('target'));
+    $('#fMsg').insertAdjacentHTML('beforeend', '<br><span class="fpractice">Practice these: ' + [...FD.hard].map(id => COUNTRY_BY_ID[id].name + ' ' + spkBtn(id)).join(', ') + '</span>');
+  }
 }
 function fdStart() {
+  FD.hard = new Set(); Object.values(FD.svg._paths).forEach(p => p.classList.remove('target'));
   FD.score = 0; FD.time = 60; FD.running = true; $('#fScore').textContent = 0; $('#fTime').textContent = 60; $('#fMsg').className = 'msg'; $('#fMsg').textContent = 'Go!'; $('#fStart').textContent = 'Restart';
   fdNext(); clearInterval(FD.timer);
   FD.timer = setInterval(() => { FD.time--; $('#fTime').textContent = FD.time; if (FD.time <= 0) fdEnd(); }, 1000);
@@ -123,7 +129,7 @@ function fdClick(id) {
     FD.score++; $('#fScore').textContent = FD.score; credit(id); sfx.good();
     p.classList.remove('flash-good'); void p.getBBox(); p.classList.add('flash-good'); msg.className = 'msg good'; msg.textContent = 'Yes! ' + COUNTRY_BY_ID[id].name + '.'; fdNext();
   } else {
-    slip(); sfx.bad(); p.classList.remove('flash-bad'); void p.getBBox(); p.classList.add('flash-bad'); msg.className = 'msg bad'; msg.textContent = 'That is ' + COUNTRY_BY_ID[id].name + '. Keep looking for ' + COUNTRY_BY_ID[FD.target].name + '.';
+    FD.hard.add(FD.target); slip(); sfx.bad(); p.classList.remove('flash-bad'); void p.getBBox(); p.classList.add('flash-bad'); msg.className = 'msg bad'; msg.textContent = 'That is ' + COUNTRY_BY_ID[id].name + '. Keep looking for ' + COUNTRY_BY_ID[FD.target].name + '.';
   }
 }
 inits.find = () => {

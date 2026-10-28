@@ -1,6 +1,16 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'New: help for young readers, practice from mistakes, and Show me how', items: [
+    'Every module and tool card has a speaker button that reads its name, so children who are not reading yet can find their way.',
+    'A module you have started marks the next tool to try. The streak pill shows a small bar filling toward today\'s goal.',
+    'After a round, "See the ones to practice" lists the questions you missed with the right answer and a speaker button, and a picture of your scratch pad work if you used it. Flashcards end with "Go again" or "Just the ones I missed".',
+    'Math typed answers: after a miss, the explanation comes one step at a time, and "Try a similar one" gives a fresh problem of the same kind for practice (no score). The fraction you type is shown back stacked, and phones get a number pad with a fraction bar.',
+    'Quizzes: press 1 to 4 on the keyboard to answer.',
+    'Phonograms: new "Hear it, tap it" tool. Press the speaker, hear the sounds, tap the phonogram. No reading or typing.',
+    'Handwriting: "Show me how" writes the letter stroke by stroke, with numbers where each stroke starts, in print and cursive.',
+    'Find it (South America and US States) outlines the places that took more than one try and names them to practice. Ham Radio mock exam results have a Practice button for each topic.',
+    'The scratch pad can share its picture on phones and tablets.' ] },
   { date: '2026-10-28', title: 'Checking for updates', items: [
     'Settings, Updates now shows which version this device has, and says when a newer version is ready.',
     'Behind the scenes: every pull request is now checked automatically, a deploy confirms the live site has the new version, and the whole test suite runs with one command.' ] },

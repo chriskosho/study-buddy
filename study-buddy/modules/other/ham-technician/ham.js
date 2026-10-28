@@ -183,7 +183,7 @@
         const rows = SUBS.map(s => {
           const idx = E.qs.map((q, i) => i).filter(i => E.qs[i].g.slice(0, 2) === s.id);
           const r = idx.filter(i => E.ans[i] === E.qs[i].a).length;
-          return `<div class="hrow"><span class="hn">${esc(s.id)} ${esc(s.name)}</span><span class="hbar" aria-hidden="true"><i style="width:${idx.length ? r / idx.length * 100 : 0}%"></i></span><span class="hc">${r} of ${idx.length}</span></div>`;
+          return `<div class="hrow"><span class="hn">${esc(s.id)} ${esc(s.name)}</span><span class="hbar" aria-hidden="true"><i style="width:${idx.length ? r / idx.length * 100 : 0}%"></i></span><span class="hc">${r} of ${idx.length}</span>${r < idx.length ? `<button class="btn ghost small hprac" data-prac="${esc(s.id)}" aria-label="Practice ${esc(s.id)} ${esc(s.name)} with flashcards">Practice</button>` : ''}</div>`;
         }).join('');
         P.innerHTML = `<h2>Mock exam results</h2>
           <div class="hresult ${pass ? 'pass' : 'fail'}"><p class="hverdict">${pass ? 'You passed!' : 'Not yet'}</p><p class="hscore">${score} out of ${TOTAL}</p>
@@ -195,6 +195,10 @@
         $('[data-a="all"]', P).onclick = () => open('all');
         const m = $('[data-a="missed"]', P); if (m) m.onclick = () => open('missed');
         $('[data-a="again"]', P).onclick = setup;
+        $$('[data-prac]', P).forEach(b => b.onclick = () => {   // open the flashcards at the first group of that topic
+          const g = GROUPS.find(x => x.sub === b.dataset.prac); if (!g) return; st.cardSec = g.id; ctx.save();
+          location.href = location.pathname + '?tool=cards';
+        });
       }
       function reviewHtml(filter) {
         const items = E.qs.map((q, i) => ({ q, i, mine: E.ans[i] })).filter(x => filter === 'all' || x.mine !== x.q.a);

@@ -53,7 +53,7 @@
       </div>
       ${tools.map(t => `<section class="panel" id="tab-${esc(t.id)}" role="tabpanel" hidden></section>`).join('')}`;
 
-    const renderStreak = () => { const s = SB.streakInfo(); $('#sbStreak').innerHTML = `<b>Streak ${s.streak}</b><b>Today ${Math.min(s.daily, s.goal)}/${s.goal}</b>`; };
+    const renderStreak = () => { const s = SB.streakInfo(); $('#sbStreak').innerHTML = SB.pillHTML(s); };
     const paint = () => {
       const snd = SB.getSetting('sound'), rd = SB.getSetting('readAloud');
       const s = $('#sbSound'); s.textContent = 'Sound: ' + (snd ? 'on' : 'off'); s.setAttribute('aria-pressed', snd);
