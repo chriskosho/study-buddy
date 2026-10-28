@@ -14,6 +14,12 @@
 .bq .spk svg{width:18px;height:18px}
 .talk{margin:8px 0 0;padding:8px 12px;border-radius:12px;background:var(--tint-note);border:1.5px solid var(--note-line);font-size:15px}
 .gcols2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.gbar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:0 0 12px}
+.gbar .seg small{opacity:.8;font-weight:700;margin-left:4px}
+.hlkey{font-size:14px;color:var(--ink2);display:inline-flex;align-items:center;gap:8px}
+.hlkey i{display:inline-block;width:26px;height:14px;border-radius:4px;background:var(--hl);border:1.5px solid var(--note-line)}
+.bq.hl,.talk.hl{background:var(--hl);border-radius:10px;padding-left:10px;padding-right:8px;box-shadow:inset 4px 0 0 var(--note-line)}
+.hltag{display:inline-block;font-style:normal;font-size:12px;font-weight:700;color:var(--ink2);margin-top:2px}
 .gnote{margin:0 0 12px;font-size:14px;color:var(--ink2)}
 @media (max-width:1000px){.gcols2{grid-template-columns:1fr}}
 @media (max-width:760px){

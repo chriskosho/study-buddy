@@ -8,19 +8,34 @@
   const chLabel = c => 'Ch. ' + c;
 
   /* ===================== Study guide ===================== */
+  const HLSET = new Set(HL.map(([c, q]) => c + '|' + q));
+  const isHL = (c, q) => HLSET.has(c + '|' + q);
   const guide = {
     init(ctx) {
-      const P = ctx.panel;
-      P.innerHTML = `<h2>Study guide</h2><p class="lead">The class questions for Black Beauty, chapter by chapter, with the guide's answers.</p>
+      const P = ctx.panel, st = ctx.state;
+      const total = HL.length + HL_TALK.length;
+      P.innerHTML = `<h2>Study guide</h2><p class="lead">The class questions for Black Beauty, chapter by chapter, with the guide's answers. Your teacher highlighted some of them in yellow, so those show first.</p>
+        <div class="gbar"><div class="seg" role="group" aria-label="Which questions to show"><button data-f="1">Highlighted <small>${total}</small></button><button data-f="0">All questions</button></div>
+        <span class="hlkey"><i aria-hidden="true"></i> Highlighted by the teacher</span></div>
         <div class="seg gtabs" role="group" aria-label="Part of the book">${PARTS.map((g, i) => `<button data-g="${g.id}" aria-pressed="${i === 0}">${esc(g.label)} <small>${esc(g.range)}</small></button>`).join('')}</div>
         <p class="gnote">${esc(MISSING)}</p><div class="chlist"></div>`;
-      const body = $('.chlist', P);
-      const card = ch => `<section class="chcard"><h3>${esc(chLabel(ch.c))}${ch.k ? '<span class="chtag cp">Checkpoint</span>' : ''}${ch.hw ? '<span class="chtag">Homework</span>' : ''}</h3>
-        ${ch.qa.map(([q, a]) => `<div class="bq"><div class="t"><b>${esc(q)}</b><span>${esc(a)}</span></div>${ctx.sayButton(q + ' ' + a, 'Hear question and answer')}</div>`).join('')}
-        ${ch.talk ? `<p class="talk">${esc(ch.talk)}</p>` : ''}</section>`;
-      function show(id) { body.innerHTML = CH.filter(c => c.part === +id).map(card).join(''); }
-      $$('.gtabs button', P).forEach(b => b.onclick = () => { $$('.gtabs button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); show(b.dataset.g); });
-      show(1);
+      const body = $('.chlist', P); let part = 1;
+      const focus = () => st.hlOnly !== false;                      // starts on the highlighted questions only; each student keeps their own choice
+      const card = (ch, only) => {
+        const rows = ch.qa.filter(([q]) => !only || isHL(ch.c, q)), talk = ch.talk && (!only || HL_TALK.includes(ch.c));
+        if (!rows.length && !talk) return '';
+        return `<section class="chcard"><h3>${esc(chLabel(ch.c))}${ch.k ? '<span class="chtag cp">Checkpoint</span>' : ''}${ch.hw ? '<span class="chtag">Homework</span>' : ''}</h3>
+        ${rows.map(([q, a]) => { const h = isHL(ch.c, q); return `<div class="bq${h ? ' hl' : ''}"><div class="t"><b>${esc(q)}</b><span>${esc(a)}</span>${h && !only ? '<em class="hltag">Highlighted</em>' : ''}</div>${ctx.sayButton(q + ' ' + a, 'Hear question and answer')}</div>`; }).join('')}
+        ${talk ? `<p class="talk${HL_TALK.includes(ch.c) ? ' hl' : ''}">${esc(ch.talk)}${HL_TALK.includes(ch.c) && !only ? ' <em class="hltag">Highlighted</em>' : ''}</p>` : ''}</section>`;
+      };
+      function show() {
+        const only = focus(), html = CH.filter(c => c.part === part).map(c => card(c, only)).join('');
+        $$('.gbar [data-f]', P).forEach(b => b.setAttribute('aria-pressed', (b.dataset.f === '1') === only));
+        body.innerHTML = html || '<p class="gnote">No questions in this part were highlighted. Choose All questions to see them.</p>';
+      }
+      $$('.gbar [data-f]', P).forEach(b => b.onclick = () => { st.hlOnly = b.dataset.f === '1'; ctx.save(); show(); });
+      $$('.gtabs button', P).forEach(b => b.onclick = () => { $$('.gtabs button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); part = +b.dataset.g; show(); });
+      show();
     }
   };
 
@@ -71,6 +86,6 @@
   /* ===================== Explain it ===================== */
   const explain = { init(ctx) { SBT.explain(ctx, { items: EXPLAIN, rounds: 5 }); } };
 
-  window.__bbTest = { CH, QUIZ, TYPE, EXPLAIN, EVENTS };                    // a hook so the test can check every item
+  window.__bbTest = { HL, HL_TALK, CH, QUIZ, TYPE, EXPLAIN, EVENTS };                    // a hook so the test can check every item
   SBM.start({ module: 'black-beauty-guide', defaults: {}, tools: { guide, cards, quiz, answer, order, explain } });
 })();
