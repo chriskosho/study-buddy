@@ -1,7 +1,7 @@
 /* ---------- Flashcards ---------- */
-const FC = { mode: 'shape', queue: [], cur: null, known: new Set(), missed: new Set(), total: 0, flipped: false, busy: false, hist: [] };
+const FC = { mode: 'shape', queue: [], cur: null, known: new Set(), missed: new Set(), total: 0, flipped: false, busy: false, hist: [], deck: 0 };
 const FLIP_MS = 520;
-function fcBuild() { FC.hist = []; FC.queue = shuffle(C.map(c => c.id)); FC.known = new Set(); FC.missed = new Set(); FC.total = C.length; fcNext(); }
+function fcBuild() { FC.deck++; FC.hist = []; FC.queue = shuffle(C.map(c => c.id)); FC.known = new Set(); FC.missed = new Set(); FC.total = C.length; fcNext(); }
 const fcKindFor = () => FC.mode !== 'mix' ? FC.mode : ['shape', 'capital', 'flag'][Math.floor(Math.random() * 3)];
 function fcSetFlip(on) { FC.flipped = on; $('#fcard').classList.toggle('flip', on); }
 function fcNext() {
@@ -24,19 +24,20 @@ function fcNext() {
     b = `<div class="tag">Answer</div><div class="big">${c.name}</div><div class="small">Capital: ${c.capital}${c.capitalNote ? ' (' + c.capitalNote + ')' : ''}</div>${spkBtn(id)}`;
   }
   $('#faceF').innerHTML = f; $('#faceB').innerHTML = b; fcBar();
+  if (state.say) speakText(kind === 'shape' ? 'Which country is this?' : kind === 'capital' ? 'What is the capital of ' + c.name + '?' : 'Whose flag is this?');   // like US States: Read aloud reads the card's question
 }
 function fcBar() { $('#cardUndo').disabled = !FC.hist.length; $('#cardBar').style.width = (FC.known.size / FC.total * 100) + '%'; $('#cardCount').textContent = FC.known.size + ' of ' + FC.total + ' known'; }
 function fcFlip() {
   if (!FC.cur || FC.busy) return;
   fcSetFlip(!FC.flipped);
-  stopSpeech();   // flashcard sound is only ever played by pressing the speaker button, once
+  stopSpeech();   // flipping stops any speech; the speaker button (or Read aloud on a new card) plays it
 }
 /* The card always turns back to its front first, and only then does the next card appear. */
 function fcAfterUnflip(fn) {
   if (FC.busy) return;
   if (!FC.flipped) return fn();
-  FC.busy = true; fcSetFlip(false);
-  setTimeout(() => { FC.busy = false; fn(); }, FLIP_MS);
+  FC.busy = true; fcSetFlip(false); const deck = FC.deck;
+  setTimeout(() => { FC.busy = false; if (deck === FC.deck) fn(); }, FLIP_MS);   // a new deck in the meantime (card type changed): drop the old answer
 }
 /* a short confirmation over the card, with an Undo link; Undo steps back one card at a time */
 function fcToast(text, undo) {

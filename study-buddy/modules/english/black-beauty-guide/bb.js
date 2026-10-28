@@ -59,8 +59,8 @@
       SBT.order(ctx, {
         lead: 'Put the events in the order they happen in the book. Drag the cards, or use the arrows. Then press Check.',
         sets: [
-          { id: 'p1', label: 'Part 1', items: part([0, 11]), pick: 6 },
-          { id: 'p2', label: 'Parts 2 and 3', items: part([11, 20]), pick: 6 },
+          { id: 'p1', label: 'Part 1', items: part([0, 10]), pick: 6 },     // Part 1 is chapters 1 to 21; Earlshall Park (chapter 22) starts Part 2
+          { id: 'p2', label: 'Parts 2 and 3', items: part([10, 20]), pick: 6 },
           { id: 'end', label: 'The end', items: part([18, EVENTS.length]), pick: 6 },
           { id: 'all', label: 'Whole book', items: EVENTS, pick: 7 }
         ]

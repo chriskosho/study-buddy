@@ -4,6 +4,7 @@
      SBT.flashcards(ctx, { lead, modes: [{ id, label }], build(modeId) -> [{ front, back, say }] })
          front/back are HTML; say is spoken when the card shows (only if Read aloud is on).
          Result: cards known on the first try out of the deck size.
+         Optional onSection(sectionId) is called when a section opens (to remember it).
          Optional sections: { list: [{ id, label, group?, noStep? }], start?: id, noun?: 'section' } adds a section menu with
          Previous and Next buttons; build(modeId, sectionId) then returns that section's cards. group puts the entry under a menu heading.
 
@@ -105,7 +106,7 @@
     const secIdx = () => SEC.list.findIndex(e => e.id === FC.sec);
     const secStep = d => { for (let i = secIdx() + d; i >= 0 && i < SEC.list.length; i += d) if (!SEC.list[i].noStep) return i; return -1; };   // entries with noStep (like "All") are in the menu but skipped by the arrows
     function syncSec() { if (!SEC) return; $('.secsel', P).value = FC.sec; $('[data-a="prevsec"]', P).disabled = secStep(-1) < 0; $('[data-a="nextsec"]', P).disabled = secStep(1) < 0; }
-    function build() { FC.missed = new Set(); FC.busy = false; FC.hist = []; FC.queue = opt.build(FC.mode, FC.sec); FC.total = FC.queue.length; syncSec(); next(); }
+    function build() { FC.missed = new Set(); FC.busy = false; FC.hist = []; FC.queue = opt.build(FC.mode, FC.sec); FC.total = FC.queue.length; syncSec(); if (SEC && opt.onSection) opt.onSection(FC.sec); next(); }
     function next() {
       SB.stopSpeech(); flip(false);
       if (!FC.queue.length) {

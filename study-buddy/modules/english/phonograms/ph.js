@@ -129,7 +129,7 @@
         lead: 'Type the letters that spell the sounds in the blank, then press Check. Two tries, a hint, and a Skip button.',
         build: () => hook('type', pick(MULTI, 10).map(p => {
           const w = p.ex[0];
-          return { q: `Which phonogram says ${esc(p.s)} in <b>${esc(mask(w, p.p)).replace('___', '<span class="blank">______</span>')}</b>?`, say: w, a: [p.p], hint: p.note || ('It has ' + p.p.length + ' letters.'), why: `[${p.p}] says ${p.s}: ${w}.`, p: p.p };
+          return { q: `Which phonogram says ${esc(p.s)} in <b>${esc(mask(w, p.p)).replace('___', '<span class="blank">______</span>')}</b>?`, say: w, a: [p.p], hint: (p.note && !p.note.toLowerCase().includes(p.p)) ? p.note : ('It has ' + p.p.length + ' letters.')   /* a note that spells the answer would give it away */, why: `[${p.p}] says ${p.s}: ${w}.`, p: p.p };
         }))
       });
     }

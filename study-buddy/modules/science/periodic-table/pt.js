@@ -82,8 +82,9 @@
   };
 
   /* ===================== Quiz ===================== */
-  function madeQuestion() {
-    const pool = ELEMENTS.filter(e => e.n <= 36), e = pool[Math.floor(Math.random() * pool.length)];
+  const POOL = ELEMENTS.filter(e => e.n <= 36);
+  function madeQuestion(e) {
+    const pool = POOL;
     const others = n => shuffle(pool.filter(x => x !== e)).slice(0, n);
     const t = Math.floor(Math.random() * 5);
     if (t === 0) return { q: `Which element has the symbol ${e.sym}?`, a: e.name, wrong: others(3).map(x => x.name) };
@@ -92,7 +93,7 @@
     if (t === 3) { const cats = shuffle(Object.keys(CATS).filter(k => k !== e.cat && k !== 'un' && k !== 'la' && k !== 'ac' && !(k === 'nm' && (e.cat === 'hal' || e.cat === 'ng')) && !((k === 'hal' || k === 'ng') && e.cat === 'nm'))).slice(0, 3); return { q: `What kind of element is ${e.name}?`, a: CATS[e.cat].name, wrong: cats.map(k => CATS[k].name) }; }
     return { q: `At room temperature, ${e.name} is a…`, a: e.state, wrong: ['Solid', 'Liquid', 'Gas'].filter(s => s !== e.state) };
   }
-  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, build: () => [...shuffle(PTQUIZ).slice(0, 4), ...Array.from({ length: 6 }, madeQuestion)] }); } };
+  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, build: () => [...shuffle(PTQUIZ).slice(0, 4), ...shuffle(POOL).slice(0, 6).map(madeQuestion)] }); } };   // six different elements, so no question gives away another
 
   /* ===================== Sort it ===================== */
   const sort = {

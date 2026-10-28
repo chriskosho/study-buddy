@@ -133,8 +133,9 @@ inits.find = () => {
 };
 
 /* ---------- Listen and tap (pronunciation practice) ---------- */
-const LS = { svg: null, order: [], i: 0, score: 0, tries: 0, done: false };
+const LS = { svg: null, order: [], i: 0, score: 0, tries: 0, done: false, locked: false, timer: null, pending: false };
 function lsNew() {
+  clearTimeout(LS.timer); LS.locked = false; LS.pending = false;
   LS.order = shuffle(C.map(c => c.id)); LS.i = 0; LS.score = 0; LS.tries = 0; LS.done = false;
   buildMap(LS.svg); Object.entries(LS.svg._paths).forEach(([id, p]) => p.addEventListener('click', () => lsClick(id)));
   lsShow();
@@ -148,20 +149,23 @@ function lsShow() {
   speak(LS.order[LS.i], true);
 }
 function lsClick(id) {
-  if (LS.done || !clickOK(LS.svg)) return;
+  if (LS.done || LS.locked || !clickOK(LS.svg)) return;   // locked during the short pause after a right answer
   const want = LS.order[LS.i], p = LS.svg._paths[id], msg = $('#lMsg');
   if (id === want) {
     if (LS.tries === 0) LS.score++; credit(id); sfx.good(); p.classList.remove('flash-good'); void p.getBBox(); p.classList.add('flash-good');
-    msg.className = 'msg good'; msg.textContent = 'Yes! ' + COUNTRY_BY_ID[id].name + '.'; LS.i++; setTimeout(lsShow, 900);
+    msg.className = 'msg good'; msg.textContent = 'Yes! ' + COUNTRY_BY_ID[id].name + '.'; LS.i++; LS.locked = true; LS.timer = setTimeout(() => { LS.locked = false; LS.timer = null; lsShow(); }, 900);
   } else {
     LS.tries++; slip(); sfx.bad(); p.classList.remove('flash-bad'); void p.getBBox(); p.classList.add('flash-bad');
     msg.className = 'msg bad'; msg.textContent = 'That is ' + COUNTRY_BY_ID[id].name + '. Listen again and try another.';
   }
 }
+/* leaving the tab during the pause: hold the next name until the child comes back */
+function lsPause() { if (LS.timer) { clearTimeout(LS.timer); LS.timer = null; LS.pending = true; } }
+function lsResume() { if (LS.pending) { LS.pending = false; LS.locked = false; lsShow(); } }
 inits.listen = () => {
   LS.svg = $('#mapListen'); makeZoom(LS.svg);
   $('#lPlay').onclick = () => { if (LS.done) { lsNew(); $('#lMsg').textContent = ''; } else speak(LS.order[LS.i], true); };
-  $('#lSkip').onclick = () => { if (LS.done) return; LS.order.push(LS.order.splice(LS.i, 1)[0]); lsShow(); };
+  $('#lSkip').onclick = () => { if (LS.done || LS.locked) return; LS.order.push(LS.order.splice(LS.i, 1)[0]); lsShow(); };
   if (!CAN_SPEAK) { $('#lPrompt').textContent = 'This browser cannot speak. Try Chrome, Edge, or Safari.'; return; }
   lsNew();
 };
