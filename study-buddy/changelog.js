@@ -1,6 +1,12 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-27', title: 'Scratch pad for math questions', items: [
+    'Every math question tool now has a Scratch pad button. It opens a notepad beside the question so you can work the problem out with a pen, finger, mouse, or keyboard.',
+    'Pen, pencil, marker, highlighter, brush, and an eraser (rub out, or remove a whole line), nine colors, a size slider, Undo and Redo, and Erase all (it asks first). Notebook lines or graph paper can be turned on. A Type tool lets you write with the keyboard. Pen only ignores finger touches so a resting hand does not draw.',
+    'When you close the pad with writing on it, it asks: save a picture to this device, save to My notes (under your name), keep it for this session only, or do not save. The new Notes button at the top lists saved notes so you can open, download, or delete them. Guest can save to the device or the session only.',
+    'On a tablet, the first touch of a pen turns on Pen only, so a resting hand never blocks the pen. If the pad closes by accident (for example a tablet reloads the page), it offers the unsaved writing back next time. Saving an opened note again updates it instead of making a copy.',
+    'Other subjects can get the scratch pad later; it is switched off for them for now.' ] },
   { date: '2026-10-27', title: 'New module: Volume of Solid Figures', items: [
     'New Math module for Dimensions Math 5, chapter 8: counting unit cubes, stacks of cubes seen from above, the volume formula and missing edges, word problems, comparing volumes, compound figures, and volume and capacity (milliliters and liters).',
     'A study guide with worked examples and a helper that finds the volume of any box and how much it holds.',
