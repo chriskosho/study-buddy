@@ -82,7 +82,7 @@ async def main():
 
         # ---- first protected action offers a PIN; Skip lets it through ----
         await pg.click('#sbReset'); await pg.wait_for_selector('.sb-dlg')
-        check('Protect this with a parent PIN' in await pg.locator('.sb-dlg').inner_text(), 'first reset offers a PIN')
+        check('Protect this with an admin PIN' in await pg.locator('.sb-dlg').inner_text(), 'first reset offers a PIN')
         await pg.click('[data-x="skip"]'); await pg.wait_for_selector('.sb-dlg [data-x="yes"]')
         check('Reset' in await pg.locator('.sb-dlg h3').inner_text(), 'after Skip, a reset confirmation still asks first')
         await pg.click('[data-x="no"]'); await pg.wait_for_timeout(200)
@@ -92,11 +92,11 @@ async def main():
         await pg.click('[data-x="yes"]'); await pg.wait_for_timeout(300)
         check(await pg.evaluate("(SB.toolRecord('parts-of-speech','sort') || {}).best == null"), 'confirming the reset erases the scores')
 
-        # ---- parent area without a PIN shows a note; second person triggers one more offer ----
-        await pg.goto(base + '#/parent/children'); await pg.wait_for_selector('.kidrow')
-        check('No parent PIN yet' in await pg.locator('.note').first.inner_text(), 'parent area notes there is no PIN')
+        # ---- admin area without a PIN shows a note; second person triggers one more offer ----
+        await pg.goto(base + '#/admin/children'); await pg.wait_for_selector('.kidrow')
+        check('No admin PIN yet' in await pg.locator('.note').first.inner_text(), 'admin area notes there is no PIN')
         await pg.fill('#newName', 'Eli'); await pg.click('#addKid'); await pg.wait_for_selector('.sb-dlg')
-        check('Add a parent PIN' in await pg.locator('.sb-dlg').inner_text(), 'adding a second person offers a PIN once more')
+        check('Add an admin PIN' in await pg.locator('.sb-dlg').inner_text(), 'adding a second person offers a PIN once more')
         await pg.click('[data-x="skip"]'); await pg.wait_for_selector('.kidrow')
         await pg.fill('#newName', 'Ava'); await pg.click('#addKid'); await pg.wait_for_timeout(300)
         check(await pg.locator('.sb-dlg').count() == 0, 'no PIN offer for the third person')
@@ -104,12 +104,12 @@ async def main():
         check(await pg.locator('.whocard').count() == 3, "Who's studying appears with 2+ people")
 
         # ---- set a PIN later: then it is required ----
-        await pg.goto(base + '#/parent'); await pg.wait_for_selector('#setPin')
+        await pg.goto(base + '#/admin'); await pg.wait_for_selector('#setPin')
         await pg.click('#setPin'); await pg.fill('[data-x="a"]', '4321'); await pg.fill('[data-x="b"]', '4321'); await pg.click('[data-x="yes"]')
         await pg.wait_for_timeout(200)
         check(await pg.locator('#setPin').count() == 0, 'note goes away after a PIN is set')
         await pg.evaluate("SB.lock()"); await pg.goto(base + '#/home'); await pg.goto(base + '#/parent'); await pg.reload(); await pg.wait_for_selector('.sb-dlg')
-        check('Parent PIN' in await pg.locator('.sb-dlg h3').inner_text(), 'parent area now asks for the PIN')
+        check('Admin PIN' in await pg.locator('.sb-dlg h3').inner_text(), 'admin area now asks for the PIN')
 
         # ---- South America opened directly on a fresh device ----
         ctx2 = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block')

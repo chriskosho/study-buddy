@@ -1,9 +1,9 @@
-/* Study Buddy hub: who's studying, subjects and modules, module pages, parent area, first-run setup.
+/* Study Buddy hub: who's studying, subjects and modules, module pages, admin area, first-run setup.
    Pages are switched with the address hash:
      #/                 who's studying
      #/home[/subject]   modules, optionally filtered to one subject
      #/module/<id>      one module and its tools
-     #/parent[/section] parent area (PIN): progress, children, backup, pin  */
+     #/admin[/section] admin area (PIN): progress, students, backup, pin  */
 (function () {
   'use strict';
   const REG = window.SB_REGISTRY || { subjects: [], modules: [] };
@@ -25,7 +25,7 @@
   }
   const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
 
-  /* Page title row. The trail, search, child, Settings and Help live in the shared header (sb-shell.js). */
+  /* Page title row. The trail, search, student, Settings and Help live in the shared header (sb-shell.js). */
   function header(title, kid = null) {
     let right = '';
     if (kid) right = `<div class="pill" title="Right answers in a row, and today's goal">${SB.pillHTML()}</div>`;
@@ -40,10 +40,22 @@
   }
   const toolURL = (m, t) => m.path + '?tool=' + encodeURIComponent(t.id);
 
+  /* ---------- saved modules (bookmarks) ---------- */
+  const BM_ICON = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4.2-6 4.2z"/></svg>';
+  function bmButton(m, label) {
+    const on = SB.isBookmarked(m.id);
+    return `<button type="button" class="bm${label ? ' bm-lbl' : ''}" data-bm="${esc(m.id)}" aria-pressed="${on}" aria-label="${on ? 'Remove ' + esc(m.title) + ' from saved modules' : 'Save ' + esc(m.title)}" title="${on ? 'Saved. Press to remove.' : 'Save this module'}">${BM_ICON}${label ? `<span>${on ? 'Saved' : 'Save'}</span>` : ''}</button>`;
+  }
+  const savedLive = () => { const ids = SB.bookmarks(); return LIVE.filter(m => ids.includes(m.id)); };
+  /* press a Save button: flip it, then redraw the list in place (the Saved tab appears or goes away) and keep the focus on the same button */
+  function wireBookmarks(redraw) {
+    app.querySelectorAll('[data-bm]').forEach(b => b.onclick = () => { const id = b.dataset.bm; SB.toggleBookmark(id); redraw(); const nb = app.querySelector('[data-bm="' + id + '"]'); if (nb) nb.focus(); else { const h = app.querySelector('h1'); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } } });
+  }
+
   /* ---------- module card ---------- */
   function modCard(m) {
     const p = SB.moduleProgress(m), pct = p.total ? p.mastered / p.total * 100 : 0;
-    return `<div class="modcard">${SB.sayButton(m.title, 'Hear the name: ' + m.title)}<a class="mod" href="#/module/${esc(m.id)}">
+    return `<div class="modcard">${SB.sayButton(m.title, 'Hear the name: ' + m.title)}${bmButton(m)}<a class="mod" href="#/module/${esc(m.id)}">
       <div class="eyebrow">${esc(subjectName(m.subject))}</div>
       <h3>${esc(m.title)}</h3>
       <p>${esc(m.blurb)}</p>
@@ -60,17 +72,20 @@
     const ps = SB.profiles();
     app.innerHTML = header("Who's studying?") + `<section class="panel">
       <div class="who">${ps.map(p => `<button class="whocard" data-id="${esc(p.id)}">${SB.avatar(p, 'lg')}<span>${esc(p.name)}</span></button>`).join('')}</div>
-      <p class="hint" style="text-align:center">Parents can add or change profiles in the Parent area.</p></section>`;
+      <p class="hint" style="text-align:center">Admins can add or change profiles in the Admin area.</p></section>`;
     app.querySelectorAll('.whocard').forEach(b => b.onclick = () => { SB.setActive(b.dataset.id); location.hash = '#/home'; });
   }
 
   function viewHome(filter) {
     const kid = SB.activeProfile();
     document.title = 'Study Buddy';
-    const subj = REG.subjects.find(s => s.id === filter) ? filter : 'all';
+    const saved = savedLive();
+    /* opening the home screen shows Saved when the student has saved modules, otherwise All; #/home/all always means All */
+    const subj = filter === 'saved' && saved.length ? 'saved' : REG.subjects.find(s => s.id === filter) ? filter : filter === 'all' ? 'all' : saved.length ? 'saved' : 'all';
     const count = id => LIVE.filter(m => m.subject === id).length;
     const tabs = `<nav class="tabs" aria-label="Subjects">
-      <a href="#/home" aria-selected="${subj === 'all'}">All<span class="n">${LIVE.length}</span></a>
+      <a href="#/home/all" aria-selected="${subj === 'all'}">All<span class="n">${LIVE.length}</span></a>
+      ${saved.length ? `<a href="#/home/saved" aria-selected="${subj === 'saved'}" class="stab">Saved<span class="n">${saved.length}</span></a>` : ''}
       ${REG.subjects.map(s => `<a href="#/home/${s.id}" aria-selected="${subj === s.id}">${esc(s.name)}<span class="n">${count(s.id)}</span></a>`).join('')}
       ${(REG.utilities || []).length ? `<a href="#/utilities" aria-selected="${filter === 'utilities'}" class="utab">Utilities</a>` : ''}
     </nav>`;
@@ -86,7 +101,10 @@
     if (lm && lt) cont = `<div class="continue"><div class="grow"><div class="eyebrow">Keep going</div><b>${esc(lt.name)}</b> <span class="hint">in ${esc(lm.title)} · ${ago(last.at)}</span></div><a class="btn small" href="${esc(toolURL(lm, lt))}">Open</a></div>`;
 
     let body;
-    if (subj === 'all') {
+    if (subj === 'saved') {
+      const order = id => REG.subjects.findIndex(s => s.id === id);
+      body = `<div style="margin-bottom:12px"><h3>Saved modules</h3><p class="lead" style="margin:2px 0 0">The modules you saved, from every subject. Press the bookmark button on a card to take one off this list.</p></div><div class="grid">${[...saved].sort((a, b) => order(a.subject) - order(b.subject)).map(modCard).join('')}</div>`;
+    } else if (subj === 'all') {
       const order = id => REG.subjects.findIndex(s => s.id === id);
       const all = [...LIVE].sort((a, b) => order(a.subject) - order(b.subject));   // each card names its subject
       body = all.length ? `<div class="grid">${all.map(modCard).join('')}</div>` : '<p class="empty">No modules yet.</p>';
@@ -98,6 +116,7 @@
         (sugg.length ? `<div class="sectionhead"><h3>Suggested</h3><p class="lead" style="margin:2px 0 0">From other subjects, with ${esc(subjectName(subj))} mixed in.</p></div><div class="grid">${sugg.map(modCard).join('')}</div>` : '');
     }
     app.innerHTML = header('Hi, ' + kid.name, kid) + `<div class="bar2">${tabs}</div>${cont}<section class="panel">${body}</section>`;
+    wireBookmarks(() => viewHome(subj));   // redraw on the tab being shown, not the default
   }
 
   function viewModule(id) {
@@ -117,36 +136,38 @@
     };
     app.innerHTML = header(m.title, kid) +
       `<section class="panel">
-        <div class="modhead"><p>${esc(m.blurb)}</p>${SB.diffRangeHTML(m)}<div class="tags">${m.tags.map(t => `<span class="tagpill">${esc(t)}</span>`).join('')}</div>
+        <div class="modhead"><p>${esc(m.blurb)}</p>${bmButton(m, true)}${SB.diffRangeHTML(m)}<div class="tags">${m.tags.map(t => `<span class="tagpill">${esc(t)}</span>`).join('')}</div>
           <div class="prog row" style="min-width:220px"><div class="bar" aria-hidden="true"><i style="width:${p.total ? p.mastered / p.total * 100 : 0}%"></i></div><span class="hint">${p.mastered} of ${p.total} mastered</span></div></div>
         <div class="grid">${tools.map(card).join('')}</div>
-        <div class="row" style="margin-top:18px"><a class="btn ghost small" href="#/home">Back to all modules</a></div>
+        <div class="row" style="margin-top:18px"><a class="btn ghost small" href="#/home/all">Back to all modules</a></div>
       </section>`;
+    wireBookmarks(() => viewModule(id));
   }
 
-  /* ---------- parent area ---------- */
-  const PSECTIONS = [['progress', 'Progress'], ['children', 'Children'], ['backup', 'Backup'], ['archived', 'Archived'], ['pin', 'PIN']];
+  /* ---------- admin area ---------- */
+  const PSECTIONS = [['progress', 'Progress'], ['students', 'Students'], ['backup', 'Backup'], ['archived', 'Archived'], ['pin', 'PIN']];
   function viewParent(section) {
-    document.title = 'Parent area · Study Buddy';
+    document.title = 'Admin area · Study Buddy';
     if (!SB.hasPin() && !SB.root().pinOffered) {
-      app.innerHTML = header('Parent area') + `<section class="panel"><p class="lead">Parent area</p></section>`;
+      app.innerHTML = header('Admin area') + `<section class="panel"><p class="lead">Admin area</p></section>`;
       SB.requirePin('', route, () => { location.hash = '#/home'; }); return;
     }
     if (SB.hasPin() && !SB.isUnlocked()) {
-      app.innerHTML = header('Parent area') + `<section class="panel"><p class="lead">This area is locked with the parent PIN.</p><button class="btn" id="unlock">Unlock</button> <a class="btn ghost" href="#/">Back</a></section>`;
-      const ask = () => SB.requirePin('Enter the parent PIN to open the parent area.', route);
+      app.innerHTML = header('Admin area') + `<section class="panel"><p class="lead">This area is locked with the admin PIN.</p><button class="btn" id="unlock">Unlock</button> <a class="btn ghost" href="#/">Back</a></section>`;
+      const ask = () => SB.requirePin('Enter the admin PIN to open the admin area.', route);
       document.getElementById('unlock').onclick = ask; ask(); return;
     }
+    if (section === 'children') section = 'students';   // the old name of the Students tab
     const sec = PSECTIONS.find(s => s[0] === section) ? section : 'progress';
-    const tabs = `<nav class="tabs" aria-label="Parent sections">${PSECTIONS.map(([k, n]) => `<a href="#/parent/${k}" aria-selected="${sec === k}">${n}</a>`).join('')}</nav>
+    const tabs = `<nav class="tabs" aria-label="Admin sections">${PSECTIONS.map(([k, n]) => `<a href="#/admin/${k}" aria-selected="${sec === k}">${n}</a>`).join('')}</nav>
       <div class="settings"><button class="iconbtn" id="lockBtn">${SB.hasPin() ? 'Lock and leave' : 'Leave'}</button></div>`;
-    const nopin = SB.hasPin() ? '' : `<div class="note row between">No parent PIN yet, so anyone can change profiles or erase progress here.<button class="btn small" id="setPin">Set a PIN</button></div>`;
+    const nopin = SB.hasPin() ? '' : `<div class="note row between">No admin PIN yet, so anyone can change profiles or erase progress here.<button class="btn small" id="setPin">Set a PIN</button></div>`;
     const bk = sec !== 'backup' && backupDue() ? `<div class="note row between noprint" role="status">${esc(backupLine())} Saving one every couple of weeks keeps progress safe if this browser is cleared.<button class="btn small" id="bkNow" type="button">Download backup</button></div>` : '';
-    app.innerHTML = header('Parent area') + `<div class="bar2">${tabs}</div>${nopin}${bk}<section class="panel" id="psec"></section>`;
+    app.innerHTML = header('Admin area') + `<div class="bar2">${tabs}</div>${nopin}${bk}<section class="panel" id="psec"></section>`;
     if (bk) document.getElementById('bkNow').onclick = () => { saveBackup(); route(); };
-    if (nopin) document.getElementById('setPin').onclick = () => SB.newPinDialog('Set a parent PIN', 'Choose 4 to 8 digits. Only a parent should know it.', route);
+    if (nopin) document.getElementById('setPin').onclick = () => SB.newPinDialog('Set an admin PIN', 'Choose 4 to 8 digits. Only an admin should know it.', route);
     document.getElementById('lockBtn').onclick = () => { SB.lock(); location.hash = '#/'; };
-    ({ progress: pProgress, children: pChildren, backup: pBackup, archived: pArchived, pin: pPin })[sec](document.getElementById('psec'));
+    ({ progress: pProgress, students: pChildren, backup: pBackup, archived: pArchived, pin: pPin })[sec](document.getElementById('psec'));
   }
 
   /* ---------- backups: a gentle reminder once the last one is two weeks old ---------- */
@@ -158,7 +179,7 @@
   function saveBackup() { SB.markBackup(); SB.download(backupName(), SB.exportAll()); SB.toast('Backup saved to your downloads'); }
 
   /* ---------- progress ---------- */
-  let pWho = 'all';                                       // which child the Progress tab shows; "all" shows everyone side by side
+  let pWho = 'all';                                       // which student the Progress tab shows; "all" shows everyone side by side
   const DAYS_SHOWN = 14;
   function activityHTML(p) {
     const days = SB.child(p.id).days || {}, out = [];
@@ -195,7 +216,7 @@
   }
   function pProgress(box) {
     const all = SB.profiles();
-    if (!all.length) { box.innerHTML = '<p class="empty">No children yet. Add them under Children.</p>'; return; }
+    if (!all.length) { box.innerHTML = '<p class="empty">No students yet. Add them under Students.</p>'; return; }
     if (pWho !== 'all' && !all.find(p => p.id === pWho)) pWho = 'all';
     const ps = pWho === 'all' ? all : all.filter(p => p.id === pWho), one = ps.length === 1;
     const filter = all.length > 1 ? `<div class="row pfilter" role="group" aria-label="Show progress for">${[['all', 'Everyone'], ...all.map(p => [p.id, p.name])].map(([id, n]) => `<button class="iconbtn" data-who="${esc(id)}" aria-pressed="${pWho === id}">${esc(n)}</button>`).join('')}</div>` : '';
@@ -231,7 +252,7 @@
 
   function pArchived(box) {
     const ps = SB.profiles();
-    box.innerHTML = `<h2>Archived modules</h2><p class="lead">Old versions that no longer show in the hub or search. Their files and each child's saved progress are kept. Open one to look at it again.</p>` +
+    box.innerHTML = `<h2>Archived modules</h2><p class="lead">Old versions that no longer show in the hub or search. Their files and each student's saved progress are kept. Open one to look at it again.</p>` +
       (ARCHIVED.length ? ARCHIVED.map(m => `<div class="kidrow"><div class="grow"><b>${esc(m.title)}</b> <span class="hint">${esc(subjectName(m.subject))}</span><div class="hint">${esc(m.archivedNote || m.blurb || '')}</div>
         <div class="hint">${ps.map(p => { const pr = SB.moduleProgress(m, p.id); return esc(p.name) + ': ' + pr.mastered + ' of ' + pr.total + ' tools mastered'; }).join(' · ')}</div></div>
         <a class="btn ghost small" href="${m.path}">Open</a></div>`).join('') : '<p class="empty">Nothing is archived.</p>');
@@ -258,11 +279,11 @@
         </div>${SB.isGuest(p) && others(p).length && Object.keys(SB.child(p.id).tools).length ? `<div class="row movebox"><label class="field">Move Guest's progress to<select class="moveTo">${others(p).map(o => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label><button class="btn small" data-act="move" type="button">Move</button></div>` : ''}</div>`;
     };
     let newColor = SB.COLORS[ps.length % SB.COLORS.length].c;
-    box.innerHTML = `<h2>Children</h2><p class="lead">Names, colors, and settings for each child. Read aloud is off unless you turn it on.</p>
-      ${ps.map(row).join('') || '<p class="empty">No children yet.</p>'}
+    box.innerHTML = `<h2>Students</h2><p class="lead">Names, colors, and settings for each student. Read aloud is off unless you turn it on.</p>
+      ${ps.map(row).join('') || '<p class="empty">No students yet.</p>'}
       <div class="kidrow"><div class="grow" style="display:flex;flex-direction:column;gap:8px">
-        <label class="field">Add a child<input id="newName" maxlength="24" placeholder="Name"></label>
-        <div id="newSw">${swatches(newColor, 'Color for the new child')}</div></div>
+        <label class="field">Add a student<input id="newName" maxlength="24" placeholder="Name"></label>
+        <div id="newSw">${swatches(newColor, 'Color for the new student')}</div></div>
         <button class="btn" id="addKid">Add</button></div>`;
 
     box.querySelectorAll('.kidrow[data-id]').forEach(r => {
@@ -291,10 +312,10 @@
     box.innerHTML = `<h2>Backup</h2>
       <p class="lead">Progress is saved in this browser on this device only. A backup file lets you keep a copy or move everything to another device, like a phone.</p>
       <p class="${backupDue() ? 'note' : 'hint'}" id="lastBk">${esc(backupLine())}</p>
-      <div class="kidrow"><div class="grow"><h3>Save a backup</h3><span class="hint">Downloads one small file with every profile, setting, and score. It also holds the parent PIN, so keep it private.</span></div><button class="btn" id="exp">Download backup</button></div>
-      <div class="kidrow"><div class="grow"><h3>Load a backup</h3><span class="hint">Replaces everything on this device with the backup, including the parent PIN saved in it.</span></div>
+      <div class="kidrow"><div class="grow"><h3>Save a backup</h3><span class="hint">Downloads one small file with every profile, setting, and score. It also holds the admin PIN, so keep it private.</span></div><button class="btn" id="exp">Download backup</button></div>
+      <div class="kidrow"><div class="grow"><h3>Load a backup</h3><span class="hint">Replaces everything on this device with the backup, including the admin PIN saved in it.</span></div>
         <button class="btn ghost" id="pick" type="button">Choose file</button><input type="file" id="imp" accept=".json,application/json" ${hidden}></div>
-      <div class="kidrow"><div class="grow"><h3>Load one child</h3><span class="hint">Brings back one child from a backup, as a new child or in place of a child here. Everyone else on this device stays as they are.</span></div>
+      <div class="kidrow"><div class="grow"><h3>Load one student</h3><span class="hint">Brings back one student from a backup, as a new student or in place of a student here. Everyone else on this device stays as they are.</span></div>
         <button class="btn ghost" id="pick1" type="button">Choose file</button><input type="file" id="imp1" accept=".json,application/json" ${hidden}></div>`;
     box.querySelector('#pick').onclick = () => box.querySelector('#imp').click();
     box.querySelector('#pick1').onclick = () => box.querySelector('#imp1').click();
@@ -314,13 +335,13 @@
     });
     box.querySelector('#imp1').onchange = e => readFile(e, text => {
       const kids = JSON.parse(JSON.parse(text).data['studybuddy.v1.root']).profiles, here = SB.profiles();
-      SB.dialog(`<h3>Load one child</h3>
-        <label class="sb-field">Child in the backup<select id="oneFrom">${kids.map(k => `<option value="${esc(k.id)}">${esc(String(k.name).slice(0, 24))}</option>`).join('')}</select></label>
-        <label class="sb-field">Put them<select id="oneTo"><option value="">As a new child</option>${here.map(p => `<option value="${esc(p.id)}">In place of ${esc(p.name)}</option>`).join('')}</select></label>
-        <p class="sb-hint" id="oneWarn" hidden>This replaces that child's progress, settings, and notes here.</p>
-        <div class="sb-row"><button class="sb-btn ghost" data-x="no">Cancel</button><button class="sb-btn" data-x="yes">Load child</button></div>`, (dlg, close) => {
+      SB.dialog(`<h3>Load one student</h3>
+        <label class="sb-field">Student in the backup<select id="oneFrom">${kids.map(k => `<option value="${esc(k.id)}">${esc(String(k.name).slice(0, 24))}</option>`).join('')}</select></label>
+        <label class="sb-field">Put them<select id="oneTo"><option value="">As a new student</option>${here.map(p => `<option value="${esc(p.id)}">In place of ${esc(p.name)}</option>`).join('')}</select></label>
+        <p class="sb-hint" id="oneWarn" hidden>This replaces that student's progress, settings, and notes here.</p>
+        <div class="sb-row"><button class="sb-btn ghost" data-x="no">Cancel</button><button class="sb-btn" data-x="yes">Load student</button></div>`, (dlg, close) => {
         const to = dlg.querySelector('#oneTo'), warn = dlg.querySelector('#oneWarn'), yes = dlg.querySelector('[data-x="yes"]');
-        const sync = () => { warn.hidden = !to.value; yes.classList.toggle('warn', !!to.value); };   // starts as a new child; replacing is a choice, with a warning
+        const sync = () => { warn.hidden = !to.value; yes.classList.toggle('warn', !!to.value); };   // starts as a new student; replacing is a choice, with a warning
         to.onchange = sync; sync();
         dlg.querySelector('[data-x="no"]').onclick = close;
         yes.onclick = () => {
@@ -332,15 +353,15 @@
     });
   }
 
-  const pinNote = r => r.pinRemovedAt ? `<div class="note" role="status">The parent PIN was reset with "Forgot PIN" on ${esc(new Date(r.pinRemovedAt).toLocaleDateString())}. <button class="btn ghost small" id="dismiss" type="button">Dismiss</button></div>` : '';
+  const pinNote = r => r.pinRemovedAt ? `<div class="note" role="status">The admin PIN was reset with "Forgot PIN" on ${esc(new Date(r.pinRemovedAt).toLocaleDateString())}. <button class="btn ghost small" id="dismiss" type="button">Dismiss</button></div>` : '';
   function wireDismiss(box, again) { const dm = box.querySelector('#dismiss'); if (dm) dm.onclick = () => { SB.dismissPinNote(); again(box); }; }
   function pPin(box) {
     const r = SB.root();
-    box.innerHTML = `<h2>Parent PIN</h2>
+    box.innerHTML = `<h2>Admin PIN</h2>
       <p class="lead">The PIN protects resetting progress, changing profiles, and backups. It keeps kids from erasing things by accident. It is not real security.</p>
       ${pinNote(r)}
       <button class="btn" id="chg">Change PIN</button>`;
-    box.querySelector('#chg').onclick = () => SB.newPinDialog('Change the parent PIN', 'Choose 4 to 8 digits.', () => pPin(box));
+    box.querySelector('#chg').onclick = () => SB.newPinDialog('Change the admin PIN', 'Choose 4 to 8 digits.', () => pPin(box));
     wireDismiss(box, pPin);
   }
 
@@ -348,15 +369,15 @@
      First visit: a Guest profile is made, so the app opens straight to the subjects.
      "Who's studying?" only appears when two or more people use Study Buddy. */
   function route() {
-    const [view, arg] = location.hash.replace(/^#\/?/, '').split('/');
-    SB.applyDisplay();                                  // each child's own dark mode, font and size, also right after switching child
+    let [view, arg] = location.hash.replace(/^#\/?/, '').split('/'); if (view === 'admin') view = 'parent';   // #/admin is the name students and admins see; #/parent still works
+    SB.applyDisplay();                                  // each student's own dark mode, font and size, also right after switching student
     if (!SB.profiles().length) SB.ensureGuest();
     if (SB.profiles().length === 1 && !SB.activeProfile()) SB.setActive(SB.profiles()[0].id);
     if (view !== 'parent') SB.lock();
     const kid = SB.activeProfile(), many = SB.profiles().length > 1;
     const INFO = { settings: 'Settings', help: 'Help', faq: 'FAQ', about: 'About', changelog: 'Change log', notes: 'My notes' };
     let crumbs = [], shellOpts = null;
-    if (view === 'parent') { viewParent(arg); crumbs = [{ label: 'Parent area' }]; }
+    if (view === 'parent') { viewParent(arg); crumbs = [{ label: 'Admin area' }]; }
     else if (INFO[view] && (kid || (view !== 'settings' && view !== 'notes'))) { window.HUBPAGES[view](app, kid); crumbs = [{ label: INFO[view] }]; }
     else if (view === 'home' && kid) { viewHome(arg); const s = REG.subjects.find(x => x.id === arg); crumbs = s ? [{ label: s.name }] : []; }
     else if (view === 'utilities' && kid) { viewHome('utilities'); crumbs = [{ label: 'Utilities' }]; }

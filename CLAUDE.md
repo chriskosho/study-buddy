@@ -10,16 +10,16 @@ The site lives in `study-buddy/`. Read these before changing anything:
 ## Standing rules from the owner
 - Build only the modules the owner asks for. Empty subjects stay empty.
 - Words: Study Buddy → Subjects → Modules → Tools. A module has one home subject plus tags. Difficulty is Easy, Medium, Hard, or Insane. Never grade levels.
-- The same look for every child, at every age. No emoji, no mascots.
-- Read aloud is a per-child setting, off by default. When it is on, modules read their questions aloud. Explorer's Atlas never reads quiz questions aloud. Speaker buttons always work.
+- The same look for every student, at every age. No emoji, no mascots.
+- Read aloud is a per-student setting, off by default. When it is on, modules read their questions aloud. Explorer's Atlas never reads quiz questions aloud. Speaker buttons always work.
 - Flashcards are practice only: no credit, streak, or mastery. Credit comes only from checked tools.
 - Statements in a study guide that historians dispute keep the teacher's wording, with a "Historians say" note that links a Wikipedia article as its source.
 - Keep the Explorer's Atlas tools Study map, Drag names, Find it, and Listen and tap as they are unless asked. (The owner approved keyboard access for the map activities, Say names following Read aloud, and, in October 2026, Find it outlining and naming the places that took more than one try.) Flashcards show the whole continent. Like US States, flashcards read the card's question aloud when Read aloud is on (owner's choice, October 2026); otherwise sound plays only from the speaker button.
 - Every geography unit is based on the South America module (Study map, Flashcards with map shapes, Listen and tap, Find it, Drag names, plus the unit's own quiz tools) unless the owner says otherwise. US States follows it.
-- Hide unused features instead of deleting them. To retire a module, archive it (`archived: true` in the registry); it stays in the parent area's Archived list.
+- Hide unused features instead of deleting them. To retire a module, archive it (`archived: true` in the registry); it stays in the admin area's Archived list.
 - Desktop first, phone friendly. No scroll bars on tool screens at 1440×900, and no sideways scroll at 360px wide (Galaxy S23).
 - Progress is saved locally only. No cloud.
-- Display options (dark mode, OpenDyslexic, larger text) are per child and off by default. New CSS uses the theme tokens, never literal white.
+- Display options (dark mode, OpenDyslexic, larger text) are per student and off by default. New CSS uses the theme tokens, never literal white.
 
 ## How to work
 1. Never commit to `main`. Make a branch, push it, and open a pull request. `.github/workflows/check.yml` checks every pull request (the build is committed, the math check, all tests). The owner merges, and the deploy workflow confirms the live site carries the new version.

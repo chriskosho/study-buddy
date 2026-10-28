@@ -1,4 +1,4 @@
-"""Parent area features from the October 2026 review: backup reminder, activity history, a tidier Progress tab with
+"""Admin area features from the October 2026 review: backup reminder, activity history, a tidier Progress tab with
 "Needs help" and "Missed most often", moving Guest's progress, loading one child from a backup, and printing.
 Run:  python3 study-buddy/_dev/tests/owner_test.py"""
 import asyncio, http.server, threading, functools, os, sys, json
@@ -47,7 +47,7 @@ async def main():
 
         # ---- backup reminder ----
         await pg.goto(BASE + 'index.html#/parent/progress'); await pg.wait_for_selector('#psec .kidsum')
-        check(await pg.locator('#bkNow').count() == 1, 'with progress and no backup yet, the parent area shows a backup reminder')
+        check(await pg.locator('#bkNow').count() == 1, 'with progress and no backup yet, the admin area shows a backup reminder')
         async with pg.expect_download() as dl: await pg.click('#bkNow')
         check((await dl.value).suggested_filename.startswith('study-buddy-backup-'), 'the reminder downloads a backup')
         await pg.wait_for_timeout(100)

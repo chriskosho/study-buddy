@@ -22,12 +22,12 @@ Ideas for larger regions: let the flashcard and quiz decks be filtered by sub-re
 
 ## B. Use this as the style model for the study hub
 
-Per the owner's plan: a hub of quick-review tools for K–5 subjects, with a profile per child for progress, hosted as a static site (GitHub Pages or Netlify), progress saved locally.
+Per the owner's plan: a hub of quick-review tools for K–5 subjects, with a profile per student for progress, hosted as a static site (GitHub Pages or Netlify), progress saved locally.
 
 Suggested approach (confirm with the owner before building anything new):
 
 - **Shared shell:** one `hub.css` holding the tokens and components from `STYLE_GUIDE.md`, and one small `hub-core.js` holding `state`/`save`, tones, speech, toast, and `credit/slip` logic, imported by every tool. Keep each tool usable on its own so it still works offline from a single file if desired.
-- **Child profiles:** namespace the storage key by profile, e.g. `explorers-atlas.<profile>.<tool-key>`, with a simple profile picker on the hub home. Keep it local; cloud save is optional and not needed.
+- **Student profiles:** namespace the storage key by profile, e.g. `explorers-atlas.<profile>.<tool-key>`, with a simple profile picker on the hub home. Keep it local; cloud save is optional and not needed.
 - **Tool template:** header + progress chip, tab row, settings row, panels with one activity each, and the `inits.<tab>` lazy-init pattern.
 - **Hosting:** static files only, so GitHub Pages or Netlify drag-and-drop both work without a build step beyond `node assemble.mjs`.
 - **Scope rule:** build only the modules the owner asks for.
