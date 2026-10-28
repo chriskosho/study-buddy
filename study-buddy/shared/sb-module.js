@@ -94,9 +94,10 @@
       const t = tools.find(x => x.id === id);
       if (!started[id]) { started[id] = true; cfg.tools[id].init(ctxFor(t)); }
       else if (cfg.tools[id].enter) cfg.tools[id].enter();
+      if (window.SBT && SBT.padTab) SBT.padTab(id);
       SB.opened(mod.id, id);
     }
-    $$('nav.tabs button').forEach(b => b.onclick = () => show(b.dataset.tab));
+    $$('nav.tabs button').forEach(b => b.onclick = () => { const go = () => show(b.dataset.tab); if (window.SBPad && SBPad.isOpen() && b.dataset.tab !== current) SBPad.guard(go); else go(); });   // the scratch pad asks to save before a tool is left
 
     $('#sbReset').onclick = () => SB.requirePin('Enter the parent PIN to erase ' + kid.name + "'s " + mod.title + ' progress.', () => {
       if (current && cfg.tools[current].leave) cfg.tools[current].leave();
