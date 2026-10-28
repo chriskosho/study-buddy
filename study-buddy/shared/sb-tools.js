@@ -257,7 +257,7 @@
         const skb = $('[data-a="skip"]', P); if (skb) skb.hidden = true;
         const ok = b.dataset.v === q.a;
         $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
-        if (ok) { Q.score++; ctx.credit(); ctx.sfx.good(); } else { b.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); Q.missed.push({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q), audio: q.audio || '' }); }
+        if (ok) { Q.score++; ctx.credit(); ctx.sfx.good(); } else { b.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); Q.missed.push({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q), audio: q.audio || '' }); if (ctx.miss) ctx.miss(plainText(String(q.q)) + ' (answer: ' + plainText(String(q.a)) + ')'); }
         if (opt.onAnswer) opt.onAnswer(q, ok);
         $('.explain', P).innerHTML = (ok ? '<b style="color:var(--good-ink)">Correct!</b> ' : '<b style="color:var(--bad-ink)">Not quite.</b> ') + esc(q.why || ('The answer is: ' + q.a + '.'));
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
@@ -378,6 +378,7 @@
         if (missed && !item.practice) {
           let pic = null; try { pic = window.SBPad && SBPad.thumbnail ? SBPad.thumbnail() : null; } catch (e) {}   // "show my work": what was on the scratch pad
           R.missed.push({ q: plainText(item.q), a: shown(item), say: item.say || '', pic });
+          if (ctx.miss) ctx.miss(plainText(item.q) + ' (answer: ' + plainText(String(shown(item))) + ')');
           if (sim) sim.hidden = false;
         }
         if (opt.onAnswer && !item.practice) opt.onAnswer(item, !!pt);

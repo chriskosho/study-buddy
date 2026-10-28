@@ -39,8 +39,8 @@ Build after any change: `node _dev/build.mjs` (assembles the Atlas and rewrites 
 ## 4. Saved data (localStorage, all under `studybuddy.v1`)
 | Key | Contents |
 |---|---|
-| `studybuddy.v1.root` | `{ profiles:[{id,name,color,guest?}], active, pin (hash), pinRemovedAt, pinOffered, pinOfferedAtTwo, pinSkipped, inviteSnoozeUntil }` |
-| `studybuddy.v1.child.<id>` | `{ settings:{sound, readAloud}, streak, bestStreak, daily:{d,n,done}, tools:{ "<module>/<tool>": {attempts, visits, best, max, lastScore, last} }, last:{module,tool,at} }` |
+| `studybuddy.v1.root` | `{ profiles:[{id,name,color,guest?}], active, pin (hash), pinRemovedAt, pinOffered, pinOfferedAtTwo, pinSkipped, inviteSnoozeUntil, lastBackupAt }` |
+| `studybuddy.v1.child.<id>` | `{ settings:{sound, readAloud}, streak, bestStreak, daily:{d,n,done}, tools:{ "<module>/<tool>": {attempts, visits, best, max, lastScore, last} }, last:{module,tool,at}, days:{"YYYY-MM-DD": right answers}, misses:{ "<module>": { "<question (answer: …)>": times } } }`. `days` keeps the last 60 days; `misses` keeps the 40 most missed per module. |
 | `studybuddy.v1.notes.<childId>` | Scratch pad notes the child saved to their profile: `[{ id, at, question, mod, paper, w, h, items }]`. Not made for the Guest profile. Included in backups (`checkBackup` validates it), removed with the profile, kept by "Reset progress". |
 | `studybuddy.v1.sessnotes.<childId>` (sessionStorage) | Scratch pad notes kept for this browser tab only. Never in a backup. |
 | `studybuddy.v1.epoch` | A timestamp bumped by resets, profile deletes and backup loads. Other open tabs reload when it changes, so they never write old progress back. Not exported in backups. |
@@ -226,3 +226,12 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - **Handwriting "Show me how":** `strokes.js` holds stroke paths per letter for print (hand-made, school order) and cursive (traced along the font's centerline: waypoints snapped to a thinned rendering of the glyph). The animation reveals the font's own letter through a wide brush following the paths (`Pad.demo`), so the paths only need to follow the middle of each stroke.
 - **Maps:** Find it collects targets missed at least once (and the last unfound one), outlines them, and names them with speakers at the end.
 - **Ham:** results have Practice per topic (sets `cardSec`, opens the flashcards). The finished exam is kept in `st.examLast`, so the start screen offers "See your last results".
+
+## 19. Parent area additions (October 2026)
+- **Backup reminder:** downloading a backup (`SB.markBackup()` then `SB.exportAll()`) sets `root.lastBackupAt`. Once any child has progress and there is no backup, or the last one is more than 14 days old, every parent tab except Backup shows a note with a Download backup button. The Backup tab always says when the last backup was.
+- **Activity history:** `SB.credit()` adds one to `child.days[today]` (local date, `SB.dayKey()`), and days older than 60 are dropped. The Progress tab draws the last 14 days as bars (scaled to the daily goal or the busiest day).
+- **Missed questions:** `ctx.miss(text)` (from `SBM`, saved by `SB.noteMiss(module, text)`) is called by `SBT.answer` and `SBT.quiz` on a wrong answer with the question and its answer as plain text. Modules with their own quiz code (Atlas, US States, Ham) do not record misses yet. The Progress tab lists questions missed at least twice.
+- **Progress tab:** a filter (Everyone or one child), child cards with activity, "Needs help" (scored tools with 3 or more rounds and not mastered) and "Missed most often", then modules grouped by subject in `details.pmod` (open when the shown children have started them; Open all and Close all). Print opens every module (`beforeprint`/`afterprint`), and the print CSS leaves out the header, tabs, notes, and buttons.
+- **Move Guest's progress:** on the Children tab, a Guest with progress shows "Move Guest's progress to". `SB.mergeProfile(from, to)` adds attempts and visits, keeps the better best (by share), merges days, misses, module state the target does not have, and notes (newest 25), then deletes the Guest profile.
+- **Load one child:** the Backup tab's "Load one child" checks the file with `checkBackup`, asks which child and where (as a new child, or in place of a child here; a child with the same name is picked by default), and `SB.importChild(text, fromId, targetId)` writes only that child's record, notes, and module state. If it does not fit, the old data is put back.
+
