@@ -12,7 +12,7 @@
         <div class="fgout" aria-live="polite"></div>
         <div class="rules">
           <div class="rule"><h3>A unit fraction shared equally</h3><p>${f(1, 3)} &divide; 2: share one third into 2 equal pieces. Each piece is ${f(1, 6)} of the whole.</p>${G.bar(3, 2)}<p>Multiply the bottom: ${f(1, 3)} &divide; 2 = ${f(1, 3)} &times; ${f(1, 2)} = <b>${f(1, 6)}</b>.</p></div>
-          <div class="rule"><h3>A fraction divided by a whole number</h3><p>${f(3, 4)} &divide; 2: the 3 parts are shared, so each part is cut smaller. ${f(3, 4)} &divide; 2 = ${f(3, 4)} &times; ${f(1, 2)} = <b>${f(3, 8)}</b>.</p></div>
+          <div class="rule"><h3>A fraction divided by a whole number</h3><p>${f(3, 4)} &divide; 2: share 3 fourths into 2 equal groups: cut each fourth in half to make eighths, and each group gets 3 eighths. ${f(3, 4)} &divide; 2 = ${f(3, 4)} &times; ${f(1, 2)} = <b>${f(3, 8)}</b>.</p></div>
           <div class="rule"><h3>A whole number divided by a unit fraction</h3><p>4 &divide; ${f(1, 3)}: how many thirds are in 4? There are 3 in each whole, so 4 &times; 3 = <b>12</b>.</p></div>
           <div class="rule"><h3>Divide by a fraction</h3><p>Multiply by the <b>reciprocal</b> (swap the top and bottom). 3 &divide; ${f(3, 4)} = 3 &times; ${f(4, 3)} = ${f(12, 3)} = <b>4</b>.</p><p>Check by multiplying back: 4 &times; ${f(3, 4)} = 3.</p></div>
           <div class="rule"><h3>Fraction divided by fraction</h3><p>${f(2, 3)} &divide; ${f(4, 5)} = ${f(2, 3)} &times; ${f(5, 4)} = ${f(10, 12)} = <b>${f(5, 6)}</b>.</p></div>
@@ -29,7 +29,7 @@
         const [a, b] = [...P.querySelectorAll('.fgform .textin')].map(i => parse(i.value)), out = $('.fgout', P);
         if (!a || !b || a.v.d > 24 || b.v.d > 24 || a.v.n > 500 || b.v.n > 500) { out.textContent = 'Use fractions like 3/4, mixed numbers like 2 1/3, or whole numbers. (Keep denominators to 24 or less.)'; return; }
         if (b.v.n === 0) { out.textContent = 'You cannot divide by zero.'; return; }
-        out.innerHTML = `<p>${L.html(a.v, a.shown === 'mixed' ? 'mixed' : 'improper')} &divide; ${L.html(b.v, b.shown === 'mixed' ? 'mixed' : 'improper')} = <b>${L.html(L.div(a.v, b.v))}</b></p><p>${esc(G.whyDiv(a.v, b.v))}</p>`;
+        out.innerHTML = `<p>${L.html(a.v, a.shown === 'mixed' ? 'mixed' : 'improper')} &divide; ${L.html(b.v, b.shown === 'mixed' ? 'mixed' : 'improper')} = <b>${L.html(L.div(a.v, b.v))}</b></p><p>${esc(G.whyDiv(a.v, b.v, a.shown, b.shown))}</p>`;
       };
       $('.fgform', P).onsubmit = e => { e.preventDefault(); show(); };
       show();
