@@ -168,5 +168,27 @@ for (let i = 0; i < 3000; i++) { const s = MG.scaleSet(), seen = new Set();
   if (s.items.length < 7) bad('mul-scale', s, 'too few items'); ['less', 'equal', 'more'].forEach(b => { if (!s.items.some(x => x.b === b)) bad('mul-scale', s, 'no ' + b); });
   s.items.forEach(it => { const m = it.text.match(/^(\d+) × (?:(\d+) )?(\d+)\/(\d+)$|^(\d+) × (\d+)$/); let v; if (m && m[3]) v = fr((+m[2] || 0) * +m[4] + +m[3], +m[4]); else if (m) v = [+m[6], 1]; else return bad('mul-scale', it, 'unreadable');
     const c = v[0] * 1 < v[1] ? 'less' : v[0] === v[1] ? 'equal' : 'more'; if (c !== it.b) bad('mul-scale', it, 'wrong bucket ' + c); if (seen.has(it.text)) bad('mul-scale', it, 'duplicate'); seen.add(it.text); }); }
-console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, the eight fraction problem kinds, and the nine multiplication kinds)`);
+
+/* ---------- Division of Fractions (fractions-divide/gen.js): solved again; chk is "a/b:c/d" meaning a/b divided by c/d ---------- */
+const DG = require('../../modules/math/fractions-divide/gen.js');
+const chkDiv = c => { const [x, y] = c.split(':').map(t => { const m = t.match(/^(\d+)\/(\d+)$/); if (!m) throw new Error('bad chk ' + c); return fr(+m[1], +m[2]); }); if (y[0] === 0) throw new Error('divide by zero'); return fr(x[0] * y[1], x[1] * y[0]); };
+const divCheck = (name, fn, o = {}) => { for (let i = 0; i < N; i++) {
+  const q = fn(); if (!q) { bad(name, { q: '(none)' }, 'no problem'); continue; }
+  const QH = q.qh || q.q, plain = QH.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  if (/undefined|NaN|Infinity/.test(q.why + plain) || /(^|[^\d])0\/\d| \/1\b|\d+\/1\./.test(q.why)) bad(name, q, 'odd text: ' + q.why.slice(0, 120));
+  if (!q.why || !q.hint) bad(name, q, 'missing explanation or hint');
+  const a = parseAns(q.a); if (!a) { bad(name, q, 'unreadable answer ' + q.a); continue; }
+  if (a.mixed ? (a.fn >= a.fd || gcdn(a.fn, a.fd) !== 1) : (!a.whole && gcdn(a.n, a.d) !== 1)) bad(name, q, 'answer not in simplest form');
+  if (!o.noForm && !['any', 'mixed', 'improper'].includes(q.form)) bad(name, q, 'no answer form');
+  const miss = /\?/.test(plain.replace(/Use the model.*/, '')) && o.missing && /<b>\?<\/b>/.test(QH);
+  if (miss) { const xs = shownNums(QH); if (xs.length !== 2 || key(chkDiv(`${xs[0][0]}/${xs[0][1]}:${a.v[0]}/${a.v[1]}`)) !== key(xs[1])) bad(name, q, 'missing divisor does not give the shown quotient'); }
+  else { const want = chkDiv(q.chk); if (key(a.v) !== key(want)) bad(name, q, `wrong answer, expected ${key(want)}`); }
+  if (!q.why.includes(q.a)) bad(name, q, 'explanation does not state the answer ' + q.a);
+  if (o.shown) { const shown = shownNums(QH).map(key).sort().join(','), used = q.chk.split(':').map(t => key(chkDiv(t + ':1/1'))).sort().join(','); if (shown !== used && !o.missing) bad(name, q, `shown (${shown}) differs from solved (${used})`); }
+  if (o.quiz) { if (!q.wrong || q.wrong.length !== 3 || new Set([q.a, ...q.wrong]).size !== 4) bad(name, q, 'needs 3 different wrong options'); q.wrong.forEach(w2 => { const p = parseAns(w2); if (!p || key(p.v) === key(a.v)) bad(name, q, 'a wrong option is right: ' + w2); }); if (!q.html || !/dbar/.test(q.html)) bad(name, q, 'no picture'); if (/</.test(q.q)) bad(name, q, 'plain question has markup'); }
+}};
+divCheck('div-share', DG.shareQ, { shown: true, noForm: true, quiz: true }); divCheck('div-fit', DG.modelQ, { shown: true, noForm: true, quiz: true });
+divCheck('div-fracwhole', DG.fracByWholeQ, { shown: true }); divCheck('div-wholefrac', DG.wholeByFracQ, { shown: true });
+divCheck('div-words', DG.wordsQ, { shown: true }); divCheck('div-review', DG.reviewQ, { missing: true });
+console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, the eight fraction problem kinds, the nine multiplication kinds, and the six division kinds)`);
 process.exit(fails ? 1 : 0);

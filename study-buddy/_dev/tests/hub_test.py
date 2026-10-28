@@ -69,12 +69,12 @@ async def main():
 
         # ---- home ----
         check('Hi, Joshua' in await pg.locator('h1').inner_text(), 'home greets Joshua')
-        check(await pg.locator('a.mod').count() == 14, 'fourteen module cards (Multiplication of Fractions, South America, US States, Parts of Speech, Ancient Rome, Handwriting, Place Value, Planets, Periodic Table, Black Beauty, Phonograms, Greek and Latin Roots, Ham Radio Technician, Add and Subtract Fractions; the archived Black Beauty is not shown)')
+        check(await pg.locator('a.mod').count() == 15, 'fifteen module cards (Division of Fractions, Multiplication of Fractions, South America, US States, Parts of Speech, Ancient Rome, Handwriting, Place Value, Planets, Periodic Table, Black Beauty, Phonograms, Greek and Latin Roots, Ham Radio Technician, Add and Subtract Fractions; the archived Black Beauty is not shown)')
         check('Easy' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text() and 'Hard' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'automatic difficulty range Easy to Hard')
         o = await overflow(pg); check(o['h'] <= 0, f'home: no sideways scroll (the All list may scroll as modules are added) {o}')
         await pg.screenshot(path=f'{OUT}/sb_home.png')
-        await pg.click('nav.tabs a:has-text("Math")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 3")
-        check(await pg.locator('a.mod').count() == 3, 'math filter shows Place Value and Zeros, Add and Subtract Fractions, and Multiplication of Fractions')
+        await pg.click('nav.tabs a:has-text("Math")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 4")
+        check(await pg.locator('a.mod').count() == 4, 'math filter shows Place Value and Zeros and the three fraction modules')
         await pg.click('nav.tabs a:has-text("Geography")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 2")
         check(await pg.locator('a.mod').count() == 2, 'geography filter shows South America and US States')
 
