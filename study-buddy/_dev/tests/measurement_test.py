@@ -2,6 +2,9 @@
 sort, and layout (Playwright + Chromium).
 Run:  python3 study-buddy/_dev/tests/measurement_test.py"""
 import asyncio, http.server, threading, functools, os, sys, re
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fracfill import fill_box, fill_answer, fill_any, plain
 from fractions import Fraction
 from playwright.async_api import async_playwright
 
@@ -47,15 +50,15 @@ async def main():
         await pg.goto(MOD + '?tool=guide'); await pg.wait_for_selector('#tab-guide .fgout')
         check(await pg.locator('#tab-guide .rule').count() == 6, 'six worked-example cards')
         async def helper(shape, a, b, c='1'):
-            await pg.select_option('#tab-guide .gshape', shape); ins = pg.locator('#tab-guide .fgform .textin'); await ins.nth(0).fill(a); await ins.nth(1).fill(b); (await ins.nth(2).fill(c) if shape != 'rect' else None); await pg.click('#tab-guide .fgform button'); return (await pg.inner_text('#tab-guide .fgout')).replace('\n', ' ')
+            await pg.select_option('#tab-guide .gshape', shape); ins = pg.locator('#tab-guide .fgform .fbox'); await fill_box(ins.nth(0), a); await fill_box(ins.nth(1), b); (await fill_box(ins.nth(2), c) if shape != 'rect' else None); await pg.click('#tab-guide .fgform button'); return await plain(pg, '#tab-guide .fgout')
         t = await helper('rect', '3', '2 1/2'); check('7 1/2' in t, f'helper: rectangle {t[:90]!r}')
         t = await helper('tri', '8', '5'); check('= 20' in t or 'Area = 20' in t, f'helper: triangle {t[:90]!r}')
         t = await helper('trap', '4', '10', '6'); check('Area = 42' in t, f'helper: trapezoid {t[:90]!r}')
-        t = await helper('rect', 'x', '2'); check('Use whole numbers' in t, 'helper explains bad input')
+        t = await helper('rect', 'x', '2'); check('Check the boxes' in t, 'helper explains bad input')
 
         # ---- typed answers: each question's answer is worked out here from what is shown on screen ----
         async def type_check(tool, text):
-            await pg.fill(f'#tab-{tool} input[aria-label="Your answer"]', text); await pg.click(f'#tab-{tool} form button'); await pg.wait_for_timeout(60)
+            await fill_any(pg, tool, text); await pg.click(f'#tab-{tool} form button'); await pg.wait_for_timeout(60)
             return await pg.inner_text(f'#tab-{tool} .err')
         FACT = {('foot', 'inches'): 12, ('foot', 'inch'): 12, ('feet', 'inches'): 12, ('yard', 'feet'): 3, ('yards', 'feet'): 3, ('yard', 'inches'): 36, ('yards', 'inches'): 36,
                 ('pound', 'ounces'): 16, ('pounds', 'ounces'): 16, ('gallon', 'quarts'): 4, ('gallons', 'quarts'): 4, ('quart', 'pints'): 2, ('quarts', 'pints'): 2, ('pint', 'cups'): 2, ('pints', 'cups'): 2,
@@ -88,7 +91,7 @@ async def main():
         for tool in ['units', 'time', 'rect', 'triangle', 'trapezoid', 'composite', 'review']:
             await pg.goto(MOD + '?tool=' + tool); await pg.wait_for_selector(f'#tab-{tool} .qtext')
             check(await pg.locator(f'#tab-{tool} .qtext .mfig').count() == (0 if tool in ('units', 'time') else 1) or tool == 'review', f'{tool}: figure shown when expected')
-            msg = await type_check(tool, 'abc'); check('Type a fraction' in msg, f'{tool}: nonsense gets a hint ({msg!r})')
+            msg = await type_check(tool, 'abc'); check('Fill in the boxes' in msg, f'{tool}: nonsense gets a hint ({msg!r})')
             for k in range(10):
                 want = await solve(tool)
                 if k == 0 and want.denominator > 1:

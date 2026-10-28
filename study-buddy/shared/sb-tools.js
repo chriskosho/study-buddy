@@ -330,22 +330,40 @@
     return 'no';
   }
 
-  const COARSE = () => !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
-  const KEYPAD = `<div class="keypad" role="group" aria-label="Number keys">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ' ', '/'].map(k => `<button type="button" data-k="${k}" aria-label="${k === ' ' ? 'space' : k === '/' ? 'fraction bar' : k}">${k === ' ' ? 'space' : k}</button>`).join('')}<button type="button" data-k="back" aria-label="Delete">&larr;</button></div>`;
+  /* Stacked fraction entry: a small box for the whole number, then a top box over a bar over a bottom box.
+     .fbox.value reads like "1 3/4", "3/4" or "2" (or "3/" while the bottom is missing), so the judge and the calculators can use it as text. */
+  const fracBox = (label, v = '') => { const t = String(v).trim(), m = t.match(/^(?:(\d+) )?(\d+)\/(\d+)$/), L = esc(label), w = m ? m[1] || '' : /^\d+$/.test(t) ? t : '', n = m ? m[2] : '', d = m ? m[3] : '';
+    const box = (cls, aria, val) => `<input class="${cls}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="${cls === 'fx-w' ? 7 : 5}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${L}, ${aria}" value="${val}">`;
+    return `<span class="fbox" role="group" aria-label="${L}">${box('fx-w', 'whole number (leave empty if there is none)', w)}<span class="fstack">${box('fx-n', 'top number', n)}<span class="fline" aria-hidden="true"></span>${box('fx-d', 'bottom number', d)}</span></span>`; };
+  function wireFrac(root) {
+    $$('.fbox', root).forEach(el => {
+      const [w, n, d] = ['.fx-w', '.fx-n', '.fx-d'].map(k => $(k, el));
+      Object.defineProperty(el, 'value', { configurable: true,
+        get: () => { const a = w.value.trim(), b = n.value.trim(), c = d.value.trim(); return !b && !c ? a : (a ? a + ' ' : '') + b + '/' + c; },
+        set: v => { const t = String(v).trim(); let m; w.value = n.value = d.value = '';
+          if ((m = t.match(/^(?:(\d+) )?(\d+)\/(\d+)$/))) { w.value = m[1] || ''; n.value = m[2]; d.value = m[3]; } else if ((m = t.match(/^(\d+)$/))) w.value = m[1]; } });
+      const fit = i => { i.style.width = i.value.length > 3 ? `calc(${i.value.length}ch + 40px)` : ''; };   // long numbers (volumes) get a wider box
+      el.addEventListener('input', e => { if (e.target.matches('input')) { e.target.value = e.target.value.replace(/\D/g, ''); fit(e.target); } });
+      [w, n, d].forEach(fit);
+    });
+  }
+  /* fractions written in plain text ("3/4", "1 3/4") drawn the traditional way, with the line between top and bottom */
+  const stackText = t => esc(String(t)).replace(/(?:(\d+) )?(\d+)\/(\d+)/g, (m, w, n, d) => { const f = `<span class="frac"><span class="fn">${n}</span><span class="fd">${d}</span></span>`; return w ? `<span class="mixed" data-s="${w} ${n}/${d}"><b>${w}</b>${f}</span>` : f.replace('class="frac"', `class="frac" data-s="${n}/${d}"`); });   // data-s keeps the plain text (for tests and copying)
   const fracHTML = f => f.w != null && f.fn ? `<span class="mixed"><b>${f.w}</b><span class="frac"><span class="fn">${f.fn}</span><span class="fd">${f.fd}</span></span></span>`
     : f.d === 1 ? `<b>${f.n}</b>` : f.dec ? `<b>${(f.n / f.d)}</b>` : `<span class="frac"><span class="fn">${f.n}</span><span class="fd">${f.d}</span></span>`;
   /* the explanation after a miss comes one step at a time ("Show the next step"); after a right answer it shows whole */
-  function steps(el, text, missed) {
+  function steps(el, text, missed, fr) {
+    const E = fr ? stackText : esc;
     const parts = String(text).replace(/([.!?]+["')]?)\s+/g, '$1\u0000').split('\u0000').map(x => x.trim()).filter(Boolean);   // a step ends at . ! or ? and a space, so 3.45 stays whole
-    if (!missed || parts.length < 3) { el.textContent = text; return; }
-    let k = 1; const draw = () => { el.innerHTML = esc(parts.slice(0, k).join(' ').trim()) + (k < parts.length ? ' <button type="button" class="btn ghost small stepbtn">Show the next step</button>' : '');
+    if (!missed || parts.length < 3) { el.innerHTML = E(text); return; }
+    let k = 1; const draw = () => { el.innerHTML = E(parts.slice(0, k).join(' ').trim()) + (k < parts.length ? ' <button type="button" class="btn ghost small stepbtn">Show the next step</button>' : '');
       const b = el.querySelector('.stepbtn'); if (b) b.onclick = () => { k++; draw(); const nb = el.querySelector('.stepbtn'); (nb || el).focus && (nb ? nb.focus() : null); }; };
     draw();
   }
   /* the questions missed in a round, folded away under the result so the screen still fits */
   function reviewHTML(ctx, missed) {
     if (!missed.length) return '';
-    return `<details class="review"><summary>See the ${missed.length === 1 ? 'one' : missed.length} to practice</summary><ul>${missed.map(m => `<li>${m.pic ? `<img src="${m.pic}" alt="Your scratch pad work" class="revpic">` : ''}<span class="revq">${esc(m.q)}</span><span class="reva">Answer: <b>${esc(m.a)}</b></span>${m.audio ? ctx.sayButton(String(m.a), 'Hear the sound again', m.audio) : m.say ? ctx.sayButton(m.say + '. The answer is ' + m.a + '.', 'Hear it') : ''}</li>`).join('')}</ul></details>`;
+    return `<details class="review"><summary>See the ${missed.length === 1 ? 'one' : missed.length} to practice</summary><ul>${missed.map(m => `<li>${m.pic ? `<img src="${m.pic}" alt="Your scratch pad work" class="revpic">` : ''}<span class="revq">${esc(m.q)}</span><span class="reva">Answer: <b>${m.fr ? stackText(m.a) : esc(m.a)}</b></span>${m.audio ? ctx.sayButton(String(m.a), 'Hear the sound again', m.audio) : m.say ? ctx.sayButton(m.say + '. The answer is ' + m.a + '.', 'Hear it') : ''}</li>`).join('')}</ul></details>`;
   }
   function answer(ctx, opt) {
     const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', R = { list: [], i: 0, score: 0, tries: 0, hinted: false, missed: [] };
@@ -364,21 +382,23 @@
       P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><p class="lead">${esc(opt.lead || 'Type your answer, then press Check.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">${item.practice ? 'Practice: a similar one, no score' : `Question ${numNow()} of ${tot} &middot; Score ${R.score}`}</span></div>
         <div class="row qrow"><p class="qtext">${item.q}</p>${item.say ? ctx.sayButton(item.say, 'Hear it') : ''}</div>
-        <form class="spellrow" autocomplete="off"><span class="spellbox"><input aria-label="Your answer" placeholder="${kind === 'fraction' ? 'Like 3/4 or 1 3/4' : 'Answer'}" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off" autocorrect="off"'}${kind === 'fraction' ? ' size="14"' : ''} spellcheck="false"><button class="btn" type="submit">Check</button>${kind === 'fraction' ? '<span class="typed" aria-live="polite"></span>' : ''}</span></form>
-        ${kind === 'fraction' && COARSE() ? KEYPAD : ''}
+        <form class="spellrow" autocomplete="off"><span class="spellbox">${kind === 'fraction' ? fracBox('Your answer') : `<input aria-label="Your answer" placeholder="Answer" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off" autocorrect="off"'} spellcheck="false">`}<button class="btn" type="submit">Check</button></span></form>
         <div class="err" role="alert"></div><p class="explain why"></p>
         <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}${kind !== 'text' && !item.practice ? '<button type="button" class="btn ghost" data-a="similar" hidden>Try a similar one</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
       addPad(ctx, () => plainText(item.q));
-      const inp = $('input', P), err = $('.err', P), why = $('.why', P), next = $('[data-a="next"]', P), hb = $('[data-a="hint"]', P);
+      const fb = kind === 'fraction' ? $('.fbox', P) : null; if (fb) wireFrac(P);
+      const inp = fb ? { get value() { return fb.value; }, set value(x) { fb.value = x; }, classList: fb.classList, focus() { $(item.form === 'mixed' ? '.fx-w' : '.fx-n', fb).focus(); }, set disabled(x) { $$('input', fb).forEach(i => { i.disabled = x; }); }, set oninput(f) { fb.addEventListener('input', f); } } : $('input', P);
+      const setErr = t => { if (fr) err.innerHTML = stackText(t); else err.textContent = t; }, fr = kind === 'fraction';
+      const err = $('.err', P), why = $('.why', P), next = $('[data-a="next"]', P), hb = $('[data-a="hint"]', P);
       inp.focus();
       const sk = $('[data-a="skip"]', P);
       const sim = $('[data-a="similar"]', P);
       const done = (pt, missed) => {
         inp.disabled = true; $('form button', P).disabled = true; if (hb) hb.hidden = true; if (sk) sk.hidden = true; next.hidden = false; next.focus();
-        if (item.why) steps(why, item.why, missed);
+        if (item.why) steps(why, item.why, missed, fr);
         if (missed && !item.practice) {
           let pic = null; try { pic = window.SBPad && SBPad.thumbnail ? SBPad.thumbnail() : null; } catch (e) {}   // "show my work": what was on the scratch pad
-          R.missed.push({ q: plainText(item.q), a: shown(item), say: item.say || '', pic });
+          R.missed.push({ q: plainText(item.q), a: shown(item), say: item.say || '', pic, fr });
           if (ctx.miss) ctx.miss(plainText(item.q) + ' (answer: ' + plainText(String(shown(item))) + ')');
           if (sim) sim.hidden = false;
         }
@@ -388,37 +408,32 @@
         const fresh = opt.build().find(x => plainText(x.q) !== plainText(item.q)); if (!fresh) return;
         R.list.splice(R.i + 1, 0, Object.assign({}, fresh, { practice: true })); R.i++; show();
       };
-      const typed = $('.typed', P);
-      if (typed) inp.addEventListener('input', () => { const f = parseFrac(stripUnit(inp.value).v); typed.innerHTML = inp.value.trim() && f ? 'You typed ' + fracHTML(f) : ''; });
-      $$('[data-k]', P).forEach(b => b.onclick = () => { const k = b.dataset.k, st0 = inp.selectionStart ?? inp.value.length, en = inp.selectionEnd ?? st0;
-        if (k === 'back') { const a = st0 === en ? Math.max(0, st0 - 1) : st0; inp.value = inp.value.slice(0, a) + inp.value.slice(en); inp.setSelectionRange(a, a); }
-        else { inp.value = inp.value.slice(0, st0) + k + inp.value.slice(en); inp.setSelectionRange(st0 + 1, st0 + 1); }
-        inp.dispatchEvent(new Event('input')); });
-      inp.oninput = () => { inp.classList.remove('bad'); err.textContent = ''; };
-      if (hb) hb.onclick = () => { R.hinted = true; err.style.color = 'var(--ink2)'; err.textContent = item.hint; inp.focus(); };
+      inp.oninput = () => { inp.classList.remove('bad'); setErr(''); };
+      if (hb) hb.onclick = () => { R.hinted = true; err.style.color = 'var(--ink2)'; setErr(item.hint); inp.focus(); };
       $('form', P).onsubmit = e => {
         e.preventDefault();
         const v = inp.value.trim();
-        if (!v) { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Type an answer first.'; return; }
+        if (fr && !!$('.fx-n', fb).value.trim() !== !!$('.fx-d', fb).value.trim()) { inp.classList.add('bad'); err.style.color = ''; setErr('Fill in both the top number and the bottom number of the fraction.'); return; }
+        if (!v) { inp.classList.add('bad'); err.style.color = ''; setErr(fr ? 'Fill in the boxes first.' : 'Type an answer first.'); return; }
         let r = check(item, v), unitNote = '';
         if (r === 'bad' && kind !== 'text') { const su = stripUnit(v); if (su.unit) { r = check(item, su.v); if (r !== 'bad') unitNote = ' (No units needed next time, just the number.)'; } }
-        if (r === 'bad') { inp.classList.add('bad'); err.style.color = ''; err.textContent = kind === 'fraction' ? 'Type a fraction like 3/4, a mixed number like 1 3/4, or a whole number like 1,200.' : 'Type a number, like 4,000 or 2.5.'; return; }
+        if (r === 'bad') { inp.classList.add('bad'); err.style.color = ''; setErr(kind === 'fraction' ? 'Check the boxes. The bottom number cannot be 0.' : 'Type a number, like 4,000 or 2.5.'); return; }
         const nudge = { decimal: 'That is the right amount! Now write it as a fraction or a mixed number, like 2 1/2.', unreduced: 'That is the right amount, but not in simplest form. Reduce it and try again.', whole: 'That is the right amount! Write it as a whole number.', wantMixed: 'That is the right amount! Now write it as a mixed number, like 1 3/4.', wantImproper: 'That is the right amount! Now write it as an improper fraction, like 7/4.' }[r];
-        if (nudge) { inp.classList.add('bad'); err.style.color = ''; err.textContent = nudge; return; }
-        if (r === 'case') { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Almost! Check the capital and small letters, then try again.'; return; }
+        if (nudge) { inp.classList.add('bad'); err.style.color = ''; setErr(nudge); return; }
+        if (r === 'case') { inp.classList.add('bad'); err.style.color = ''; setErr('Almost! Check the capital and small letters, then try again.'); return; }
         if (r === 'ok' || r === 'close') {
           const pt = !R.hinted && R.tries === 0 && !item.practice; if (pt) R.score++;
           if (!item.practice) ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good-ink)';
-          err.textContent = (r === 'close' ? 'Close enough! It is spelled ' + shown(item) + '.' : 'Correct! ' + shown(item) + '.') + unitNote + (R.hinted ? ' (Hint used, so no point.)' : '');
+          setErr((r === 'close' ? 'Close enough! It is spelled ' + shown(item) + '.' : 'Correct! ' + shown(item) + '.') + unitNote + (R.hinted ? ' (Hint used, so no point.)' : ''));
           done(pt, !pt && (R.hinted || R.tries > 0));
         } else {
           R.tries++; if (!item.practice) ctx.slip(); ctx.sfx.bad(); inp.classList.add('bad'); err.style.color = '';
-          if (R.tries >= 2) { err.textContent = 'The answer is ' + shown(item) + '.'; done(false, true); }
-          else err.textContent = 'Not quite. Try again.';
+          if (R.tries >= 2) { setErr('The answer is ' + shown(item) + '.'); done(false, true); }
+          else setErr('Not quite. Try again.');
         }
       };
       if (sk) sk.onclick = () => {                              // not sure? show the answer, mark it for review, and move on (no point, no streak change)
-        err.style.color = 'var(--ink2)'; err.textContent = 'Marked for review. The answer is ' + shown(item) + '.'; done(false, true);
+        err.style.color = 'var(--ink2)'; setErr('Marked for review. The answer is ' + shown(item) + '.'); done(false, true);
       };
       next.onclick = () => { R.i++; show(); };
       if (item.say) ctx.say(item.say);
@@ -543,5 +558,5 @@
   /* 3/4 x 8 and 8 x 3/4 are the same question for this purpose (a sum or product with only that one operation) */
   const twinKey = q => { const c = String(q.chk || ''); if (!c) return ''; for (const op of ['*', '+']) { const parts = c.split(op); if (parts.length > 1 && !/[-:*+]/.test(parts.join(''))) return op + parts.map(x => x.trim()).sort().join(op) + '|' + (q.form || '') + '|' + (q.a || ''); } return ''; };
   const many = (fn, n = 10) => { const out = [], seen = new Set(); for (let i = 0; out.length < n && i < 400; i++) { const q = fn(), k = (q.q || '') + '|' + (q.html || '') + '|' + (q.qh || ''), t = twinKey(q); if (!seen.has(k) && !(t && seen.has(t))) { seen.add(k); if (t) seen.add(t); out.push(q); } } return out; };
-  window.SBT = { loadPad, padTab, judge, stripUnit, many, flashcards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
+  window.SBT = { fracBox, wireFrac, stackText, loadPad, padTab, judge, stripUnit, many, flashcards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
 })();

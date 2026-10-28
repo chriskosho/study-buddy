@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'Fractions you can read the normal way', items: [
+    'Fraction answers now use boxes drawn like a real fraction: a small box for the whole number, then a box on top, a line, and a box on the bottom. No more typing 1 3/4 with a slash. Leave the whole box empty for a plain fraction.',
+    'The boxes take digits only. If only the top or only the bottom is filled in, Study Buddy asks for both before it counts a try.',
+    'This is in every fraction module: Add and Subtract, Multiply, Divide, Measurement and Volume, including the Study guide calculators.',
+    'The answer shown after a miss and the step-by-step explanations now draw fractions stacked too, instead of with a slash.' ] },
   { date: '2026-10-28', title: 'List view tidy-up, and a handwriting fix', items: [
     'List view rows now show only the module name, your progress, and the bookmark button, which sits inside the row. The subject, difficulty and description are gone from rows.',
     'In List view sorted by subject, each subject section can be folded or opened, with Expand all and Collapse all buttons. Each student keeps their own choice; sections start open.',

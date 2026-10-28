@@ -7,9 +7,9 @@
   const guide = {
     init(ctx) {
       const P = ctx.panel, f = (n, d) => L.html({ n, d }, 'improper');
-      P.innerHTML = `<h2>Study guide</h2><p class="lead">Choose a shape, type its measurements (whole numbers, fractions like 3/4, or mixed numbers like 2 1/2), and see the area worked out.</p>
+      P.innerHTML = `<h2>Study guide</h2><p class="lead">Choose a shape, fill in its measurements (a whole number goes in the small box on the left; the top and bottom of a fraction go above and below the line), and see the area worked out.</p>
         <form class="fgform" autocomplete="off"><select class="gshape" aria-label="Shape"><option value="rect">Rectangle (length, width)</option><option value="tri">Triangle (base, height)</option><option value="trap">Trapezoid (two bases, height)</option></select>
-          <input class="textin" value="3" aria-label="First measurement" inputmode="text"><input class="textin" value="2 1/2" aria-label="Second measurement" inputmode="text"><input class="textin gthird" value="4" aria-label="Height" inputmode="text"><button class="btn small" type="submit">Show the steps</button></form>
+          ${SBT.fracBox('First measurement', '3')}${SBT.fracBox('Second measurement', '2 1/2')}${SBT.fracBox('Height', '4')}<button class="btn small" type="submit">Show the steps</button></form>
         <div class="fgout" aria-live="polite"></div>
         <div class="rules">
           <div class="rule"><h3>Changing units</h3><p>Going to a <b>smaller</b> unit, you need more of them: multiply. ${f(3, 4)} foot &times; 12 = <b>9 inches</b>.</p><p>Going to a <b>bigger</b> unit, you need fewer: divide. 90 minutes &divide; 60 = <b>${L.html(F(3, 2))} hours</b>.</p></div>
@@ -26,17 +26,18 @@
         if ((m = t.match(/^(\d+)$/))) return F(+m[1], 1);
         return null;
       };
-      const shape = () => $('.gshape', P).value, ins = () => [...P.querySelectorAll('.fgform .textin')];
+      const shape = () => $('.gshape', P).value, ins = () => [...P.querySelectorAll('.fgform .fbox')];
       const sync = () => { const s = shape(), x = ins(); x[2].style.display = s === 'rect' ? 'none' : ''; x[0].setAttribute('aria-label', s === 'rect' ? 'Length' : s === 'tri' ? 'Base' : 'Base 1'); x[1].setAttribute('aria-label', s === 'rect' ? 'Width' : s === 'tri' ? 'Height' : 'Base 2'); };
       const show = () => {
         sync(); const s = shape(), v = ins().map(i => parse(i.value)), out = $('.fgout', P), need = s === 'rect' ? 2 : s === 'tri' ? 2 : 3, vs = v.slice(0, need);
-        if (vs.some(x => !x || x.d > 24 || x.n > 500)) { out.textContent = 'Use whole numbers, fractions like 3/4, or mixed numbers like 2 1/2. (Keep denominators to 24 or less.)'; return; }
+        if (vs.some(x => !x || x.d > 24 || x.n > 500)) { out.textContent = 'Check the boxes. A fraction needs both a top and a bottom number, and the bottom cannot be 0. (Keep denominators to 24 or less.)'; return; }
         const half = F(1, 2), sh = x => x.d > 1 && x.n > x.d ? 'mixed' : 'i'; let area, text;
         if (s === 'rect') { area = L.mul(vs[0], vs[1]); text = 'Area = length × width. ' + G.whyMul([{ v: vs[0], shown: sh(vs[0]) }, { v: vs[1], shown: sh(vs[1]) }]); }
         else if (s === 'tri') { area = L.mul(L.mul(half, vs[0]), vs[1]); text = 'Area = 1/2 × base × height. ' + G.whyMul([{ v: half, shown: 'i' }, { v: vs[0], shown: sh(vs[0]) }, { v: vs[1], shown: sh(vs[1]) }]); }
         else { const sum = L.add(vs[0], vs[1]); area = L.mul(L.mul(sum, half), vs[2]); text = `Area = 1/2 × (base 1 + base 2) × height. The bases add to ${L.txt(vs[0])} + ${L.txt(vs[1])} = ${L.txt(sum)}. ` + G.whyMul([{ v: sum, shown: sh(sum) }, { v: half, shown: 'i' }, { v: vs[2], shown: sh(vs[2]) }]); }
-        out.innerHTML = `<p>Area = <b>${L.html(area)}</b> square units</p><p>${esc(text)}</p>`;
+        out.innerHTML = `<p>Area = <b>${L.html(area)}</b> square units</p><p>${SBT.stackText(text)}</p>`;
       };
+      SBT.wireFrac(P);
       $('.fgform', P).onsubmit = e => { e.preventDefault(); show(); };
       $('.gshape', P).onchange = show;
       show();
@@ -44,7 +45,7 @@
   };
 
   const fa = (title, lead, fn) => ({ init(ctx) { SBT.answer(ctx, { title, lead, kind: 'fraction', rounds: 10, build: () => many(fn) }); } });
-  const FORM = ' Type whole numbers, fractions like 3/4, or mixed numbers like 1 3/4. No units.';
+  const FORM = ' Whole number in the small box, fraction top and bottom in the others. No units.';
   const units = fa('Convert customary units', 'Feet, yards, pounds and gallons, with fractions.' + FORM, G.customaryQ);
   const time = fa('Convert units of time', 'Hours, minutes, seconds, days, weeks and years.' + FORM, G.timeQ);
   const rect = fa('Area of a rectangle', 'Sides can be fractions or mixed numbers.' + FORM, G.rectQ);

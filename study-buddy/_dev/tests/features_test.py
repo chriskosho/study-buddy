@@ -1,6 +1,9 @@
 """New features from the October 2026 review: helping the youngest find their way, turning misses into practice, and more.
 Run:  python3 study-buddy/_dev/tests/features_test.py"""
 import asyncio, http.server, threading, functools, os, sys, re
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fracfill import fill_box, fill_answer, fill_any, plain
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -15,8 +18,8 @@ def check(cond, msg):
 INIT = """localStorage.getItem('studybuddy.v1.root') || localStorage.setItem('studybuddy.v1.root', JSON.stringify({profiles:[{id:'k1',name:'Joshua',color:'#e4572e'},{id:'k2',name:'Hazel',color:'#1b998b'}],active:'k1',pin:null,pinOffered:true}));"""
 
 async def wrong_answer(pg, tab):
-    await pg.fill(f'#tab-{tab} input[aria-label="Your answer"]', '99999'); await pg.click(f'#tab-{tab} form button'); await pg.wait_for_timeout(40)
-    await pg.fill(f'#tab-{tab} input[aria-label="Your answer"]', '99998'); await pg.click(f'#tab-{tab} form button'); await pg.wait_for_timeout(60)
+    await fill_any(pg, tab, '99999'); await pg.click(f'#tab-{tab} form button'); await pg.wait_for_timeout(40)
+    await fill_any(pg, tab, '99998'); await pg.click(f'#tab-{tab} form button'); await pg.wait_for_timeout(60)
 
 async def main():
     threading.Thread(target=lambda: http.server.ThreadingHTTPServer(('127.0.0.1', PORT), functools.partial(Q, directory=SITE)).serve_forever(), daemon=True).start()
@@ -44,9 +47,9 @@ async def main():
 
         # ---- typed answers: review list, Try a similar one, steps, typed preview ----
         await pg.goto(BASE + 'modules/math/fractions-multiply/index.html?tool=fraction'); await pg.wait_for_selector('#tab-fraction .qtext')
-        await pg.fill('#tab-fraction input[aria-label="Your answer"]', '1 3/4')
-        typed = await pg.inner_html('#tab-fraction .typed')
-        check('You typed' in typed and 'class="mixed"' in typed, 'a typed fraction is shown back, stacked')
+        await pg.fill('#tab-fraction .fx-w', '1'); await pg.fill('#tab-fraction .fx-n', '3'); await pg.fill('#tab-fraction .fx-d', 'x4')
+        check(await pg.locator('#tab-fraction .fbox .fline').count() == 1 and await pg.input_value('#tab-fraction .fx-d') == '4', 'the answer is a whole box plus a top box over a line over a bottom box, digits only')
+        check(await pg.locator('#tab-fraction .fbox input').count() == 3, 'three boxes: whole, top, bottom')
         await wrong_answer(pg, 'fraction')
         check(await pg.locator('#tab-fraction [data-a="similar"]').is_visible(), 'after a miss, "Try a similar one" is offered')
         steps = await pg.locator('#tab-fraction .stepbtn').count()

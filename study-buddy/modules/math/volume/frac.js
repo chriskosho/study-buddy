@@ -32,11 +32,11 @@
   };
 
   const fa = (title, lead, fn) => ({ init(ctx) { SBT.answer(ctx, { title, lead, kind: 'fraction', rounds: 10, build: () => many(fn) }); } });
-  const FORM = ' Type a number. No units.';
+  const FORM = ' Whole number in the small box, fraction top and bottom in the others. No units.';
   const cubes = fa('Count the cubes', 'Count a layer, then multiply by the layers.' + FORM, G.cubesQ);
   const stacks = fa('Stacks of cubes', 'Add the cubes in every stack.' + FORM, G.stacksQ);
   const formula = fa('Use the formula', 'Volume of boxes and cubes, and finding a missing edge.' + FORM, G.formulaQ);
-  const capacity = fa('Volume and capacity', 'Milliliters, liters and cubic centimeters. Fractions and mixed numbers like 2 1/2 are fine.' + FORM, G.capacityQ);
+  const capacity = fa('Volume and capacity', 'Milliliters, liters and cubic centimeters. Fractions and mixed numbers are fine.' + FORM, G.capacityQ);
   const words = fa('Word problems', 'Boxes, tanks, and sand.' + FORM, G.wordsQ);
   const compare = fa('Compare volumes', 'How much more does the bigger box hold?' + FORM, G.compareQ);
   const compound = fa('Compound figures', 'Add two boxes, or take a piece away.' + FORM, G.compoundQ);

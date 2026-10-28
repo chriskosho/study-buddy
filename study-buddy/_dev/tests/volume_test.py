@@ -2,6 +2,9 @@
 sort, and layout (Playwright + Chromium).
 Run:  python3 study-buddy/_dev/tests/volume_test.py"""
 import asyncio, http.server, threading, functools, os, sys, re
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fracfill import fill_box, fill_answer, fill_any
 from fractions import Fraction
 from playwright.async_api import async_playwright
 
@@ -54,7 +57,7 @@ async def main():
 
         # ---- typed answers: each question's answer is worked out here from what is shown on screen ----
         async def type_check(tool, text):
-            await pg.fill(f'#tab-{tool} input[aria-label="Your answer"]', text); await pg.click(f'#tab-{tool} form button'); await pg.wait_for_timeout(60)
+            await fill_any(pg, tool, text); await pg.click(f'#tab-{tool} form button'); await pg.wait_for_timeout(60)
             return await pg.inner_text(f'#tab-{tool} .err')
         async def solve(tool):
             hh = await pg.inner_html(f'#tab-{tool} .qtext'); text = re.sub(r'<svg.*?</svg>', ' ', hh, flags=re.S); text = re.sub(r'<[^>]+>', ' ', text); text = re.sub(r'\s+', ' ', text)
@@ -85,7 +88,7 @@ async def main():
             raise Exception('unknown question: ' + text)
         for tool in ['cubes', 'stacks', 'formula', 'capacity', 'words', 'compare', 'compound', 'review']:
             await pg.goto(MOD + '?tool=' + tool); await pg.wait_for_selector(f'#tab-{tool} .qtext')
-            msg = await type_check(tool, 'abc'); check('Type a fraction' in msg, f'{tool}: nonsense gets a hint ({msg!r})')
+            msg = await type_check(tool, 'abc'); check('Fill in the boxes' in msg, f'{tool}: nonsense gets a hint ({msg!r})')
             for k in range(10):
                 want = await solve(tool)
                 if k == 0 and want.denominator > 1:

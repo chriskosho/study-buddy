@@ -2,6 +2,9 @@
 fraction answers, models, and layout (Playwright + Chromium).
 Run:  python3 study-buddy/_dev/tests/fractions_test.py"""
 import asyncio, http.server, threading, functools, os, sys, re
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fracfill import fill_box, fill_answer, fill_any, plain
 from fractions import Fraction
 from playwright.async_api import async_playwright
 
@@ -56,30 +59,30 @@ async def main():
         check(await pg.locator('#tab-guide .fbar').count() >= 4, 'the guide shows bar models')
         cards = await pg.eval_on_selector_all('#tab-guide .rule', "els => els.map(e => [...e.querySelectorAll('.frac')].map(f => f.dataset.n + '/' + f.dataset.d).join(' '))")
         check('3/6 2/6' in cards[1] and '9/12 2/12' in cards[2] and '6/8 3/4' in cards[3] and '4/12 3/12' in cards[4] and '3/12 8/12' in cards[5], f'the guide shows the unreduced steps {cards}')
-        out = await pg.inner_text('#tab-guide .fgout')
+        out = await plain(pg, '#tab-guide .fgout')
         check('5/6' in out.replace('\n', '') or '56' in out.replace('\n', ''), f'helper starts with 1/2 + 1/3 = 5/6: {out[:60]!r}')
         async def helper(a, op, c):
-            ins = pg.locator('#tab-guide .fgform .textin'); await ins.nth(0).fill(a); await ins.nth(1).fill(c); await pg.select_option('#tab-guide .fgform select', op); await pg.click('#tab-guide .fgform button'); return (await pg.inner_text('#tab-guide .fgout')).replace('\n', ' ')
+            ins = pg.locator('#tab-guide .fgform .fbox'); await fill_box(ins.nth(0), a); await fill_box(ins.nth(1), c); await pg.select_option('#tab-guide .fgform select', op); await pg.click('#tab-guide .fgform button'); return await plain(pg, '#tab-guide .fgout')
         t = await helper('2 1/3', '+', '1 3/4'); check('4 1/12' in t, f'helper adds mixed numbers: {t[-90:]!r}')
         t = await helper('4 1/4', '-', '1 2/3'); check('2 7/12' in t and 'rename' in t, f'helper subtracts with renaming: {t[-110:]!r}')
         t = await helper('1/4', '-', '1/2'); check('at least as big' in t, 'helper refuses a negative answer')
         t = await helper('3/6', '+', '1/3'); check('3/6 + 1/3' in re.sub(r'\s+', '', t).replace('+', ' + ') or '3/6' in t, f'helper shows unreduced input as typed: {t[:60]!r}')
         t = await helper('3', '-', '1 1/2'); check('1 1/2' in t and 'rename' in t and '0/' not in t, f'helper subtracts a mixed number from a whole number: {t[-130:]!r}')
         t = await helper('2', '+', '1/2'); check('2 1/2' in t and '0/' not in t, f'helper adds a whole number and a fraction: {t[-90:]!r}')
-        t = await helper('abc', '+', '1/2'); check('Use fractions' in t, 'helper explains bad input')
+        t = await helper('abc', '+', '1/2'); check('Check the boxes' in t, 'helper explains bad input')
         t = await helper('7/4', '+', '3/8'); check('17/8' in t and '2 1/8' in t, f'helper handles improper fractions: {t[:70]!r}')
 
         # ---- the answer tools: type the right answer, in different forms ----
         async def qhtml(pg, tool): return await pg.inner_html(f'#tab-{tool} .qtext')
         async def type_check(pg, tool, text):
-            await pg.fill(f'#tab-{tool} input[aria-label="Your answer"]', text); await pg.click(f'#tab-{tool} form button'); await pg.wait_for_timeout(60)
+            await fill_any(pg, tool, text); await pg.click(f'#tab-{tool} form button'); await pg.wait_for_timeout(60)
             return await pg.inner_text(f'#tab-{tool} .err')
         for tool in ['unlike', 'mixedadd', 'mixedsub', 'review']:
             await pg.goto(MOD + '?tool=' + tool); await pg.wait_for_selector(f'#tab-{tool} .qtext')
             hh = await qhtml(pg, tool)
             if tool == 'review' and ('<b>?</b>' in hh): continue
             check(await pg.locator(f'#tab-{tool} .qtext .frac').count() >= 1, f'{tool}: fractions are drawn stacked')
-            msg = await type_check(pg, tool, 'abc'); check('Type a fraction' in msg, f'{tool}: typing nonsense gets a hint, not a try ({msg!r})')
+            msg = await type_check(pg, tool, 'abc'); check('Fill in the boxes' in msg, f'{tool}: typing nonsense gets a hint, not a try ({msg!r})')
         # the unlike tool in detail
         await pg.goto(MOD + '?tool=unlike'); await pg.wait_for_selector('#tab-unlike .qtext')
         for round_ in range(10):
@@ -108,7 +111,7 @@ async def main():
                 msg = await type_check(pg, 'improper', write(v, mixed=False)); check('mixed number' in msg, f'asked for a mixed number, an improper fraction gets a nudge ({msg!r})'); seen_m = True
             elif 'improper fraction' in txt and not seen_i:
                 msg = await type_check(pg, 'improper', write(v, mixed=True)); check('improper fraction' in msg, f'asked for an improper fraction, a mixed number gets a nudge ({msg!r})'); seen_i = True
-            await pg.fill('#tab-improper input[aria-label="Your answer"]', write(v, mixed='as a mixed number' in txt)); await pg.click('#tab-improper form button')
+            await fill_answer(pg, 'improper', write(v, mixed='as a mixed number' in txt)); await pg.click('#tab-improper form button')
             if await pg.locator('#tab-improper [data-a="next"]').is_visible(): await pg.click('#tab-improper [data-a="next"]')
             if seen_m and seen_i: break
         check(seen_m and seen_i, 'both improper and mixed questions came up')
