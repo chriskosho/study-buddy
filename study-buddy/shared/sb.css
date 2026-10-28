@@ -397,3 +397,4 @@ html.sb-dark .diff.easy{color:#6fd39b} html.sb-dark .diff.medium{color:#f3c76a} 
 .oitem.right .omark{color:var(--good-ink)}
 .oitem.wrong .omark{color:var(--bad-ink)}
 h1[tabindex="-1"]:focus{outline:none}
+html.sb-large .cardstage{height:calc(var(--vh, 100vh) - var(--chrome) - 450px);min-height:220px}   /* larger text: everything around the card is taller, so the card gives way */

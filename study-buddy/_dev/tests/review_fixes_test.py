@@ -162,7 +162,7 @@ async def main():
         hid = await a.evaluate("[document.querySelector('#tab-cards .front').getAttribute('aria-hidden'), document.querySelector('#tab-cards .back').getAttribute('aria-hidden'), document.querySelector('#tab-cards .fcard').hasAttribute('aria-label')]")
         await a.click('#tab-cards .fcard'); await a.wait_for_timeout(100)
         hid2 = await a.evaluate("[document.querySelector('#tab-cards .front').getAttribute('aria-hidden'), document.querySelector('#tab-cards .back').getAttribute('aria-hidden')]")
-        check(hid == [None, 'true', False] and hid2 == ['true', 'false'], f'flashcard text is read, and only the face showing {hid} {hid2}')
+        check(hid in ([None, 'true', False], ['false', 'true', False]) and hid2 == ['true', 'false'], f'flashcard text is read, and only the face showing {hid} {hid2}')
         for tool in ('cards', 'sort'):
             await a.goto(BASE + f'modules/roots/greek-latin-roots/index.html?tool={tool}'); await a.wait_for_selector(f'#tab-{tool} h2')
             await a.evaluate("SB.setSetting('size','large'); SB.applyDisplay()"); await a.wait_for_timeout(250)
@@ -188,7 +188,7 @@ async def main():
         inert = await a.evaluate("[document.getElementById('app').closest('body > *').inert, !!document.querySelector('.sb-ov').inert]")
         await a.keyboard.press('Escape'); await a.wait_for_timeout(100)
         check(inert == [True, False] and not await a.evaluate("document.getElementById('app').closest('body > *').inert"), f'the page behind a dialog cannot be reached, and comes back after {inert}')
-        await a.goto(BASE + 'index.html#/home'); await a.wait_for_selector('.grid'); await a.click('a[href="#/settings"] >> nth=0'); await a.wait_for_timeout(200)
+        await a.goto(BASE + 'index.html#/home'); await a.wait_for_selector('.grid'); await a.click('.sbhead a[href$="#/settings"]'); await a.wait_for_timeout(200)
         check(await a.evaluate("document.activeElement.tagName") == 'H1', 'after a page change in the hub, focus starts at the page title')
         await ax.close()
 
