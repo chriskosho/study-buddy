@@ -24,7 +24,13 @@ def run(name):
     p = subprocess.run([sys.executable, os.path.join(HERE, name + '.py')], cwd=ROOT, capture_output=True, text=True, timeout=1200)
     out = p.stdout + p.stderr
     fails = [l for l in out.splitlines() if l.startswith('FAIL') or 'Traceback' in l or 'Error:' in l]
+    if not fails and p.returncode: fails = out.strip().splitlines()[-8:]      # a crash with no FAIL line: show how it ended
     return name, p.returncode == 0 and 'ALL PASSED' in out or (p.returncode == 0 and not fails and name == 'atlas_test3'), fails, time.time() - t
+GH = os.environ.get('GITHUB_ACTIONS') == 'true'
+def annotate(kind, title, lines):    # on GitHub, failures also show as annotations on the check (readable without the full log)
+    if not GH: return
+    msg = '%0A'.join(l.replace('%', '%25').replace('\r', '').replace('\n', ' ')[:300] for l in lines[:12]) or 'no output'
+    print(f'::{kind} title={title}::{msg}', flush=True)
 
 print('build:', subprocess.run(['node', 'study-buddy/_dev/build.mjs'], cwd=ROOT, capture_output=True, text=True).stdout.strip().splitlines()[-1:] or 'done')
 start = time.time()
@@ -39,9 +45,11 @@ for name, ok, fails, secs in results:
         if not ok2: fails = fails2
     report.append((name, status, fails, secs))
     print(f'{status:5} {name} ({secs:.0f}s)' + ('' if status == 'PASS' else '\n      ' + '\n      '.join(fails[:6])))
+    if status != 'PASS': annotate('error' if status == 'FAIL' else 'warning', f'{status} {name}', fails)
 m = subprocess.run(['node', 'study-buddy/_dev/tests/math_gen_check.mjs'], cwd=ROOT, capture_output=True, text=True)
 mok = m.returncode == 0 and 'ALL PASSED' in m.stdout
 print(('PASS ' if mok else 'FAIL ') + 'math_gen_check' + ('' if mok else '\n' + (m.stdout + m.stderr)[-1500:]))
+if not mok: annotate('error', 'FAIL math_gen_check', (m.stdout + m.stderr).strip().splitlines()[-10:])
 bad = [r for r in report if r[1] == 'FAIL'] + ([('math_gen_check',)] if not mok else [])
 flaky = [r[0] for r in report if r[1] == 'FLAKY']
 print(f'\n{len(report) + 1 - len(bad)} of {len(report) + 1} passed in {(time.time() - start) / 60:.1f} min' + (f'; flaky: {", ".join(flaky)}' if flaky else ''))
