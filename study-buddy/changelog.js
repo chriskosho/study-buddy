@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-27', title: 'New module: Volume of Solid Figures', items: [
+    'New Math module for Dimensions Math 5, chapter 8: counting unit cubes, stacks of cubes seen from above, the volume formula and missing edges, word problems, comparing volumes, compound figures, and volume and capacity (milliliters and liters).',
+    'A study guide with worked examples and a helper that finds the volume of any box and how much it holds.',
+    'Eight practice tools from Easy to Insane. Every problem is new each time and comes with a drawn figure and a step-by-step explanation.' ] },
   { date: '2026-10-27', title: 'New module: Measurement and Area', items: [
     'New Math module for Dimensions Math 5, chapter 7: converting customary units and units of time (with fractions), and the area of rectangles with fraction and mixed-number sides, triangles (acute, right and obtuse), trapezoids, and composite figures.',
     'A study guide with worked examples, plus a helper that finds the area of a rectangle, triangle or trapezoid step by step for the numbers you type.',

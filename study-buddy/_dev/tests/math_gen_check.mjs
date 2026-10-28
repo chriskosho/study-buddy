@@ -226,5 +226,33 @@ const meaCheck = (name, fn) => { for (let i = 0; i < N; i++) {
 const L0cmp = d => d.a.n * d.b.d >= d.b.n * d.a.d;
 meaCheck('mea-units', MEA.customaryQ); meaCheck('mea-time', MEA.timeQ); meaCheck('mea-rect', MEA.rectQ); meaCheck('mea-tri', () => MEA.triQ(Math.random() < 0.5));
 meaCheck('mea-trap', () => MEA.trapQ(Math.random() < 0.5)); meaCheck('mea-composite', MEA.compositeQ); meaCheck('mea-review', MEA.reviewQ);
-console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, the eight fraction problem kinds, the nine multiplication kinds, the six division kinds, and the seven measurement kinds)`);
+
+/* ---------- Volume of Solid Figures (volume/gen.js): the answer is recomputed from the figure's own measurements ---------- */
+const VG = require('../../modules/math/volume/gen.js');
+const volOf = d => { const b = x => x.l * x.w * x.h; switch (d.kind) {
+  case 'box': return [b(d), 1]; case 'stacks': return [d.cells.flat().reduce((x, y) => x + y, 0), 1]; case 'missing': return [d.v / (d.known[0] * d.known[1]) === d.missing ? d.missing : -1, 1];
+  case 'boxes': return [b(d) * d.c, 1]; case 'cubes': return [d.s ** 3 * d.n, 1]; case 'compare': return [Math.abs(b(d.A) - b(d.B)), 1]; case 'join': return [b(d.A) + b(d.B), 1]; case 'cut': return [b(d.A) - b(d.B), 1];
+  case 'capml': return [b(d), 1]; case 'capl': return fr(b(d), 1000); case 'capmissing': return d.L * 1000 === d.l * d.w * d.h ? [d.h, 1] : [-1, 1]; case 'ml2l': return fr(d.mL, 1000); } return [-1, 1]; };
+const volCheck = (name, fn) => { for (let i = 0; i < N; i++) {
+  const q = fn(); if (!q || !q.dims) { bad(name, q || { q: '(none)' }, 'no problem or no dims'); continue; }
+  const plain = q.q.replace(/<svg.*?<\/svg>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  if (/undefined|NaN|Infinity/.test(q.why + plain + q.q)) bad(name, q, 'odd text');
+  if (!q.hint || !q.why) bad(name, q, 'missing hint or explanation');
+  const a = parseAns(q.a); if (!a) { bad(name, q, 'unreadable answer ' + q.a); continue; }
+  if (a.mixed ? (a.fn >= a.fd || gcdn(a.fn, a.fd) !== 1) : (!a.whole && gcdn(a.n, a.d) !== 1)) bad(name, q, 'not in simplest form');
+  const want = volOf(q.dims); if (key(a.v) !== key(want)) bad(name, q, `wrong answer, expected ${key(want)}`);
+  if (key(chkProd(q.chk)) !== key(want)) bad(name, q, 'chk differs: ' + q.chk);
+  if (!q.why.includes(q.a)) bad(name, q, 'explanation does not state the answer ' + q.a);
+  const d = q.dims, labels = (q.q.match(/<text[^>]*>(.*?)<\/text>/g) || []).map(t => t.replace(/<[^>]+>/g, '')), figNums = labels.map(t => parseInt(t)).filter(n => !isNaN(n));
+  const boxes = { box: [d], join: [d.A, d.B], cut: [d.A, d.B], compare: [d.A, d.B] }[d.kind] || [];
+  boxes.forEach(bx => { [bx.l, bx.w, bx.h].forEach(n => { const k = figNums.indexOf(n); if (k < 0 && d.kind !== 'box') bad(name, q, 'figure does not show ' + n); else if (k >= 0) figNums.splice(k, 1); }); });
+  const svgs = [...q.q.matchAll(/<svg class="vfig(?: big)?" data-l="(\d+)" data-w="(\d+)" data-h="(\d+)"/g)].map(m => ({ l: +m[1], w: +m[2], h: +m[3] }));
+  if (d.kind === 'box' && /data-l/.test(q.q)) { const s0 = svgs[0]; if (!s0 || s0.l !== d.l || s0.w !== d.w || s0.h !== d.h) bad(name, q, 'figure data differs from dims'); }
+  if (['join', 'cut', 'compare'].includes(d.kind) && (svgs.length !== 2 || svgs[0].l !== d.A.l || svgs[1].l !== d.B.l || svgs[0].h !== d.A.h || svgs[1].w !== d.B.w)) bad(name, q, 'two-figure data differs');
+  if (d.kind === 'cut' && !(d.B.l < d.A.l && d.B.w < d.A.w && d.B.h < d.A.h)) bad(name, q, 'cut-out does not fit');
+  if (d.kind === 'stacks') { const m = q.q.match(/data-cells="([^"]*)"/); if (!m || m[1] !== d.cells.map(r => r.join(',')).join(';')) bad(name, q, 'stack figure differs'); }
+}};
+volCheck('vol-cubes', VG.cubesQ); volCheck('vol-stacks', VG.stacksQ); volCheck('vol-formula', VG.formulaQ); volCheck('vol-words', VG.wordsQ);
+volCheck('vol-compare', VG.compareQ); volCheck('vol-compound', VG.compoundQ); volCheck('vol-capacity', VG.capacityQ); volCheck('vol-review', VG.reviewQ);
+console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, the eight fraction problem kinds, the nine multiplication kinds, the six division kinds, the seven measurement kinds, and the eight volume kinds)`);
 process.exit(fails ? 1 : 0);
