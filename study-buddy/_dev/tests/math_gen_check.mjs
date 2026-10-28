@@ -232,7 +232,7 @@ const VG = require('../../modules/math/volume/gen.js');
 const volOf = d => { const b = x => x.l * x.w * x.h; switch (d.kind) {
   case 'box': return [b(d), 1]; case 'stacks': return [d.cells.flat().reduce((x, y) => x + y, 0), 1]; case 'missing': return [d.v / (d.known[0] * d.known[1]) === d.missing ? d.missing : -1, 1];
   case 'boxes': return [b(d) * d.c, 1]; case 'cubes': return [d.s ** 3 * d.n, 1]; case 'compare': return [Math.abs(b(d.A) - b(d.B)), 1]; case 'join': return [b(d.A) + b(d.B), 1]; case 'cut': return [b(d.A) - b(d.B), 1];
-  case 'capml': return [b(d), 1]; case 'capl': return fr(b(d), 1000); case 'capmissing': return d.L * 1000 === d.l * d.w * d.h ? [d.h, 1] : [-1, 1]; case 'ml2l': return fr(d.mL, 1000); } return [-1, 1]; };
+  case 'capml': return [b(d), 1]; case 'capl': return fr(b(d), 1000); case 'capmissing': return d.L * 1000 === d.l * d.w * d.h ? [d.h, 1] : [-1, 1]; case 'ml2l': return fr(d.mL, 1000); case 'l2ml': return [d.mL, 1]; } return [-1, 1]; };
 const volCheck = (name, fn) => { for (let i = 0; i < N; i++) {
   const q = fn(); if (!q || !q.dims) { bad(name, q || { q: '(none)' }, 'no problem or no dims'); continue; }
   const plain = q.q.replace(/<svg.*?<\/svg>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');

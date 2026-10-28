@@ -13,6 +13,7 @@
         <div class="rules">
           <div class="rule"><h3>Counting unit cubes</h3><p>Volume is how many 1-unit cubes fill a solid. Count one layer, then multiply by the number of layers.</p>${G.prism(4, 3, 2, { grid: true })}<p>4 &times; 3 = 12 in a layer, 2 layers: <b>24 cubes</b>.</p></div>
           <div class="rule"><h3>The formula</h3><p>Volume = length &times; width &times; height. A box 6 by 4 by 5: 6 &times; 4 = 24, and 24 &times; 5 = <b>120 cubic units</b>.</p><p>A cube has three equal edges: 3 &times; 3 &times; 3 = <b>27</b>.</p></div>
+          <div class="rule"><h3>Base area</h3><p>Volume = area of the base &times; height. The base of a 6 by 4 by 5 box is 6 &times; 4 = 24 square units, and 24 &times; 5 = <b>120</b>. In a drawing: length is the front edge, width is the side edge, height is the upright edge.</p></div>
           <div class="rule"><h3>A missing edge</h3><p>Volume 120, length 6, width 4: 6 &times; 4 = 24, and 24 &times; ? = 120, so ? = 120 &divide; 24 = <b>5</b>.</p></div>
           <div class="rule"><h3>Compound figures</h3><p>Split the solid into boxes and add their volumes. If a piece is cut out, subtract it from the whole box.</p></div>
           <div class="rule"><h3>Volume and capacity</h3><p>1 cubic centimeter holds <b>1 milliliter</b>. 1 liter = 1,000 milliliters = 1,000 cubic centimeters.</p><p>A box 10 by 10 by 10 cm is 1,000 cubic centimeters, so it holds <b>1 liter</b>.</p></div>
@@ -22,7 +23,8 @@
         const v = [...P.querySelectorAll('.fgform .textin')].map(i => i.value.trim()), out = $('.fgout', P);
         if (v.some(x => !/^\d+$/.test(x) || +x < 1 || +x > 200)) { out.textContent = 'Use whole numbers from 1 to 200.'; return; }
         const [l, w, h] = v.map(Number), base = l * w, vol = base * h, c = L.F(vol, 1000);
-        out.innerHTML = `<p>Volume = <b>${vol}</b> cubic units</p><p>${esc(`Volume = length × width × height = ${l} × ${w} × ${h}. ${l} × ${w} = ${base}, and ${base} × ${h} = ${vol}.`)}</p><p>${esc(`If the units are centimeters, the box holds ${vol} milliliters (${vol >= 1000 ? 'that is ' + L.txt(c) + ' liters' : 'less than 1 liter'}).`)}</p>`;
+        const fmt = n => n.toLocaleString('en-US'), unit = (n, a, b) => n === 1 ? a : b;
+        out.innerHTML = `<p>Volume = <b>${fmt(vol)}</b> cubic ${unit(vol, 'unit', 'units')}</p><p>${esc(`Volume = length × width × height = ${l} × ${w} × ${h}. ${l} × ${w} = ${fmt(base)}, and ${fmt(base)} × ${h} = ${fmt(vol)}.`)}</p><p>${esc(`If the units are centimeters, the box holds ${fmt(vol)} ${unit(vol, 'milliliter', 'milliliters')} (${vol >= 1000 ? 'that is ' + L.txt(c) + (vol === 1000 ? ' liter' : ' liters') : 'less than 1 liter'}).`)}</p>`;
       };
       $('.fgform', P).onsubmit = e => { e.preventDefault(); show(); };
       show();

@@ -44,7 +44,7 @@ async def main():
 
         # ---- guide and helper ----
         await pg.goto(MOD + '?tool=guide'); await pg.wait_for_selector('#tab-guide .fgout')
-        check(await pg.locator('#tab-guide .rule').count() == 6, 'six worked-example cards')
+        check(await pg.locator('#tab-guide .rule').count() == 7, 'seven worked-example cards')
         async def helper(a, b, c):
             ins = pg.locator('#tab-guide .fgform .textin'); await ins.nth(0).fill(a); await ins.nth(1).fill(b); await ins.nth(2).fill(c); await pg.click('#tab-guide .fgform button'); return (await pg.inner_text('#tab-guide .fgout')).replace('\n', ' ')
         t = await helper('5', '4', '3'); check('Volume = 60' in t and '60 milliliters' in t, f'helper: 5 x 4 x 3 {t[:140]!r}')
@@ -66,9 +66,10 @@ async def main():
             if 'Box A' in ' '.join(labels) or 'Part A' in ' '.join(labels) or 'Whole box' in ' '.join(labels):
                 (l1, w1, h1), (l2, w2, h2) = svgs; va, vb = l1 * w1 * h1, l2 * w2 * h2
                 return Fraction(abs(va - vb) if 'Box A' in ' '.join(labels) else va + vb if 'Part A' in ' '.join(labels) else va - vb)
-            if 'How many milliliters does the full tank' in text: l, w, h = svgs[0]; return Fraction(l * w * h)
-            if 'How many liters does the full tank' in text: l, w, h = svgs[0]; return Fraction(l * w * h, 1000)
+            if 'How many milliliters does the full container' in text: l, w, h = svgs[0]; return Fraction(l * w * h)
+            if 'How many liters does the full container' in text: l, w, h = svgs[0]; return Fraction(l * w * h, 1000)
             if 'How tall is the tank' in text: L, l, w = nums[0], nums[1], nums[2]; return Fraction(L * 1000, l * w)
+            if 'water jug' in text: return Fraction(nums[0] * 1000 + (500 if '1/2' in text else 0))
             if 'milliliters of juice' in text: return Fraction(nums[0], 1000)
             if 'What is the volume of the cube' in text or 'volume of the box in' in text:
                 vals = [int(x.split()[0]) for x in labels if x.split()[0].isdigit()]
@@ -78,7 +79,7 @@ async def main():
             if 'packs 1-centimeter cubes' in text: return Fraction(nums[1] * nums[2] * nums[3])
             if 'fish tank' in text: return Fraction(nums[0] * nums[1] * nums[3])
             if 'stacks' in text and 'Each cube has edges' in text: return Fraction(nums[0] * nums[1] ** 3)
-            if 'sandbox' in text: return Fraction(nums[2], nums[0] * nums[1])
+            if 'swimming pool' in text: return Fraction(nums[2], nums[0] * nums[1])
             if 'identical boxes' in text: return Fraction(nums[0] * nums[1] * nums[2] * nums[3])
             raise Exception('unknown question: ' + text)
         for tool in ['cubes', 'stacks', 'formula', 'capacity', 'words', 'compare', 'compound', 'review']:
