@@ -19,7 +19,9 @@
     'California Poppy': ['Poppy', 'Golden Poppy'], 'Rocky Mountain Columbine': ['Columbine', 'Blue Columbine'], 'Mountain Laurel': ['Laurel'], 'Orange Blossom': ['Orange Blossoms'],
     'White Pine Cone and Tassel': ['Pine Cone', 'White Pine Cone', 'Pine Cone and Tassel'], 'Black-eyed Susan': ['Black eyed Susan'], "Pink and White Lady's Slipper": ["Lady's Slipper", 'Ladys Slipper', "Showy Lady's Slipper"],
     'White Hawthorn Blossom': ['Hawthorn', 'White Hawthorn', 'Hawthorn Blossom'], 'Purple Lilac': ['Lilac'], 'Common Meadow Violet': ['Meadow Violet'], 'Scarlet Carnation': ['Carnation', 'Red Carnation'],
-    'Pasque Flower': ['Pasque', 'Pasqueflower'], 'Red Clover': ['Clover'], 'Indian Paintbrush': ['Paintbrush'], 'Wild Rose': ['Wild Roses']
+    'Pasque Flower': ['Pasque', 'Pasqueflower'], 'Red Clover': ['Clover'], 'Indian Paintbrush': ['Paintbrush'], 'Wild Rose': ['Rose'],
+    'Coast Rhododendron': ['Rhododendron'], 'Oklahoma Rose': ['Rose'], 'Wild Prairie Rose': ['Prairie Rose', 'Rose'], 'Cherokee Rose': ['Rose'],   // a rose is a rose: the short name is fine here
+    'Peach Blossom': ['Peach Blossoms'], 'Yellow Hibiscus': ['Hibiscus'], 'Yellow Jessamine': ['Jessamine', 'Carolina Jessamine']
   };
   const alts = (txt, kind) => {                                              // accepted spellings for a typed answer
     const out = new Set([txt]);
