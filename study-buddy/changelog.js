@@ -1,6 +1,12 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'List view tidy-up, and a handwriting fix', items: [
+    'List view rows now show only the module name, your progress, and the bookmark button, which sits inside the row. The subject, difficulty and description are gone from rows.',
+    'In List view sorted by subject, each subject section can be folded or opened, with Expand all and Collapse all buttons. Each student keeps their own choice; sections start open.',
+    'The speaker button is gone from the module cards, so it no longer crowds the bookmark.',
+    'Handwriting: finished letters are centered again and show a green outline with a small dot.',
+    'The top bar no longer runs off the screen with Larger text and OpenDyslexic turned on together.' ] },
   { date: '2026-10-28', title: 'Modules: Tiles or List, Sort by, and a filter', items: [
     'Above the modules there is now a Tiles / List choice. List shows one short row for each module (subject, name, a line about it, difficulty, progress), so many more fit on the screen. Each student keeps their own choice; it starts on Tiles. Utilities has it too.',
     'Sort by: Subject, A to Z, Recently used, or Not started first. When sorted by subject, the All and Saved tabs get a heading for each subject with a count.',

@@ -256,7 +256,7 @@
       const host = $('.hw-pad', P), msg = $('.hw-msg', P), next = $('[data-a="next"]', P), check = $('[data-a="check"]', P);
       const list = () => set === 'upper' ? UPPER : LOWER;
       const passedCount = () => Object.keys(st.passed || {}).length;
-      const strip = () => { $('.hw-strip', P).innerHTML = list().map((l, k) => `<button data-i="${k}" class="${(st.passed || {})[l] ? 'done' : ''}" aria-pressed="${k === i}">${l}</button>`).join(''); $$('.hw-strip button', P).forEach(b => b.onclick = () => { i = +b.dataset.i; show(); }); };
+      const strip = () => { $('.hw-strip', P).innerHTML = list().map((l, k) => `<button data-i="${k}" class="${(st.passed || {})[l] ? 'passed' : ''}" aria-pressed="${k === i}"${(st.passed || {})[l] ? ` aria-label="${l}, finished"` : ''}>${l}</button>`).join(''); $$('.hw-strip button', P).forEach(b => b.onclick = () => { i = +b.dataset.i; show(); }); };
       let passedNow = false;
       const pad = setupTool(ctx, host, { onStyle: () => show(), maxFont: 300, minFont: 120 });
       function show() {

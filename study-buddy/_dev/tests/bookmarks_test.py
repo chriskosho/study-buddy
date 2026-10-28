@@ -120,7 +120,7 @@ async def main():
                 px = await ctx.new_page(); await px.set_viewport_size({'width': w, 'height': h}); await px.goto(BASE + '#/home'); await px.wait_for_selector('.modcard')
                 if extra: await px.evaluate(extra); await px.wait_for_timeout(150)
                 sw = await px.evaluate("document.documentElement.scrollWidth - innerWidth")
-                over = await px.evaluate("[...document.querySelectorAll('.modcard')].filter(c => { const a = c.querySelector('.spk').getBoundingClientRect(), k = c.querySelector('.bm').getBoundingClientRect(); return !(a.bottom <= k.top + 1) || k.right > c.getBoundingClientRect().right + 1; }).length")
+                over = await px.evaluate("[...document.querySelectorAll('.modcard')].filter(c => { const k = c.querySelector('.bm').getBoundingClientRect(), t = c.querySelector('h3').getBoundingClientRect(); return !(t.top >= k.top - 40) || k.right > c.getBoundingClientRect().right + 1; }).length")
                 check(sw <= 0 and over == 0, f'cards with the Save button fit at {w}px{" with larger text and dyslexic" if extra else ""} (sideways {sw}, overlaps {over})')
                 if w == 360 and not extra: await shot(px, 'bm-phone')
                 await px.close()

@@ -29,7 +29,7 @@ async def main():
         await pg.goto(BASE + 'index.html#/home'); await pg.wait_for_selector('.grid')
         mods, spk = await pg.locator('a.mod').count(), await pg.locator('.modcard > .spk').count()
         can = await pg.evaluate("SB.CAN_SPEAK")
-        check(not can or spk == mods, f'every module card has a speaker for its name ({spk} of {mods})')
+        check(spk == 0, f'module cards have no speaker, so nothing crowds the bookmark ({spk} found)')
         w0 = await pg.evaluate("document.querySelector('.pill .goalbar i').style.width")
         await pg.evaluate("for (let i = 0; i < 5; i++) SB.credit()"); await pg.reload(); await pg.wait_for_selector('.grid')
         w1 = await pg.evaluate("document.querySelector('.pill .goalbar i').style.width")
