@@ -327,10 +327,10 @@ window.SB_REGISTRY = {
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'All 76 phonograms with their sounds, notes, and example words. Press the speaker to hear the words.' },
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Letters to sounds, sounds to letters, and the rules. Practice only.' },
+        { id: 'hear', name: 'Hear it, tap it', difficulty: 'easy', masterAt: 8, blurb: 'Press the speaker, listen to the sounds, then tap the phonogram you heard. No reading or typing. Mastered at 8 of 10.' },
         { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions on sounds, spellings, and rules. Mastered at 8 of 10.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort phonograms by end-of-word use, sound, or spelling. Mastered at 80%.' },
         { id: 'answer', name: 'Type the phonogram', difficulty: 'hard', blurb: 'Type the missing phonogram from its sounds. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' },
-        { id: 'hear', name: 'Hear it, tap it', difficulty: 'easy', masterAt: 8, blurb: 'Press the speaker, listen to the sounds, then tap the phonogram you heard. No reading or typing. Mastered at 8 of 10.' },
         { id: 'spell', name: 'Spell it', difficulty: 'insane', blurb: 'Hear an example word and type it. Mastered at 8 of 10.' }
       ]
     },
