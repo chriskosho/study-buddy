@@ -1,6 +1,13 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'Module fixes from the code review', items: [
+    'Handwriting: pressing Check again after a pass no longer gives extra credit. Read aloud says "capital A" or "lowercase a".',
+    'South America: in Listen and tap, a quick second tap no longer counts against the next country, and the next name never plays on another tab. Flashcards now read the card\'s question aloud when Read aloud is on, like US States. Speaker buttons are more reliable in Chrome, and Reset clears the Find it best.',
+    'Ham Radio: questions you miss on a mock exam become a "Missed on mock exams" flashcard section. Flashcards open where you left off, and an unfinished exam can be carried on after closing the page. The "Before you finish" list of unanswered questions reads properly.',
+    'Black Beauty: the Part 1 order set no longer includes a Part 2 event. Periodic Table and Planets quizzes no longer ask the same thing twice in a round.',
+    'US States Drag names on phones: the names sit in one row at the top that scrolls sideways, so the map stays in view.',
+    'Phonograms: a hint no longer gives away the answer.' ] },
   { date: '2026-10-28', title: 'Fairer answer checking', items: [
     'Typed math answers accept thousands commas (1,728), a unit word (3/4 cup), 1-3/4 or 1 and 3/4, and fraction symbols like ½. A decimal with the right amount, like 2.5 for 2 1/2, gets a nudge to write it as a fraction instead of counting as wrong.',
     'US States: typed flower answers no longer accept a bare "Blossom", "Rose" or "Susan". Short names like Lilac or Columbine still work.',

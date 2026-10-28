@@ -30,15 +30,17 @@
         back: `<div class="tag">Answer</div><div class="hans"><b>${L[q.a]}.</b> ${esc(q.c[q.a])}</div><p class="hx">${esc(q.x)}</p>${ruleLine(q)}${say(q)}`,
         say: spoken(q)
       });
-      const sections = [{ id: 'all', label: 'All sections (' + Q.length + ' cards)', noStep: true }].concat(GROUPS.map(g => ({
+      const st = ctx.state, missed = (st.missed || []).filter(id => Q.some(q => q.id === id));
+      const sections = [{ id: 'all', label: 'All sections (' + Q.length + ' cards)', noStep: true }].concat(missed.length ? [{ id: 'missed', label: 'Missed on mock exams (' + missed.length + ')', noStep: true }] : []).concat(GROUPS.map(g => ({
         id: g.id, label: gLabel(g) + ' (' + Q.filter(q => q.g === g.id).length + ')', group: g.sub + ' ' + SUB[g.sub].name
       })));
       SBT.flashcards(ctx, {
         lead: 'Read the question, think of your answer, then tap the card to flip it. Cards you miss come back again. Use the menu or the arrows to jump to another section.',
         modes: [{ id: 'order', label: 'In order' }, { id: 'shuffle', label: 'Shuffled' }],
-        sections: { list: sections, start: GROUPS[0].id },
+        sections: { list: sections, start: sections.some(x => x.id === st.cardSec) ? st.cardSec : GROUPS[0].id },
+        onSection: id => { st.cardSec = id; ctx.save(); },                         // opens at the same section next time
         build: (mode, sec) => {
-          const qs = sec === 'all' ? Q : Q.filter(q => q.g === sec);
+          const qs = sec === 'all' ? Q : sec === 'missed' ? Q.filter(q => missed.includes(q.id)) : Q.filter(q => q.g === sec);
           return (mode === 'shuffle' ? shuffle(qs) : qs).map(card);
         }
       });
@@ -77,11 +79,19 @@
           $('.hnote', P).textContent = NOTE[st.reveal];
         });
         $('[data-a="start"]', P).onclick = () => { E = { qs: pickExam(), ans: Array(TOTAL).fill(null), i: 0, mode: st.reveal, done: false, confirm: false, quit: false }; draw(); };
+        const sv = st.examNow, qs = sv && Array.isArray(sv.ids) ? sv.ids.map(id => Q.find(q => q.id === id)) : null;   // an exam left unfinished (page closed): offer to carry on
+        if (qs && qs.length === TOTAL && qs.every(Boolean) && Array.isArray(sv.ans)) {
+          const n = sv.ans.filter(a => a != null).length;
+          $('.row.center', P).insertAdjacentHTML('afterbegin', `<button class="btn good" data-a="resume">Carry on with your exam (${n} of ${TOTAL} answered)</button>`);
+          $('[data-a="start"]', P).textContent = 'Start a new exam'; $('[data-a="start"]', P).classList.add('ghost');
+          $('[data-a="resume"]', P).onclick = () => { E = { qs, ans: sv.ans.slice(0, TOTAL).map(a => (a === 0 || a === 1 || a === 2 || a === 3) ? a : null), i: Math.min(TOTAL - 1, Math.max(0, sv.i | 0)), mode: sv.mode === 'end' ? 'end' : 'now', done: false, confirm: false, quit: false }; draw(); };
+        }
       }
+      const keep = () => { st.examNow = E && !E.done ? { ids: E.qs.map(q => q.id), ans: E.ans, i: E.i, mode: E.mode } : null; ctx.save(); };
 
       /* ---- one question ---- */
       function draw() {
-        SB.stopSpeech();
+        SB.stopSpeech(); keep();
         if (E.confirm) return confirmScreen();
         const q = E.qs[E.i], g = GRP[q.g], mine = E.ans[E.i], now = E.mode === 'now', locked = now && mine != null;
         const opts = q.c.map((c, i) => {
@@ -114,7 +124,7 @@
         $$('[data-j]', P).forEach(b => b.onclick = () => { E.i = +b.dataset.j; draw(); });
         $('[data-a="next"]', P).onclick = () => { if (last) return now ? finish() : finishCheck(); E.i++; E.quit = false; draw(); };
         const bk = $('[data-a="back"]', P); if (bk) bk.onclick = () => { E.i--; draw(); };
-        $('[data-a="quit"]', P).onclick = () => { if (E.quit) return setup(); E.quit = true; draw(); };
+        $('[data-a="quit"]', P).onclick = () => { if (E.quit) { E = null; keep(); return setup(); } E.quit = true; draw(); };
         const t = $('#hqt', P); if (t) t.focus({ preventScroll: true });
         if (!locked) ctx.say(spoken(q));
       }
@@ -147,7 +157,7 @@
       function confirmScreen() {
         const open = E.ans.map((a, i) => a == null ? i : -1).filter(i => i >= 0);
         P.innerHTML = `<h2>Before you finish</h2>
-          <p class="lead">You have not answered ${open.length === 1 ? 'question' : open.length + ' questions:'} ${open.length === 1 ? (open[0] + 1) : ''}. Unanswered questions count as wrong.</p>
+          <p class="lead">You have not answered ${open.length === 1 ? 'question ' + (open[0] + 1) : open.length + ' questions: ' + open.map(j => j + 1).join(', ')}. Unanswered questions count as wrong.</p>
           <div class="hgrid">${open.map(j => `<button data-j="${j}" aria-label="Go to question ${j + 1}">${j + 1}</button>`).join('')}</div>
           <div class="row center hbtns"><button class="btn" data-a="goback">Go back to the questions</button><button class="btn warn" data-a="anyway">Finish anyway</button></div>`;
         $$('[data-j]', P).forEach(b => b.onclick = () => { E.confirm = false; E.i = +b.dataset.j; draw(); });
@@ -158,7 +168,9 @@
         E.done = true;
         if (E.mode === 'end') E.qs.forEach((q, i) => { if (E.ans[i] == null) return; if (E.ans[i] === q.a) ctx.credit(); else ctx.slip(); });
         const score = E.ans.reduce((n, a, i) => n + (a === E.qs[i].a ? 1 : 0), 0);
-        E.score = score;
+        E.score = score; keep();
+        const ms = new Set(st.missed || []); E.qs.forEach((q, i) => { if (E.ans[i] === q.a) ms.delete(q.id); else ms.add(q.id); });   // missed questions become a flashcard section
+        st.missed = [...ms].slice(-150); ctx.save();
         ctx.result(score, TOTAL);
         if (score >= PASS) ctx.sfx.win();
         results();

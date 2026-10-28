@@ -80,7 +80,9 @@ html.sb-dark{--map-edge:#e9e4d6;--map-sea-edge:#3b6074;--map-ctx:#33423f;--map-c
   .zoombar{right:8px;bottom:8px;gap:5px}.zoombar button{width:32px;height:32px;font-size:18px}
   #tab-find .mapgrid>div:not(.mapbox),#tab-listen .mapgrid>div:not(.mapbox){order:-1}
   #tab-drag .mapgrid>div:not(.mapbox){display:contents}
-  #tab-drag .tray{order:-2}#tab-drag .msg{order:-1;margin:0}#tab-drag .mapbox{order:1}#tab-drag .mapgrid .row{order:2}
+  #tab-drag .tray{order:-2;flex-wrap:nowrap;overflow-x:auto;position:sticky;top:0;z-index:3;background:var(--card);padding:6px 2px;scrollbar-width:thin}   /* one row that scrolls sideways, kept at the top, so the map stays in view */
+  #tab-drag .tray .chip{flex:0 0 auto;touch-action:pan-x}   /* swipe sideways to scroll the names, drag down onto the map to place one */
+  #tab-drag .tray-x{order:-2}#tab-drag .msg{order:-1;margin:0}#tab-drag .mapbox{order:1}#tab-drag .mapgrid .row{order:2}
   .studylist{grid-template-columns:minmax(0,1fr)}
   .mapgrid .row{flex-wrap:wrap}.mapgrid .btn{white-space:normal;max-width:100%}
   #tab-study .studylist{max-height:none;overflow:visible}

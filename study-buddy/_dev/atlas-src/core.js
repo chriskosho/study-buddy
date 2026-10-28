@@ -54,16 +54,24 @@ function stopSpeech() {
 }
 function speak(id, force) {            // force = speak even if "Say names" is off (used by speaker buttons)
   if (!CAN_SPEAK || (!force && !state.say)) return;
+  const c = COUNTRY_BY_ID[id], local = state.voice === 'local';
+  speakText(local ? c.local : c.name, local ? c.lang : 'en-US', id);
+}
+/* Chrome can drop a new utterance that follows cancel() straight away, so speech starts a moment after the cancel */
+function speakText(text, lang = 'en-US', id = null) {
+  if (!CAN_SPEAK) return;
   try {
-    const c = COUNTRY_BY_ID[id], local = state.voice === 'local';
     stopSpeech(); const tok = speakTok;
-    const u = new SpeechSynthesisUtterance(local ? c.local : c.name);
-    u.lang = local ? c.lang : 'en-US'; u.rate = 0.85; if (ON_HUB && HUB.applyVoice) HUB.applyVoice(u);
     const done = () => { if (tok === speakTok) { clearTimeout(speakTimer); $$('.spk.playing').forEach(b => b.classList.remove('playing')); } };
-    u.onend = done; u.onerror = done;
-    $$(`[data-say="${id}"]`).forEach(b => b.classList.add('playing'));   // icon lights up while the name plays
-    speakTimer = setTimeout(done, 5000);                                  // safety net if the browser never reports the end
-    speechSynthesis.speak(u);
+    if (id) $$(`[data-say="${id}"]`).forEach(b => b.classList.add('playing'));   // icon lights up while the name plays
+    speakTimer = setTimeout(done, 6000);                                  // safety net if the browser never reports the end
+    setTimeout(() => {
+      if (tok !== speakTok) return;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang; u.rate = 0.85; if (ON_HUB && HUB.applyVoice) HUB.applyVoice(u);
+      u.onend = done; u.onerror = done;
+      speechSynthesis.speak(u);
+    }, 80);
   } catch (e) {}
 }
 document.addEventListener('click', e => {
@@ -198,7 +206,9 @@ function showTab(name) {
   $$('section.panel').forEach(s => s.hidden = s.id !== 'tab-' + name);
   if (!tabInit[name]) { tabInit[name] = true; (inits[name] || (() => {}))(); }
   if (name !== 'find') stopFind(true);
+  if (name !== 'listen' && typeof lsPause === 'function') lsPause();   // a pending next name must not play on another tab
   stopSpeech();
+  if (name === 'listen' && typeof lsResume === 'function') lsResume();
   if (ON_HUB) HUB.opened(REGION.key, name);
 }
 
@@ -224,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#sayBtn').onclick = () => { state.say = !state.say; if (ON_HUB) HUB.setSetting('readAloud', state.say); save(); paint(); if (state.say) speak(pick(C)[0].id); else stopSpeech(); };
   $('#voiceBtn').onclick = () => { state.voice = state.voice === 'local' ? 'en' : 'local'; save(); paint(); speak(pick(C)[0].id, true); };
   paint();
-  const resetNow = () => { state = Object.assign(state, { mastery: {}, best: {}, daily: { d: today(), n: 0, done: false } }); streak = 0; if (ON_HUB) HUB.resetModule(KID.id, REGION.key, []); save(); renderPassport(); renderStreak(); toast('Progress reset'); };
+  const resetNow = () => { state = Object.assign(state, { mastery: {}, best: {}, daily: { d: today(), n: 0, done: false } }); streak = 0; if (ON_HUB) HUB.resetModule(KID.id, REGION.key, []); save(); renderPassport(); renderStreak(); const fb = $('#fBest'); if (fb) fb.textContent = '0'; toast('Progress reset'); };
   $('#resetAll').onclick = () => {
     if (ON_HUB) HUB.requirePin('Enter the parent PIN to erase ' + KID.name + "'s " + REGION.title + ' stamps and best scores.', resetNow, null, { confirm: { title: 'Reset ' + REGION.title + '?', text: 'This erases ' + KID.name + "'s stamps and best scores here. Other modules and settings stay.", ok: 'Reset progress' } });
     else if (confirm('Erase all saved stamps and best scores?')) resetNow();

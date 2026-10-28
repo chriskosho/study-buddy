@@ -205,20 +205,21 @@
       const list = () => set === 'upper' ? UPPER : LOWER;
       const passedCount = () => Object.keys(st.passed || {}).length;
       const strip = () => { $('.hw-strip', P).innerHTML = list().map((l, k) => `<button data-i="${k}" class="${(st.passed || {})[l] ? 'done' : ''}" aria-pressed="${k === i}">${l}</button>`).join(''); $$('.hw-strip button', P).forEach(b => b.onclick = () => { i = +b.dataset.i; show(); }); };
+      let passedNow = false;
       const pad = setupTool(ctx, host, { onStyle: () => show(), maxFont: 300, minFont: 120 });
       function show() {
-        checked = false; next.hidden = true; check.hidden = false; setMsg(msg, '');
+        checked = false; passedNow = false; next.hidden = true; check.hidden = false; setMsg(msg, '');
         $$('[data-case]', P).forEach(b => b.setAttribute('aria-pressed', b.dataset.case === set));
         pad.set(list()[i], st.style); strip();
         const sb = $(`.hw-strip [data-i="${i}"]`, P); if (sb && sb.scrollIntoView) sb.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-        ctx.say(list()[i]);
+        ctx.say((set === 'upper' ? 'capital ' : 'lowercase ') + list()[i]);
       }
       $$('[data-case]', P).forEach(b => b.onclick = () => { set = st.case = b.dataset.case; ctx.save(); i = 0; show(); });
       check.onclick = () => {
         const r = pad.grade(); if (!r) { setMsg(msg, 'Trace the letter first.', 'bad'); return; }
         const l = list()[i];
         if (r.pass) {
-          ctx.credit(); ctx.sfx.good();
+          if (!passedNow) { ctx.credit(); ctx.sfx.good(); } passedNow = true; check.hidden = true;     // one credit per letter: pressing Check again gives nothing more
           if (!(st.passed || {})[l]) { st.passed = Object.assign({}, st.passed, { [l]: true }); ctx.save(); ctx.result(passedCount(), 52); }
         } else if (!checked) { ctx.slip(); ctx.sfx.bad(); }
         checked = true;
@@ -252,7 +253,7 @@
         }
         check.onclick = () => {
           const r = pad.grade(); if (!r) { setMsg(msg, 'Trace it first.', 'bad'); return; }
-          if (r.pass) { if (R.first) R.score++; ctx.credit(); ctx.sfx.good(); } else if (R.first) { ctx.slip(); ctx.sfx.bad(); }
+          if (r.pass) { if (R.first) R.score++; ctx.credit(); ctx.sfx.good(); check.hidden = true; } else if (R.first) { ctx.slip(); ctx.sfx.bad(); }   // after a pass Check hides, so it can't be pressed for more credit
           R.first = false;
           msg.innerHTML = `${starsHTML(r.stars, 3).replace('class="stars"', 'class="stars small"')}<span>${esc(feedback(r))} ${r.pass ? '' : 'Clear it and try again, or press Next.'}</span>`; msg.className = 'msg hw-msg ' + (r.pass ? 'good' : 'bad');
           next.hidden = false;

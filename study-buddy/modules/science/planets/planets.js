@@ -82,7 +82,11 @@
     ...PLANETS.map((p, i) => ({ q: `Which planet is number ${i + 1} from the Sun?`, a: p.name, wrong: shuffle(PLANETS.filter(x => x !== p)).slice(0, 3).map(x => x.name) })),
     ...PLANETS.map(p => ({ q: `What kind of planet is ${p.name}?`, a: p.type, wrong: ['Rocky', 'Gas giant', 'Ice giant', 'Dwarf planet'].filter(t => t !== p.type).slice(0, 3) }))
   ];
-  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, build: () => [...shuffle(PQUIZ).slice(0, 7), ...shuffle(madeQuestions()).slice(0, 3)] }); } };
+  /* the made questions skip anything a chosen question already asks in other words (closest = number 1, the ice giants) */
+  const overlaps = (q, txt) => (/number 1 from/.test(q.q) && /closest/i.test(txt)) || (/number 8 from/.test(q.q) && /farthest/i.test(txt))
+    || (/What kind of planet is/.test(q.q) && ((q.a === 'Ice giant' && /ice giant/i.test(txt)) || (q.a === 'Gas giant' && /gas giant/i.test(txt)) || (q.a === 'Rocky' && /rocky/i.test(txt))));
+  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, build: () => { const chosen = shuffle(PQUIZ).slice(0, 7), txt = chosen.map(q => q.q + ' ' + q.a).join(' ');
+    return [...chosen, ...shuffle(madeQuestions()).filter(q => !overlaps(q, txt)).slice(0, 3)]; } }); } };
 
   /* ===================== Which is more? ===================== */
   const MEASURES = [

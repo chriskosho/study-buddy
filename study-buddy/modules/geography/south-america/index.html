@@ -685,16 +685,24 @@ function stopSpeech() {
 }
 function speak(id, force) {            // force = speak even if "Say names" is off (used by speaker buttons)
   if (!CAN_SPEAK || (!force && !state.say)) return;
+  const c = COUNTRY_BY_ID[id], local = state.voice === 'local';
+  speakText(local ? c.local : c.name, local ? c.lang : 'en-US', id);
+}
+/* Chrome can drop a new utterance that follows cancel() straight away, so speech starts a moment after the cancel */
+function speakText(text, lang = 'en-US', id = null) {
+  if (!CAN_SPEAK) return;
   try {
-    const c = COUNTRY_BY_ID[id], local = state.voice === 'local';
     stopSpeech(); const tok = speakTok;
-    const u = new SpeechSynthesisUtterance(local ? c.local : c.name);
-    u.lang = local ? c.lang : 'en-US'; u.rate = 0.85; if (ON_HUB && HUB.applyVoice) HUB.applyVoice(u);
     const done = () => { if (tok === speakTok) { clearTimeout(speakTimer); $$('.spk.playing').forEach(b => b.classList.remove('playing')); } };
-    u.onend = done; u.onerror = done;
-    $$(`[data-say="${id}"]`).forEach(b => b.classList.add('playing'));   // icon lights up while the name plays
-    speakTimer = setTimeout(done, 5000);                                  // safety net if the browser never reports the end
-    speechSynthesis.speak(u);
+    if (id) $$(`[data-say="${id}"]`).forEach(b => b.classList.add('playing'));   // icon lights up while the name plays
+    speakTimer = setTimeout(done, 6000);                                  // safety net if the browser never reports the end
+    setTimeout(() => {
+      if (tok !== speakTok) return;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang; u.rate = 0.85; if (ON_HUB && HUB.applyVoice) HUB.applyVoice(u);
+      u.onend = done; u.onerror = done;
+      speechSynthesis.speak(u);
+    }, 80);
   } catch (e) {}
 }
 document.addEventListener('click', e => {
@@ -829,7 +837,9 @@ function showTab(name) {
   $$('section.panel').forEach(s => s.hidden = s.id !== 'tab-' + name);
   if (!tabInit[name]) { tabInit[name] = true; (inits[name] || (() => {}))(); }
   if (name !== 'find') stopFind(true);
+  if (name !== 'listen' && typeof lsPause === 'function') lsPause();   // a pending next name must not play on another tab
   stopSpeech();
+  if (name === 'listen' && typeof lsResume === 'function') lsResume();
   if (ON_HUB) HUB.opened(REGION.key, name);
 }
 
@@ -855,7 +865,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#sayBtn').onclick = () => { state.say = !state.say; if (ON_HUB) HUB.setSetting('readAloud', state.say); save(); paint(); if (state.say) speak(pick(C)[0].id); else stopSpeech(); };
   $('#voiceBtn').onclick = () => { state.voice = state.voice === 'local' ? 'en' : 'local'; save(); paint(); speak(pick(C)[0].id, true); };
   paint();
-  const resetNow = () => { state = Object.assign(state, { mastery: {}, best: {}, daily: { d: today(), n: 0, done: false } }); streak = 0; if (ON_HUB) HUB.resetModule(KID.id, REGION.key, []); save(); renderPassport(); renderStreak(); toast('Progress reset'); };
+  const resetNow = () => { state = Object.assign(state, { mastery: {}, best: {}, daily: { d: today(), n: 0, done: false } }); streak = 0; if (ON_HUB) HUB.resetModule(KID.id, REGION.key, []); save(); renderPassport(); renderStreak(); const fb = $('#fBest'); if (fb) fb.textContent = '0'; toast('Progress reset'); };
   $('#resetAll').onclick = () => {
     if (ON_HUB) HUB.requirePin('Enter the parent PIN to erase ' + KID.name + "'s " + REGION.title + ' stamps and best scores.', resetNow, null, { confirm: { title: 'Reset ' + REGION.title + '?', text: 'This erases ' + KID.name + "'s stamps and best scores here. Other modules and settings stay.", ok: 'Reset progress' } });
     else if (confirm('Erase all saved stamps and best scores?')) resetNow();
@@ -865,9 +875,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ---------- Flashcards ---------- */
-const FC = { mode: 'shape', queue: [], cur: null, known: new Set(), missed: new Set(), total: 0, flipped: false, busy: false, hist: [] };
+const FC = { mode: 'shape', queue: [], cur: null, known: new Set(), missed: new Set(), total: 0, flipped: false, busy: false, hist: [], deck: 0 };
 const FLIP_MS = 520;
-function fcBuild() { FC.hist = []; FC.queue = shuffle(C.map(c => c.id)); FC.known = new Set(); FC.missed = new Set(); FC.total = C.length; fcNext(); }
+function fcBuild() { FC.deck++; FC.hist = []; FC.queue = shuffle(C.map(c => c.id)); FC.known = new Set(); FC.missed = new Set(); FC.total = C.length; fcNext(); }
 const fcKindFor = () => FC.mode !== 'mix' ? FC.mode : ['shape', 'capital', 'flag'][Math.floor(Math.random() * 3)];
 function fcSetFlip(on) { FC.flipped = on; $('#fcard').classList.toggle('flip', on); }
 function fcNext() {
@@ -890,19 +900,20 @@ function fcNext() {
     b = `<div class="tag">Answer</div><div class="big">${c.name}</div><div class="small">Capital: ${c.capital}${c.capitalNote ? ' (' + c.capitalNote + ')' : ''}</div>${spkBtn(id)}`;
   }
   $('#faceF').innerHTML = f; $('#faceB').innerHTML = b; fcBar();
+  if (state.say) speakText(kind === 'shape' ? 'Which country is this?' : kind === 'capital' ? 'What is the capital of ' + c.name + '?' : 'Whose flag is this?');   // like US States: Read aloud reads the card's question
 }
 function fcBar() { $('#cardUndo').disabled = !FC.hist.length; $('#cardBar').style.width = (FC.known.size / FC.total * 100) + '%'; $('#cardCount').textContent = FC.known.size + ' of ' + FC.total + ' known'; }
 function fcFlip() {
   if (!FC.cur || FC.busy) return;
   fcSetFlip(!FC.flipped);
-  stopSpeech();   // flashcard sound is only ever played by pressing the speaker button, once
+  stopSpeech();   // flipping stops any speech; the speaker button (or Read aloud on a new card) plays it
 }
 /* The card always turns back to its front first, and only then does the next card appear. */
 function fcAfterUnflip(fn) {
   if (FC.busy) return;
   if (!FC.flipped) return fn();
-  FC.busy = true; fcSetFlip(false);
-  setTimeout(() => { FC.busy = false; fn(); }, FLIP_MS);
+  FC.busy = true; fcSetFlip(false); const deck = FC.deck;
+  setTimeout(() => { FC.busy = false; if (deck === FC.deck) fn(); }, FLIP_MS);   // a new deck in the meantime (card type changed): drop the old answer
 }
 /* a short confirmation over the card, with an Undo link; Undo steps back one card at a time */
 function fcToast(text, undo) {
@@ -1077,8 +1088,9 @@ inits.find = () => {
 };
 
 /* ---------- Listen and tap (pronunciation practice) ---------- */
-const LS = { svg: null, order: [], i: 0, score: 0, tries: 0, done: false };
+const LS = { svg: null, order: [], i: 0, score: 0, tries: 0, done: false, locked: false, timer: null, pending: false };
 function lsNew() {
+  clearTimeout(LS.timer); LS.locked = false; LS.pending = false;
   LS.order = shuffle(C.map(c => c.id)); LS.i = 0; LS.score = 0; LS.tries = 0; LS.done = false;
   buildMap(LS.svg); Object.entries(LS.svg._paths).forEach(([id, p]) => p.addEventListener('click', () => lsClick(id)));
   lsShow();
@@ -1092,20 +1104,23 @@ function lsShow() {
   speak(LS.order[LS.i], true);
 }
 function lsClick(id) {
-  if (LS.done || !clickOK(LS.svg)) return;
+  if (LS.done || LS.locked || !clickOK(LS.svg)) return;   // locked during the short pause after a right answer
   const want = LS.order[LS.i], p = LS.svg._paths[id], msg = $('#lMsg');
   if (id === want) {
     if (LS.tries === 0) LS.score++; credit(id); sfx.good(); p.classList.remove('flash-good'); void p.getBBox(); p.classList.add('flash-good');
-    msg.className = 'msg good'; msg.textContent = 'Yes! ' + COUNTRY_BY_ID[id].name + '.'; LS.i++; setTimeout(lsShow, 900);
+    msg.className = 'msg good'; msg.textContent = 'Yes! ' + COUNTRY_BY_ID[id].name + '.'; LS.i++; LS.locked = true; LS.timer = setTimeout(() => { LS.locked = false; LS.timer = null; lsShow(); }, 900);
   } else {
     LS.tries++; slip(); sfx.bad(); p.classList.remove('flash-bad'); void p.getBBox(); p.classList.add('flash-bad');
     msg.className = 'msg bad'; msg.textContent = 'That is ' + COUNTRY_BY_ID[id].name + '. Listen again and try another.';
   }
 }
+/* leaving the tab during the pause: hold the next name until the child comes back */
+function lsPause() { if (LS.timer) { clearTimeout(LS.timer); LS.timer = null; LS.pending = true; } }
+function lsResume() { if (LS.pending) { LS.pending = false; LS.locked = false; lsShow(); } }
 inits.listen = () => {
   LS.svg = $('#mapListen'); makeZoom(LS.svg);
   $('#lPlay').onclick = () => { if (LS.done) { lsNew(); $('#lMsg').textContent = ''; } else speak(LS.order[LS.i], true); };
-  $('#lSkip').onclick = () => { if (LS.done) return; LS.order.push(LS.order.splice(LS.i, 1)[0]); lsShow(); };
+  $('#lSkip').onclick = () => { if (LS.done || LS.locked) return; LS.order.push(LS.order.splice(LS.i, 1)[0]); lsShow(); };
   if (!CAN_SPEAK) { $('#lPrompt').textContent = 'This browser cannot speak. Try Chrome, Edge, or Safari.'; return; }
   lsNew();
 };
