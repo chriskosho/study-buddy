@@ -140,7 +140,7 @@
         why: `The whole rectangle: ${W} × ${H} = ${W * H}. The part cut out: ${w} × ${h} = ${w * h}. Subtract: ${W * H} − ${w * h} = ${p}.`, dims: { kind: 'frame', W, H, w, h } };
     }
     const w = pick([4, 6, 8, 10, 12]), h = rnd(3, 9), t = rnd(2, 8), p = F(w * h * 2 + w * t, 2);
-    return { q: wrap(houseFig(w, h, t)) + `What is the area of the figure in square ${u[0]}? (A rectangle with a triangle on top. The triangle's base is the top of the rectangle.)` + simplest, say: `A rectangle ${w} wide and ${h} tall has a triangle of height ${t} on top. What is the area in square ${u[0]}?`, ...ans(p), chk: `${p.n}/${p.d}`,
+    return { q: wrap(houseFig(w, h, t)) + `What is the area of the figure in square ${u[0]}? <span class="hint-i">A rectangle with a triangle on top. The triangle's base is the top of the rectangle. Write it in simplest form.</span>`, say: `A rectangle ${w} wide and ${h} tall has a triangle of height ${t} on top. What is the area in square ${u[0]}?`, ...ans(p), chk: `${p.n}/${p.d}`,
       hint: 'Find the area of the rectangle and the area of the triangle, then add them.',
       why: `The rectangle: ${w} × ${h} = ${w * h}. The triangle has base ${w} and height ${t}: 1/2 × ${w} × ${t} = ${w * t / 2}. Add: ${w * h} + ${w * t / 2} = ${txt(p)}.`, dims: { kind: 'house', w, h, t } };
   }
