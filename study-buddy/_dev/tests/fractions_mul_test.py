@@ -6,7 +6,7 @@ from fractions import Fraction
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-PORT = 8784
+PORT = (lambda s: (s.bind(('127.0.0.1', 0)), s.getsockname()[1], s.close())[1])(__import__('socket').socket())   # a free port, so tests can run side by side
 BASE = f'http://127.0.0.1:{PORT}/'
 MOD = BASE + 'modules/math/fractions-multiply/index.html'
 TOOLS = ['guide', 'whole', 'fractionof', 'models', 'fraction', 'scale', 'recip', 'mixed', 'words', 'review']
@@ -29,6 +29,7 @@ def write(v, mixed=True):
     w = v.numerator // v.denominator
     return f'{w} {v.numerator - w * v.denominator}/{v.denominator}' if w and mixed else f'{v.numerator}/{v.denominator}'
 async def overflow(pg):
+    await pg.evaluate("document.fonts.ready.then(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))))")   # measure after fonts and layout settle
     return await pg.evaluate("({v: document.documentElement.scrollHeight - innerHeight, h: document.documentElement.scrollWidth - innerWidth})")
 
 async def main():

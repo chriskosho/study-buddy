@@ -1,6 +1,9 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'Checking for updates', items: [
+    'Settings, Updates now shows which version this device has, and says when a newer version is ready.',
+    'Behind the scenes: every pull request is now checked automatically, a deploy confirms the live site has the new version, and the whole test suite runs with one command.' ] },
   { date: '2026-10-28', title: 'Easier with a keyboard, a screen reader, or larger text', items: [
     'Larger text no longer makes flashcards, sorting, handwriting and the maps scroll on a desktop screen.',
     'Quizzes keep keyboard focus on the answer choices from one question to the next, and right or wrong is announced to screen readers.',

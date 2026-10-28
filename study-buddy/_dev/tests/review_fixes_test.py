@@ -5,7 +5,7 @@ import asyncio, http.server, threading, functools, os, sys, re, glob
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-PORT = 8776
+PORT = (lambda s: (s.bind(('127.0.0.1', 0)), s.getsockname()[1], s.close())[1])(__import__('socket').socket())   # a free port, so tests can run side by side
 BASE = f'http://127.0.0.1:{PORT}/'
 fails, errors = [], []
 class Q(http.server.SimpleHTTPRequestHandler):

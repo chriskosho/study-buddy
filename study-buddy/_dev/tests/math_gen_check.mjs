@@ -2,6 +2,9 @@
    question text with exact BigInt math. Run: node study-buddy/_dev/tests/math_gen_check.mjs */
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
+/* Seeded random numbers, so a failure can be repeated exactly:  SEED=12345 node study-buddy/_dev/tests/math_gen_check.mjs */
+const SEED = Number(process.env.SEED) || (Date.now() % 1e9);
+Math.random = (a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; })(SEED);
 const G = require('../../modules/math/place-value/gen.js');
 const N = 20000; let fails = 0;
 const bad = (t, q, m) => { if (fails++ < 15) console.log('FAIL', t, '|', q.q, '|', m, '| a =', q.a, q.wrong || ''); };
@@ -103,8 +106,10 @@ const fracCheck = (name, fn, n = N) => { for (let i = 0; i < n; i++) {
   if (!q.why || !q.why.includes(q.a.includes(' ') ? q.a : q.a) && !q.why.includes(q.a.replace(/ /g, ' '))) bad(name, q, 'explanation does not state the answer');
   if (name !== 'division') {                        // the numbers in the question are the numbers in the check, and the operators match
     const shown = shownNums(QH).map(key).sort().join(','), used = chkTerms(q.chk).map(t => key(t.v)).sort().join(',');
-    const ops = (q.q.replace(/<[^>]+>/g, ' ').match(/[+−]/g) || []).join(''), cops = (q.chk.match(/[+-]/g) || []).filter((c, j) => j > 0 || q.chk[0] === '-').join('').replace(/-/g, '−');
-    if (!/^(Use the models|)/.test(q.q) && shown !== used && !/\?/.test(q.q.replace(/<[^>]+>/g, ''))) bad(name, q, `numbers shown (${shown}) differ from numbers solved (${used})`);
+    const ops = (q.q.replace(/<[^>]+>/g, ' ').match(/[+−]/g) || []).join(''), cops = (q.chk.replace(/^-/, '').match(/[+-]/g) || []).join('').replace(/-/g, '−');   // operators between terms (a leading minus sign is not one)
+    if (!/^Use the models/.test(q.q) && shown !== used && !/\?/.test(q.q.replace(/<[^>]+>/g, ''))) bad(name, q, `numbers shown (${shown}) differ from numbers solved (${used})`);   // (this check used to be dead: /^(x|)/ always matches)
+    const plainQ = q.q.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '), missingNum = /\?\s*[−+=]|[−+]\s*\?/.test(plainQ);   // ? − 3 = 2 is solved with the other operation
+    if (name !== 'words' && name !== 'models' && !missingNum && ops && cops && ops !== cops) bad(name, q, `operators shown (${ops}) differ from the check (${cops})`);
     if (/\?/.test(q.q.replace(/<[^>]+>/g, '')) && name !== 'review' && name !== 'models' && name !== 'words' && shown !== used) bad(name, q, `numbers shown (${shown}) differ from numbers solved (${used})`);
     if (name === 'words' && shown !== used) bad(name, q, `numbers shown (${shown}) differ from numbers solved (${used})`);
   }
@@ -119,7 +124,7 @@ const fracCheck = (name, fn, n = N) => { for (let i = 0; i < n; i++) {
     const xs = shownNums(QH), op = QH.includes(' − ') ? '-' : '+', w = op === '+' ? fadd(xs[0], xs[1]) : fsub(xs[0], xs[1]);
     if (key(w) !== key(parseAns(q.a).v)) bad(name, q, 'model answer differs from the question');
     if (xs[0][1] === xs[1][1]) bad(name, q, 'same denominators'); if (op === '-' && xs[0][0] * xs[1][1] <= xs[1][0] * xs[0][1]) bad(name, q, 'subtraction goes negative');
-    if (!q.wrong || q.wrong.length !== 3 || new Set([q.a, ...q.wrong]).size !== 4) bad(name, q, 'needs 3 different wrong options');
+    if (!q.wrong || q.wrong.length !== 3 || new Set([q.a, ...q.wrong].map(x => { const p = parseAns(x); return p ? key(p.v) : x; })).size !== 4) bad(name, q, 'needs 3 wrong options with different values');
     q.wrong.forEach(w2 => { const p = parseAns(w2); if (!p || key(p.v) === key(parseAns(q.a).v)) bad(name, q, 'a wrong option is right or unreadable: ' + w2); });
     if (!q.html || !q.html.includes('fbar')) bad(name, q, 'no bars'); if (/</.test(q.q)) bad(name, q, 'plain question has markup');
   }
@@ -156,7 +161,7 @@ const mulCheck = (name, fn, o = {}) => { for (let i = 0; i < N; i++) {
       const one = +m3[1] <= +m3[2], sing = /^(mile|yard|cup|foot|pound|acre|day)$/.test(m3[3]); if (one !== sing) bad(name, q, `unit agreement: ${m3[1]}/${m3[2]} ${m3[3]}`); } }
   if (name === 'mul-models') {
     const xs = shownNums(QH); if (key(fmul(xs[0], xs[1])) !== key(a.v)) bad(name, q, 'model answer differs');
-    if (!q.wrong || q.wrong.length !== 3 || new Set([q.a, ...q.wrong]).size !== 4) bad(name, q, 'needs 3 different wrong options');
+    if (!q.wrong || q.wrong.length !== 3 || new Set([q.a, ...q.wrong].map(x => { const p = parseAns(x); return p ? key(p.v) : x; })).size !== 4) bad(name, q, 'needs 3 wrong options with different values');
     q.wrong.forEach(w2 => { const p = parseAns(w2); if (!p || key(p.v) === key(a.v)) bad(name, q, 'a wrong option is right or unreadable: ' + w2); });
     if (!q.html || !q.html.includes('farea')) bad(name, q, 'no picture');
   }
@@ -185,7 +190,7 @@ const divCheck = (name, fn, o = {}) => { for (let i = 0; i < N; i++) {
   else { const want = chkDiv(q.chk); if (key(a.v) !== key(want)) bad(name, q, `wrong answer, expected ${key(want)}`); }
   if (!q.why.includes(q.a)) bad(name, q, 'explanation does not state the answer ' + q.a);
   if (o.shown) { const shown = shownNums(QH).map(key).sort().join(','), used = q.chk.split(':').map(t => key(chkDiv(t + ':1/1'))).sort().join(','); if (shown !== used && !o.missing) bad(name, q, `shown (${shown}) differs from solved (${used})`); }
-  if (o.quiz) { if (!q.wrong || q.wrong.length !== 3 || new Set([q.a, ...q.wrong]).size !== 4) bad(name, q, 'needs 3 different wrong options'); q.wrong.forEach(w2 => { const p = parseAns(w2); if (!p || key(p.v) === key(a.v)) bad(name, q, 'a wrong option is right: ' + w2); }); if (!q.html || !/dbar/.test(q.html)) bad(name, q, 'no picture'); if (/</.test(q.q)) bad(name, q, 'plain question has markup'); }
+  if (o.quiz) { if (!q.wrong || q.wrong.length !== 3 || new Set([q.a, ...q.wrong].map(x => { const p = parseAns(x); return p ? key(p.v) : x; })).size !== 4) bad(name, q, 'needs 3 wrong options with different values'); q.wrong.forEach(w2 => { const p = parseAns(w2); if (!p || key(p.v) === key(a.v)) bad(name, q, 'a wrong option is right: ' + w2); }); if (!q.html || !/dbar/.test(q.html)) bad(name, q, 'no picture'); if (/</.test(q.q)) bad(name, q, 'plain question has markup'); }
 }};
 divCheck('div-share', DG.shareQ, { shown: true, noForm: true, quiz: true }); divCheck('div-fit', DG.modelQ, { shown: true, noForm: true, quiz: true });
 divCheck('div-fracwhole', DG.fracByWholeQ, { shown: true }); divCheck('div-wholefrac', DG.wholeByFracQ, { shown: true });
@@ -254,5 +259,18 @@ const volCheck = (name, fn) => { for (let i = 0; i < N; i++) {
 }};
 volCheck('vol-cubes', VG.cubesQ); volCheck('vol-stacks', VG.stacksQ); volCheck('vol-formula', VG.formulaQ); volCheck('vol-words', VG.wordsQ);
 volCheck('vol-compare', VG.compareQ); volCheck('vol-compound', VG.compoundQ); volCheck('vol-capacity', VG.capacityQ); volCheck('vol-review', VG.reviewQ);
+/* Every typed answer, typed back into the site's own answer checker in the form the question asks for, must be accepted. */
+{
+  const vm = require('node:vm'), fs = require('node:fs'), path = require('node:path');
+  const box = { window: {}, document: { querySelector: () => null }, SB: { esc: s => String(s) }, console };
+  box.window.SB = box.SB; vm.createContext(box);
+  vm.runInContext(fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '../../shared/sb-tools.js'), 'utf8'), box);
+  const J = box.window.SBT.judge;
+  const kinds = [['frac', [FG.divisionQ, FG.improperQ, FG.unlikeQ, FG.mixedAddQ, () => FG.mixedSubQ(Math.random() < 0.5), FG.wordsQ, FG.reviewQ]],
+    ['mul', [MG.wholeMulQ, MG.fractionOfQ, MG.mixedMulQ, MG.wordsQ, MG.reviewQ]], ['div', [DG.fracByWholeQ, DG.wholeByFracQ, DG.wordsQ, DG.reviewQ]],
+    ['mea', [MEA.customaryQ, MEA.timeQ, MEA.rectQ, MEA.compositeQ, MEA.reviewQ]], ['vol', [VG.cubesQ, VG.stacksQ, VG.formulaQ, VG.wordsQ, VG.compareQ, VG.compoundQ, VG.capacityQ, VG.reviewQ]]];
+  for (const [k, fns] of kinds) for (const fn of fns) for (let i = 0; i < 2000; i++) { const q = fn(); if (q.wrong) continue; const r = J({ a: q.a, form: q.form || 'any' }, q.a, 'fraction'); if (r !== 'ok') bad(k + '-judge', q, `the site's checker says "${r}" to its own answer`); }
+}
+if (fails) console.log(`Repeat this exact run with SEED=${SEED}.`);
 console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, the eight fraction problem kinds, the nine multiplication kinds, the six division kinds, the seven measurement kinds, and the eight volume kinds)`);
 process.exit(fails ? 1 : 0);

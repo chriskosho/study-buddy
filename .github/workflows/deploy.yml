@@ -56,3 +56,15 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # Confirms the live site now serves this build (its offline file list carries the new version).
+      - name: Check the live site has the new version
+        run: |
+          want=$(grep -o "VERSION = '[0-9a-f]*'" study-buddy/sw.js)
+          url="${{ steps.deployment.outputs.page_url }}sw.js"
+          for i in $(seq 1 20); do
+            got=$(curl -s -H 'Cache-Control: no-cache' "$url?check=$i" | grep -o "VERSION = '[0-9a-f]*'" || true)
+            if [ "$got" = "$want" ]; then echo "Live site is on $want"; exit 0; fi
+            echo "Waiting for the live site ($got, want $want)"; sleep 15
+          done
+          echo "The live site did not show the new version within 5 minutes."; exit 1

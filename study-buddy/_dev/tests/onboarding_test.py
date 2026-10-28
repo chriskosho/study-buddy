@@ -7,7 +7,7 @@ import asyncio, http.server, threading, functools, os, sys
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-PORT = 8768
+PORT = (lambda s: (s.bind(('127.0.0.1', 0)), s.getsockname()[1], s.close())[1])(__import__('socket').socket())   # a free port, so tests can run side by side
 POS = 'modules/english/parts-of-speech/index.html'
 ATLAS = 'modules/geography/south-america/index.html'
 fails, errors = [], []

@@ -4,7 +4,7 @@ import asyncio, http.server, threading, functools, os, sys, re
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-PORT = 8785
+PORT = (lambda s: (s.bind(('127.0.0.1', 0)), s.getsockname()[1], s.close())[1])(__import__('socket').socket())   # a free port, so tests can run side by side
 BASE = f'http://127.0.0.1:{PORT}/'
 HAM = BASE + 'modules/other/ham-technician/index.html'
 fails, errors = [], []
@@ -18,6 +18,7 @@ window.__spoken=[];
 Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak(u){window.__spoken.push(u.text);setTimeout(()=>u.onend&&u.onend(),30)},cancel(){},getVoices(){return[]},addEventListener(){}}});
 window.SpeechSynthesisUtterance=function(t){this.text=t};"""
 async def overflow(pg):
+    await pg.evaluate("document.fonts.ready.then(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))))")   # measure after fonts and layout settle
     return await pg.evaluate("({v: document.documentElement.scrollHeight - innerHeight, h: document.documentElement.scrollWidth - innerWidth})")
 
 async def main():

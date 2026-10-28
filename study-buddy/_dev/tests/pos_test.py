@@ -7,7 +7,7 @@ import asyncio, http.server, threading, functools, os, sys
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-PORT = 8766
+PORT = (lambda s: (s.bind(('127.0.0.1', 0)), s.getsockname()[1], s.close())[1])(__import__('socket').socket())   # a free port, so tests can run side by side
 M = 'modules/english/parts-of-speech/index.html'
 fails, errors = [], []
 
@@ -41,6 +41,7 @@ SENT_TEXT_JS = "() => [...document.querySelectorAll('section.panel:not([hidden])
 NAME = {'n': 'noun', 'v': 'verb', 'adj': 'adjective', 'adv': 'adverb', 'pron': 'pronoun'}
 
 async def overflow(pg):
+    await pg.evaluate("document.fonts.ready.then(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))))")   # measure after fonts and layout settle
     return await pg.evaluate("({v: document.documentElement.scrollHeight - innerHeight, h: document.documentElement.scrollWidth - innerWidth})")
 
 async def main():
