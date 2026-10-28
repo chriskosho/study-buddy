@@ -129,7 +129,7 @@
     document.title = 'Parent area · Study Buddy';
     if (!SB.hasPin() && !SB.root().pinOffered) {
       app.innerHTML = header('Parent area') + `<section class="panel"><p class="lead">Parent area</p></section>`;
-      SB.requirePin('', route); return;
+      SB.requirePin('', route, () => { location.hash = '#/home'; }); return;
     }
     if (SB.hasPin() && !SB.isUnlocked()) {
       app.innerHTML = header('Parent area') + `<section class="panel"><p class="lead">This area is locked with the parent PIN.</p><button class="btn" id="unlock">Unlock</button> <a class="btn ghost" href="#/">Back</a></section>`;
@@ -263,6 +263,7 @@
      "Who's studying?" only appears when two or more people use Study Buddy. */
   function route() {
     const [view, arg] = location.hash.replace(/^#\/?/, '').split('/');
+    SB.applyDisplay();                                  // each child's own dark mode, font and size, also right after switching child
     if (!SB.profiles().length) SB.ensureGuest();
     if (SB.profiles().length === 1 && !SB.activeProfile()) SB.setActive(SB.profiles()[0].id);
     if (view !== 'parent') SB.lock();

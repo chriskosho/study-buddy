@@ -43,6 +43,7 @@ Build after any change: `node _dev/build.mjs` (assembles the Atlas and rewrites 
 | `studybuddy.v1.child.<id>` | `{ settings:{sound, readAloud}, streak, bestStreak, daily:{d,n,done}, tools:{ "<module>/<tool>": {attempts, visits, best, max, lastScore, last} }, last:{module,tool,at} }` |
 | `studybuddy.v1.notes.<childId>` | Scratch pad notes the child saved to their profile: `[{ id, at, question, mod, paper, w, h, items }]`. Not made for the Guest profile. Included in backups (`checkBackup` validates it), removed with the profile, kept by "Reset progress". |
 | `studybuddy.v1.sessnotes.<childId>` (sessionStorage) | Scratch pad notes kept for this browser tab only. Never in a backup. |
+| `studybuddy.v1.epoch` | A timestamp bumped by resets, profile deletes and backup loads. Other open tabs reload when it changes, so they never write old progress back. Not exported in backups. |
 | `studybuddy.v1.m.<childId>.<key>` | A module's private state. Get the key from `SB.moduleKey('<key>')`, and list `<key>` in the module's `storage` array in the registry. |
 
 Mastery is computed when the data is read, from registry rules: `masterAt` (best ≥ n) or `masterPct` (best / max ≥ share, default 0.8). Changing a rule later re-grades old scores automatically.
@@ -199,3 +200,12 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - **My notes:** the `Notes` button in the shared header opens `#/notes` (`HUBPAGES.notes`), which lists profile and session notes with thumbnails (Open, Download, Delete). The pad's Saved notes drawer shows the same list.
 - Saved notes are cleaned every time they are read (`cleanNote`: colors, numbers and sizes are checked and clamped) because they can come from a backup file, and `SB.checkBackup` checks them too. The pad saves to the profile that was active when it opened.
 - Test: `_dev/tests/scratchpad_test.py`.
+
+## 17. Review fixes (October 2026)
+- **Old Safari:** no regex lookbehind (`(?<=`, `(?<!`) anywhere in site code; Safari before 16.4 rejects the whole file. `review_fixes_test.py` checks this.
+- **Best score:** `SB.result` keeps the best *share* of a round (6/6 beats 7/9), so tools whose sets differ in size keep their Mastered state.
+- **Saving:** a failed `localStorage` write shows one "out of room" toast per page. Scratch pad profile notes share a device-wide cap (2.4 MB).
+- **Dialogs:** `SB.confirm({ danger: true })` focuses Cancel (`data-autofocus`).
+- **Hub:** `route()` calls `SB.applyDisplay()` so a child switch shows that child's display options.
+- **Backups:** `exportAll` leaves out keys of deleted children; `checkBackup` drops such keys instead of rejecting the file.
+- **Offline worker** (`_dev/sw.template.js`): installs with `cache: 'reload'`, fetches with `cache: 'no-cache'` (a cheap 304 when unchanged), falls back to the saved copy after 4 seconds, falls back to `index.html` only for page loads, and answers audio `Range` requests with a proper 206 from the saved file. "Refresh for the latest" downloads the new file list before clearing anything.

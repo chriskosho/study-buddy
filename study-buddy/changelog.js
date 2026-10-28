@@ -1,6 +1,15 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'Fixes from the code review: saving, offline, and older iPads', items: [
+    'Older iPads (iPadOS 15 and early 16) can open quizzes, sorting, typed answers and flashcards again. One piece of code they could not read was stopping all of them.',
+    '"Refresh for the latest" with no internet no longer removes the offline copy. It says there is no internet and changes nothing.',
+    '"Are you sure?" boxes for erasing or deleting now start on Cancel, so pressing Enter by accident erases nothing.',
+    'A tool stays Mastered when a later round has a different size (for example sorting sets of 6 and 9).',
+    'If the device runs out of room, Study Buddy now says so instead of silently not saving. Scratch pad notes for all children together are capped so they can never crowd out progress.',
+    'Switching child now switches to that child\'s own dark mode, font and text size straight away.',
+    'Offline copies are always saved fresh after an update, and a slow connection falls back to the saved copy after a few seconds.',
+    'Smaller fixes: an open module reloads if another tab resets that child; backups ignore leftovers from deleted children; sounds come back after an iPhone screen lock; Escape on the first PIN offer goes Home.' ] },
   { date: '2026-10-27', title: 'Scratch pad for math questions', items: [
     'Every math question tool now has a Scratch pad button. It opens a notepad beside the question so you can work the problem out with a pen, finger, mouse, or keyboard.',
     'Pen, pencil, marker, highlighter, brush, and an eraser (rub out, or remove a whole line), nine colors, a size slider, Undo and Redo, and Erase all (it asks first). Notebook lines or graph paper can be turned on. A Type tool lets you write with the keyboard. Pen only ignores finger touches so a resting hand does not draw.',

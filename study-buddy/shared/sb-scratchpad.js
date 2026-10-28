@@ -22,6 +22,8 @@
   const PAPER = { bg: '#fffdf5', line: '#b9c9de', grid: '#d3dfec', major: '#a9bdd6', LINE: 32, GRID: 24, MAJOR: 5, head: '#1d2733' };
   const COLORS = [['Black', '#1d2733'], ['Blue', '#1f5fbf'], ['Red', '#d23b2a'], ['Green', '#1f8a4c'], ['Orange', '#e8890c'], ['Purple', '#7a4cc2'], ['Pink', '#d9468f'], ['Brown', '#8b5a2b'], ['Yellow', '#f2c200']];
   const LIMITS = { profile: { notes: 25, bytes: 1200000 }, session: { notes: 15, bytes: 1200000 } };
+  const DEVICE_NOTES = 2400000;   // all children's saved notes together, so notes can never crowd out progress (browsers allow about 5 MB)
+  const otherNotes = kid => { let n = 0; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(NS + '.notes.') && k !== NS + '.notes.' + kid) n += (localStorage.getItem(k) || '').length; } } catch (e) {} return n; };
   const IC = {
     pad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3" width="12.5" height="18" rx="2"/><path d="M7 8h5.5M7 12h3"/><path d="M18.2 8.3l2.6 2.6-6.6 6.6-3.3.7.7-3.3z"/></svg>',
     pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1-4.2L16 4.8l3.2 3.2L8.2 19z"/><path d="M13.5 7.3l3.2 3.2"/></svg>',
@@ -78,13 +80,16 @@
     add(scope, note, kid = SB.activeId()) {
       if (scope === 'profile' && !this.canProfile(kid)) return { ok: false, why: 'A name is needed to save to a profile.' };
       const lim = LIMITS[scope], list = this.list(scope, kid); list.unshift(note);
-      if (list.length > lim.notes || JSON.stringify(list).length > lim.bytes) return { ok: false, why: 'The notes are full. Delete an older note first.' };
+      const size = JSON.stringify(list).length;
+      if (list.length > lim.notes || size > lim.bytes) return { ok: false, why: 'The notes are full. Delete an older note first.' };
+      if (scope === 'profile' && size + otherNotes(kid) > DEVICE_NOTES) return { ok: false, why: 'Notes on this device are full. Delete some older notes first.' };
       return this.write(scope, list, kid) ? { ok: true } : { ok: false, why: 'There was no room to save that note. Delete an older note first.' };
     },
     replace(scope, note, kid = SB.activeId()) {
       const list = this.list(scope, kid), i = list.findIndex(n => n.id === note.id);
       if (i < 0) return this.add(scope, note, kid);
-      list[i] = note; if (JSON.stringify(list).length > LIMITS[scope].bytes) return { ok: false, why: 'The notes are full. Delete an older note first.' };
+      list[i] = note; const size = JSON.stringify(list).length;
+      if (size > LIMITS[scope].bytes || (scope === 'profile' && size + otherNotes(kid) > DEVICE_NOTES)) return { ok: false, why: 'The notes are full. Delete an older note first.' };
       return this.write(scope, list, kid) ? { ok: true } : { ok: false, why: 'There was no room to save that note. Delete an older note first.' };
     },
     remove(scope, id, kid = SB.activeId()) { this.write(scope, this.list(scope, kid).filter(n => n.id !== id), kid); }
@@ -185,7 +190,7 @@
   const toBlob = cv => new Promise(res => cv.toBlob(res, 'image/png'));
   function download(blob, name) {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 60000);
   }
   const fileName = at => { const d = new Date(at || Date.now()), z = n => String(n).padStart(2, '0'); return 'scratch-note-' + d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + '-' + z(d.getHours()) + z(d.getMinutes()) + '.png'; };
   function thumb(canvas, note) {

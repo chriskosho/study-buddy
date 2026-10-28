@@ -50,13 +50,17 @@
     });
     app.querySelector('#refreshLatest').onclick = async function () {
       const btn = this, hint = app.querySelector('#refreshHint'); btn.disabled = true; hint.textContent = 'Getting the newest files...';
+      /* Get the new file list first. Only when that works are the offline copies cleared, so pressing this with no internet
+         never leaves the device without a working copy. */
+      let sw = null;
+      try { const res = await fetch('sw.js', { cache: 'reload' }); if (res.ok) sw = await res.text(); } catch (e) {}
+      if (!sw) { btn.disabled = false; hint.textContent = 'No internet right now, so nothing was changed. Study Buddy still works offline. Try again when you are online.'; return; }
       try {
-        if ('serviceWorker' in navigator) (await navigator.serviceWorker.getRegistrations()).forEach(r => r.unregister());
-        if (window.caches) (await caches.keys()).filter(k => k.startsWith('study-buddy-')).forEach(k => caches.delete(k));
-        const sw = await (await fetch('sw.js', { cache: 'reload' })).text();                                   // the file list inside sw.js
         const files = [...sw.matchAll(/"([^"\s]+\.(?:js|css|html|json|webmanifest))"/g)].map(m => m[1]);
         await Promise.all(files.map(f => fetch(f, { cache: 'reload' }).catch(() => {})));                    // refresh the browser's own copies
-      } catch (e) { /* offline: just reload */ }
+        if ('serviceWorker' in navigator) await Promise.all((await navigator.serviceWorker.getRegistrations()).map(r => r.unregister()));
+        if (window.caches) await Promise.all((await caches.keys()).filter(k => k.startsWith('study-buddy-')).map(k => caches.delete(k)));
+      } catch (e) {}
       hint.textContent = 'Done. Reloading...'; setTimeout(() => location.reload(), 300);
     };
     const names = SB.profiles().map(p => p.name).join(', ');
