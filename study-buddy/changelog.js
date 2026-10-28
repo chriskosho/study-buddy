@@ -13,8 +13,10 @@ window.SB_CHANGELOG = [
     'Handwriting: finished letters are centered again and show a green outline with a small dot.',
     'The top bar no longer runs off the screen with Larger text and OpenDyslexic turned on together.' ] },
   { date: '2026-10-28', title: 'Black Beauty: the teacher\'s highlighted questions', items: [
-    'The Black Beauty study guide now marks the questions the teacher highlighted in yellow on the class study guide (31 questions, plus the note about fortitude at the end).',
-    'The Study guide opens on Highlighted only. Choose All questions to see everything; the highlighted ones stay yellow and say Highlighted in words too. Each student keeps their own choice.' ] },
+    'Black Beauty now knows which questions the teacher highlighted in yellow on the class study guide (31 questions, plus the note about fortitude at the end).',
+    'A new Showing button in the settings row switches the whole module between Highlighted and All questions. It starts on Highlighted, and each student keeps their own choice.',
+    'Every tool follows it: the Study guide, Flashcards, Quiz, Put in order, Type the answer and Explain it. The Quiz has a question for every highlighted question, and new Type the answer questions cover the short highlighted ones.',
+    'In the Study guide the highlighted questions are yellow, and say Highlighted in words when all questions are showing.' ] },
   { date: '2026-10-28', title: 'Modules: Tiles or List, Sort by, and a filter', items: [
     'Above the modules there is now a Tiles / List choice. List shows one short row for each module (subject, name, a line about it, difficulty, progress), so many more fit on the screen. Each student keeps their own choice; it starts on Tiles. Utilities has it too.',
     'Sort by: Subject, A to Z, Recently used, or Not started first. When sorted by subject, the All and Saved tabs get a heading for each subject with a count.',
