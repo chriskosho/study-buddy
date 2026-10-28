@@ -1,6 +1,13 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'Easier with a keyboard, a screen reader, or larger text', items: [
+    'Larger text no longer makes flashcards, sorting, handwriting and the maps scroll on a desktop screen.',
+    'Quizzes keep keyboard focus on the answer choices from one question to the next, and right or wrong is announced to screen readers.',
+    'Screen readers now read the flashcard itself (only the side that is showing), can pick sorting words, and hear "In the right place" or "Not in the right place" in Put in order, which also shows a check or a cross.',
+    'Tool tabs move with the arrow keys. In the hub, a new page starts at its title, and the page behind an "Are you sure?" box can no longer be reached by mistake.',
+    'Clearer colors: "Correct!" is easier to read, the word you drag stays readable in dark mode, and the color circles in the name box no longer show a white ring in dark mode.',
+    'Recorded phonogram sounds play even on a device that has no reading voice.' ] },
   { date: '2026-10-28', title: 'Module fixes from the code review', items: [
     'Handwriting: pressing Check again after a pass no longer gives extra credit. Read aloud says "capital A" or "lowercase a".',
     'South America: in Listen and tap, a quick second tap no longer counts against the next country, and the next name never plays on another tab. Flashcards now read the card\'s question aloud when Read aloud is on, like US States. Speaker buttons are more reliable in Chrome, and Reset clears the Find it best.',

@@ -13,8 +13,8 @@ html.sb-dark{--hw-guide:#3b4a5d;--hw-rule:#4f6a88;--hw-mid:#3a4b60;--hw-base:#f0
 .hw-strip button.done{border-color:var(--good);color:var(--good)}
 .hw-strip button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
 
-.hw-pad{position:relative;height:calc(100vh - var(--chrome) - 470px);min-height:240px;background:var(--surface);border:2px solid var(--line);border-radius:20px;overflow:hidden}
-.hw-strip+.hw-pad{height:calc(100vh - var(--chrome) - 520px)}
+.hw-pad{position:relative;height:calc(var(--vh, 100vh) - var(--chrome) - 470px);min-height:240px;background:var(--surface);border:2px solid var(--line);border-radius:20px;overflow:hidden}
+.hw-strip+.hw-pad{height:calc(var(--vh, 100vh) - var(--chrome) - 520px)}
 .hw-pad canvas{position:absolute;inset:0;display:block}
 .hw-ink{touch-action:none;cursor:crosshair;-webkit-user-select:none;user-select:none}
 

@@ -281,7 +281,7 @@
   }
   /* stop everything that is making sound: speech and tones */
   function stopAll() { stopSpeech(); stopTones(); try { window.__sbStopHook && window.__sbStopHook(); } catch (e) {} }
-  const sayButton = (text, label = 'Hear it', lang = '', audio = '') => CAN_SPEAK ? `<button type="button" class="spk" data-sb-say="${esc(text)}" data-lang="${esc(lang)}"${audio ? ` data-sb-audio="${esc(audio)}"` : ''} aria-label="${esc(label)}" title="${esc(label)}">${SPK_ICON}</button>` : '';
+  const sayButton = (text, label = 'Hear it', lang = '', audio = '') => (CAN_SPEAK || audio) ? `<button type="button" class="spk" data-sb-say="${esc(text)}" data-lang="${esc(lang)}"${audio ? ` data-sb-audio="${esc(audio)}"` : ''} aria-label="${esc(label)}" title="${esc(label)}">${SPK_ICON}</button>` : '';
   document.addEventListener('click', e => {
     const b = e.target.closest && e.target.closest('[data-sb-say]');
     if (b && b.classList.contains('playing')) { e.stopPropagation(); stopAll(); return; }   // pressing the speaker while it plays stops it
@@ -334,6 +334,8 @@
   html.sb-dyslexic{--font:'OpenDyslexic',"Trebuchet MS",system-ui,sans-serif}
   html.sb-dyslexic .sb-dlg,html.sb-dyslexic .sb-invite,html.sb-dyslexic .sb-toast{font-family:'OpenDyslexic',sans-serif}
   html.sb-large body{zoom:1.15}
+  :root{--vh:100vh}
+  html.sb-large{--vh:calc(100vh / 1.15)}
   html.sb-dark .sb-dlg{background:#1a2430;color:#e9eef3;border-color:#34465c}
   html.sb-dark .sb-dlg p{color:#a9b5c2}
   html.sb-dark .sb-dlg input,html.sb-dark .sb-seg{background:#212d3b;color:#e9eef3;border-color:#a9c4f0}
@@ -351,6 +353,8 @@
   .sb-sw{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}
   .sb-sw button{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #e4dcc8;padding:0;cursor:pointer}
   .sb-sw button[aria-pressed="true"]{box-shadow:0 0 0 3px #2b4162}
+  html.sb-dark .sb-sw button{border-color:#1a2430}
+  html.sb-dark .sb-sw button[aria-pressed="true"]{box-shadow:0 0 0 3px #a9c4f0}
   .sb-invite{position:sticky;top:8px;margin:8px auto 0;z-index:105;background:#2b4162;color:#fff;border-radius:18px;padding:12px 12px 12px 18px;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.25);width:max-content;max-width:calc(100% - 24px);font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,Arial,sans-serif;font-size:16px;font-weight:700;line-height:1.3}
   .sb-invite .sb-inv-btns{display:flex;gap:8px}
   .sb-invite button{font:inherit;font-size:15px;border-radius:11px;padding:8px 14px;cursor:pointer;border:0}
@@ -367,18 +371,20 @@
   function startLive() { liveMsgs(); try { new MutationObserver(() => liveMsgs()).observe(document.body, { childList: true, subtree: true }); } catch (e) {} }
   if (document.body) startLive(); else document.addEventListener('DOMContentLoaded', startLive);
 
+  let dlgN = 0;
   function dialog(html, wire) {
     injectCSS();
     const prevFocus = document.activeElement;
     const ov = document.createElement('div'); ov.className = 'sb-ov';
     ov.innerHTML = `<div class="sb-dlg" role="dialog" aria-modal="true">${html}</div>`;
-    { const h = ov.querySelector("h3"); if (h) { h.id = "sb-dlg-title"; ov.firstElementChild.setAttribute("aria-labelledby", "sb-dlg-title"); } }
+    { const h = ov.querySelector("h3"); if (h) { h.id = 'sb-dlg-title-' + (++dlgN); ov.firstElementChild.setAttribute("aria-labelledby", h.id); } }
+    const behind = [...document.body.children].filter(c => !c.inert && c.id !== 'sb-toast'); behind.forEach(c => { c.inert = true; });   // the page behind cannot be reached while the box is open
     document.body.appendChild(ov);
-    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey, true); try { prevFocus && prevFocus.focus(); } catch (e) {} };
+    const close = () => { behind.forEach(c => { c.inert = false; }); ov.remove(); document.removeEventListener('keydown', onKey, true); try { prevFocus && prevFocus.focus(); } catch (e) {} };
     const onKey = e => {
       if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); (ov._cancel || close)(); return; }
       if (e.key === 'Tab') {
-        const els = [...ov.querySelectorAll('button,input,[href],[tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled && x.offsetParent !== null);
+        const els = [...ov.querySelectorAll('button,input,select,textarea,summary,[href],[tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled && x.offsetParent !== null);
         if (!els.length) return;
         const first = els[0], last = els[els.length - 1];
         if (!ov.contains(document.activeElement)) { e.preventDefault(); first.focus(); }

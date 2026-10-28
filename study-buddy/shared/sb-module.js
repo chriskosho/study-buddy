@@ -87,7 +87,7 @@
       SB.stopSpeech();
       current = id;
       $$('nav.tabs button').forEach(b => {
-        const on = b.dataset.tab === id; b.setAttribute('aria-selected', on);
+        const on = b.dataset.tab === id; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1;   // one Tab stop for the tabs; arrows move between them
         if (on && innerWidth <= 760 && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
       });
       $$('section.panel').forEach(s => s.hidden = s.id !== 'tab-' + id);
@@ -97,6 +97,13 @@
       if (window.SBT && SBT.padTab) SBT.padTab(id);
       SB.opened(mod.id, id);
     }
+    $$('nav.tabs button').forEach(b => { b.id = 'tabbtn-' + b.dataset.tab; b.setAttribute('aria-controls', 'tab-' + b.dataset.tab); });
+    $$('section.panel').forEach(s => s.setAttribute('aria-labelledby', 'tabbtn-' + s.id.slice(4)));
+    $('nav.tabs').addEventListener('keydown', e => {
+      const bs = $$('nav.tabs button'), i = bs.indexOf(document.activeElement); if (i < 0) return;
+      const j = e.key === 'ArrowRight' ? (i + 1) % bs.length : e.key === 'ArrowLeft' ? (i - 1 + bs.length) % bs.length : e.key === 'Home' ? 0 : e.key === 'End' ? bs.length - 1 : -1;
+      if (j < 0) return; e.preventDefault(); bs[j].focus(); bs[j].click();
+    });
     $$('nav.tabs button').forEach(b => b.onclick = () => { const go = () => show(b.dataset.tab); if (window.SBPad && SBPad.isOpen() && b.dataset.tab !== current) SBPad.guard(go); else go(); });   // the scratch pad asks to save before a tool is left
 
     $('#sbReset').onclick = () => SB.requirePin('Enter the parent PIN to erase ' + kid.name + "'s " + mod.title + ' progress.', () => {

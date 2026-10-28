@@ -280,6 +280,6 @@
     SB.shell(shellOpts || { crumbs });
   }
   window.SB_SHELL_RELOAD = route;
-  window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
+  window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); const h = app.querySelector('h1'); if (h && !document.querySelector('.sb-ov')) { h.tabIndex = -1; h.focus({ preventScroll: true }); } });   // keyboard and screen reader users start at the new page's title
   route();
 })();
