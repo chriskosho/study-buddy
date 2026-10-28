@@ -189,6 +189,8 @@ async def main():
         o = await pg.evaluate("q => STATES.find(s => q.includes(s.name)).order", await pg.inner_text('.us-body .qtext'))
         await type_q(pg, str(o)); check('Correct' in await pg.inner_text('.err'), f'an order number is accepted ({o})')
         await pg.click('.us-topics button[data-t="flags"]'); await pg.wait_for_selector('.us-body input')
+        try: await pg.wait_for_selector('.us-body .us-qflag svg', timeout=3000)   # the flag is drawn a moment after the question
+        except Exception: pass
         check(await pg.locator('.us-body .us-qflag svg').count() == 1, 'Type: Flags shows the flag')
         check(await pg.evaluate("document.querySelector('.us-qflag svg').getAttribute('aria-label')") == 'A state flag' and await pg.evaluate("document.querySelector('.qtext').children.length") >= 1, 'a flag question does not name the state in its label, and sits inside the question')
         nm = await pg.evaluate("() => { return STATES.find(s => s.id === document.querySelector('.us-qflag').dataset.s).name; }")
