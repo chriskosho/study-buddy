@@ -122,7 +122,9 @@
         <ul><li>Pick a pen, pencil, marker, highlighter, brush, or the eraser. Choose a color and size. <b>Lines</b> and <b>Graph</b> turn on notebook or graph paper. <b>Undo</b>, <b>Redo</b>, and <b>Erase all</b> are at the top.</li>
         <li>Choose <b>Type</b> to use the keyboard. Press Escape when the line is done.</li>
         <li>On a tablet with a pen, turn on <b>Pen only</b> so a resting hand does not draw.</li>
-        <li>When you close the pad with writing on it, it asks what to do: save a picture to this device, save to <b>My notes</b> (under your name), keep it for this session only, or not save it. Notes saved to your name are in <b>Notes</b> at the top of every page.</li></ul>`)}
+        <li>When you close the pad with writing on it, it asks what to do: save to <b>My notes</b> (under your name), download a picture, or not save it. Guest, which has no name, can keep a note for this session only. Notes saved to your name are in <b>Notes</b> at the top of every page.</li>
+        <li>Close the pad and open it again on the same question and your writing is still there. A new question starts on a clean page. The <b>New note</b> button starts a fresh page, and asks first if the old one is not saved.</li>
+        <li>The pad is also in <a href="#/utilities">Utilities</a> as <b>Scratch pad</b>, with no question, for any homework.</li></ul>`)}
       ${sec('Saving, backups, and other devices', `<p>Progress is saved in this browser on this device. A parent can save a backup file and load it on another device in the <a href="#/parent">parent area</a>, which reminds you when the last backup is two weeks old. "Load one child" brings back just one child from a backup.</p>`)}
       ${sec('Display options', `<p>Dark mode, the OpenDyslexic font, and larger text are in <a href="#/settings">Settings</a>. Each child keeps their own.</p>`)}
     </section>`;
@@ -138,7 +140,7 @@
       ${sec('Why don\'t flashcards give a score or streak?', '<p>Flashcards are for practice. Credit comes from tools that check answers, like quizzes and sorting, so a score means something.</p>')}
       ${sec('The voice sounds robotic. Can I change it?', '<p>Yes. Open <a href="#/settings">Settings</a> and pick a Voice, then press Preview. Voices come from your device and browser, so a phone and a laptop can differ. Edge and Chrome often have more natural ones.</p>')}
       ${sec('How do I stop a sound that is playing?', '<p>Press the speaker button again, or press Escape. Turning Sound or Read aloud off also stops it.</p>')}
-      ${sec('Where do scratch pad notes go?', '<p>Nowhere unless you choose. A picture you save to the device downloads like any file. "My notes" are kept in this browser under that child\'s name (not for the Guest profile), and are included in a parent backup. "This session" notes are gone when the browser tab closes. Nothing is uploaded.</p>')}
+      ${sec('Where do scratch pad notes go?', '<p>Nowhere unless you choose. A picture you save to the device downloads like any file. "My notes" are kept in this browser under that child\'s name (not for the Guest profile), and are included in a parent backup. Guest can keep a note "for this session"; it is gone when the browser tab closes. Nothing is uploaded.</p>')}
       ${sec('Can several children use it?', '<p>Yes. A parent adds children in the parent area. Each child has their own progress and settings.</p>')}
       ${sec('Does it work without internet?', '<p>After the first visit, most of it works offline. Wikipedia links in the study guides need internet.</p>')}
       ${sec('How do I move to a new device?', '<p>In the parent area, save a backup on the old device and load it on the new one. A backup contains the parent PIN, so keep the file private.</p>')}

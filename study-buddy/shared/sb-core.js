@@ -391,7 +391,7 @@
   function toast(msg) {
     let t = document.getElementById('sb-toast');
     if (!t) { t = document.createElement('div'); t.id = 'sb-toast'; t.className = 'sb-toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
-    t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+    t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), Math.max(2400, 1400 + String(msg).length * 45));   // longer messages stay long enough to read
   }
 
   /* ---------- dialogs (styles are injected so modules with their own CSS get them too) ---------- */
@@ -454,7 +454,8 @@
   .sb-invite button{font:inherit;font-size:15px;border-radius:11px;padding:8px 14px;cursor:pointer;border:0}
   .sb-invite .yes{background:#f6b73c;color:#23313f;box-shadow:0 3px 0 #b07a00}
   .sb-invite .no{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.45)}
-  .sb-toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,40px);background:#2b4162;color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;transition:.3s;z-index:110;pointer-events:none;font-family:"Trebuchet MS","Segoe UI",system-ui,Arial,sans-serif}
+  .sb-toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,40px);background:#2b4162;color:#fff;box-sizing:border-box;width:max-content;max-width:min(calc(100vw - 32px),440px);padding:12px 22px;border-radius:18px;font-weight:700;font-size:16px;line-height:1.4;text-align:center;text-wrap:balance;overflow-wrap:anywhere;box-shadow:0 6px 18px rgba(0,0,0,.28);opacity:0;transition:.3s;z-index:110;pointer-events:none;font-family:"Trebuchet MS","Segoe UI",system-ui,Arial,sans-serif}
+  html.sb-large .sb-toast{max-width:min(calc((100vw - 32px) / 1.15),440px)}
   .sb-toast.show{opacity:1;transform:translate(-50%,0)}
   @media (prefers-reduced-motion:reduce){.sb-toast{transition:none}}`;
   function injectCSS() { if (document.getElementById('sb-dlg-css')) return; const s = document.createElement('style'); s.id = 'sb-dlg-css'; s.textContent = DLG_CSS; (document.head || document.documentElement).appendChild(s); }

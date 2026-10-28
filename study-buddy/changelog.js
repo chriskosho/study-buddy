@@ -1,6 +1,12 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'Scratch pad: simpler saving, same note back, New note, and a Utilities page', items: [
+    'A child with a name now sees Save to my notes, Download a picture, Do not save, and Keep working. "Keep for this session only" is only for Guest.',
+    'Close the scratch pad and open it again on the same question and the same note is there. Saving again updates that note. A new question starts blank.',
+    'A New note button in the scratch pad toolbar starts a fresh page. If the old one is not saved, it asks first (save, download, do not save, keep working).',
+    'The Scratch pad is now in Utilities, with no question, for any homework. Saved notes go to My notes.',
+    'The "Pen found" message has more room, is centered, and stays up long enough to read.' ] },
   { date: '2026-10-28', title: 'Parent area: backups, history, and a clearer Progress page', items: [
     'The parent area reminds you to save a backup when there has not been one for two weeks, and the Backup page says when the last one was.',
     'Progress shows each child\'s last 14 days, the tools they have tried 3 or more times without mastering ("Needs help"), and the questions they miss most often. You can show everyone or one child, modules are grouped by subject and fold away, and Print gives a clean copy.',

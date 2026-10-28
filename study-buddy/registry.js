@@ -354,6 +354,7 @@ window.SB_REGISTRY = {
   ],
   /* Utilities: handy tools that are not lessons, so they have no progress or difficulty. */
   utilities: [
-    { id: 'calculator', title: 'Calculator', blurb: 'Follows the order of operations, with parentheses and a history. Shows remainders for division.', path: 'utilities/calculator/index.html' }
+    { id: 'calculator', title: 'Calculator', blurb: 'Follows the order of operations, with parentheses and a history. Shows remainders for division.', path: 'utilities/calculator/index.html' },
+    { id: 'scratchpad', title: 'Scratch pad', blurb: 'Draw, type, or work things out for any homework. Save notes to your profile or as a picture.', path: 'utilities/scratchpad/index.html' }
   ]
 };

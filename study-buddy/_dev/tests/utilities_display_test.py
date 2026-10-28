@@ -35,7 +35,7 @@ async def main():
         # ---- hub utilities tab ----
         await pg.goto(base + 'index.html#/home'); await pg.wait_for_selector('a.mod')
         await pg.click('nav.tabs a.utab'); await pg.wait_for_selector('a.mod[href*="calculator"]')
-        check('Calculator' in await pg.locator('a.mod').inner_text(), 'Utilities tab lists the calculator')
+        check('Calculator' in await pg.locator('a.mod[href*="calculator"]').inner_text() and await pg.locator('a.mod[href*="scratchpad"]').count() == 1, 'Utilities tab lists the calculator and the scratch pad')
         await pg.click('a.mod[href*="calculator"]'); await pg.wait_for_selector('.key')
 
         # ---- calculator math (pure) ----

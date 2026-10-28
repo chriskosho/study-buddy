@@ -40,6 +40,7 @@
     grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 4h16v16H4zM4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg>',
     save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/></svg>',
     notes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     hand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 13V6.5a1.5 1.5 0 0 1 3 0V11M11.5 10.5V4.5a1.5 1.5 0 0 1 3 0V11M14.5 11V6.5a1.5 1.5 0 0 1 3 0V15c0 3.8-2.4 6-5.6 6-2.6 0-4.1-1.3-5.4-3.5L4.4 14.4a1.4 1.4 0 0 1 2.3-1.5L8.5 15"/></svg>'
   };
@@ -266,6 +267,11 @@
   let P = null;
   let penSeen = false, penOnlyChoice = null;   // once a stylus touches any pad this visit, finger touches stop drawing (unless the child turns Pen only off)
   const draftKey = kid => NS + '.paddraft.' + kid;
+  /* The note on the pad is remembered while the page stays open, so closing the pad and opening it again on the same question
+     shows the same writing (and saving again updates the same note). A different question starts blank. */
+  let resume = null;
+  const resumeKey = (kid, source, question) => [kid, source || '', String(question || '').replace(/\s+/g, ' ').trim().slice(0, 400)].join('\u0001');
+  const rememberNote = () => { resume = P && (hasInk(P.items) || P.from) ? { key: resumeKey(P.kid, P.source, P.question), items: P.items, paper: P.paper, from: P.from, saved: P.saved } : null; };
   const isOpen = () => !!P;
   const hasInk = items => items.some(i => i.k === 't' || i.t !== 'erase');
   const dirty = () => !!P && hasInk(P.items) && P.items !== P.saved;
@@ -280,6 +286,7 @@
     };
     el.innerHTML = `
       <div class="sbp-head"><h2>${IC.pad}Scratch pad</h2>
+        <button type="button" class="sbp-b" data-a="new" title="Start a new note" aria-label="New note">${IC.plus}<span class="l">New note</span></button>
         <button type="button" class="sbp-b" data-a="notes" aria-expanded="false">${IC.notes}<span class="l">Saved notes</span></button>
         <button type="button" class="sbp-b pri" data-a="save">${IC.save}<span class="l">Save</span></button>
         <button type="button" class="sbp-b" data-a="close" aria-label="Close the scratch pad">${IC.close}</button></div>
@@ -302,7 +309,9 @@
     wire();
     setQuestion(o.question || '');
     if (o.note) loadNote(o.note, true, o.scope);
-    else offerDraft();
+    else if (resume && resume.key === resumeKey(P.kid, P.source, P.question)) {
+      P.items = resume.items; P.paper = resume.paper; P.from = resume.from; P.saved = resume.saved; P.past = []; P.future = []; render();   // the same question: the same note
+    } else offerDraft();
     fit(); refresh();
     if (window.matchMedia && matchMedia('(max-width:899px)').matches) { [...document.body.children].forEach(c => { if (c !== el && !c.classList.contains('sb-ov') && !c.inert) { c.inert = true; P.inerted = (P.inerted || []).concat(c); } }); }
     const first = $('.sbp-t[aria-pressed="true"]', el); if (first) first.focus();
@@ -364,7 +373,7 @@
   }
   function refresh() {
     if (!P) return; const el = P.el;
-    $('[data-a="undo"]', el).disabled = !P.past.length; $('[data-a="redo"]', el).disabled = !P.future.length; $('[data-a="clear"]', el).disabled = !P.items.length;
+    $('[data-a="undo"]', el).disabled = !P.past.length; $('[data-a="redo"]', el).disabled = !P.future.length; $('[data-a="clear"]', el).disabled = !P.items.length; $('[data-a="new"]', el).disabled = !P.items.length && !P.from;
     { const a = document.activeElement; if (a && a.disabled && el.contains(a)) { const f = $('.sbp-t[aria-pressed="true"]', el); if (f) f.focus(); } }
     $('.sbp-seg', el).hidden = P.tool !== 'eraser';
     el.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === P.tool));
@@ -416,11 +425,12 @@
     el.querySelectorAll('[data-er]').forEach(b => b.onclick = () => { P.erMode = b.dataset.er; refresh(); });
     $('input[type="range"]', el).oninput = e => { P.size = +e.target.value; if (P.editor) { P.editor.style.fontSize = textSize() + 'px'; P.editorAt[2] = textSize(); } };
     el.querySelectorAll('[data-paper]').forEach(b => b.onclick = () => { P.paper = P.paper === b.dataset.paper ? 'blank' : b.dataset.paper; refresh(); });
-    $('[data-a="penonly"]', el).onclick = () => { P.penOnly = penOnlyChoice = !P.penOnly; refresh(); SB.toast(P.penOnly ? 'Pen only: finger touches will not draw.' : 'Pen only is off.'); };
+    $('[data-a="penonly"]', el).onclick = () => { P.penOnly = penOnlyChoice = !P.penOnly; refresh(); SB.toast(P.penOnly ? 'Pen only is on. Your fingers will not draw.' : 'Pen only is off. You can draw with a finger.'); };
     $('[data-a="undo"]', el).onclick = undo; $('[data-a="redo"]', el).onclick = redo;
     $('[data-a="clear"]', el).onclick = () => { commitEditor(); if (!P.items.length) return; SB.confirm({ title: 'Erase everything?', text: 'This clears the whole page. You can press Undo to get it back.', ok: 'Erase everything', cancel: 'Keep it', danger: true }, () => { commit([]); render(); }); };
     $('[data-a="close"]', el).onclick = () => requestClose();
     $('[data-a="save"]', el).onclick = () => { commitEditor(); saveDialog(false); };
+    $('[data-a="new"]', el).onclick = newNote;
     $('[data-a="notes"]', el).onclick = toggleSaved;
 
     let last = null;
@@ -428,7 +438,7 @@
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (e.pointerType === 'pen' && !penSeen) {
         penSeen = true;
-        if (penOnlyChoice == null && !P.penOnly) { P.penOnly = true; refresh(); SB.toast('Pen found. Finger touches will not draw. Turn off Pen only to use a finger.'); }
+        if (penOnlyChoice == null && !P.penOnly) { P.penOnly = true; refresh(); SB.toast('Pen found. Your fingers will not draw now. Turn off Pen only to draw with a finger.'); }
       }
       if (P.penOnly && e.pointerType === 'touch') return;
       if (e.pointerType === 'pen' && (P.cur || P.estroke) && P.curType === 'touch') { P.cur = null; P.estroke = null; P.pid = null; render(); }   // a resting palm started first: the pen wins
@@ -547,31 +557,44 @@
     P.saved = P.items; P.from = { scope: kind, id: note.id }; dropDraft(P.kid);
     SB.toast(same ? 'Note updated.' : kind === 'profile' ? 'Saved to your notes.' : 'Kept for this session.'); return true;
   }
-  /* The save choices. From Save the pad stays open; from closing, a choice (or Don't save) closes it. */
-  function saveDialog(closing, after, onKeep) {
+  /* The save choices. From Save the pad stays open; from closing, a choice (or Do not save) closes it.
+     opts.stay: the pad stays open afterwards (used by New note, which clears the page instead). opts.verb: what is about to happen to the writing. */
+  function saveDialog(closing, after, onKeep, opts = {}) {
     if (!P) return;
     if (!hasInk(P.items)) { SB.toast('There is nothing to save yet.'); return; }
-    const canProfile = store.canProfile(P.kid);
+    const canProfile = store.canProfile(P.kid), verb = opts.verb || 'close the scratch pad';
     SB.dialog(`<h3>${closing ? 'Save this note?' : 'Save this note'}</h3>
-      <p>${closing ? 'You have writing on the scratch pad. It will be gone when you close it unless you save it.' : 'Choose where to keep it.'}</p>
+      <p>${closing ? 'You have writing on the scratch pad. It will be gone when you ' + verb + ' unless you save it.' : (canProfile ? 'Save it to your notes, or keep a picture.' : 'Choose where to keep it.')}</p>
       ${P.question ? '<label class="sbp-chk"><input type="checkbox" class="sbp-cb" id="sbpQ" checked>Put the question at the top of the picture</label>' : ''}
       <div class="sbp-choices">
-        <button type="button" class="sb-btn" data-k="device">Save a picture to this device</button>
-        ${canShare() ? '<button type="button" class="sb-btn" data-k="share">Share the picture</button>' : ''}
-        ${canProfile ? '<button type="button" class="sb-btn" data-k="profile">Save to my notes (my profile)</button>' : ''}
-        <button type="button" class="sb-btn" data-k="session">Keep for this session only</button></div>
+        ${canProfile ? '<button type="button" class="sb-btn" data-k="profile">Save to my notes</button>' : ''}
+        <button type="button" class="sb-btn${canProfile ? ' ghost' : ''}" data-k="device">Download a picture</button>
+        ${canShare() ? '<button type="button" class="sb-btn ghost" data-k="share">Share the picture</button>' : ''}
+        ${canProfile ? '' : '<button type="button" class="sb-btn ghost" data-k="session">Keep for this session only</button>'}</div>
       ${canProfile ? '' : '<p class="sbp-hint">Add your name to keep notes in your profile.</p>'}
       <div class="sb-row">${closing ? '<button type="button" class="sb-btn warn" data-k="discard">Do not save</button>' : ''}<button type="button" class="sb-btn ghost" data-k="keep">${closing ? 'Keep working' : 'Cancel'}</button></div>`, (box, close, ov) => {
       ov._cancel = () => { close(); onKeep && onKeep(); };
       box.querySelectorAll('[data-k]').forEach(b => b.onclick = async () => {
         const k = b.dataset.k, withQ = !!(box.querySelector('#sbpQ') || {}).checked;
         if (k === 'keep') { close(); onKeep && onKeep(); return; }
-        if (k === 'discard') { close(); if (P) dropDraft(P.kid); closePad(); after && after(true); return; }
+        if (k === 'discard') { close(); resume = null; if (P) { dropDraft(P.kid); P.noRemember = true; } if (!opts.stay) closePad(); after && after(true); return; }
         box.querySelectorAll('button').forEach(x => x.disabled = true);
         const ok = await saveTo(k, withQ); close();
-        if (ok && closing) { closePad(); after && after(true); } else if (!ok && closing) onKeep && onKeep();
+        if (ok && closing) { if (!opts.stay) closePad(); after && after(true); } else if (!ok && closing) onKeep && onKeep();
       });
     });
+  }
+  /* New note: a blank page on the same question. Unsaved writing asks first, with the same choices as closing. */
+  function resetNote() {
+    if (!P) return; commitEditor(); dropDraft(P.kid); resume = null;
+    P.items = []; P.past = []; P.future = []; P.saved = null; P.from = null; P.noRemember = false; render(); refresh();
+    const box = $('.sbp-saved', P.el); if (box && !box.hidden) toggleSaved();
+    const f = $('.sbp-t[aria-pressed="true"]', P.el); if (f) f.focus();
+  }
+  function newNote() {
+    if (!P) return; commitEditor();
+    if (!dirty()) { if (P.items.length || P.from) resetNote(); return; }
+    saveDialog(true, () => resetNote(), null, { stay: true, verb: 'start a new note' });
   }
   function requestClose(after) {
     if (!P) { after && after(true); return; }
@@ -580,7 +603,7 @@
     saveDialog(true, after);
   }
   function closePad() {
-    if (!P) return; commitEditor(); if (!dirty()) dropDraft(P.kid); const p = P; P = null;
+    if (!P) return; commitEditor(); if (!dirty()) dropDraft(P.kid); if (!P.noRemember) rememberNote(); const p = P; P = null;
     (p.inerted || []).forEach(c => { c.inert = false; });
     p.listeners.forEach(f => f()); p.el.remove(); document.body.classList.remove('sb-padopen');
     try { p.onClose && p.onClose(); } catch (e) {}
@@ -599,7 +622,7 @@
         <div class="sbn-bt"><button type="button" data-a="open">Open</button><button type="button" data-a="dl">Download</button><button type="button" class="del" data-a="del">Delete</button></div></li>`).join('')}</ul>` : `<p class="sbn-empty">${empty}</p>`}`;
     };
     box.innerHTML = (canProfile ? section('profile', 'My notes', 'No notes saved yet. When you close the scratch pad with writing on it, choose Save to my notes.') : '<p class="sbn-empty">Add your name to keep notes in your profile. Notes you keep for this session are below.</p>')
-      + section('session', 'This session only', 'Nothing kept for this session. These notes go away when this browser tab closes.');
+      + (canProfile && !lists.session.length ? '' : section('session', 'This session only', 'Nothing kept for this session. These notes go away when this browser tab closes.'));
     box.querySelectorAll('.sbn').forEach(li => {
       const scope = li.dataset.scope, note = lists[scope].find(n => n.id === li.dataset.id); if (!note) return;
       try { thumb($('canvas', li), note); } catch (e) {}

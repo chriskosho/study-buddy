@@ -55,10 +55,11 @@
   const PAD_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3" width="12.5" height="18" rx="2"/><path d="M7 8h5.5M7 12h3"/><path d="M18.2 8.3l2.6 2.6-6.6 6.6-3.3.7.7-3.3z"/></svg>';
   const padOn = ctx => { const m = ctx.mod || {}, c = (window.SB_REGISTRY || {}).scratchpad || {}; return m.scratchpad != null ? !!m.scratchpad : (c.subjects || []).includes(m.subject); };
   const plainText = html => {
-    const d = document.createElement('div'); d.innerHTML = String(html || ''); d.querySelectorAll('svg,.fignote,button').forEach(x => x.remove());
+    const d = document.createElement('div'); d.innerHTML = String(html || ''); const figs = [...d.querySelectorAll('svg[role="img"][aria-label]')].map(x => x.getAttribute('aria-label').replace(/[.\s]+$/, ''));   /* a picture's description goes last: it tells two questions with the same words apart */
+    d.querySelectorAll('svg,.fignote,button').forEach(x => x.remove());
     d.querySelectorAll('.mixed').forEach(m => { const f = m.querySelector('.frac'); m.replaceWith(' ' + (m.dataset.w || '') + (f ? ' ' + f.dataset.n + '/' + f.dataset.d : '') + ' '); });
     d.querySelectorAll('.frac').forEach(f => f.replaceWith(' ' + f.dataset.n + '/' + f.dataset.d + ' '));
-    return (d.textContent || '').replace(/\s+/g, ' ').trim();
+    return ((d.textContent || '') + figs.map(f => ' (' + f + ')').join('')).replace(/\s+/g, ' ').trim();
   };
   let padLoading = null;
   function loadPad() {
