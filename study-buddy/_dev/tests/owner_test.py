@@ -2,6 +2,9 @@
 "Needs help" and "Missed most often", moving Guest's progress, loading one child from a backup, and printing.
 Run:  python3 study-buddy/_dev/tests/owner_test.py"""
 import asyncio, http.server, threading, functools, os, sys, json
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fracfill import fill_any
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -29,8 +32,8 @@ async def main():
         # ---- misses and daily history are recorded while a child works ----
         await pg.goto(BASE + 'modules/math/volume/index.html?tool=cubes'); await pg.wait_for_selector('#tab-cubes .qtext')
         q = await pg.inner_text('#tab-cubes .qtext')
-        await pg.fill('#tab-cubes input[aria-label="Your answer"]', '99999'); await pg.click('#tab-cubes form button'); await pg.wait_for_timeout(40)
-        await pg.fill('#tab-cubes input[aria-label="Your answer"]', '99998'); await pg.click('#tab-cubes form button'); await pg.wait_for_timeout(60)
+        await fill_any(pg, 'cubes', '99999'); await pg.click('#tab-cubes form button'); await pg.wait_for_timeout(40)
+        await fill_any(pg, 'cubes', '99998'); await pg.click('#tab-cubes form button'); await pg.wait_for_timeout(60)
         miss = await pg.evaluate("SB.child('k1').misses || {}")
         check(list(miss.get('volume', {}).values()) == [1] and '(answer: ' in list(miss['volume'])[0], f'a missed typed answer is remembered with its answer {miss}')
         await pg.evaluate("SB.credit(); SB.credit(); SB.credit()")

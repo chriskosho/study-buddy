@@ -2,6 +2,9 @@
 sort, and layout (Playwright + Chromium).
 Run:  python3 study-buddy/_dev/tests/fractions_mul_test.py"""
 import asyncio, http.server, threading, functools, os, sys, re
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fracfill import fill_box, fill_answer, fill_any, plain
 from fractions import Fraction
 from playwright.async_api import async_playwright
 
@@ -48,15 +51,15 @@ async def main():
         check(await pg.locator('#tab-guide .rule').count() == 6, 'six worked-example cards')
         check(await pg.locator('#tab-guide .farea').count() >= 2, 'the guide shows the area model')
         async def helper(a, c):
-            ins = pg.locator('#tab-guide .fgform .textin'); await ins.nth(0).fill(a); await ins.nth(1).fill(c); await pg.click('#tab-guide .fgform button'); return (await pg.inner_text('#tab-guide .fgout')).replace('\n', ' ')
+            ins = pg.locator('#tab-guide .fgform .fbox'); await fill_box(ins.nth(0), a); await fill_box(ins.nth(1), c); await pg.click('#tab-guide .fgform button'); return await plain(pg, '#tab-guide .fgout')
         t = await helper('2/3', '3/4'); check('1/2' in t and '6/12' in t, f'helper: 2/3 x 3/4 {t[:120]!r}')
         t = await helper('2 1/3', '3/4'); check('1 3/4' in t and '7/3' in t, f'helper: mixed number {t[-120:]!r}')
         t = await helper('4', '3/8'); check('1 1/2' in t, f'helper: whole number {t[:80]!r}')
-        t = await helper('x', '1/2'); check('Use fractions' in t, 'helper explains bad input')
+        t = await helper('x', '1/2'); check('Check the boxes' in t, 'helper explains bad input')
 
         # ---- typed answers ----
         async def type_check(tool, text):
-            await pg.fill(f'#tab-{tool} input[aria-label="Your answer"]', text); await pg.click(f'#tab-{tool} form button'); await pg.wait_for_timeout(60)
+            await fill_any(pg, tool, text); await pg.click(f'#tab-{tool} form button'); await pg.wait_for_timeout(60)
             return await pg.inner_text(f'#tab-{tool} .err')
         async def product(tool):
             hh = await pg.inner_html(f'#tab-{tool} .qtext'); v = values(hh); r = Fraction(1)
@@ -64,7 +67,7 @@ async def main():
             return r, hh
         for tool in ['whole', 'fraction', 'mixed', 'words']:
             await pg.goto(MOD + '?tool=' + tool); await pg.wait_for_selector(f'#tab-{tool} .qtext')
-            msg = await type_check(tool, 'abc'); check('Type a fraction' in msg, f'{tool}: nonsense gets a hint ({msg!r})')
+            msg = await type_check(tool, 'abc'); check('Fill in the boxes' in msg, f'{tool}: nonsense gets a hint ({msg!r})')
             for k in range(10):
                 want, hh = await product(tool)
                 if k == 0 and want.denominator > 1:

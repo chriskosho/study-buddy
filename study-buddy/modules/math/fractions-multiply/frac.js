@@ -8,8 +8,8 @@
   const guide = {
     init(ctx) {
       const P = ctx.panel, f = (n, d) => L.html({ n, d }, 'improper');
-      P.innerHTML = `<h2>Study guide</h2><p class="lead">Type two numbers (fractions like 3/4, mixed numbers like 2 1/3, or whole numbers) to see every step of the product.</p>
-        <form class="fgform" autocomplete="off"><input class="textin" value="2/3" aria-label="First number" inputmode="text"><span aria-hidden="true">&times;</span><input class="textin" value="3/4" aria-label="Second number" inputmode="text"><button class="btn small" type="submit">Show the steps</button></form>
+      P.innerHTML = `<h2>Study guide</h2><p class="lead">Fill in two numbers (fractions, mixed numbers, or whole numbers) to see every step of the product. A whole number goes in the small box on the left; the top and bottom go above and below the line.</p>
+        <form class="fgform" autocomplete="off">${SBT.fracBox('First number', '2/3')}<span aria-hidden="true">&times;</span>${SBT.fracBox('Second number', '3/4')}<button class="btn small" type="submit">Show the steps</button></form>
         <div class="fgout" aria-live="polite"></div>
         <div class="rules">
           <div class="rule"><h3>A fraction times a whole number</h3><p>${f(3, 4)} &times; 5 means 5 groups of ${f(3, 4)}. Multiply the top by 5 and keep the bottom: ${f(15, 4)} = <b>${L.html(F(15, 4))}</b>.</p><p>A fraction <b>of</b> a number means multiply. ${f(2, 3)} of 12: 12 &divide; 3 = 4, and 2 &times; 4 = <b>8</b>.</p></div>
@@ -27,18 +27,19 @@
         return null;
       };
       const show = () => {
-        const [a, b] = [...P.querySelectorAll('.fgform .textin')].map(i => parse(i.value)), out = $('.fgout', P);
-        if (!a || !b || a.v.d > 24 || b.v.d > 24 || a.v.n > 500 || b.v.n > 500) { out.textContent = 'Use fractions like 3/4, mixed numbers like 2 1/3, or whole numbers. (Keep denominators to 24 or less.)'; return; }
+        const [a, b] = [...P.querySelectorAll('.fgform .fbox')].map(i => parse(i.value)), out = $('.fgout', P);
+        if (!a || !b || a.v.d > 24 || b.v.d > 24 || a.v.n > 500 || b.v.n > 500) { out.textContent = 'Check the boxes. A fraction needs both a top and a bottom number, and the bottom cannot be 0. (Keep denominators to 24 or less.)'; return; }
         const res = L.mul(a.v, b.v), area = a.shown === 'i' && b.shown === 'i' && a.v.n < a.v.d && b.v.n < b.v.d && a.v.n && b.v.n && a.v.d <= 8 && b.v.d <= 8;
-        out.innerHTML = `<p>${L.html(a.v, a.shown === 'mixed' ? 'mixed' : 'improper')} &times; ${L.html(b.v, b.shown === 'mixed' ? 'mixed' : 'improper')} = <b>${L.html(res)}</b></p><p>${esc(G.whyMul([a, b]))}</p>${area ? G.area(a.v, b.v) : ''}`;
+        out.innerHTML = `<p>${L.html(a.v, a.shown === 'mixed' ? 'mixed' : 'improper')} &times; ${L.html(b.v, b.shown === 'mixed' ? 'mixed' : 'improper')} = <b>${L.html(res)}</b></p><p>${SBT.stackText(G.whyMul([a, b]))}</p>${area ? G.area(a.v, b.v) : ''}`;
       };
+      SBT.wireFrac(P);
       $('.fgform', P).onsubmit = e => { e.preventDefault(); show(); };
       show();
     }
   };
 
   const fa = (title, lead, fn) => ({ init(ctx) { SBT.answer(ctx, { title, lead, kind: 'fraction', rounds: 10, build: () => many(fn) }); } });
-  const FORM = ' Type fractions like 3/4 and mixed numbers like 1 3/4.';
+  const FORM = ' Whole number in the small box, fraction top and bottom in the others.';
   const whole = fa('Fractions times whole numbers', 'Multiply a fraction by a whole number, in either order. Simplest form.' + FORM, G.wholeMulQ);
   const fractionof = fa('Fraction of a number', 'A fraction of a number means multiply.' + FORM, G.fractionOfQ);
   const models = { init(ctx) { SBT.quiz(ctx, { title: 'Use the area model', lead: 'The orange columns and green rows overlap. Pick the product.', rounds: 10, build: () => many(G.modelQ) }); } };

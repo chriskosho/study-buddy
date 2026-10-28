@@ -2,6 +2,9 @@
 question, the New note button, the pen toast, and the Scratch pad utility.
 Run:  python3 study-buddy/_dev/tests/scratchpad_notes_test.py"""
 import asyncio, http.server, threading, functools, os, sys
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fracfill import fill_any
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -72,7 +75,7 @@ async def main():
         # a different question starts blank
         for _ in range(6):
             for _t in range(2):   # the first wrong answer is a retry, the second shows the answer
-                await pg.fill('#tab-cubes input[aria-label="Your answer"]', '1'); await pg.click('#tab-cubes form button.btn'); await pg.wait_for_timeout(80)
+                await fill_any(pg, 'cubes', '1'); await pg.click('#tab-cubes form button.btn'); await pg.wait_for_timeout(80)
             await pg.wait_for_selector('#tab-cubes [data-a="similar"]', state='visible')
             await pg.click('#tab-cubes [data-a="similar"]'); await pg.wait_for_timeout(120)
             if (await pg.evaluate("document.querySelector('#tab-cubes .qtext svg').getAttribute('aria-label')")) != q1x: break

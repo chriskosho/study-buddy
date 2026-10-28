@@ -10,8 +10,8 @@
   const guide = {
     init(ctx) {
       const P = ctx.panel, f = (n, d) => G.html({ n, d }, 'improper')   // shown exactly as written, not reduced;
-      P.innerHTML = `<h2>Study guide</h2><p class="lead">Type two fractions or mixed numbers (like 3/4 or 2 1/3) to see every step.</p>
-        <form class="fgform" autocomplete="off"><input class="textin" value="1/2" aria-label="First fraction or mixed number" inputmode="text"><select aria-label="Add or subtract"><option value="+">+</option><option value="-">&minus;</option></select><input class="textin" value="1/3" aria-label="Second fraction or mixed number" inputmode="text"><button class="btn small" type="submit">Show the steps</button></form>
+      P.innerHTML = `<h2>Study guide</h2><p class="lead">Fill in two fractions or mixed numbers to see every step. A whole number goes in the small box on the left; the top and bottom go above and below the line.</p>
+        <form class="fgform" autocomplete="off">${SBT.fracBox('First fraction or mixed number', '1/2')}<select aria-label="Add or subtract"><option value="+">+</option><option value="-">&minus;</option></select>${SBT.fracBox('Second fraction or mixed number', '1/3')}<button class="btn small" type="submit">Show the steps</button></form>
         <div class="fgout" aria-live="polite"></div>
         <div class="rules">
           <div class="rule"><h3>A fraction is a division</h3><p><b>3 &divide; 4 = ${f(3, 4)}</b>: 3 shared among 4 equal parts, so each part is ${f(3, 4)}.</p><p>When the top is bigger, you get a mixed number: <b>7 &divide; 3 = ${f(7, 3)} = ${G.html(F(7, 3))}</b>. If it divides evenly, you get a whole number: 8 &divide; 4 = 2.</p></div>
@@ -29,14 +29,15 @@
         return null;
       };
       const show = () => {
-        const [a, b] = [...P.querySelectorAll('.fgform .textin')].map(i => parse(i.value)), op = $('.fgform select', P).value, out = $('.fgout', P);
-        if (!a || !b || a.v.d > 24 || b.v.d > 24 || a.v.n > 500 || b.v.n > 500) { out.textContent = 'Use fractions like 3/4, mixed numbers like 2 1/3, or whole numbers. (Mixed numbers need a proper fraction part, and keep the denominators to 24 or less.)'; return; }
+        const [a, b] = [...P.querySelectorAll('.fgform .fbox')].map(i => parse(i.value)), op = $('.fgform select', P).value, out = $('.fgout', P);
+        if (!a || !b || a.v.d > 24 || b.v.d > 24 || a.v.n > 500 || b.v.n > 500) { out.textContent = 'Check the boxes. A fraction needs both a top and a bottom number, and the bottom cannot be 0. (Mixed numbers need a proper fraction part, and keep the denominators to 24 or less.)'; return; }
         if (op === '-' && G.cmp(a.v, b.v) < 0) { out.textContent = 'The first number must be at least as big as the second to subtract.'; return; }
         const mixed = a.mixed || b.mixed;
         const res = op === '+' ? G.add(a.v, b.v) : G.sub(a.v, b.v);
         const showBars = !mixed && a.v.n < a.v.d && b.v.n < b.v.d && a.v.d !== b.v.d;
-        out.innerHTML = `<p>${G.html(a.v, a.mixed ? 'mixed' : 'improper')} ${op === '+' ? '+' : '&minus;'} ${G.html(b.v, b.mixed ? 'mixed' : 'improper')} = <b>${G.html(res)}</b></p><p>${esc(G.whyTwo(op, a.v, b.v, mixed))}</p>${showBars ? G.bars(a.v, b.v) : ''}`;
+        out.innerHTML = `<p>${G.html(a.v, a.mixed ? 'mixed' : 'improper')} ${op === '+' ? '+' : '&minus;'} ${G.html(b.v, b.mixed ? 'mixed' : 'improper')} = <b>${G.html(res)}</b></p><p>${SBT.stackText(G.whyTwo(op, a.v, b.v, mixed))}</p>${showBars ? G.bars(a.v, b.v) : ''}`;
       };
+      SBT.wireFrac(P);
       $('.fgform', P).onsubmit = e => { e.preventDefault(); show(); };
       show();
     }
@@ -44,7 +45,7 @@
 
   /* ===================== Tools built on the shared builders ===================== */
   const fa = (title, lead, fn) => ({ init(ctx) { SBT.answer(ctx, { title, lead, kind: 'fraction', rounds: 10, build: () => many(fn) }); } });
-  const FORM = ' Type fractions like 3/4 and mixed numbers like 1 3/4.';
+  const FORM = ' Whole number in the small box, fraction top and bottom in the others.';
   const division = fa('Fractions and division', 'A fraction bar means divide. Share the top number among the bottom number.' + FORM, G.divisionQ);
   const models = { init(ctx) { SBT.quiz(ctx, { title: 'Use the models', lead: 'The dashed lines cut both bars into same-size pieces. Pick the answer.', rounds: 10, build: () => many(G.modelQ) }); } };
   const improper = fa('Improper fractions and mixed numbers', 'Change between improper fractions and mixed numbers. Reduce to simplest form.' + FORM, G.improperQ);

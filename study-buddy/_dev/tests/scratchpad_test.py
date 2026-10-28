@@ -2,6 +2,9 @@
 the close prompt, the My notes page, backups, and layout (Playwright + Chromium).
 Run:  python3 study-buddy/_dev/tests/scratchpad_test.py"""
 import asyncio, http.server, threading, functools, os, sys, json
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fracfill import fill_any
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -162,7 +165,7 @@ async def main():
         await pg.click('.sbp [data-a="undo"]'); check(len((await state(pg))['items']) > 3, 'undo brings the page back')
 
         # ---- the question follows the tool; the drawing stays ----
-        await pg.fill('#tab-cubes input[aria-label="Your answer"]', '1'); await pg.click('#tab-cubes form button'); await pg.fill('#tab-cubes input[aria-label="Your answer"]', '1'); await pg.click('#tab-cubes form button')
+        await fill_any(pg, 'cubes', '1'); await pg.click('#tab-cubes form button'); await fill_any(pg, 'cubes', '1'); await pg.click('#tab-cubes form button')
         await pg.click('#tab-cubes [data-a="next"]'); await pg.wait_for_selector('#sbPad')
         st = await state(pg); check(len(st['items']) > 3, 'the drawing stays when the next question comes')
         q2 = (await pg.inner_text('#tab-cubes .qtext')).replace('\n', ' ').strip()
