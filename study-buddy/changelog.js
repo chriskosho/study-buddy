@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'Modules: Tiles or List, Sort by, and a filter', items: [
+    'Above the modules there is now a Tiles / List choice. List shows one short row for each module (subject, name, a line about it, difficulty, progress), so many more fit on the screen. Each student keeps their own choice; it starts on Tiles. Utilities has it too.',
+    'Sort by: Subject, A to Z, Recently used, or Not started first. When sorted by subject, the All and Saved tabs get a heading for each subject with a count.',
+    'Filter modules: type to show only the modules that match by name, description, tags, or subject.' ] },
   { date: '2026-10-28', title: 'A way to say thanks', items: [
     'The footer and the About page have a "Support Study Buddy" link to PayPal for anyone who wants to donate. Study Buddy stays free, nothing is locked, and nothing is sent to PayPal until you choose to open the link.' ] },
   { date: '2026-10-28', title: 'Saved modules, and the words Student and Admin', items: [

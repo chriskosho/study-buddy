@@ -103,7 +103,7 @@ async def main():
         await nx.add_init_script("""localStorage.getItem('studybuddy.v1.root') || localStorage.setItem('studybuddy.v1.root', JSON.stringify({profiles:[{id:'k1',name:'Joshua',color:'#e4572e'}],active:'k1',pin:null}));""")
         np_ = await nx.new_page(); np_.on('pageerror', lambda e: errors.append(str(e)))
         await np_.goto(BASE + 'index.html#/parent'); await np_.wait_for_selector('.sb-ov'); await np_.keyboard.press('Escape'); await np_.wait_for_timeout(200)
-        check(np_.url.endswith('#/home') and await np_.locator('.grid').count() == 1, f'Escape on the first PIN offer goes to Home ({np_.url[-10:]})')
+        check(np_.url.endswith('#/home') and await np_.locator('#mArea .modcard').count() >= 1, f'Escape on the first PIN offer goes to Home ({np_.url[-10:]})')
         await nx.close()
 
         # ---- another tab resetting this child reloads the open module (so old progress is not written back) ----

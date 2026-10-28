@@ -415,6 +415,26 @@ html.sb-large .cardstage{height:calc(var(--vh, 100vh) - var(--chrome) - 450px);m
 .bm:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 .bm.bm-lbl{width:auto;border-radius:999px;padding:0 18px}
 .modcard>.bm{position:absolute;top:64px;right:14px}   /* under the speaker button */
+.mctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 16px}
+.mctl .grow{flex:1 1 240px;min-width:0}
+.mfilter{flex:1 1 200px;min-width:0}
+.mfilter input{width:100%;box-sizing:border-box;font-size:16px;padding:9px 16px;border:2px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink)}
+.msort{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--ink2);flex:0 1 auto;min-width:0;max-width:100%}
+.msort select{font:inherit;font-size:16px;font-weight:600;padding:9px 12px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);min-width:0;flex:1 1 auto;max-width:100%}
+.mgroup:first-child{margin-top:4px}
+.mgroup h3 .n{font-size:14px;font-weight:700;color:var(--ink2);margin-left:6px}
+.mlist{display:grid;gap:10px}
+.modrow{display:flex;align-items:center;gap:10px;min-width:0}
+.mod.modl{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) auto;align-items:center;gap:4px 22px;padding:12px 20px;border-radius:18px}
+.modl .mtitle{min-width:0}
+.modl .mtitle h3{margin:0;font-size:18px;line-height:1.25}
+.modl .mdesc{margin:0;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modl .mmeta{display:flex;align-items:center;justify-content:flex-end;gap:6px 16px;flex-wrap:wrap}
+.modl .mmeta .prog{display:flex;align-items:center;gap:8px;width:170px}
+.modl .mmeta .prog .bar{min-width:50px}
+.modl.modu{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+@media (max-width:900px){.mod.modl,.modl.modu{grid-template-columns:minmax(0,1fr)}.modl .mmeta{justify-content:flex-start}}
+@media (max-width:560px){.modl .mdesc{display:none}.mod.modl{padding:12px 14px}.modl .mmeta .prog{width:100%}.modrow{gap:6px}}
 .tool .tname{display:flex;align-items:center;gap:8px;justify-content:space-between}
 .tool .tname h3{margin:0}
 .tool.next{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal)}

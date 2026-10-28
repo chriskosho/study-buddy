@@ -66,6 +66,41 @@
       </div></a></div>`;
   }
 
+  /* One module as a compact row (the List view): subject, title, a one-line description, difficulty, progress, and the two buttons. */
+  function modRow(m) {
+    const p = SB.moduleProgress(m), pct = p.total ? p.mastered / p.total * 100 : 0;
+    return `<div class="modrow"><a class="mod modl" href="#/module/${esc(m.id)}">
+      <div class="mtitle"><h3>${esc(m.title)}</h3><span class="eyebrow">${esc(subjectName(m.subject))}</span></div>
+      <p class="mdesc">${esc(m.blurb)}</p>
+      <div class="mmeta">${SB.diffRangeHTML(m)}<div class="prog"><div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div><span class="hint">${p.mastered} of ${p.total}</span></div></div>
+    </a>${SB.sayButton(m.title, 'Hear the name: ' + m.title)}${bmButton(m)}</div>`;
+  }
+
+  /* ---------- how the modules are shown: Tiles or List, sort, filter (the student's own choice, saved in their settings) ---------- */
+  const SORTS = [['subject', 'Subject'], ['az', 'A to Z'], ['recent', 'Recently used'], ['new', 'Not started first']];
+  const viewMode = () => SB.getSetting('view') === 'list' ? 'list' : 'tiles';
+  const sortMode = () => { const v = SB.getSetting('sort'); return SORTS.some(x => x[0] === v) ? v : 'subject'; };
+  let modQ = '', lastSubj = null;                       // the filter text lasts while the student stays on one home tab
+  const subjOrder = id => REG.subjects.findIndex(s => s.id === id);
+  const matches = m => { const q = modQ.trim().toLowerCase(); return !q || q.split(/\s+/).every(w => (m.title + ' ' + m.blurb + ' ' + m.tags.join(' ') + ' ' + subjectName(m.subject)).toLowerCase().includes(w)); };
+  function sortedMods(list) {
+    const rec = SB.child(SB.activeId()).tools, used = m => Math.max(0, ...m.tools.map(t => (rec[m.id + '/' + t.id] || {}).last || 0));
+    const by = (a, b) => subjOrder(a.subject) - subjOrder(b.subject) || LIVE.indexOf(a) - LIVE.indexOf(b), sm = sortMode();
+    return [...list].sort(sm === 'az' ? (a, b) => a.title.localeCompare(b.title) : sm === 'recent' ? (a, b) => used(b) - used(a) || by(a, b) : sm === 'new' ? (a, b) => (used(a) > 0) - (used(b) > 0) || by(a, b) : by);
+  }
+  /* the modules of one section, filtered and sorted, as tiles or rows; the All and Saved tabs get a heading per subject when sorted by subject */
+  function modList(list, group) {
+    const mods = sortedMods(list.filter(matches)); if (!mods.length) return '';
+    const draw = l => viewMode() === 'list' ? `<div class="mlist">${l.map(modRow).join('')}</div>` : `<div class="grid">${l.map(modCard).join('')}</div>`;
+    if (!group || sortMode() !== 'subject') return draw(mods);
+    return REG.subjects.map(s => ({ s, l: mods.filter(m => m.subject === s.id) })).filter(g => g.l.length)
+      .map(g => `<div class="sectionhead mgroup"><h3>${esc(g.s.name)} <span class="n">${g.l.length}</span></h3></div>${draw(g.l)}`).join('');
+  }
+  const viewToggle = () => `<div class="seg" role="group" aria-label="Show modules as"><button type="button" data-v="tiles" aria-pressed="${viewMode() === 'tiles'}">Tiles</button><button type="button" data-v="list" aria-pressed="${viewMode() === 'list'}">List</button></div>`;
+  function wireToggle(redraw) {
+    app.querySelectorAll('.seg [data-v]').forEach(b => b.onclick = () => { SB.setSetting('view', b.dataset.v); app.querySelectorAll('.seg [data-v]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); redraw(); });
+  }
+
   /* ---------- views ---------- */
   function viewWho() {
     document.title = 'Study Buddy';
@@ -92,30 +127,44 @@
 
     if (filter === 'utilities') {
       const u = REG.utilities || [];
-      app.innerHTML = header('Utilities', kid) + `<div class="bar2">${tabs}</div><section class="panel"><div style="margin-bottom:12px"><h3>Utilities</h3><p class="lead" style="margin:2px 0 0">Handy tools for homework. They don't track progress.</p></div>
-        <div class="grid">${u.map(x => `<a class="mod" href="${esc(x.path)}"><div class="eyebrow">Utility</div><h3>${esc(x.title)}</h3><p>${esc(x.blurb)}</p></a>`).join('')}</div></section>`;
+      app.innerHTML = header('Utilities', kid) + `<div class="bar2">${tabs}</div><section class="panel"><div class="mctl"><div class="grow"><h3 style="margin:0">Utilities</h3><p class="lead" style="margin:2px 0 0">Handy tools for homework. They don't track progress.</p></div>${viewToggle()}</div>
+        <div id="mArea"></div></section>`;
+      const drawU = () => {
+        const one = x => viewMode() === 'list' ? `<div class="modrow"><a class="mod modl modu" href="${esc(x.path)}"><div class="mtitle"><h3>${esc(x.title)}</h3><span class="eyebrow">Utility</span></div><p class="mdesc">${esc(x.blurb)}</p></a></div>` : `<a class="mod" href="${esc(x.path)}"><div class="eyebrow">Utility</div><h3>${esc(x.title)}</h3><p>${esc(x.blurb)}</p></a>`;
+        document.getElementById('mArea').innerHTML = `<div class="${viewMode() === 'list' ? 'mlist' : 'grid'}">${u.map(one).join('')}</div>`;
+      };
+      drawU(); wireToggle(drawU);
       return;
     }
     let cont = '';
     const last = SB.child(kid.id).last, lm = last && modById(last.module), lt = toolOf(lm, last && last.tool);
     if (lm && lt) cont = `<div class="continue"><div class="grow"><div class="eyebrow">Keep going</div><b>${esc(lt.name)}</b> <span class="hint">in ${esc(lm.title)} · ${ago(last.at)}</span></div><a class="btn small" href="${esc(toolURL(lm, lt))}">Open</a></div>`;
 
-    let body;
-    if (subj === 'saved') {
-      const order = id => REG.subjects.findIndex(s => s.id === id);
-      body = `<div style="margin-bottom:12px"><h3>Saved modules</h3><p class="lead" style="margin:2px 0 0">The modules you saved, from every subject. Press the bookmark button on a card to take one off this list.</p></div><div class="grid">${[...saved].sort((a, b) => order(a.subject) - order(b.subject)).map(modCard).join('')}</div>`;
-    } else if (subj === 'all') {
-      const order = id => REG.subjects.findIndex(s => s.id === id);
-      const all = [...LIVE].sort((a, b) => order(a.subject) - order(b.subject));   // each card names its subject
-      body = all.length ? `<div class="grid">${all.map(modCard).join('')}</div>` : '<p class="empty">No modules yet.</p>';
-    } else {
-      const mine = LIVE.filter(m => m.subject === subj);
-      const sugg = LIVE.filter(m => m.subject !== subj && m.tags.includes(subj));
-      body = `<div style="margin-bottom:12px"><h3>${esc(subjectName(subj))}</h3></div>` +
-        (mine.length ? `<div class="grid">${mine.map(modCard).join('')}</div>` : `<p class="empty">No ${esc(subjectName(subj))} modules yet.</p>`) +
-        (sugg.length ? `<div class="sectionhead"><h3>Suggested</h3><p class="lead" style="margin:2px 0 0">From other subjects, with ${esc(subjectName(subj))} mixed in.</p></div><div class="grid">${sugg.map(modCard).join('')}</div>` : '');
-    }
+    if (subj !== lastSubj) { modQ = ''; lastSubj = subj; }   // a new tab starts without the old filter
+    const intro = subj === 'saved' ? `<h3>Saved modules</h3><p class="lead" style="margin:2px 0 0">The modules you saved, from every subject. Press the bookmark button on a module to take it off this list.</p>`
+      : subj === 'all' ? '' : `<h3>${esc(subjectName(subj))}</h3>`;
+    const controls = `<div class="mctl"><label class="mfilter"><span class="sr">Filter modules</span><input type="search" id="mQ" placeholder="Filter modules" value="${esc(modQ)}" autocomplete="off" spellcheck="false"></label>
+      <label class="msort">Sort by <select id="mSort">${SORTS.map(([k, n]) => `<option value="${k}"${sortMode() === k ? ' selected' : ''}>${n}</option>`).join('')}</select></label>${viewToggle()}</div>`;
+    const mine = subj === 'saved' ? saved : subj === 'all' ? LIVE : LIVE.filter(m => m.subject === subj);
+    const sugg = subj !== 'saved' && subj !== 'all' ? LIVE.filter(m => m.subject !== subj && m.tags.includes(subj)) : [];
+    const areaHTML = () => {
+      const main = modList(mine, subj === 'all' || subj === 'saved'), sg = modList(sugg, false);
+      if (!main && !sg) return modQ.trim() ? `<p class="empty">No modules match "${esc(modQ.trim())}". <button type="button" class="btn ghost small" id="mClear">Clear the filter</button></p>`
+        : `<p class="empty">${subj === 'all' ? 'No modules yet.' : 'No ' + esc(subjectName(subj)) + ' modules yet.'}</p>`;
+      return (main || (modQ.trim() ? '' : `<p class="empty">No ${esc(subjectName(subj))} modules yet.</p>`)) +
+        (sg ? `<div class="sectionhead"><h3>Suggested</h3><p class="lead" style="margin:2px 0 0">From other subjects, with ${esc(subjectName(subj))} mixed in.</p></div>${sg}` : '');
+    };
+    const body = `${intro ? `<div style="margin-bottom:12px">${intro}</div>` : ''}${controls}<p class="sr" role="status" id="mStat"></p><div id="mArea">${areaHTML()}</div>`;
     app.innerHTML = header('Hi, ' + kid.name, kid) + `<div class="bar2">${tabs}</div>${cont}<section class="panel">${body}</section>`;
+    const area = () => document.getElementById('mArea'), q = document.getElementById('mQ');
+    const redraw = () => {
+      area().innerHTML = areaHTML(); wireBookmarks(() => viewHome(subj)); wireClear();
+      const n = mine.filter(matches).length + sugg.filter(matches).length; document.getElementById('mStat').textContent = modQ.trim() ? (n ? plural(n, 'module') + ' shown' : 'No modules match') : '';
+    };
+    const wireClear = () => { const c = document.getElementById('mClear'); if (c) c.onclick = () => { modQ = ''; q.value = ''; redraw(); q.focus(); }; };
+    q.oninput = () => { modQ = q.value; redraw(); };
+    document.getElementById('mSort').onchange = e => { SB.setSetting('sort', e.target.value); redraw(); };
+    wireToggle(redraw); wireClear();
     wireBookmarks(() => viewHome(subj));   // redraw on the tab being shown, not the default
   }
 
@@ -373,6 +422,7 @@
     SB.applyDisplay();                                  // each student's own dark mode, font and size, also right after switching student
     if (!SB.profiles().length) SB.ensureGuest();
     if (SB.profiles().length === 1 && !SB.activeProfile()) SB.setActive(SB.profiles()[0].id);
+    if (view !== 'home') { modQ = ''; lastSubj = null; }   // the filter does not follow the student to other pages
     if (view !== 'parent') SB.lock();
     const kid = SB.activeProfile(), many = SB.profiles().length > 1;
     const INFO = { settings: 'Settings', help: 'Help', faq: 'FAQ', about: 'About', changelog: 'Change log', notes: 'My notes' };
