@@ -117,10 +117,10 @@
           e.preventDefault();
           const v = inp.value.trim();
           if (!v) { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Type an answer first.'; return; }
-          const n = norm(v), exact = item.a.some(a => norm(a) === n), close = !exact && item.a.some(a => norm(a).length >= 5 && dist(norm(a), n) <= 1);
+          const n = norm(v), exact = item.a.some(a => norm(a) === n), close = !exact && item.a.some(a => norm(a).length >= 5 && !/\d/.test(a) && dist(norm(a), n) <= 1);   // no spelling slack for dates and numbers: 758 BC is not 753 BC
           if (exact || close) {
             if (!B.hinted && B.tries === 0) B.score++;
-            ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good)';
+            ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good-ink)';
             err.textContent = (close ? 'Close enough! It is spelled ' + main + '.' : 'Correct!') + (B.hinted ? ' (Hint used, so no point.)' : '');
             ctx.say(item.s.replace('___', main)); done();
           } else {

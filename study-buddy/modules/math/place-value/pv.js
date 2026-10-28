@@ -4,7 +4,7 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const G = window.MATHGEN, esc = SB.esc;
-  const many = (fn, n = 10) => Array.from({ length: n }, fn);
+  const many = (fn, n = 10) => SBT.many(fn, n);   // the shared one: no question twice in a round
   const COLS = G.PLACES;      // millions ... thousandths
 
   /* ===================== Study guide ===================== */

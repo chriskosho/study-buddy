@@ -98,7 +98,7 @@
     init(ctx) {
       SBT.quiz(ctx, {
         rounds: 10, lead: 'Pick the best answer. You can skip one you do not know.', skip: true,
-        build: () => { const out = []; for (let i = 0; i < 3; i++) out.push(whichPhonogram(), whichSounds(), endOfWord()); return hook('quiz', [...out, ...pick(RULEQ, 6)]); }
+        build: () => hook('quiz', [...SBT.many(whichPhonogram, 3), ...SBT.many(whichSounds, 3), ...SBT.many(endOfWord, 3), ...pick(RULEQ, 6)])   // no question twice in a round
       });
     }
   };
@@ -136,7 +136,9 @@
   };
 
   /* ===================== Spell it (listen, then type) ===================== */
-  const WORDS = [...new Set(PH.flatMap(p => p.ex))];
+  /* words that sound like another word (no and know, wait and weight) are left out: hearing them, either spelling would be right */
+  const SOUNDALIKE = new Set(['no', 'know', 'to', 'ate', 'blue', 'see', 'where', 'soul', 'for', 'hoe', 'wait', 'weight', 'great', 'pie', 'new', 'veil', 'sign', 'through', 'bough', 'bread', 'boy']);
+  const WORDS = [...new Set(PH.flatMap(p => p.ex))].filter(w => !SOUNDALIKE.has(w));
   const spell = {
     init(ctx) {
       SBT.answer(ctx, {
