@@ -109,6 +109,7 @@
         <li>Use <b>Search</b> at the top to find a module or tool by name. Press <b>/</b> to jump to it.</li></ol>`, true)}
       ${sec('Finding modules', `<ul><li>Choose <b>Tiles</b> or <b>List</b> above the modules. Tiles show a card for each module. List shows one short row for each, so you see more at once. Each student keeps their own choice.</li>
         <li><b>Sort by</b> puts the modules in order by subject, A to Z, the ones you used most recently, or the ones you have not started first.</li>
+        <li>In List view sorted by subject, press a subject heading to fold or open its section, or use <b>Expand all</b> and <b>Collapse all</b>. Each student keeps their own folded sections.</li>
         <li>Type in <b>Filter modules</b> to show only the modules whose name, description, tags, or subject match. Choose <b>Clear the filter</b> to see everything again.</li></ul>`)}
       ${sec('Saving modules', `<p>Press the bookmark button on a module card, or at the top of a module, to save it. A <b>Saved</b> tab then appears next to <b>All</b> and lists everything you saved, from every subject. When you have saved modules, the home screen opens on Saved; choose All to see everything. Press the bookmark again to remove one. Each student has their own saved list.</p>`)}
       ${sec('The kinds of tools', `<ul><li><b>Study guide</b>: read it first. No score.</li>

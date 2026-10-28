@@ -69,7 +69,7 @@ async def main():
         check(n > 40 and ('Nice' in msg or 'Beautiful' in msg), f'tracing along the letter passes ({n} dots): {msg[:40]}')
         rec = await pg.evaluate("SB.toolRecord('handwriting','letters')")
         check(rec and rec['best'] == 1 and rec['max'] == 52, f'first letter recorded as 1 of 52 {rec}')
-        check('done' in (await pg.locator('#tab-letters .hw-strip button[data-i="0"]').get_attribute('class') or ''), 'passed letter is marked in the strip')
+        check('passed' in (await pg.locator('#tab-letters .hw-strip button[data-i="0"]').get_attribute('class') or ''), 'passed letter is marked in the strip')
 
         # scribble fails
         await pg.click('#tab-letters [data-a="next"]'); await pg.wait_for_timeout(200)

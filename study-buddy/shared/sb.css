@@ -414,7 +414,7 @@ html.sb-large .cardstage{height:calc(var(--vh, 100vh) - var(--chrome) - 450px);m
 .bm:hover{border-color:var(--teal)}
 .bm:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 .bm.bm-lbl{width:auto;border-radius:999px;padding:0 18px}
-.modcard>.bm{position:absolute;top:64px;right:14px}   /* under the speaker button */
+.modcard>.bm{position:absolute;top:14px;right:14px}
 .mctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 16px}
 .mctl .grow{flex:1 1 240px;min-width:0}
 .mfilter{flex:1 1 200px;min-width:0}
@@ -424,17 +424,25 @@ html.sb-large .cardstage{height:calc(var(--vh, 100vh) - var(--chrome) - 450px);m
 .mgroup:first-child{margin-top:4px}
 .mgroup h3 .n{font-size:14px;font-weight:700;color:var(--ink2);margin-left:6px}
 .mlist{display:grid;gap:10px}
-.modrow{display:flex;align-items:center;gap:10px;min-width:0}
-.mod.modl{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) auto;align-items:center;gap:4px 22px;padding:12px 20px;border-radius:18px}
-.modl .mtitle{min-width:0}
-.modl .mtitle h3{margin:0;font-size:18px;line-height:1.25}
+.modrow{position:relative;min-width:0}
+.mod.modl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,260px);align-items:center;gap:6px 24px;padding:14px 74px 14px 22px;border-radius:18px}
+.modl h3{margin:0;font-size:18px;line-height:1.25;min-width:0}
 .modl .mdesc{margin:0;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.modl .mmeta{display:flex;align-items:center;justify-content:flex-end;gap:6px 16px;flex-wrap:wrap}
-.modl .mmeta .prog{display:flex;align-items:center;gap:8px;width:170px}
-.modl .mmeta .prog .bar{min-width:50px}
-.modl.modu{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
-@media (max-width:900px){.mod.modl,.modl.modu{grid-template-columns:minmax(0,1fr)}.modl .mmeta{justify-content:flex-start}}
-@media (max-width:560px){.modl .mdesc{display:none}.mod.modl{padding:12px 14px}.modl .mmeta .prog{width:100%}.modrow{gap:6px}}
+.modl.modu{grid-template-columns:minmax(0,1fr) minmax(0,2fr);padding-right:22px}
+.modl .prog{display:flex;align-items:center;gap:10px}
+.modl .prog .bar{min-width:60px}
+.modl .prog .hint{white-space:nowrap}
+.modrow>.bm{position:absolute;top:50%;right:15px;transform:translateY(-50%)}
+.mall{display:inline-flex;gap:8px;flex-wrap:wrap}
+.mtoggle{display:inline-flex;align-items:center;gap:8px;font:inherit;font-weight:inherit;color:inherit;background:transparent;border:0;padding:6px 8px 6px 0;margin:0;cursor:pointer;border-radius:10px;text-align:left}
+.mtoggle svg{width:20px;height:20px;flex:0 0 auto;transition:transform .15s}
+.mtoggle[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.mtoggle .n{font-size:14px;font-weight:700;color:var(--ink2)}
+.mtoggle:hover{color:var(--teal-ink)}
+.mtoggle:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+@media (max-width:900px){.mod.modl{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){.mod.modl{padding:12px 62px 12px 14px}.modrow>.bm{right:10px}}
+@media (prefers-reduced-motion:reduce){.mtoggle svg{transition:none}}
 .tool .tname{display:flex;align-items:center;gap:8px;justify-content:space-between}
 .tool .tname h3{margin:0}
 .tool.next{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal)}

@@ -23,7 +23,7 @@ html.sb-dark .hfig img{filter:invert(1);mix-blend-mode:screen}
 .hnav{align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
 .hnav .grow{flex:1}
 .hgrid{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;justify-content:center}
-.hgrid button{min-width:34px;height:30px;padding:0 6px;border-radius:8px;border:2px solid var(--line);background:var(--surface);font-weight:700;font-size:13px;color:var(--ink2)}
+.hgrid button{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:30px;padding:0 6px;border-radius:8px;border:2px solid var(--line);background:var(--surface);font-weight:700;font-size:13px;color:var(--ink2)}
 .hgrid button.done{border-color:var(--teal);color:var(--teal-ink)}
 .hgrid button.cur{background:var(--teal-fill);border-color:var(--teal-fill);color:#fff}
 .hbtns{gap:10px;flex-wrap:wrap;margin-top:14px}

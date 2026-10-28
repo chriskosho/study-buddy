@@ -44,7 +44,7 @@
   .sbcrumbs a{color:var(--navy-ink,var(--navy));text-decoration:none;border-bottom:2px solid transparent;padding:2px 0}
   .sbcrumbs a:hover{border-bottom-color:var(--teal)}
   .sbcrumbs [aria-current]{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sbhead-r{display:flex;align-items:center;gap:8px;margin-left:auto}
+  .sbhead-r{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end;min-width:0}   /* wraps to a second line instead of running off the screen (larger text and OpenDyslexic make the buttons wide) */
   .sbbtn{display:inline-flex;align-items:center;gap:7px;background:var(--surface,var(--card));border:2px solid var(--line);border-radius:999px;padding:4px 13px;font-size:15px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;line-height:1.2}
   .sbbtn svg{width:18px;height:18px;flex:0 0 auto}
   .sbbtn:hover{border-color:var(--teal)}

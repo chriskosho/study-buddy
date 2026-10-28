@@ -38,10 +38,29 @@ async def main():
         check(await pg.evaluate("document.activeElement.dataset.v") == 'list', 'the toggle keeps focus')
         row = pg.locator('#mArea .modrow').first
         rt = await row.inner_text()
-        check(await row.locator('h3').count() == 1 and await row.locator('.eyebrow').count() == 1 and await row.locator('.mdesc').count() == 1 and await row.locator('.bar').count() == 1 and await row.locator('.spk').count() == 1 and await row.locator('[data-bm]').count() == 1 and 'mastered' not in rt.lower() or 'of' in rt, 'a row shows title, subject, description, progress, speaker and bookmark')
+        check(await row.locator('h3').count() == 1 and await row.locator('.bar').count() == 1 and await row.locator('[data-bm]').count() == 1 and await row.locator('.spk, .eyebrow, .mdesc, .tagpill').count() == 0, 'a row shows only the title, progress and bookmark')
+        check(await pg.evaluate("!!document.querySelector('#mArea .modrow')?.contains(document.querySelector('#mArea .modrow [data-bm]'))") and await pg.locator('#mArea .modcard .spk').count() == 0, 'the bookmark sits inside the row and there is no speaker on cards')
         check(await row.locator('.tagpill').count() == 0, 'rows leave out the tags')
         check(await pg.evaluate("SB.getSetting('view')") == 'list', 'the choice is saved in the student settings')
         await shot(pg, 'mv-list')
+        await pg.evaluate("SB.setSetting('sort','subject')"); await pg.goto(BASE + '#/help'); await pg.goto(BASE + '#/home/all'); await pg.wait_for_selector('#mArea .mtoggle')
+        nt = await pg.locator('#mArea .mtoggle').count()
+        check(nt >= 2 and await pg.locator('#mArea .mtoggle[aria-expanded="true"]').count() == nt and await pg.locator('#mArea [id^="mg-"][hidden]').count() == 0, 'every section starts open')
+        await pg.locator('#mArea .mtoggle').first.click(); await pg.wait_for_timeout(100)
+        check(await pg.locator('#mArea .mtoggle').first.get_attribute('aria-expanded') == 'false' and await pg.locator('#mArea [id^="mg-"][hidden]').count() == 1, 'a heading folds its section')
+        check(len(await pg.evaluate("SB.getSetting('collapsed')")) == 1, 'folded sections are saved per student')
+        await pg.goto(BASE + '#/help'); await pg.goto(BASE + '#/home/all'); await pg.wait_for_selector('#mArea .mtoggle')
+        check(await pg.locator('#mArea [id^="mg-"][hidden]').count() == 1, 'the fold is remembered')
+        await pg.fill('#mQ', 'a'); await pg.wait_for_timeout(150)
+        check(await pg.locator('#mArea [id^="mg-"][hidden]').count() == 0, 'a search shows matches inside folded sections')
+        await pg.fill('#mQ', ''); await pg.wait_for_timeout(150)
+        await pg.locator('[data-all="shut"]').click(); await pg.wait_for_timeout(100)
+        check(await pg.locator('#mArea [id^="mg-"][hidden]').count() == nt, 'Collapse all folds every section')
+        await pg.locator('[data-all="open"]').click(); await pg.wait_for_timeout(100)
+        check(await pg.locator('#mArea [id^="mg-"][hidden]').count() == 0 and await pg.evaluate("SB.getSetting('collapsed').length") == 0, 'Expand all opens every section')
+        await tg.nth(0).click(); await pg.wait_for_timeout(100)
+        check(await pg.locator('#mArea .mtoggle').count() == 0 and await pg.locator('[data-all]').count() == 0, 'tiles have plain headings and no expand buttons')
+        await tg.nth(1).click(); await pg.wait_for_timeout(100)
         h = await pg.evaluate("document.querySelector('#mArea .modrow').getBoundingClientRect().height")
         check(h < 100, f'a row is compact ({h:.0f}px tall)')
         await pg.reload(); await pg.wait_for_selector('#mArea .modrow')
@@ -114,16 +133,15 @@ async def main():
         await shot(pg, 'mv-utilities')
 
         # ---- layout ----
-        for w, h in ((1440, 900), (1024, 768), (360, 740)):
+        for w, h in ((1440, 900), (1024, 768), (800, 700), (360, 740)):
             for extra in ('', "SB.setSetting('size','large'); SB.setSetting('font','dyslexic'); SB.applyDisplay();"):
-                if w == 1024 and extra: continue    # known: the shared header is 63px too wide at 1024px with larger text and OpenDyslexic together (also on main)
                 px = await ctx.new_page(); await px.set_viewport_size({'width': w, 'height': h}); await px.goto(BASE + '#/home/all'); await px.wait_for_selector('#mArea')
                 await px.evaluate("SB.setSetting('size','normal'); SB.setSetting('font','standard'); SB.applyDisplay();")
                 if extra: await px.evaluate(extra); await px.wait_for_timeout(150)
                 for v in ('list', 'tiles'):
                     await px.locator(f'.seg [data-v="{v}"]').click(); await px.wait_for_timeout(100)
                     bad = await px.evaluate("""[document.documentElement.scrollWidth - innerWidth,
-                      [...document.querySelectorAll('#mArea .modrow')].filter(r => { const l = r.querySelector('.modl').getBoundingClientRect(), k = r.querySelector('[data-bm]').getBoundingClientRect(), s = r.querySelector('.spk').getBoundingClientRect(); return k.right > innerWidth + 1 || s.right > k.left + 1 || l.right > s.left + 1 || l.width < 140; }).length]""")
+                      [...document.querySelectorAll('#mArea .modrow')].filter(r => { const l = r.querySelector('.modl').getBoundingClientRect(), k = r.querySelector('[data-bm]').getBoundingClientRect(); return k.right > innerWidth + 1 || r.querySelector('.prog').getBoundingClientRect().right > k.left + 1 || r.querySelector('h3').getBoundingClientRect().right > k.left + 1 || l.width < 140; }).length]""")
                     check(bad[0] <= 0 and bad[1] == 0, f'{v} fit at {w}px{" with larger text and dyslexic" if extra else ""} (sideways {bad[0]}, bad rows {bad[1]})')
                     if w == 360 and not extra and v == 'list': await shot(px, 'mv-phone-list')
                 await px.close()

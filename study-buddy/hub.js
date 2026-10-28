@@ -55,7 +55,7 @@
   /* ---------- module card ---------- */
   function modCard(m) {
     const p = SB.moduleProgress(m), pct = p.total ? p.mastered / p.total * 100 : 0;
-    return `<div class="modcard">${SB.sayButton(m.title, 'Hear the name: ' + m.title)}${bmButton(m)}<a class="mod" href="#/module/${esc(m.id)}">
+    return `<div class="modcard">${bmButton(m)}<a class="mod" href="#/module/${esc(m.id)}">
       <div class="eyebrow">${esc(subjectName(m.subject))}</div>
       <h3>${esc(m.title)}</h3>
       <p>${esc(m.blurb)}</p>
@@ -66,20 +66,20 @@
       </div></a></div>`;
   }
 
-  /* One module as a compact row (the List view): subject, title, a one-line description, difficulty, progress, and the two buttons. */
+  /* One module as a compact row (the List view): the name, how far along the student is, and the bookmark, all inside one tile. */
   function modRow(m) {
     const p = SB.moduleProgress(m), pct = p.total ? p.mastered / p.total * 100 : 0;
     return `<div class="modrow"><a class="mod modl" href="#/module/${esc(m.id)}">
-      <div class="mtitle"><h3>${esc(m.title)}</h3><span class="eyebrow">${esc(subjectName(m.subject))}</span></div>
-      <p class="mdesc">${esc(m.blurb)}</p>
-      <div class="mmeta">${SB.diffRangeHTML(m)}<div class="prog"><div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div><span class="hint">${p.mastered} of ${p.total}</span></div></div>
-    </a>${SB.sayButton(m.title, 'Hear the name: ' + m.title)}${bmButton(m)}</div>`;
+      <h3>${esc(m.title)}</h3>
+      <div class="prog"><div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div><span class="hint">${p.mastered} of ${p.total} mastered</span></div>
+    </a>${bmButton(m)}</div>`;
   }
 
   /* ---------- how the modules are shown: Tiles or List, sort, filter (the student's own choice, saved in their settings) ---------- */
   const SORTS = [['subject', 'Subject'], ['az', 'A to Z'], ['recent', 'Recently used'], ['new', 'Not started first']];
   const viewMode = () => SB.getSetting('view') === 'list' ? 'list' : 'tiles';
   const sortMode = () => { const v = SB.getSetting('sort'); return SORTS.some(x => x[0] === v) ? v : 'subject'; };
+  const collapsedIds = () => { const c = SB.getSetting('collapsed'); return Array.isArray(c) ? c.filter(x => typeof x === 'string') : []; };
   let modQ = '', lastSubj = null;                       // the filter text lasts while the student stays on one home tab
   const subjOrder = id => REG.subjects.findIndex(s => s.id === id);
   const matches = m => { const q = modQ.trim().toLowerCase(); return !q || q.split(/\s+/).every(w => (m.title + ' ' + m.blurb + ' ' + m.tags.join(' ') + ' ' + subjectName(m.subject)).toLowerCase().includes(w)); };
@@ -89,14 +89,30 @@
     return [...list].sort(sm === 'az' ? (a, b) => a.title.localeCompare(b.title) : sm === 'recent' ? (a, b) => used(b) - used(a) || by(a, b) : sm === 'new' ? (a, b) => (used(a) > 0) - (used(b) > 0) || by(a, b) : by);
   }
   /* the modules of one section, filtered and sorted, as tiles or rows; the All and Saved tabs get a heading per subject when sorted by subject */
+  const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  const groupable = group => group && sortMode() === 'subject';
   function modList(list, group) {
     const mods = sortedMods(list.filter(matches)); if (!mods.length) return '';
-    const draw = l => viewMode() === 'list' ? `<div class="mlist">${l.map(modRow).join('')}</div>` : `<div class="grid">${l.map(modCard).join('')}</div>`;
-    if (!group || sortMode() !== 'subject') return draw(mods);
-    return REG.subjects.map(s => ({ s, l: mods.filter(m => m.subject === s.id) })).filter(g => g.l.length)
-      .map(g => `<div class="sectionhead mgroup"><h3>${esc(g.s.name)} <span class="n">${g.l.length}</span></h3></div>${draw(g.l)}`).join('');
+    const list_ = viewMode() === 'list', draw = l => list_ ? `<div class="mlist">${l.map(modRow).join('')}</div>` : `<div class="grid">${l.map(modCard).join('')}</div>`;
+    if (!groupable(group)) return draw(mods);
+    const shut = modQ.trim() ? [] : collapsedIds();           // a filter always shows its matches, even in a section that was folded
+    return REG.subjects.map(s => ({ s, l: mods.filter(m => m.subject === s.id) })).filter(g => g.l.length).map(g => {
+      if (!list_) return `<div class="sectionhead mgroup"><h3>${esc(g.s.name)} <span class="n">${g.l.length}</span></h3></div>${draw(g.l)}`;
+      const open = !shut.includes(g.s.id), id = 'mg-' + g.s.id;      // in the list, each subject folds away
+      return `<div class="sectionhead mgroup"><h3><button type="button" class="mtoggle" data-sec="${esc(g.s.id)}" aria-expanded="${open}" aria-controls="${esc(id)}">${CHEV}<span>${esc(g.s.name)}</span> <span class="n">${g.l.length}</span></button></h3></div><div id="${esc(id)}"${open ? '' : ' hidden'}>${draw(g.l)}</div>`;
+    }).join('');
   }
   const viewToggle = () => `<div class="seg" role="group" aria-label="Show modules as"><button type="button" data-v="tiles" aria-pressed="${viewMode() === 'tiles'}">Tiles</button><button type="button" data-v="list" aria-pressed="${viewMode() === 'list'}">List</button></div>`;
+  /* the section headings in the list: fold one away, or all of them at once (remembered for the student) */
+  function wireSections(allSubjects) {
+    const save = ids => SB.setSetting('collapsed', ids);
+    app.querySelectorAll('.mtoggle').forEach(b => b.onclick = () => {
+      const open = b.getAttribute('aria-expanded') !== 'true', id = b.dataset.sec; b.setAttribute('aria-expanded', String(open));
+      const box = document.getElementById(b.getAttribute('aria-controls')); if (box) box.hidden = !open;
+      save(open ? collapsedIds().filter(x => x !== id) : [...new Set(collapsedIds().concat(id))]);
+    });
+  }
+  const sectionButtons = () => viewMode() === 'list' ? `<span class="mall" role="group" aria-label="All subject sections"><button type="button" class="btn ghost small" data-all="open">Expand all</button><button type="button" class="btn ghost small" data-all="shut">Collapse all</button></span>` : '';
   function wireToggle(redraw) {
     app.querySelectorAll('.seg [data-v]').forEach(b => b.onclick = () => { SB.setSetting('view', b.dataset.v); app.querySelectorAll('.seg [data-v]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); redraw(); });
   }
@@ -130,7 +146,7 @@
       app.innerHTML = header('Utilities', kid) + `<div class="bar2">${tabs}</div><section class="panel"><div class="mctl"><div class="grow"><h3 style="margin:0">Utilities</h3><p class="lead" style="margin:2px 0 0">Handy tools for homework. They don't track progress.</p></div>${viewToggle()}</div>
         <div id="mArea"></div></section>`;
       const drawU = () => {
-        const one = x => viewMode() === 'list' ? `<div class="modrow"><a class="mod modl modu" href="${esc(x.path)}"><div class="mtitle"><h3>${esc(x.title)}</h3><span class="eyebrow">Utility</span></div><p class="mdesc">${esc(x.blurb)}</p></a></div>` : `<a class="mod" href="${esc(x.path)}"><div class="eyebrow">Utility</div><h3>${esc(x.title)}</h3><p>${esc(x.blurb)}</p></a>`;
+        const one = x => viewMode() === 'list' ? `<div class="modrow"><a class="mod modl modu" href="${esc(x.path)}"><h3>${esc(x.title)}</h3><p class="mdesc">${esc(x.blurb)}</p></a></div>` : `<a class="mod" href="${esc(x.path)}"><div class="eyebrow">Utility</div><h3>${esc(x.title)}</h3><p>${esc(x.blurb)}</p></a>`;
         document.getElementById('mArea').innerHTML = `<div class="${viewMode() === 'list' ? 'mlist' : 'grid'}">${u.map(one).join('')}</div>`;
       };
       drawU(); wireToggle(drawU);
@@ -144,7 +160,7 @@
     const intro = subj === 'saved' ? `<h3>Saved modules</h3><p class="lead" style="margin:2px 0 0">The modules you saved, from every subject. Press the bookmark button on a module to take it off this list.</p>`
       : subj === 'all' ? '' : `<h3>${esc(subjectName(subj))}</h3>`;
     const controls = `<div class="mctl"><label class="mfilter"><span class="sr">Filter modules</span><input type="search" id="mQ" placeholder="Filter modules" value="${esc(modQ)}" autocomplete="off" spellcheck="false"></label>
-      <label class="msort">Sort by <select id="mSort">${SORTS.map(([k, n]) => `<option value="${k}"${sortMode() === k ? ' selected' : ''}>${n}</option>`).join('')}</select></label>${viewToggle()}</div>`;
+      <label class="msort">Sort by <select id="mSort">${SORTS.map(([k, n]) => `<option value="${k}"${sortMode() === k ? ' selected' : ''}>${n}</option>`).join('')}</select></label>${viewToggle()}<span id="mAllBox">${groupable(subj === 'all' || subj === 'saved') ? sectionButtons() : ''}</span></div>`;
     const mine = subj === 'saved' ? saved : subj === 'all' ? LIVE : LIVE.filter(m => m.subject === subj);
     const sugg = subj !== 'saved' && subj !== 'all' ? LIVE.filter(m => m.subject !== subj && m.tags.includes(subj)) : [];
     const areaHTML = () => {
@@ -158,13 +174,18 @@
     app.innerHTML = header('Hi, ' + kid.name, kid) + `<div class="bar2">${tabs}</div>${cont}<section class="panel">${body}</section>`;
     const area = () => document.getElementById('mArea'), q = document.getElementById('mQ');
     const redraw = () => {
-      area().innerHTML = areaHTML(); wireBookmarks(() => viewHome(subj)); wireClear();
+      area().innerHTML = areaHTML(); wireBookmarks(() => viewHome(subj)); wireClear(); wireSections(); wireAll();
+      document.getElementById('mAllBox').innerHTML = groupable(subj === 'all' || subj === 'saved') ? sectionButtons() : ''; wireAll();
       const n = mine.filter(matches).length + sugg.filter(matches).length; document.getElementById('mStat').textContent = modQ.trim() ? (n ? plural(n, 'module') + ' shown' : 'No modules match') : '';
     };
     const wireClear = () => { const c = document.getElementById('mClear'); if (c) c.onclick = () => { modQ = ''; q.value = ''; redraw(); q.focus(); }; };
+    const wireAll = () => app.querySelectorAll('[data-all]').forEach(b => b.onclick = () => {
+      const ids = b.dataset.all === 'shut' ? REG.subjects.map(x => x.id) : []; SB.setSetting('collapsed', ids);
+      app.querySelectorAll('.mtoggle').forEach(t => { const open = !ids.includes(t.dataset.sec); t.setAttribute('aria-expanded', String(open)); const box = document.getElementById(t.getAttribute('aria-controls')); if (box) box.hidden = !open; });
+    });
     q.oninput = () => { modQ = q.value; redraw(); };
     document.getElementById('mSort').onchange = e => { SB.setSetting('sort', e.target.value); redraw(); };
-    wireToggle(redraw); wireClear();
+    wireToggle(redraw); wireClear(); wireSections(); wireAll();
     wireBookmarks(() => viewHome(subj));   // redraw on the tab being shown, not the default
   }
 
