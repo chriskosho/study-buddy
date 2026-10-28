@@ -299,7 +299,7 @@ async def main():
         pg = await page(tool='quiz', vp=(360, 780))
         await pg.evaluate("SB.setSetting('font','dyslexic'); SB.setSetting('size','large'); SB.applyDisplay()"); await pg.wait_for_timeout(300)
         for tool in ['quiz', 'answer']:
-            await pg.goto(f'{URL}?tool={tool}'); await pg.wait_for_selector('.rl-levels'); await pg.wait_for_timeout(300)
+            await pg.goto(f'{URL}?tool={tool}'); await pg.wait_for_selector('.rl-levels'); await pg.evaluate("document.fonts.ready"); await pg.wait_for_timeout(300)
             check(await pg.evaluate("document.documentElement.scrollWidth - innerWidth") <= 0, f'360px with dyslexic font and larger text: no sideways scroll on {tool}')
         await pg.context.close()
         check(not errors, f'no page errors {errors}')
