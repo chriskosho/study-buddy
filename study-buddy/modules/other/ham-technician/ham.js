@@ -79,6 +79,15 @@
           $('.hnote', P).textContent = NOTE[st.reveal];
         });
         $('[data-a="start"]', P).onclick = () => { E = { qs: pickExam(), ans: Array(TOTAL).fill(null), i: 0, mode: st.reveal, done: false, confirm: false, quit: false }; draw(); };
+        const lx = st.examLast, lq = lx && Array.isArray(lx.ids) ? lx.ids.map(id => Q.find(q => q.id === id)) : null;
+        if (lq && lq.length === TOTAL && lq.every(Boolean) && Array.isArray(lx.ans)) {
+          $('.row.center', P).insertAdjacentHTML('beforeend', '<button class="btn ghost" data-a="last">See your last results</button>');
+          $('[data-a="last"]', P).onclick = () => {
+            const ans = lx.ans.slice(0, TOTAL).map(a => (a === 0 || a === 1 || a === 2 || a === 3) ? a : null);
+            E = { qs: lq, ans, i: 0, mode: lx.mode === 'end' ? 'end' : 'now', done: true, confirm: false, quit: false, score: ans.reduce((n, a, i) => n + (a === lq[i].a ? 1 : 0), 0) };
+            results();
+          };
+        }
         const sv = st.examNow, qs = sv && Array.isArray(sv.ids) ? sv.ids.map(id => Q.find(q => q.id === id)) : null;   // an exam left unfinished (page closed): offer to carry on
         if (qs && qs.length === TOTAL && qs.every(Boolean) && Array.isArray(sv.ans)) {
           const n = sv.ans.filter(a => a != null).length;
@@ -170,7 +179,9 @@
         const score = E.ans.reduce((n, a, i) => n + (a === E.qs[i].a ? 1 : 0), 0);
         E.score = score; keep();
         const ms = new Set(st.missed || []); E.qs.forEach((q, i) => { if (E.ans[i] === q.a) ms.delete(q.id); else ms.add(q.id); });   // missed questions become a flashcard section
-        st.missed = [...ms].slice(-150); ctx.save();
+        st.missed = [...ms].slice(-150);
+        st.examLast = { ids: E.qs.map(q => q.id), ans: E.ans.slice(), mode: E.mode, score };   // kept, so the results can be opened again after practicing a topic
+        ctx.save();
         ctx.result(score, TOTAL);
         if (score >= PASS) ctx.sfx.win();
         results();
@@ -183,7 +194,7 @@
         const rows = SUBS.map(s => {
           const idx = E.qs.map((q, i) => i).filter(i => E.qs[i].g.slice(0, 2) === s.id);
           const r = idx.filter(i => E.ans[i] === E.qs[i].a).length;
-          return `<div class="hrow"><span class="hn">${esc(s.id)} ${esc(s.name)}</span><span class="hbar" aria-hidden="true"><i style="width:${idx.length ? r / idx.length * 100 : 0}%"></i></span><span class="hc">${r} of ${idx.length}</span></div>`;
+          return `<div class="hrow"><span class="hn">${esc(s.id)} ${esc(s.name)}</span><span class="hbar" aria-hidden="true"><i style="width:${idx.length ? r / idx.length * 100 : 0}%"></i></span><span class="hc">${r} of ${idx.length}</span>${r < idx.length ? `<button class="btn ghost small hprac" data-prac="${esc(s.id)}" aria-label="Practice ${esc(s.id)} ${esc(s.name)} with flashcards">Practice</button>` : ''}</div>`;
         }).join('');
         P.innerHTML = `<h2>Mock exam results</h2>
           <div class="hresult ${pass ? 'pass' : 'fail'}"><p class="hverdict">${pass ? 'You passed!' : 'Not yet'}</p><p class="hscore">${score} out of ${TOTAL}</p>
@@ -195,6 +206,10 @@
         $('[data-a="all"]', P).onclick = () => open('all');
         const m = $('[data-a="missed"]', P); if (m) m.onclick = () => open('missed');
         $('[data-a="again"]', P).onclick = setup;
+        $$('[data-prac]', P).forEach(b => b.onclick = () => {   // open the flashcards at the first group of that topic
+          const g = GROUPS.find(x => x.sub === b.dataset.prac); if (!g) return; st.cardSec = g.id; ctx.save();
+          location.href = location.pathname + '?tool=cards';
+        });
       }
       function reviewHtml(filter) {
         const items = E.qs.map((q, i) => ({ q, i, mine: E.ans[i] })).filter(x => filter === 'all' || x.mine !== x.q.a);

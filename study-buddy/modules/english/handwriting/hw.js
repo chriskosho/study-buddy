@@ -27,8 +27,8 @@
 
   /* ---------- the pad ---------- */
   function Pad(host, opt) {
-    host.innerHTML = '<canvas class="hw-bg" aria-hidden="true"></canvas><canvas class="hw-ink" aria-label="Writing area. Trace the gray letters."></canvas>';
-    const bg = $('.hw-bg', host), ink = $('.hw-ink', host);
+    host.innerHTML = '<canvas class="hw-bg" aria-hidden="true"></canvas><canvas class="hw-demo" aria-hidden="true"></canvas><canvas class="hw-ink" aria-label="Writing area. Trace the gray letters."></canvas>';
+    const bg = $('.hw-bg', host), demoC = $('.hw-demo', host), ink = $('.hw-ink', host);
     const P = { text: '', style: 'cursive', strokes: [], cur: null, layout: null, penSeen: false, size: opt.size || 'medium', color: opt.color || 'ink', fingerToo: false, onPen: opt.onPen };
     let W = 0, H = 0, dpr = 1;
     const widths = { thin: 0.035, medium: 0.05, thick: 0.07 };
@@ -77,7 +77,7 @@
     function resize() {
       const r = host.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = Math.max(200, r.width); H = Math.max(160, r.height);
-      [bg, ink].forEach(c => { c.width = W * dpr; c.height = H * dpr; c.style.width = W + 'px'; c.style.height = H + 'px'; c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0); });
+      [bg, demoC, ink].forEach(c => { c.width = W * dpr; c.height = H * dpr; c.style.width = W + 'px'; c.style.height = H + 'px'; c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0); });
       P.layout = layoutFor(P.text, P.style); drawPaper(bg.getContext('2d'), P.layout, opt.guide !== false); redrawInk();
     }
 
@@ -147,9 +147,61 @@
       return { recall, precision, pass, stars };
     }
 
+    /* "Show me how": the gray letter fills in along its strokes, in order, with a dot for the pencil and a number at each start.
+       The fill is the font's own letter, revealed by a wide brush that follows the stroke paths in strokes.js. */
+    let demoRun = 0, demoCancel = null;
+    function demo(strokes, done, cancel) {
+      const run = ++demoRun, L = P.layout, fin = () => { demoCancel = null; done && done(); }; demoCancel = cancel || null; if (!L || !strokes || !strokes.length || L.lines.length !== 1) { fin(); return; }
+      const { F, lines, rowH, M } = L, line = lines[0], top = (H - rowH) / 2, ascPx = M.asc * F / 100, descPx = M.desc * F / 100;
+      const base = top + (rowH - ascPx - descPx) / 2 + ascPx, font = `${F}px ${FONTS[P.style]}`;
+      const mc = document.createElement('canvas').getContext('2d'); mc.font = font; const m = mc.measureText(line);
+      const x0 = (W - M.w(line) * F / 100) / 2, bx = x0 - m.actualBoundingBoxLeft, by = base - m.actualBoundingBoxAscent;
+      const bw = m.actualBoundingBoxLeft + m.actualBoundingBoxRight, bh = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+      const paths = strokes.map(st => st.map(([x, y]) => [bx + x * bw, by + y * bh]));
+      const lens = paths.map(pp => pp.reduce((t, p, i) => t + (i ? Math.hypot(p[0] - pp[i - 1][0], p[1] - pp[i - 1][1]) : 0), 0));
+      const total = lens.reduce((a, b) => a + b, 0), brush = F * 0.11, color = css('--hw-demo') || '#0e7569';
+      const off = document.createElement('canvas'); off.width = demoC.width; off.height = demoC.height; const o = off.getContext('2d'); o.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const glyph = document.createElement('canvas'); glyph.width = demoC.width; glyph.height = demoC.height;     // the letter in the demo color, drawn once
+      { const q = glyph.getContext('2d'); q.setTransform(dpr, 0, 0, dpr, 0, 0); q.fillStyle = color; q.strokeStyle = color; q.font = font; q.textBaseline = 'alphabetic'; q.lineWidth = F * 0.035; q.lineJoin = 'round'; q.strokeText(line, x0, base); q.fillText(line, x0, base); }
+      const g = demoC.getContext('2d');
+      const frame = upto => {                                   // upto: length of pencil travel so far
+        o.save(); o.setTransform(1, 0, 0, 1, 0, 0); o.clearRect(0, 0, off.width, off.height); o.restore();
+        o.globalCompositeOperation = 'source-over'; o.strokeStyle = '#000'; o.lineWidth = brush; o.lineCap = 'round'; o.lineJoin = 'round';
+        let left = upto, tip = null, starts = [];
+        paths.forEach((pp, k) => {
+          if (left <= 0) return; starts.push([pp[0], k + 1]);
+          o.beginPath(); o.moveTo(pp[0][0], pp[0][1]); let used = 0;
+          for (let i = 1; i < pp.length; i++) {
+            const a = pp[i - 1], b = pp[i], d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+            if (used + d >= left) { const t = (left - used) / (d || 1); tip = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; o.lineTo(tip[0], tip[1]); used = left; break; }
+            o.lineTo(b[0], b[1]); used += d; tip = b;
+          }
+          if (pp.length === 1) { o.lineTo(pp[0][0] + .1, pp[0][1]); tip = pp[0]; }
+          o.stroke(); left -= Math.max(lens[k], 1);
+        });
+        o.globalCompositeOperation = 'source-in'; o.save(); o.setTransform(1, 0, 0, 1, 0, 0); o.drawImage(glyph, 0, 0); o.restore();
+        g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, demoC.width, demoC.height); g.drawImage(off, 0, 0); g.restore();
+        const R = Math.max(9, F * 0.045), placed = [];
+        starts.forEach(([p0, n]) => { const p = [p0[0], p0[1]]; while (placed.some(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < R * 1.9)) p[0] += R * 2;   /* two strokes from one point: put the numbers side by side */ placed.push(p); g.fillStyle = css('--hw-base'); g.beginPath(); g.arc(p[0], p[1], R, 0, 7); g.fill(); g.fillStyle = '#fff'; g.font = `800 ${Math.max(11, Math.round(F * 0.055))}px system-ui,sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(n), p[0], p[1] + 1); });
+        if (tip && upto < total) { g.fillStyle = css('--hw-ink'); g.beginPath(); g.arc(tip[0], tip[1], Math.max(6, F * 0.03), 0, 7); g.fill(); }
+      };
+      const clear = () => { const c = demoC.getContext('2d'); c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, demoC.width, demoC.height); c.restore(); };
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { frame(total); setTimeout(() => { if (run === demoRun) { clear(); fin(); } }, 2500); return; }
+      const speed = Math.max(bh, F * 0.6) / 0.85, t0 = performance.now();   // about one letter height every 0.85 seconds
+      const tick = now => {
+        if (run !== demoRun) return;
+        const upto = (now - t0) / 1000 * speed; frame(Math.min(upto, total));
+        if (upto < total) requestAnimationFrame(tick); else setTimeout(() => { if (run === demoRun) { clear(); fin(); } }, 1200);
+      };
+      requestAnimationFrame(tick);
+    }
+    const stopDemo = () => { demoRun++; const cb = demoCancel; demoCancel = null; if (cb) cb();   // a demo cut short (new letter, style, or case) still hands its button back
+      const c = demoC.getContext('2d'); c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, demoC.width, demoC.height); c.restore(); };
+
     const ro = new ResizeObserver(() => resize()); ro.observe(host);
     return {
-      set(text, style) { P.text = text; P.style = style || P.style; P.strokes = []; P.layout = null; if (W) resize(); },
+      set(text, style) { stopDemo(); P.text = text; P.style = style || P.style; P.strokes = []; P.layout = null; if (W) resize(); },
+      demo, stopDemo, get style() { return P.style; },
       clear() { P.strokes = []; redrawInk(); if (P.layout) drawPaper(bg.getContext('2d'), P.layout, opt.guide !== false); },
       undo() { P.strokes.pop(); redrawInk(); },
       grade, resize,
@@ -165,9 +217,9 @@
     return `<div class="hw-controls">${extra}
       <div class="seg" role="group" aria-label="Letter style"><button data-style="cursive">Cursive</button><button data-style="print">Print</button></div></div>`;
   }
-  function penbarHTML(check = true) {
+  function penbarHTML(check = true, demo = false) {
     return `<div class="hw-penbar">
-      <div class="row hw-actions"><button class="btn ghost small" data-a="undo">Undo</button><button class="btn warn small" data-a="clear">Clear</button>${check ? '<button class="btn small" data-a="check">Check</button><button class="btn good small" data-a="next" hidden>Next</button>' : ''}</div>
+      <div class="row hw-actions">${demo && window.HW_STROKES ? '<button class="btn ghost small" data-a="demo">Show me how</button>' : ''}<button class="btn ghost small" data-a="undo">Undo</button><button class="btn warn small" data-a="clear">Clear</button>${check ? '<button class="btn small" data-a="check">Check</button><button class="btn good small" data-a="next" hidden>Next</button>' : ''}</div>
       <div class="row hw-pen">
         <div class="hw-colors" role="group" aria-label="Pen color">${COLORS.map(([c, n]) => `<button type="button" data-color="${c}" aria-label="${n}" title="${n}" style="--sw:${c === 'ink' ? 'var(--hw-ink)' : c}"></button>`).join('')}</div>
         <div class="seg small" role="group" aria-label="Pen size"><button data-size="thin">Thin</button><button data-size="medium">Medium</button><button data-size="thick">Thick</button></div>
@@ -200,7 +252,7 @@
       P.innerHTML = `<h2>Letters</h2><p class="lead">Trace the gray letter. Start at the top, and keep your pencil moving.</p>
         ${controlsHTML(`<div class="seg" role="group" aria-label="Capital or lowercase"><button data-case="upper">Capitals</button><button data-case="lower">Lowercase</button></div>`)}
         <div class="hw-strip" role="group" aria-label="Pick a letter"></div>
-        <div class="hw-pad"></div>${penbarHTML()}<p class="msg hw-msg"></p>`;
+        <div class="hw-pad"></div>${penbarHTML(true, true)}<p class="msg hw-msg"></p>`;
       const host = $('.hw-pad', P), msg = $('.hw-msg', P), next = $('[data-a="next"]', P), check = $('[data-a="check"]', P);
       const list = () => set === 'upper' ? UPPER : LOWER;
       const passedCount = () => Object.keys(st.passed || {}).length;
@@ -215,6 +267,13 @@
         ctx.say((set === 'upper' ? 'capital ' : 'lowercase ') + list()[i]);
       }
       $$('[data-case]', P).forEach(b => b.onclick = () => { set = st.case = b.dataset.case; ctx.save(); i = 0; show(); });
+      const db = $('[data-a="demo"]', P);
+      if (db) db.onclick = () => {                              // watch the letter being written, then trace it
+        const l = list()[i], strokes = (window.HW_STROKES[pad.style] || {})[l];
+        if (!strokes) return;
+        db.disabled = true; setMsg(msg, 'Watch the dot: numbers show where each stroke starts.');
+        pad.demo(strokes, () => { db.disabled = false; setMsg(msg, 'Now you try. Trace the gray letter.'); }, () => { db.disabled = false; });
+      };
       check.onclick = () => {
         const r = pad.grade(); if (!r) { setMsg(msg, 'Trace the letter first.', 'bad'); return; }
         const l = list()[i];

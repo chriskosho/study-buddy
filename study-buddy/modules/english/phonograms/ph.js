@@ -149,5 +149,18 @@
     }
   };
 
-  SBM.start({ module: 'phonograms', defaults: {}, tools: { guide, cards, quiz, sort, answer, spell } });
+  /* ===================== Hear it, tap it (for children who are not reading yet) ===================== */
+  const hear = {
+    init(ctx) {
+      SBT.quiz(ctx, {
+        title: 'Hear it, tap it', rounds: 10, lead: 'Press the speaker to hear the sounds. Then tap the phonogram that makes them.',
+        build: () => hook('hear', shuffle(PH.filter(p => p.n <= 72)).slice(0, 10).map(p => {
+          const others = shuffle(PH.filter(x => x.n <= 72 && x.p !== p.p && x.s !== p.s && !soundTokens(x).some(t => soundTokens(p).length === 1 && soundTokens(x).length === 1 && t === soundTokens(p)[0])));   // never two that sound the same
+          return { q: 'Which phonogram makes these sounds?', a: p.p, wrong: others.slice(0, 3).map(x => x.p), audio: clipUrl(p), say: soundSay(p), why: `[${p.p}] says ${p.s}, as in ${p.ex.slice(0, 2).join(' and ')}.` };
+        }))
+      });
+    }
+  };
+
+  SBM.start({ module: 'phonograms', defaults: {}, tools: { guide, cards, quiz, sort, answer, spell, hear } });
 })();

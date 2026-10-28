@@ -128,6 +128,11 @@
     let hit = false; if (d.daily.n >= DAILY_GOAL && !d.daily.done) { d.daily.done = true; hit = true; }
     saveChild(id, d); return { streak: d.streak, daily: d.daily.n, goal: DAILY_GOAL, goalJustReached: hit };
   }
+  /* the streak pill: Today x/20 with a thin bar in the child's color that fills toward the daily goal */
+  function pillHTML(s = streakInfo()) {
+    const p = activeProfile(), pct = Math.min(100, s.daily / s.goal * 100);
+    return `<b>Streak ${s.streak}</b><b>Today ${Math.min(s.daily, s.goal)}/${s.goal}</b><span class="goalbar" aria-hidden="true"><i style="width:${pct}%;background:${safeColor(p && p.color)}"></i></span>`;
+  }
   function slip() { const id = activeId(); if (!id) return; const d = child(id); d.streak = 0; saveChild(id, d); }
   function streakInfo(id = activeId()) { if (!id) return { streak: 0, best: 0, daily: 0, goal: DAILY_GOAL }; const d = child(id); return { streak: d.streak, best: d.bestStreak, daily: d.daily.n, goal: DAILY_GOAL }; }
   function rec(d, moduleId, toolId) { const k = moduleId + '/' + toolId; return d.tools[k] || (d.tools[k] = { attempts: 0, visits: 0, best: null, max: null, lastScore: null, last: null }); }
@@ -730,7 +735,7 @@
     root, profiles, profile, activeProfile, activeId, setActive, addProfile, isGuest, ensureGuest, nameDialog, afterProfileAdded, offerPin, updateProfile, deleteProfile, resetChild, resetAllProgress, eraseEverything, resetModule,
     avatar, colorInk, initial, child,
     getSetting, setSetting,
-    credit, slip, streakInfo, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
+    credit, slip, streakInfo, pillHTML, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
     moduleKey, requireProfile,
     tone, sfx, say, stopSpeech, stopAll, voicesFor, voiceId, voiceLabels, pickVoice, applyVoice, sayButton, toast, applyDisplay, displayDialog, swipeCard, cardToast,
     dialog, confirm: confirmDlg, requirePin, newPinDialog, hasPin, dismissPinNote, isUnlocked, lock,

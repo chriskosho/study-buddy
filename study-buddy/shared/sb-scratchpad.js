@@ -528,8 +528,14 @@
   function snapshotNote() {
     return { id: uid(), at: Date.now(), question: P.question, mod: P.source, paper: P.paper, w: P.w, h: P.h, items: P.items };
   }
+  const canShare = () => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File([''], 'note.png', { type: 'image/png' })] })); } catch (e) { return false; } };   // phones and tablets
   async function saveTo(kind, withQuestion) {
     if (!P) return false; const note = snapshotNote();
+    if (kind === 'share') {
+      try { const blob = await toBlob(compose({ items: note.items, w: note.w, h: note.h, paper: note.paper, question: withQuestion ? note.question : '', font: P.font, scale: 2 }));
+        await navigator.share({ files: [new File([blob], fileName(note.at), { type: 'image/png' })], title: 'Scratch note' }); } catch (e) { if (e && e.name === 'AbortError') return false; SB.toast('Could not share the picture.'); return false; }
+      if (P) { P.saved = P.items; dropDraft(P.kid); } return true;
+    }
     if (kind === 'device') {
       try { const blob = await toBlob(compose({ items: note.items, w: note.w, h: note.h, paper: note.paper, question: withQuestion ? note.question : '', font: P.font, scale: 2 })); download(blob, fileName(note.at)); } catch (e) { SB.toast('Could not make the picture.'); return false; }
       if (P) { P.saved = P.items; dropDraft(P.kid); } SB.toast('Picture saved to this device.'); return true;
@@ -551,6 +557,7 @@
       ${P.question ? '<label class="sbp-chk"><input type="checkbox" class="sbp-cb" id="sbpQ" checked>Put the question at the top of the picture</label>' : ''}
       <div class="sbp-choices">
         <button type="button" class="sb-btn" data-k="device">Save a picture to this device</button>
+        ${canShare() ? '<button type="button" class="sb-btn" data-k="share">Share the picture</button>' : ''}
         ${canProfile ? '<button type="button" class="sb-btn" data-k="profile">Save to my notes (my profile)</button>' : ''}
         <button type="button" class="sb-btn" data-k="session">Keep for this session only</button></div>
       ${canProfile ? '' : '<p class="sbp-hint">Add your name to keep notes in your profile.</p>'}
@@ -602,5 +609,5 @@
     });
   }
 
-  window.SBPad = { open, setQuestion, guard, isOpen, renderList, store, compose, requestClose, debug: () => P && ({ items: P.items, tool: P.tool, paper: P.paper, penOnly: P.penOnly, from: P.from, question: P.question, dirty: dirty() }) };
+  window.SBPad = { open, setQuestion, guard, isOpen, thumbnail: () => (P && hasInk(P.items)) ? compose({ items: P.items, w: P.w, h: P.h, paper: P.paper, font: P.font, scale: .3 }).toDataURL('image/png') : null, renderList, store, compose, requestClose, debug: () => P && ({ items: P.items, tool: P.tool, paper: P.paper, penOnly: P.penOnly, from: P.from, question: P.question, dirty: dirty() }) };
 })();

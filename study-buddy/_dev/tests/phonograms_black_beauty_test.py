@@ -59,7 +59,7 @@ async def main():
         reg = await pg.evaluate("SB_REGISTRY.modules.map(m => m.id + ':' + (m.archived ? 'A' : 'L') + ':' + m.tools.map(t => t.id + '/' + t.difficulty).join(','))")
         check(any(r.startswith('black-beauty:A:') for r in reg), 'the old Black Beauty is archived')
         check(any(r == 'black-beauty-guide:L:guide/easy,cards/easy,quiz/medium,order/hard,answer/hard,explain/insane' for r in reg), f'new Black Beauty tools and difficulties {reg}')
-        check(any(r == 'phonograms:L:guide/easy,cards/easy,quiz/medium,sort/medium,answer/hard,spell/insane' for r in reg), 'Phonograms tools and difficulties')
+        check(any(r == 'phonograms:L:guide/easy,cards/easy,hear/easy,quiz/medium,sort/medium,answer/hard,spell/insane' for r in reg), 'Phonograms tools and difficulties')
         titles = await pg.evaluate("[...document.querySelectorAll('.grid h3, .grid .title, .mod h3')].map(e => e.textContent.trim())")
         check(not any('old version' in t for t in titles), 'the archived module is not on the hub')
         check(sum(1 for t in titles if t.startswith('Black Beauty')) == 1, f'one Black Beauty card on the hub {titles}')
@@ -143,7 +143,7 @@ async def main():
             q = await pg.locator('#tab-quiz .qtext').inner_text()
             ans = await pg.evaluate("q => (__phTest.quiz.find(x => x.q === q) || {}).a", q)
             if not ans: check(False, f'quiz question found: {q}'); break
-            await pg.locator('#tab-quiz .opt').filter(has_text=re.compile('^' + re.escape(ans) + '$')).first.click(); await pg.click('#tab-quiz [data-a="next"]')
+            await pg.locator('#tab-quiz .opt').filter(has_text=re.compile(r'^\d?' + re.escape(ans) + '$')).first.click(); await pg.click('#tab-quiz [data-a="next"]')
         rec = await record(pg, 'phonograms', 'quiz'); check(rec and rec['best'] == 10, f'phonograms quiz 10 of 10 {rec}')
         bad = await pg.evaluate("(() => { const out = []; for (let i = 0; i < 400; i++) { SBT; } return out; })()")
         # every generated quiz item has the answer among 4 distinct options, and a distractor never sits inside the example word
@@ -189,7 +189,7 @@ async def main():
             await pg.wait_for_selector('#tab-quiz .opt')
             q = await pg.locator('#tab-quiz .qtext').inner_text()
             ans = await pg.evaluate("q => (__bbTest.QUIZ.find(x => x.q === q) || {}).a", q)
-            await pg.locator('#tab-quiz .opt').filter(has_text=re.compile('^' + re.escape(ans) + '$')).first.click(); await pg.click('#tab-quiz [data-a="next"]')
+            await pg.locator('#tab-quiz .opt').filter(has_text=re.compile(r'^\d?' + re.escape(ans) + '$')).first.click(); await pg.click('#tab-quiz [data-a="next"]')
         rec = await record(pg, 'black-beauty-guide', 'quiz'); check(rec and rec['best'] == 10, f'Black Beauty quiz 10 of 10 {rec}')
         await pg.goto(BB + '?tool=answer'); await pg.wait_for_selector('#tab-answer input')
         async def bb_ans(i, q): return await pg.evaluate("q => (__bbTest.TYPE.find(t => t.q.replace(/_{3,}/g, '______') === q) || {a: ['??']}).a[0]", q)

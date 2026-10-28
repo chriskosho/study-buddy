@@ -112,16 +112,25 @@
     function next() {
       SB.stopSpeech(); flip(false);
       if (!FC.queue.length) {
-        F.innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards. ${SEC ? 'Use the arrows to open the next ' + noun + ', or press a button to go again.' : 'Press a button to go again.'}</div>`;
-        B.innerHTML = ''; FC.cur = null; ctx.sfx.win(); bar(); return;
+        const nm = FC.missed.size;
+        F.innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards.${SEC ? ' Use the arrows to open the next ' + noun + ', or go again.' : ''}</div>
+          <div class="row center deckagain"><button type="button" class="btn ghost small" data-a="again-all">Go again</button>${nm ? `<button type="button" class="btn small" data-a="again-missed">Just the ${nm === 1 ? 'one' : nm} I missed</button>` : ''}</div>`;
+        B.innerHTML = ''; FC.cur = null; ctx.sfx.win(); bar();
+        const hadFocus = document.activeElement === card;
+        card.removeAttribute('role'); card.tabIndex = -1; card.removeAttribute('aria-describedby');   // the finished card holds real buttons, so it is no longer one big button itself
+        if (hadFocus) $('[data-a="again-all"]', F).focus();
+        $('[data-a="again-all"]', F).onclick = e => { e.stopPropagation(); build(); };
+        const am = $('[data-a="again-missed"]', F); if (am) am.onclick = e => { e.stopPropagation(); const cards = [...FC.missed]; FC.missed = new Set(); FC.hist = []; FC.queue = shuffle(cards); FC.total = FC.queue.length; next(); };
+        return;
       }
       const c = FC.cur = FC.queue[0];
+      card.setAttribute('role', 'button'); card.tabIndex = 0; card.setAttribute('aria-describedby', 'sbFlipTip');
       F.innerHTML = c.front; B.innerHTML = c.back; if (c.say) ctx.say(c.say); bar();
     }
     const afterUnflip = fn => { if (FC.busy) return; if (!FC.flipped) return fn(); FC.busy = true; flip(false); setTimeout(() => { FC.busy = false; fn(); }, FLIP_MS); };
     const doFlip = () => { if (!FC.cur || FC.busy) return; flip(!FC.flipped); SB.stopSpeech(); };
     card.addEventListener('click', doFlip);
-    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doFlip(); } });
+    card.addEventListener('keydown', e => { if (e.target !== card) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doFlip(); } });   // keys on the buttons inside a finished card work as usual
     const zone = $('.cardzone', P);
     const snap = () => { FC.hist.push({ q: FC.queue.slice(), m: new Set(FC.missed) }); if (FC.hist.length > 300) FC.hist.shift(); };
     const undo = () => { if (FC.busy || !FC.hist.length) return; afterUnflip(() => { const h = FC.hist.pop(); FC.queue = h.q; FC.missed = h.m; next(); SB.cardToast(zone, 'Undone'); }); };
@@ -227,19 +236,19 @@
 
   /* ---------------- Multiple-choice quiz ---------------- */
   function quiz(ctx, opt) {
-    const P = ctx.panel, n = opt.rounds || 10, Q = { qs: [], i: 0, score: 0, answered: false };
-    function start() { Q.qs = (opt.keepOrder ? opt.build() : shuffle(opt.build())).slice(0, n); Q.i = 0; Q.score = 0; show(); }
+    const P = ctx.panel, n = opt.rounds || 10, Q = { qs: [], i: 0, score: 0, answered: false, missed: [] };
+    function start() { Q.qs = (opt.keepOrder ? opt.build() : shuffle(opt.build())).slice(0, n); Q.i = 0; Q.score = 0; Q.missed = []; show(); }
     function show() {
       if (Q.i >= Q.qs.length) {
         ctx.result(Q.score, Q.qs.length); ctx.sfx.win();
-        P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><div class="result">${starsHTML(Q.score, Q.qs.length)}<p class="prompt">${Q.score} out of ${Q.qs.length}</p><p class="lead">${Q.score / Q.qs.length >= 0.9 ? 'Amazing! You really know this.' : Q.score / Q.qs.length >= 0.7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'}</p><button class="btn" data-a="again">Play again</button></div>`;
+        P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><div class="result">${starsHTML(Q.score, Q.qs.length)}<p class="prompt">${Q.score} out of ${Q.qs.length}</p><p class="lead">${Q.score / Q.qs.length >= 0.9 ? 'Amazing! You really know this.' : Q.score / Q.qs.length >= 0.7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'}</p>${reviewHTML(ctx, Q.missed)}<button class="btn" data-a="again">Play again</button></div>`;
         $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
       const q = Q.qs[Q.i], opts = shuffle([q.a, ...shuffle(q.wrong).slice(0, 3)]); Q.answered = false;
       P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><p class="lead">${esc(opt.lead || 'Pick the best answer.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span class="hint">Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${Q.score}</span></div>
-        <div class="qwrap"><div class="row qrow"><p class="qtext">${q.qh || esc(q.q)}</p>${ctx.sayButton(q.say || q.q, 'Hear the question')}</div>${q.html || ''}
-        <div class="opts">${opts.map(o => `<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>
+        <div class="qwrap"><div class="row qrow"><p class="qtext">${q.qh || esc(q.q)}</p>${ctx.sayButton(q.say || q.q, q.audio ? 'Hear the sound' : 'Hear the question', q.audio || '')}</div>${q.html || ''}
+        <div class="opts">${opts.map((o, k) => `<button class="opt" data-v="${esc(o)}"><span class="optkey" aria-hidden="true">${k + 1}</span>${esc(o)}</button>`).join('')}</div>
         <p class="explain" aria-live="polite"></p><div class="row center">${opt.skip ? '<button class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button class="btn" data-a="next" hidden>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
       addPad(ctx, () => q.qh ? plainText(q.qh) : q.q);
       { const f = $('.opt', P); if (f && P.offsetParent && P.contains(document.activeElement) === false && (document.activeElement === document.body || !document.activeElement || P.dataset.sbFocus)) f.focus({ preventScroll: true }); P.dataset.sbFocus = '1'; }   // keyboard users stay in the quiz
@@ -248,7 +257,7 @@
         const skb = $('[data-a="skip"]', P); if (skb) skb.hidden = true;
         const ok = b.dataset.v === q.a;
         $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
-        if (ok) { Q.score++; ctx.credit(); ctx.sfx.good(); } else { b.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); }
+        if (ok) { Q.score++; ctx.credit(); ctx.sfx.good(); } else { b.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); Q.missed.push({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q), audio: q.audio || '' }); }
         if (opt.onAnswer) opt.onAnswer(q, ok);
         $('.explain', P).innerHTML = (ok ? '<b style="color:var(--good-ink)">Correct!</b> ' : '<b style="color:var(--bad-ink)">Not quite.</b> ') + esc(q.why || ('The answer is: ' + q.a + '.'));
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
@@ -257,13 +266,20 @@
       if (sk) sk.onclick = () => {                              // not sure? show the answer, mark it for review, and move on (no point, no streak change)
         if (Q.answered) return; Q.answered = true; sk.hidden = true;
         $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
-        if (opt.onAnswer) opt.onAnswer(q, false);
+        if (opt.onAnswer) opt.onAnswer(q, false); Q.missed.push({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q), audio: q.audio || '' });
         $('.explain', P).innerHTML = '<b>Marked for review.</b> ' + esc(q.why || ('The answer is: ' + q.a + '.'));
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
       };
       $('[data-a="next"]', P).onclick = () => { Q.i++; show(); };
-      ctx.say(q.say || q.q);
+      if (!q.audio) ctx.say(q.say || q.q);
     }
+    /* number keys 1 to 4 pick a choice (when the quiz is on screen and you are not typing somewhere) */
+    const onKey = e => {
+      if (!P.isConnected) return document.removeEventListener('keydown', onKey);
+      if (!P.offsetParent || e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '') || document.querySelector('.sb-ov') || (e.target && e.target.closest && e.target.closest('.sbp'))) return;   // not while working in the scratch pad
+      const k = +e.key; if (!(k >= 1 && k <= 9)) return; const b = $$('.opt', P)[k - 1]; if (b && !b.disabled) { e.preventDefault(); b.click(); }
+    };
+    document.addEventListener('keydown', onKey);
     start();
   }
 
@@ -313,29 +329,69 @@
     return 'no';
   }
 
+  const COARSE = () => !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+  const KEYPAD = `<div class="keypad" role="group" aria-label="Number keys">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ' ', '/'].map(k => `<button type="button" data-k="${k}" aria-label="${k === ' ' ? 'space' : k === '/' ? 'fraction bar' : k}">${k === ' ' ? 'space' : k}</button>`).join('')}<button type="button" data-k="back" aria-label="Delete">&larr;</button></div>`;
+  const fracHTML = f => f.w != null && f.fn ? `<span class="mixed"><b>${f.w}</b><span class="frac"><span class="fn">${f.fn}</span><span class="fd">${f.fd}</span></span></span>`
+    : f.d === 1 ? `<b>${f.n}</b>` : f.dec ? `<b>${(f.n / f.d)}</b>` : `<span class="frac"><span class="fn">${f.n}</span><span class="fd">${f.d}</span></span>`;
+  /* the explanation after a miss comes one step at a time ("Show the next step"); after a right answer it shows whole */
+  function steps(el, text, missed) {
+    const parts = String(text).replace(/([.!?]+["')]?)\s+/g, '$1\u0000').split('\u0000').map(x => x.trim()).filter(Boolean);   // a step ends at . ! or ? and a space, so 3.45 stays whole
+    if (!missed || parts.length < 3) { el.textContent = text; return; }
+    let k = 1; const draw = () => { el.innerHTML = esc(parts.slice(0, k).join(' ').trim()) + (k < parts.length ? ' <button type="button" class="btn ghost small stepbtn">Show the next step</button>' : '');
+      const b = el.querySelector('.stepbtn'); if (b) b.onclick = () => { k++; draw(); const nb = el.querySelector('.stepbtn'); (nb || el).focus && (nb ? nb.focus() : null); }; };
+    draw();
+  }
+  /* the questions missed in a round, folded away under the result so the screen still fits */
+  function reviewHTML(ctx, missed) {
+    if (!missed.length) return '';
+    return `<details class="review"><summary>See the ${missed.length === 1 ? 'one' : missed.length} to practice</summary><ul>${missed.map(m => `<li>${m.pic ? `<img src="${m.pic}" alt="Your scratch pad work" class="revpic">` : ''}<span class="revq">${esc(m.q)}</span><span class="reva">Answer: <b>${esc(m.a)}</b></span>${m.audio ? ctx.sayButton(String(m.a), 'Hear the sound again', m.audio) : m.say ? ctx.sayButton(m.say + '. The answer is ' + m.a + '.', 'Hear it') : ''}</li>`).join('')}</ul></details>`;
+  }
   function answer(ctx, opt) {
-    const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', R = { list: [], i: 0, score: 0, tries: 0, hinted: false };
+    const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', R = { list: [], i: 0, score: 0, tries: 0, hinted: false, missed: [] };
+    const real = () => R.list.filter(x => !x.practice), numNow = () => R.list.slice(0, R.i + 1).filter(x => !x.practice).length;   // practice questions (Try a similar one) do not count
     const check = (item, v) => judge(item, v, kind, opt);
     const shown = item => item.show || (kind === 'fraction' ? String(item.a) : kind === 'number' ? Number(item.a).toLocaleString('en-US', { maximumFractionDigits: 10 }) : [].concat(item.a)[0]);
-    function start() { R.list = opt.build().slice(0, n); R.i = 0; R.score = 0; show(); }
+    function start() { R.list = opt.build().slice(0, n); R.i = 0; R.score = 0; R.missed = []; show(); }
     function show() {
       if (R.i >= R.list.length) {
-        ctx.result(R.score, R.list.length); ctx.sfx.win();
-        P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><div class="result">${starsHTML(R.score, R.list.length)}<p class="prompt">${R.score} out of ${R.list.length}</p><p class="lead">${R.score / R.list.length >= 0.8 ? 'Excellent work!' : 'Good practice. Read the explanations, then try another round.'}</p><button class="btn" data-a="again">Play again</button></div>`;
+        const total = real().length;
+        ctx.result(R.score, total); ctx.sfx.win();
+        P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><div class="result">${starsHTML(R.score, total)}<p class="prompt">${R.score} out of ${total}</p><p class="lead">${R.score / total >= 0.8 ? 'Excellent work!' : 'Good practice. Read the explanations, then try another round.'}</p>${reviewHTML(ctx, R.missed)}<button class="btn" data-a="again">Play again</button></div>`;
         $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
-      const item = R.list[R.i]; R.tries = 0; R.hinted = false;
+      const item = R.list[R.i]; R.tries = 0; R.hinted = false; const tot = real().length;
       P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><p class="lead">${esc(opt.lead || 'Type your answer, then press Check.')}</p>
-        <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Question ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span></div>
+        <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">${item.practice ? 'Practice: a similar one, no score' : `Question ${numNow()} of ${tot} &middot; Score ${R.score}`}</span></div>
         <div class="row qrow"><p class="qtext">${item.q}</p>${item.say ? ctx.sayButton(item.say, 'Hear it') : ''}</div>
-        <form class="spellrow" autocomplete="off"><input aria-label="Your answer" placeholder="${kind === 'fraction' ? 'Like 3/4 or 1 3/4' : 'Answer'}" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off" autocorrect="off"'}${kind === 'fraction' ? ' size="14"' : ''} spellcheck="false"><button class="btn" type="submit">Check</button></form>
+        <form class="spellrow" autocomplete="off"><span class="spellbox"><input aria-label="Your answer" placeholder="${kind === 'fraction' ? 'Like 3/4 or 1 3/4' : 'Answer'}" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off" autocorrect="off"'}${kind === 'fraction' ? ' size="14"' : ''} spellcheck="false"><button class="btn" type="submit">Check</button>${kind === 'fraction' ? '<span class="typed" aria-live="polite"></span>' : ''}</span></form>
+        ${kind === 'fraction' && COARSE() ? KEYPAD : ''}
         <div class="err" role="alert"></div><p class="explain why"></p>
-        <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
+        <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}${kind !== 'text' && !item.practice ? '<button type="button" class="btn ghost" data-a="similar" hidden>Try a similar one</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
       addPad(ctx, () => plainText(item.q));
       const inp = $('input', P), err = $('.err', P), why = $('.why', P), next = $('[data-a="next"]', P), hb = $('[data-a="hint"]', P);
       inp.focus();
       const sk = $('[data-a="skip"]', P);
-      const done = pt => { inp.disabled = true; $('form button', P).disabled = true; if (hb) hb.hidden = true; if (sk) sk.hidden = true; next.hidden = false; next.focus(); if (item.why) why.textContent = item.why; if (opt.onAnswer) opt.onAnswer(item, !!pt); };
+      const sim = $('[data-a="similar"]', P);
+      const done = (pt, missed) => {
+        inp.disabled = true; $('form button', P).disabled = true; if (hb) hb.hidden = true; if (sk) sk.hidden = true; next.hidden = false; next.focus();
+        if (item.why) steps(why, item.why, missed);
+        if (missed && !item.practice) {
+          let pic = null; try { pic = window.SBPad && SBPad.thumbnail ? SBPad.thumbnail() : null; } catch (e) {}   // "show my work": what was on the scratch pad
+          R.missed.push({ q: plainText(item.q), a: shown(item), say: item.say || '', pic });
+          if (sim) sim.hidden = false;
+        }
+        if (opt.onAnswer && !item.practice) opt.onAnswer(item, !!pt);
+      };
+      if (sim) sim.onclick = () => {                            // a fresh problem of the same kind, for practice (no score, no credit)
+        const fresh = opt.build().find(x => plainText(x.q) !== plainText(item.q)); if (!fresh) return;
+        R.list.splice(R.i + 1, 0, Object.assign({}, fresh, { practice: true })); R.i++; show();
+      };
+      const typed = $('.typed', P);
+      if (typed) inp.addEventListener('input', () => { const f = parseFrac(stripUnit(inp.value).v); typed.innerHTML = inp.value.trim() && f ? 'You typed ' + fracHTML(f) : ''; });
+      $$('[data-k]', P).forEach(b => b.onclick = () => { const k = b.dataset.k, st0 = inp.selectionStart ?? inp.value.length, en = inp.selectionEnd ?? st0;
+        if (k === 'back') { const a = st0 === en ? Math.max(0, st0 - 1) : st0; inp.value = inp.value.slice(0, a) + inp.value.slice(en); inp.setSelectionRange(a, a); }
+        else { inp.value = inp.value.slice(0, st0) + k + inp.value.slice(en); inp.setSelectionRange(st0 + 1, st0 + 1); }
+        inp.dispatchEvent(new Event('input')); });
       inp.oninput = () => { inp.classList.remove('bad'); err.textContent = ''; };
       if (hb) hb.onclick = () => { R.hinted = true; err.style.color = 'var(--ink2)'; err.textContent = item.hint; inp.focus(); };
       $('form', P).onsubmit = e => {
@@ -349,18 +405,18 @@
         if (nudge) { inp.classList.add('bad'); err.style.color = ''; err.textContent = nudge; return; }
         if (r === 'case') { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Almost! Check the capital and small letters, then try again.'; return; }
         if (r === 'ok' || r === 'close') {
-          const pt = !R.hinted && R.tries === 0; if (pt) R.score++;
-          ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good-ink)';
+          const pt = !R.hinted && R.tries === 0 && !item.practice; if (pt) R.score++;
+          if (!item.practice) ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good-ink)';
           err.textContent = (r === 'close' ? 'Close enough! It is spelled ' + shown(item) + '.' : 'Correct! ' + shown(item) + '.') + unitNote + (R.hinted ? ' (Hint used, so no point.)' : '');
-          done(pt);
+          done(pt, !pt && (R.hinted || R.tries > 0));
         } else {
-          R.tries++; ctx.slip(); ctx.sfx.bad(); inp.classList.add('bad'); err.style.color = '';
-          if (R.tries >= 2) { err.textContent = 'The answer is ' + shown(item) + '.'; done(false); }
+          R.tries++; if (!item.practice) ctx.slip(); ctx.sfx.bad(); inp.classList.add('bad'); err.style.color = '';
+          if (R.tries >= 2) { err.textContent = 'The answer is ' + shown(item) + '.'; done(false, true); }
           else err.textContent = 'Not quite. Try again.';
         }
       };
       if (sk) sk.onclick = () => {                              // not sure? show the answer, mark it for review, and move on (no point, no streak change)
-        err.style.color = 'var(--ink2)'; err.textContent = 'Marked for review. The answer is ' + shown(item) + '.'; done(false);
+        err.style.color = 'var(--ink2)'; err.textContent = 'Marked for review. The answer is ' + shown(item) + '.'; done(false, true);
       };
       next.onclick = () => { R.i++; show(); };
       if (item.say) ctx.say(item.say);
