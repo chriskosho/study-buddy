@@ -187,14 +187,16 @@ async def main():
         d2 = await dl2.value; data2 = open(await d2.path(), 'rb').read(); w2, h2 = struct.unpack('>II', data2[16:24])
         check(h2 < h and w2 == w, f'the question header is optional (with {h}px, without {h2}px)')
 
-        # ---- saving: session and profile ----
-        await pg.click('.sbp [data-a="save"]'); await pg.click('.sb-ov [data-k="session"]'); await pg.wait_for_timeout(80)
-        check(await pg.evaluate("SBPad.store.list('session').length") == 1, 'Keep for this session stores one session note')
-        check(await pg.evaluate("Object.keys(localStorage).filter(k => k.includes('sessnotes')).length") == 0, 'session notes never touch localStorage')
-        await pg.click('.sbp [data-a="save"]'); await pg.click('.sb-ov [data-k="profile"]'); await pg.wait_for_timeout(80)
+        # ---- saving: profile (a named profile is not offered "this session only") ----
+        await pg.click('.sbp [data-a="save"]'); await pg.wait_for_selector('.sb-ov')
+        check(await pg.locator('.sb-ov [data-k="session"]').count() == 0 and 'Add your name' not in await pg.inner_text('.sb-ov'), 'a named profile is not offered "this session only"')
+        await pg.click('.sb-ov [data-k="profile"]'); await pg.wait_for_timeout(80)
         check(await pg.evaluate("SBPad.store.list('profile').length") == 1 and await pg.evaluate("!!localStorage.getItem('studybuddy.v1.notes.k1')"), 'Save to my notes stores a profile note under this child')
         note = await pg.evaluate("SBPad.store.list('profile')[0]")
         check(note['paper'] == 'blank' and len(note['items']) > 3 and note['question'] and 'p' in note['items'][0], 'the note keeps strokes (not a flat picture), paper, and the question')
+        # a session note made before this change is still listed
+        await pg.evaluate("n => SBPad.store.add('session', Object.assign({}, n, { id: 'old-session' }), SB.activeId())", note)
+        check(await pg.evaluate("SBPad.store.list('session').length") == 1 and await pg.evaluate("Object.keys(localStorage).filter(k => k.includes('sessnotes')).length") == 0, 'session notes never touch localStorage')
 
         # ---- saved notes drawer ----
         await pg.click('.sbp [data-a="notes"]'); await pg.wait_for_selector('.sbp-saved .sbn')
@@ -215,16 +217,17 @@ async def main():
         await open_pad(pg, 'cubes'); await stroke(pg, [(30, 30), (100, 90)], steps=3)
         await pg.click('.sbp [data-a="close"]'); await pg.wait_for_selector('.sb-ov')
         check('Save this note?' in await pg.inner_text('.sb-ov h3'), 'closing with writing asks to save')
-        for k in ('device', 'profile', 'session', 'discard', 'keep'):
+        for k in ('device', 'profile', 'discard', 'keep'):
             check(await pg.locator(f'.sb-ov [data-k="{k}"]').count() == 1, f'close prompt offers {k}')
+        check(await pg.locator('.sb-ov [data-k="session"]').count() == 0, 'close prompt does not offer this session only')
         await pg.screenshot(path='/tmp/pad_close.png')
         await pg.click('.sb-ov [data-k="keep"]'); check(await pg.locator('.sbp').count() == 1 and (await state(pg))['dirty'], 'Keep working returns to the pad')
         await pg.click('.sbp [data-a="close"]'); await pg.keyboard.press('Escape'); await pg.wait_for_timeout(100)
         check(await pg.locator('.sbp').count() == 1, 'Escape on the prompt keeps working')
-        await pg.click('.sbp [data-a="close"]'); await pg.click('.sb-ov [data-k="session"]')
-        await pg.wait_for_selector('.sbp', state='detached'); check(await pg.evaluate("SBPad.store.list('session').length") == 2, 'saving from the prompt keeps the note and closes the pad')
+        await pg.click('.sbp [data-a="close"]'); await pg.click('.sb-ov [data-k="profile"]')
+        await pg.wait_for_selector('.sbp', state='detached'); check(await pg.evaluate("SBPad.store.list('profile').length") == 2, 'saving from the prompt keeps the note and closes the pad')
         await open_pad(pg, 'cubes'); await stroke(pg, [(30, 30), (100, 90)], steps=3); await pg.click('.sbp [data-a="close"]'); await pg.click('.sb-ov [data-k="discard"]')
-        await pg.wait_for_selector('.sbp', state='detached'); check(await pg.evaluate("SBPad.store.list('session').length") == 2, 'Do not save closes and keeps nothing')
+        await pg.wait_for_selector('.sbp', state='detached'); check(await pg.evaluate("SBPad.store.list('profile').length") == 2, 'Do not save closes and keeps nothing')
         check(not await pg.evaluate("document.body.classList.contains('sb-padopen')"), 'page goes back to full width')
 
         # ---- leaving the tool with writing asks first ----
@@ -240,16 +243,16 @@ async def main():
 
         # ---- My notes page ----
         await pg.goto(BASE + 'index.html#/notes'); await pg.wait_for_selector('#notesBox .sbn')
-        check(await pg.locator('#notesBox [data-scope="profile"]').count() == 1, 'My notes lists the profile note')
+        check(await pg.locator('#notesBox [data-scope="profile"]').count() == 2, 'My notes lists the profile notes')
         check('My notes' in await pg.inner_text('.sbhead'), 'the header has a Notes link') if False else None
         check(await pg.locator('.sbhead a[href$="#/notes"]').count() == 1, 'the header has a Notes link')
         await pg.screenshot(path='/tmp/pad_notes.png')
-        await pg.click('#notesBox [data-scope="profile"] [data-a="open"]'); await pg.wait_for_selector('.sbp')
+        await pg.click('#notesBox [data-scope="profile"] [data-a="open"] >> nth=1'); await pg.wait_for_selector('.sbp')   # the older note, with the long drawing
         st = await state(pg); check(len(st['items']) > 3 and not st['dirty'], 'opening a saved note loads its strokes')
         await pg.screenshot(path='/tmp/pad_note_open.png')
         await pg.click('.sbp [data-a="close"]'); await pg.wait_for_selector('.sbp', state='detached')
-        await pg.click('#notesBox [data-scope="profile"] [data-a="del"]'); await pg.click('.sb-ov [data-x="yes"]'); await pg.wait_for_timeout(100)
-        check(await pg.locator('#notesBox [data-scope="profile"]').count() == 0, 'delete removes the note')
+        await pg.click('#notesBox [data-scope="profile"] [data-a="del"] >> nth=0'); await pg.click('.sb-ov [data-x="yes"]'); await pg.wait_for_timeout(100)
+        check(await pg.locator('#notesBox [data-scope="profile"]').count() == 1, 'delete removes the note')
 
         # ---- bugs found in review ----
         await pg.goto(MUL + '?tool=fraction'); await pg.wait_for_selector('#tab-fraction .qtext .frac'); await open_pad(pg, 'fraction')
@@ -325,8 +328,8 @@ async def main():
         await rp.click('.sbp [data-a="save"]'); await rp.click('.sb-ov [data-k="profile"]'); await rp.wait_for_timeout(100)
         lst = await rp.evaluate("SBPad.store.list('profile')")
         check(len(lst) == n0 and len(lst[0]['items']) == 2, f'saving an opened note again updates it instead of making a copy ({n0} -> {len(lst)})')
-        await rp.click('.sbp [data-a="save"]'); await rp.click('.sb-ov [data-k="session"]'); await rp.wait_for_timeout(100)
-        check(await rp.evaluate("SBPad.store.list('profile').length") == n0 and await rp.evaluate("SBPad.store.list('session').length") == 1, 'saving it somewhere else still makes a new note there')
+        await rp.click('.sbp [data-a="save"]'); await rp.wait_for_selector('.sb-ov')
+        check(await rp.locator('.sb-ov [data-k="session"]').count() == 0, 'a named profile still has no this-session choice here'); await rp.click('.sb-ov [data-k="keep"]')
         # a draft survives a reload (iPhone and iPad give no warning)
         await stroke(rp, [(60, 300), (160, 340)], steps=3)
         await rp.reload(); await rp.wait_for_selector('#sbPad'); await rp.click('#sbPad'); await rp.wait_for_selector('.sb-ov')
