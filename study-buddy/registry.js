@@ -224,6 +224,26 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'volume',
+      subject: 'math',
+      title: 'Volume of Solid Figures',
+      blurb: 'Counting unit cubes, the volume formula, compound figures, and volume and capacity (Dimensions Math 5, chapter 8).',
+      tags: ['math', 'volume', 'geometry'],
+      path: 'modules/math/volume/index.html',
+      storage: ['volume'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Worked examples, and a helper that finds the volume of any box and what it holds.' },
+        { id: 'cubes', name: 'Count the cubes', difficulty: 'easy', blurb: 'Layers of unit cubes in a box. Mastered at 8 of 10.' },
+        { id: 'stacks', name: 'Stacks of cubes', difficulty: 'easy', blurb: 'Irregular figures built from cubes, seen from above. Mastered at 8 of 10.' },
+        { id: 'formula', name: 'Use the formula', difficulty: 'medium', blurb: 'Boxes, cubes, and finding a missing edge. Mastered at 8 of 10.' },
+        { id: 'capacity', name: 'Volume and capacity', difficulty: 'medium', blurb: 'Milliliters, liters and cubic centimeters. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Word problems', difficulty: 'hard', blurb: 'Boxes, tanks and sand. Mastered at 8 of 10.' },
+        { id: 'compare', name: 'Compare volumes', difficulty: 'hard', blurb: 'How much more does the bigger box hold? Mastered at 8 of 10.' },
+        { id: 'compound', name: 'Compound figures', difficulty: 'hard', blurb: 'Join two boxes, or cut a piece out. Mastered at 8 of 10.' },
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'All the volume skills together. Mastered at 8 of 10.' }
+      ]
+    },
+    {
       id: 'planets',
       subject: 'science',
       title: 'The Planets',
