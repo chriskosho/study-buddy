@@ -288,7 +288,7 @@
   const gcdI = (a, b) => b ? gcdI(b, a % b) : Math.abs(a);
   /* "3/4", "1 3/4" or "2" -> { n, d } (improper); mixed numbers also carry w, fn, fd. null when it is not a fraction */
   const VULGAR = { '½': ' 1/2', '⅓': ' 1/3', '⅔': ' 2/3', '¼': ' 1/4', '¾': ' 3/4', '⅕': ' 1/5', '⅖': ' 2/5', '⅗': ' 3/5', '⅘': ' 4/5', '⅙': ' 1/6', '⅚': ' 5/6', '⅛': ' 1/8', '⅜': ' 3/8', '⅝': ' 5/8', '⅞': ' 7/8' };
-  /* what a child might type around a number: a unit word ("3/4 cup", "1,728 cubic feet"), "1-3/4", "1 and 3/4", ½, thousands commas */
+  /* what a student might type around a number: a unit word ("3/4 cup", "1,728 cubic feet"), "1-3/4", "1 and 3/4", ½, thousands commas */
   const stripUnit = v => { const t = String(v).trim(), m = t.match(/^(.*\d)\s*([a-z][a-z .]*)$/i); return m && !/^(and)$/i.test(m[2].trim()) ? { v: m[1].trim(), unit: true } : { v: t, unit: false }; };
   const fracPrep = v => String(v).trim().replace(/\u2212/g, '-').replace(/[\u2044\u2215]/g, '/').replace(/[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]/g, c => VULGAR[c])
     .replace(/^(\d+)\s*(?:-|and|\+)\s*(\d+\s*\/\s*\d+)$/i, '$1 $2').replace(/(\d),(?=\d{3}(?!\d))/g, '$1').replace(/^(\d{1,3})(?: (\d{3}))+$/, m => m.replace(/ /g, '')).replace(/\s+/g, ' ').trim();

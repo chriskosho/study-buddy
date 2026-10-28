@@ -1,5 +1,5 @@
 /* Study Buddy hub pages: Settings, Help, FAQ, About.
-   hub.js calls HUBPAGES.<name>(app, kid) to fill the page. All of the writing here is for parents and kids, so keep it plain. */
+   hub.js calls HUBPAGES.<name>(app, kid) to fill the page. All of the writing here is for admins and kids, so keep it plain. */
 (function () {
   'use strict';
   const SB = window.SB, esc = SB.esc;
@@ -26,21 +26,21 @@
           <span class="voicectl"><select id="voiceSel" aria-describedby="voiceHint"></select><button type="button" class="btn ghost small" id="voicePrev">Preview</button></span></div>
         <p class="hint" id="voiceHint">${HINT}</p><p class="hint" id="voiceNow" role="status" aria-live="polite"></p></div>` : '';
     app.innerHTML = top('Settings', 'for ' + esc(kid.name)) + `<section class="panel setpanel">
-      <p class="lead">Saved for ${esc(kid.name)} on this device. ${many ? `Not ${esc(kid.name)}? <a href="#/">Switch child</a>.` : ''}</p>
+      <p class="lead">Saved for ${esc(kid.name)} on this device. ${many ? `Not ${esc(kid.name)}? <a href="#/">Switch student</a>.` : ''}</p>
       ${OPTS.map(g => `<div class="setgroup"><h3>${g.group}</h3>${g.items.map(i => seg(...i)).join('')}</div>`).join('')}
       ${speech}
       <div class="setgroup"><h3>Updates</h3>
         <div class="setrow"><span>Show the newest version of Study Buddy</span><button type="button" class="btn ghost small" id="refreshLatest">Refresh for the latest</button></div>
         <p class="hint" id="refreshHint" role="status" aria-live="polite">Use this if a new tool or change is not showing up yet. It reloads the site's files. Names, progress, and settings are not touched.</p>
         <p class="hint" id="versionLine">Checking the version...</p></div>
-      <div class="setgroup"><h3>Parents</h3>
-        <div class="setrow"><span>Progress, children, backup, and the parent PIN</span><a class="btn ghost small" href="#/parent">Open the parent area</a></div>
-        <p class="hint">The parent area asks for the PIN if one is set.</p></div>
+      <div class="setgroup"><h3>Admins</h3>
+        <div class="setrow"><span>Progress, students, backup, and the admin PIN</span><a class="btn ghost small" href="#/admin">Open the admin area</a></div>
+        <p class="hint">The admin area asks for the PIN if one is set.</p></div>
       <div class="setgroup"><h3>Start over</h3>
         <div class="setrow"><span>Reset all progress</span><button type="button" class="btn warn small" id="resetProg">Reset all progress</button></div>
-        <p class="hint">Erases scores, streaks, and module progress for every child. Names, colors, and settings stay.</p>
+        <p class="hint">Erases scores, streaks, and module progress for every student. Names, colors, and settings stay.</p>
         <div class="setrow"><span>Erase everything</span><button type="button" class="btn warn small" id="eraseAll">Erase everything</button></div>
-        <p class="hint">Removes every child, all progress, all settings, and the parent PIN, then starts fresh. This cannot be undone. Save a backup first in the <a href="#/parent/backup">parent area</a> if you might want it back. Both ask for the parent PIN if one is set.</p></div>
+        <p class="hint">Removes every student, all progress, all settings, and the admin PIN, then starts fresh. This cannot be undone. Save a backup first in the <a href="#/admin/backup">admin area</a> if you might want it back. Both ask for the admin PIN if one is set.</p></div>
     </section>`;
     app.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
       const k = b.dataset.k, v = b.dataset.v === 'true' ? true : b.dataset.v === 'false' ? false : b.dataset.v;
@@ -75,10 +75,10 @@
       hint.textContent = 'Done. Reloading...'; setTimeout(() => location.reload(), 300);
     };
     const names = SB.profiles().map(p => p.name).join(', ');
-    app.querySelector('#resetProg').onclick = () => SB.requirePin('Enter the parent PIN to reset all progress.', () => { SB.resetAllProgress(); SB.toast('All progress was reset'); },
+    app.querySelector('#resetProg').onclick = () => SB.requirePin('Enter the admin PIN to reset all progress.', () => { SB.resetAllProgress(); SB.toast('All progress was reset'); },
       null, { confirm: { title: 'Reset all progress?', text: 'This erases best scores, streaks, and module progress for ' + names + '. Names and settings stay.', ok: 'Reset all progress' } });
-    app.querySelector('#eraseAll').onclick = () => SB.requirePin('Enter the parent PIN to erase everything.', () => { SB.eraseEverything(); location.hash = '#/home'; location.reload(); },
-      null, { confirm: { title: 'Erase everything?', text: 'This removes ' + names + ', all progress, all settings, and the parent PIN from this device. It cannot be undone.', ok: 'Erase everything' } });
+    app.querySelector('#eraseAll').onclick = () => SB.requirePin('Enter the admin PIN to erase everything.', () => { SB.eraseEverything(); location.hash = '#/home'; location.reload(); },
+      null, { confirm: { title: 'Erase everything?', text: 'This removes ' + names + ', all progress, all settings, and the admin PIN from this device. It cannot be undone.', ok: 'Erase everything' } });
     const sel = app.querySelector('#voiceSel');
     if (sel) {
       const fill = () => {
@@ -107,6 +107,7 @@
       ${sec('Getting started', `<ol><li>Open a <b>subject</b> from the Home page, then a <b>module</b>, then a <b>tool</b>. The trail at the top (Home, Subject, Module) always shows where you are, and each part is a link back.</li>
         <li>Everyone starts as a <b>Guest</b>. Choose <b>Add a name</b> at the top to keep progress under your name.</li>
         <li>Use <b>Search</b> at the top to find a module or tool by name. Press <b>/</b> to jump to it.</li></ol>`, true)}
+      ${sec('Saving modules', `<p>Press the bookmark button on a module card, or at the top of a module, to save it. A <b>Saved</b> tab then appears next to <b>All</b> and lists everything you saved, from every subject. When you have saved modules, the home screen opens on Saved; choose All to see everything. Press the bookmark again to remove one. Each student has their own saved list.</p>`)}
       ${sec('The kinds of tools', `<ul><li><b>Study guide</b>: read it first. No score.</li>
         <li><b>Flashcards</b>: practice only. Tap or press Enter to flip, swipe right for "I knew it" and left for "Still learning". A short message confirms each choice, and Undo (or Ctrl+Z) takes it back. They never change your streak or score.</li>
         <li><b>Quiz</b>, <b>Sort it</b>, <b>Put in order</b>, <b>Fill it in</b>, and the Atlas games are checked tools. They give credit, streaks, and mastery.</li>
@@ -125,8 +126,8 @@
         <li>When you close the pad with writing on it, it asks what to do: save to <b>My notes</b> (under your name), download a picture, or not save it. Guest, which has no name, can keep a note for this session only. Notes saved to your name are in <b>Notes</b> at the top of every page.</li>
         <li>Close the pad and open it again on the same question and your writing is still there. A new question starts on a clean page. The <b>New note</b> button starts a fresh page, and asks first if the old one is not saved.</li>
         <li>The pad is also in <a href="#/utilities">Utilities</a> as <b>Scratch pad</b>, with no question, for any homework.</li></ul>`)}
-      ${sec('Saving, backups, and other devices', `<p>Progress is saved in this browser on this device. A parent can save a backup file and load it on another device in the <a href="#/parent">parent area</a>, which reminds you when the last backup is two weeks old. "Load one child" brings back just one child from a backup.</p>`)}
-      ${sec('Display options', `<p>Dark mode, the OpenDyslexic font, and larger text are in <a href="#/settings">Settings</a>. Each child keeps their own.</p>`)}
+      ${sec('Saving, backups, and other devices', `<p>Progress is saved in this browser on this device. An admin can save a backup file and load it on another device in the <a href="#/admin">admin area</a>, which reminds you when the last backup is two weeks old. "Load one student" brings back just one student from a backup.</p>`)}
+      ${sec('Display options', `<p>Dark mode, the OpenDyslexic font, and larger text are in <a href="#/settings">Settings</a>. Each student keeps their own.</p>`)}
     </section>`;
   }
 
@@ -135,17 +136,17 @@
     document.title = 'FAQ · Study Buddy';
     app.innerHTML = top('FAQ') + `<section class="panel infopanel">
       <p class="lead">Common questions.</p>
-      ${sec('Is my child\'s information sent anywhere?', '<p>No. There are no accounts, no tracking, and nothing is uploaded. Names, scores, and settings stay in this browser on this device.</p>', true)}
-      ${sec('Why did progress disappear?', '<p>Progress lives in the browser. It is cleared if you clear browsing data, use a private window, or switch browsers or devices. Save a backup in the parent area to be safe.</p>')}
+      ${sec('Is my student\'s information sent anywhere?', '<p>No. There are no accounts, no tracking, and nothing is uploaded. Names, scores, and settings stay in this browser on this device.</p>', true)}
+      ${sec('Why did progress disappear?', '<p>Progress lives in the browser. It is cleared if you clear browsing data, use a private window, or switch browsers or devices. Save a backup in the admin area to be safe.</p>')}
       ${sec('Why don\'t flashcards give a score or streak?', '<p>Flashcards are for practice. Credit comes from tools that check answers, like quizzes and sorting, so a score means something.</p>')}
       ${sec('The voice sounds robotic. Can I change it?', '<p>Yes. Open <a href="#/settings">Settings</a> and pick a Voice, then press Preview. Voices come from your device and browser, so a phone and a laptop can differ. Edge and Chrome often have more natural ones.</p>')}
       ${sec('How do I stop a sound that is playing?', '<p>Press the speaker button again, or press Escape. Turning Sound or Read aloud off also stops it.</p>')}
-      ${sec('Where do scratch pad notes go?', '<p>Nowhere unless you choose. A picture you save to the device downloads like any file. "My notes" are kept in this browser under that child\'s name (not for the Guest profile), and are included in a parent backup. Guest can keep a note "for this session"; it is gone when the browser tab closes. Nothing is uploaded.</p>')}
-      ${sec('Can several children use it?', '<p>Yes. A parent adds children in the parent area. Each child has their own progress and settings.</p>')}
+      ${sec('Where do scratch pad notes go?', '<p>Nowhere unless you choose. A picture you save to the device downloads like any file. "My notes" are kept in this browser under that student\'s name (not for the Guest profile), and are included in an admin backup. Guest can keep a note "for this session"; it is gone when the browser tab closes. Nothing is uploaded.</p>')}
+      ${sec('Can several students use it?', '<p>Yes. An admin adds students in the admin area. Each student has their own progress and settings.</p>')}
       ${sec('Does it work without internet?', '<p>After the first visit, most of it works offline. Wikipedia links in the study guides need internet.</p>')}
-      ${sec('How do I move to a new device?', '<p>In the parent area, save a backup on the old device and load it on the new one. A backup contains the parent PIN, so keep the file private.</p>')}
-      ${sec('Someone studied as Guest. Can I keep that progress?', '<p>Yes. In the parent area, under Children, Guest has "Move Guest\'s progress to". Pick the child and press Move.</p>')}
-      ${sec('I forgot the parent PIN.', '<p>In the PIN prompt choose "Forgot PIN?", type REMOVE, then choose a new PIN.</p>')}
+      ${sec('How do I move to a new device?', '<p>In the admin area, save a backup on the old device and load it on the new one. A backup contains the admin PIN, so keep the file private.</p>')}
+      ${sec('Someone studied as Guest. Can I keep that progress?', '<p>Yes. In the admin area, under Students, Guest has "Move Guest\'s progress to". Pick the student and press Move.</p>')}
+      ${sec('I forgot the admin PIN.', '<p>In the PIN prompt choose "Forgot PIN?", type REMOVE, then choose a new PIN.</p>')}
       ${sec('Are the answers always right?', '<p>Modules built from a teacher\'s study guide keep the teacher\'s wording. Where historians disagree, a "Historians say" note links a source. If you spot a mistake, please tell the person who set up your Study Buddy.</p>')}
     </section>`;
   }
@@ -161,7 +162,7 @@
       <ul><li>No accounts, no ads, and no tracking.</li>
         <li>Names, scores, and settings are saved only in your browser, on your device. Nothing is sent to a server.</li>
         <li>Links to Wikipedia open another website, which has its own privacy rules.</li>
-        <li>A parent can erase everything for a child, or all of it, in the parent area.</li></ul>
+        <li>An admin can erase everything for a student, or all of it, in the admin area.</li></ul>
       <h3>What is new</h3>
       <p>See the <a href="#/changelog">Change log</a> for what has changed, newest first.</p>
       <h3>Credits</h3>

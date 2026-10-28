@@ -7,8 +7,8 @@
      SB.shell({})                             just Home
 
    The hub calls it again on every route change, so the trail always matches the page.
-   Header: Study Buddy (home), the trail, Search, the child, Settings, Help menu.
-   Footer: Home, Subjects, Utilities, Settings, Parent area, Help, FAQ, About, and the privacy line.
+   Header: Study Buddy (home), the trail, Search, the student, Settings, Help menu.
+   Footer: Home, Subjects, Utilities, Settings, Admin area, Help, FAQ, About, and the privacy line.
    Needs sb-core.js. Uses registry.js for names and search (loads it if the page did not). */
 (function () {
   'use strict';
@@ -118,7 +118,7 @@
     { title: 'FAQ', blurb: 'Common questions and answers', href: PAGE('faq'), words: 'questions questions answers' },
     { title: 'About', blurb: 'What Study Buddy is, and your privacy', href: PAGE('about'), words: 'privacy data credits' },
     { title: 'Change log', blurb: 'What is new in Study Buddy', href: PAGE('changelog'), words: 'changes new updates history release notes whats new' },
-    { title: 'Parent area', blurb: 'Progress, children, backup, and the PIN (needs the PIN)', href: PAGE('parent'), words: 'backup pin children progress reset' }
+    { title: 'Admin area', blurb: 'Progress, students, backup, and the PIN (needs the PIN)', href: PAGE('admin'), words: 'backup pin students progress reset' }
   ];
   function searchIndex() {
     const R = REG(), out = [];
@@ -189,7 +189,7 @@
       </div></div>`;
   }
   function footHTML() {
-    return `<div class="sbfoot-in"><nav aria-label="Footer"><a href="${HOME}">Home</a><a href="${HOME}">Subjects</a><a href="${PAGE('utilities')}">Utilities</a><a href="${PAGE('settings')}">Settings</a><a href="${PAGE('parent')}">Parent area</a><a href="${PAGE('help')}">Help</a><a href="${PAGE('faq')}">FAQ</a><a href="${PAGE('about')}">About</a></nav>
+    return `<div class="sbfoot-in"><nav aria-label="Footer"><a href="${HOME}">Home</a><a href="${HOME}">Subjects</a><a href="${PAGE('utilities')}">Utilities</a><a href="${PAGE('settings')}">Settings</a><a href="${PAGE('admin')}">Admin area</a><a href="${PAGE('help')}">Help</a><a href="${PAGE('faq')}">FAQ</a><a href="${PAGE('about')}">About</a></nav>
       <p>Progress is saved on this device only. Nothing goes online.</p></div>`;
   }
 

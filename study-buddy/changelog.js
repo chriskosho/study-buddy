@@ -1,6 +1,9 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'Saved modules, and the words Student and Admin', items: [
+    'You can save a module with the bookmark button on its card or at the top of the module. A Saved tab appears next to All when you have saved modules. It shows them from every subject, and the home screen opens on it. Each student has their own list.',
+    'Child is now Student and Parent is now Admin everywhere you read: the Admin area (and Admin PIN), Settings, Help, the FAQ, and the dialogs. The link is now #/admin (the old #/parent link still works). Saved progress is not affected.' ] },
   { date: '2026-10-28', title: 'Scratch pad: simpler saving, same note back, New note, and a Utilities page', items: [
     'A child with a name now sees Save to my notes, Download a picture, Do not save, and Keep working. "Keep for this session only" is only for Guest.',
     'Close the scratch pad and open it again on the same question and the same note is there. Saving again updates that note. A new question starts blank.',

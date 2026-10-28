@@ -28,7 +28,7 @@ async def main():
         await pg.goto(mod); await pg.wait_for_selector('#sbReset')
         # first reset offers a PIN; Escape cancels everything and keeps the scores
         await pg.click('#sbReset'); await pg.wait_for_selector('.sb-dlg')
-        check('PIN' in await pg.locator('.sb-dlg h3').inner_text(), 'first reset offers a parent PIN')
+        check('PIN' in await pg.locator('.sb-dlg h3').inner_text(), 'first reset offers an admin PIN')
         await pg.keyboard.press('Escape'); await pg.wait_for_timeout(200)
         check(await pg.evaluate(REC) == 9 and await pg.locator('.sb-dlg').count() == 0, 'Escape on the PIN offer keeps the scores')
         # Skip, then a confirmation still appears; Cancel keeps the scores

@@ -67,7 +67,7 @@ async def main():
         check(await pg.locator('.tool').count() == 6, 'the archived module still opens by direct link')
         await pg.goto(BASE + 'index.html#/parent/archived'); await pg.wait_for_timeout(400)
         txt = await pg.inner_text('#psec')
-        check('Black Beauty (old version)' in txt and 'Open' in txt, 'the parent area has an Archived list showing the old Black Beauty')
+        check('Black Beauty (old version)' in txt and 'Open' in txt, 'the admin area has an Archived list showing the old Black Beauty')
         await pg.fill('#sbQ', 'black beauty'); await pg.wait_for_selector('#sbResults li')
         found = await pg.evaluate("[...document.querySelectorAll('#sbResults li')].map(e => e.textContent).join('|')")
         check('Black Beauty' in found, 'search finds the new Black Beauty')

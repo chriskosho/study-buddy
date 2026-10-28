@@ -1,4 +1,4 @@
-/* Study Buddy scratch pad: a notepad that sits beside a question so a child can work it out with a pen, finger, mouse or keyboard.
+/* Study Buddy scratch pad: a notepad that sits beside a question so a student can work it out with a pen, finger, mouse or keyboard.
 
      SBPad.open({ question, source, opener, note, onClose })   open the pad (one at a time). question: plain text shown at the top and in the saved picture.
                                                        source: the module's name. note: open a saved note instead of a blank page.
@@ -8,10 +8,10 @@
      SBPad.renderList(box, { onOpen })                 the saved-notes list (also used by the My notes page)
      SBPad.store                                       list / add / remove for 'session' and 'profile' notes
 
-   Nothing is saved unless the child chooses to:
+   Nothing is saved unless the student chooses to:
      device   a PNG picture downloads to the device (needs no profile)
      session  kept in this browser tab until it closes (sessionStorage)
-     profile  kept on this device under the child's own profile (not for the Guest profile)
+     profile  kept on this device under the student's own profile (not for the Guest profile)
    The drawing is a list of strokes, not a flat picture, so a future notebook can reopen and edit it.
    The paper stays light in dark mode on purpose, like real paper. All other colors follow the theme tokens in sb.css. */
 (function () {
@@ -22,7 +22,7 @@
   const PAPER = { bg: '#fffdf5', line: '#b9c9de', grid: '#d3dfec', major: '#a9bdd6', LINE: 32, GRID: 24, MAJOR: 5, head: '#1d2733' };
   const COLORS = [['Black', '#1d2733'], ['Blue', '#1f5fbf'], ['Red', '#d23b2a'], ['Green', '#1f8a4c'], ['Orange', '#e8890c'], ['Purple', '#7a4cc2'], ['Pink', '#d9468f'], ['Brown', '#8b5a2b'], ['Yellow', '#f2c200']];
   const LIMITS = { profile: { notes: 25, bytes: 1200000 }, session: { notes: 15, bytes: 1200000 } };
-  const DEVICE_NOTES = 2400000;   // all children's saved notes together, so notes can never crowd out progress (browsers allow about 5 MB)
+  const DEVICE_NOTES = 2400000;   // all students' saved notes together, so notes can never crowd out progress (browsers allow about 5 MB)
   const otherNotes = kid => { let n = 0; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(NS + '.notes.') && k !== NS + '.notes.' + kid) n += (localStorage.getItem(k) || '').length; } } catch (e) {} return n; };
   const IC = {
     pad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3" width="12.5" height="18" rx="2"/><path d="M7 8h5.5M7 12h3"/><path d="M18.2 8.3l2.6 2.6-6.6 6.6-3.3.7.7-3.3z"/></svg>',
@@ -265,7 +265,7 @@
 
   /* ---------------- the pad ---------------- */
   let P = null;
-  let penSeen = false, penOnlyChoice = null;   // once a stylus touches any pad this visit, finger touches stop drawing (unless the child turns Pen only off)
+  let penSeen = false, penOnlyChoice = null;   // once a stylus touches any pad this visit, finger touches stop drawing (unless the student turns Pen only off)
   const draftKey = kid => NS + '.paddraft.' + kid;
   /* The note on the pad is remembered while the page stays open, so closing the pad and opening it again on the same question
      shows the same writing (and saving again updates the same note). A different question starts blank. */
@@ -322,7 +322,7 @@
     on(window, 'hashchange', e => {
       if (!P) return; if (P.ignoreHash) { P.ignoreHash = false; return; }
       if (!dirty()) return closePad();
-      const back = e.oldURL;      // the page already changed: if the child keeps working, go back to the page they were on
+      const back = e.oldURL;      // the page already changed: if the student keeps working, go back to the page they were on
       saveDialog(true, null, () => { if (P && back) { P.ignoreHash = true; location.replace(back); } });
     });
     if (window.ResizeObserver) { const ro = new ResizeObserver(() => fit()); ro.observe(P.stage); P.listeners.push(() => ro.disconnect()); } else on(window, 'resize', fit);

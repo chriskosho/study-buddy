@@ -1,20 +1,20 @@
 /* Study Buddy core.
    Loaded by every page (the hub and every module). It owns:
-   - child profiles and which child is studying
+   - student profiles and which student is studying
    - progress: streak, daily goal, and per-tool results
    - per-child settings (sound, read aloud)
    - tones, speech, toast
-   - the parent PIN lock and small dialogs
+   - the admin PIN lock and small dialogs
    - backup export / import
    Everything is saved in this browser's localStorage. Nothing goes online.
 
    Module API (what a tool calls):
-     SB.requireProfile()            -> the active child, or sends the page back to the hub
-     SB.moduleKey('my-module')      -> a localStorage key private to this child + module
+     SB.requireProfile()            -> the active student, or sends the page back to the hub
+     SB.moduleKey('my-module')      -> a localStorage key private to this student + module
      SB.opened(moduleId, toolId)    -> when a tool is opened (sets "Keep going", counts visits)
      SB.credit() / SB.slip()        -> one right / one wrong answer (streak + daily goal)
      SB.result(moduleId, toolId, score, max) -> a finished round (best score, attempts)
-     SB.sfx.good() / bad() / win()  -> tones (respect the child's Sound setting)
+     SB.sfx.good() / bad() / win()  -> tones (respect the student's Sound setting)
      SB.say(text, {lang, force})    -> speech (respects Read aloud unless force is true)
      SB.toast(msg), SB.requirePin(message, onOk), SB.confirm(...)
 */
@@ -48,8 +48,8 @@
   const read = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
   let fullWarned = false;
   const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { storageFull(); return false; } };
-  /* a failed save used to be silent: say so once per page, so a parent can make room */
-  function storageFull() { if (fullWarned) return; fullWarned = true; setTimeout(() => { try { toast('This device is out of room, so progress is not being saved. A parent can delete old scratch pad notes or save a backup.'); } catch (e) {} }, 0); }
+  /* a failed save used to be silent: say so once per page, so an admin can make room */
+  function storageFull() { if (fullWarned) return; fullWarned = true; setTimeout(() => { try { toast('This device is out of room, so progress is not being saved. An admin can delete old scratch pad notes or save a backup.'); } catch (e) {} }, 0); }
   const remove = k => { try { localStorage.removeItem(k); } catch (e) {} };
   const allKeys = () => { const out = []; try { for (let i = 0; i < localStorage.length; i++) out.push(localStorage.key(i)); } catch (e) {} return out; };
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
@@ -66,11 +66,20 @@
     if (!d.daily || typeof d.daily !== 'object') d.daily = { d: '', n: 0, done: false };
     d.daily.n = Number(d.daily.n) || 0;
     if (!d.tools || typeof d.tools !== 'object') d.tools = {};
-    d.days = objOr(d.days); d.misses = objOr(d.misses);   // the parent area's history and missed questions
+    d.days = objOr(d.days); d.misses = objOr(d.misses);   // the admin area's history and missed questions
+    d.bookmarks = Array.isArray(d.bookmarks) ? [...new Set(d.bookmarks.filter(x => typeof x === 'string' && x && x.length <= 80))].slice(0, 300) : [];   // saved modules
     if (d.daily.d !== today()) d.daily = { d: today(), n: 0, done: false };
     return d;
   }
   function saveChild(id, d) { write(CHILD(id), d); }
+  /* Saved modules (bookmarks), kept per student in the student's record. */
+  const bookmarks = (id = activeId()) => id ? child(id).bookmarks : [];
+  const isBookmarked = (moduleId, id = activeId()) => bookmarks(id).includes(moduleId);
+  function toggleBookmark(moduleId, id = activeId()) {      // returns true when the module is now saved
+    if (!id || !moduleId) return false; const d = child(id), i = d.bookmarks.indexOf(moduleId);
+    if (i >= 0) d.bookmarks.splice(i, 1); else d.bookmarks.push(moduleId);
+    saveChild(id, d); return i < 0;
+  }
 
   /* ---------- profiles ---------- */
   const profiles = () => root().profiles;
@@ -98,11 +107,11 @@
     const r = root(); r.profiles = r.profiles.filter(p => p.id !== id); if (r.active === id) r.active = null; saveRoot(r);
     bumpEpoch(); remove(CHILD(id)); remove(NS + '.notes.' + id); try { sessionStorage.removeItem(NS + '.sessnotes.' + id); } catch (e) {} clearModuleData(id);
   }
-  function resetChild(id) {           // erase progress, keep the child's settings
-    const old = child(id), fresh = child('__none__'); fresh.settings = old.settings;
+  function resetChild(id) {           // erase progress, keep the student's settings
+    const old = child(id), fresh = child('__none__'); fresh.settings = old.settings; fresh.bookmarks = old.bookmarks;   // saved modules are not progress
     saveChild(id, fresh); clearModuleData(id); bumpEpoch();
   }
-  function resetAllProgress() { profiles().forEach(p => resetChild(p.id)); }   // every child's progress, but names and settings stay
+  function resetAllProgress() { profiles().forEach(p => resetChild(p.id)); }   // every student's progress, but names and settings stay
   function eraseEverything() { allKeys().filter(k => k && k.startsWith(NS)).forEach(remove); try { Object.keys(sessionStorage).filter(k => k.startsWith(NS + '.sessnotes.')).forEach(k => sessionStorage.removeItem(k)); } catch (e) {} lock(); }   // all profiles, progress, settings, and the PIN
   function resetModule(id, moduleId, storageKeys) {
     const d = child(id);
@@ -131,18 +140,18 @@
     let hit = false; if (d.daily.n >= DAILY_GOAL && !d.daily.done) { d.daily.done = true; hit = true; }
     saveChild(id, d); return { streak: d.streak, daily: d.daily.n, goal: DAILY_GOAL, goalJustReached: hit };
   }
-  /* the streak pill: Today x/20 with a thin bar in the child's color that fills toward the daily goal */
+  /* the streak pill: Today x/20 with a thin bar in the student's color that fills toward the daily goal */
   function pillHTML(s = streakInfo()) {
     const p = activeProfile(), pct = Math.min(100, s.daily / s.goal * 100);
     return `<b>Streak ${s.streak}</b><b>Today ${Math.min(s.daily, s.goal)}/${s.goal}</b><span class="goalbar" aria-hidden="true"><i style="width:${pct}%;background:${safeColor(p && p.color)}"></i></span>`;
   }
-  /* a small history for the parent area: right answers per day, the last 60 days */
+  /* a small history for the admin area: right answers per day, the last 60 days */
   const dayKey = t => { const x = new Date(t); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
   function logDay(d) {
     const days = d.days && typeof d.days === 'object' ? d.days : {}, k = dayKey(Date.now()); days[k] = (Number(days[k]) || 0) + 1;
     const cut = dayKey(Date.now() - 60 * 864e5); Object.keys(days).forEach(x => { if (x < cut) delete days[x]; }); d.days = days;
   }
-  /* questions missed, per module, so a parent can see what to practice (the 40 most missed per module are kept) */
+  /* questions missed, per module, so an admin can see what to practice (the 40 most missed per module are kept) */
   function noteMiss(moduleId, text) {
     const id = activeId(); if (!id || !moduleId || !text) return; const d = child(id);
     const all = d.misses && typeof d.misses === 'object' ? d.misses : {}, m = all[moduleId] && typeof all[moduleId] === 'object' ? all[moduleId] : {};
@@ -158,7 +167,7 @@
     let keep = all.slice(0, NOTES_MAX); while (keep.length > 1 && JSON.stringify(keep).length > NOTES_BYTES) keep = keep.slice(0, -1);
     return { keep, dropped: all.length - keep.length, any: Array.isArray(na) && na.length > 0 };
   }
-  /* module state both profiles have: lists are joined, records are combined (the child's value wins a clash), anything else stays the child's */
+  /* module state both profiles have: lists are joined, records are combined (the student's value wins a clash), anything else stays the student's */
   function mergeState(mine, theirs) {
     let x, y; try { x = JSON.parse(mine); y = JSON.parse(theirs); } catch (e) { return mine; }
     if (Array.isArray(x) && Array.isArray(y)) { const seen = new Set(x.map(v => JSON.stringify(v))); return JSON.stringify(x.concat(y.filter(v => !seen.has(JSON.stringify(v))))); }
@@ -176,7 +185,7 @@
       const better = t.best == null || (r.best != null && (r.max && t.max ? r.best / r.max > t.best / t.max : r.best > t.best));
       if (better) { t.best = r.best; t.max = r.max; }
     });
-    b.bestStreak = Math.max(b.bestStreak, a.bestStreak);
+    b.bestStreak = Math.max(b.bestStreak, a.bestStreak); b.bookmarks = [...new Set(b.bookmarks.concat(a.bookmarks))].slice(0, 300);
     if (a.daily.d === b.daily.d) { b.daily.n += a.daily.n; b.daily.done = b.daily.done || a.daily.done || b.daily.n >= DAILY_GOAL; }
     Object.entries(a.days).forEach(([k, n]) => { b.days[k] = (Number(b.days[k]) || 0) + (Number(n) || 0); });
     Object.entries(a.misses).forEach(([mod, m]) => { const t = b.misses[mod] = objOr(b.misses[mod]); Object.entries(objOr(m)).forEach(([q, n]) => { t[q] = (Number(t[q]) || 0) + (Number(n) || 0); }); });
@@ -197,10 +206,10 @@
     const r = root(); if (r.active === fromId) { r.active = toId; saveRoot(r); }
     deleteProfile(fromId);
   }
-  /* bring one child back from a backup file, as a new child or in place of one here; nothing else on this device changes */
+  /* bring one student back from a backup file, as a new student or in place of one here; nothing else on this device changes */
   function importChild(text, fromId, targetId) {
     const { data } = checkBackup(text), src = JSON.parse(data[ROOT]).profiles.find(p => p.id === fromId);
-    if (!src) throw new Error('That child is not in the backup.');
+    if (!src) throw new Error('That student is not in the backup.');
     const r = root(), isNew = !targetId, to = targetId || uid();
     const mine = k => k === CHILD(to) || k === NS + '.notes.' + to || k.startsWith(MODPREFIX(to));
     const old = {}; allKeys().filter(k => k && mine(k)).forEach(k => { old[k] = localStorage.getItem(k); });   // put back if it does not fit
@@ -214,11 +223,11 @@
     } catch (e) {
       allKeys().filter(k => k && mine(k)).forEach(remove);
       Object.entries(old).forEach(([k, v]) => { try { localStorage.setItem(k, v); } catch (e2) {} });
-      throw new Error('There was not enough room to load that child. Nothing was changed.');
+      throw new Error('There was not enough room to load that student. Nothing was changed.');
     }
     if (isNew) {
-      r.profiles.push({ id: to, name: String(src.name).trim().slice(0, 24) || 'Child', color: safeColor(src.color) });
-      if (!write(ROOT, r)) { allKeys().filter(k => k && mine(k)).forEach(remove); throw new Error('There was not enough room to load that child. Nothing was changed.'); }
+      r.profiles.push({ id: to, name: String(src.name).trim().slice(0, 24) || 'Student', color: safeColor(src.color) });
+      if (!write(ROOT, r)) { allKeys().filter(k => k && mine(k)).forEach(remove); throw new Error('There was not enough room to load that student. Nothing was changed.'); }
     }
     bumpEpoch(); return to;
   }
@@ -260,7 +269,7 @@
   const diffBadge = d => { const i = DIFFS.indexOf(d); return `<span class="diff ${d}"><span class="pips" aria-hidden="true">${DIFFS.map((x, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</span>${DIFF_NAMES[d] || d}</span>`; };
   const diffRangeHTML = mod => { const r = difficultyRange(mod); if (!r) return ''; return r.min === r.max ? diffBadge(r.min) : `<span class="diffrange">${diffBadge(r.min)}<span class="to">to</span>${diffBadge(r.max)}</span>`; };
 
-  /* A storage key that belongs to the active child and one module */
+  /* A storage key that belongs to the active student and one module */
   function moduleKey(key) { return MODPREFIX(activeId() || 'none') + key; }
 
   function requireProfile() {
@@ -502,7 +511,7 @@
     });
   }
 
-  /* ---------- parent PIN ----------
+  /* ---------- admin PIN ----------
      This keeps kids from erasing progress by accident. It is not real security:
      anyone who clears the browser's site data can get around it. */
   function hashPin(p) { let h = 2166136261; const s = 'study-buddy:' + p; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
@@ -526,7 +535,7 @@
       const go = () => {
         if (!validPin(a.value)) { err.textContent = 'Use 4 to 8 digits.'; a.focus(); return; }
         if (a.value !== b.value) { err.textContent = 'The two PINs do not match.'; b.value = ''; b.focus(); return; }
-        setPin(a.value); close(); toast('Parent PIN saved'); onOk && onOk();
+        setPin(a.value); close(); toast('Admin PIN saved'); onOk && onOk();
       };
       box.querySelector('[data-x="no"]').onclick = ov._cancel;
       box.querySelector('[data-x="yes"]').onclick = go;
@@ -535,7 +544,7 @@
   }
 
   function forgotDialog(onOk, onCancel) {
-    dialog(`<h3>Forgot the PIN?</h3><p>Type REMOVE, then choose a new PIN. All progress stays. The parent area will show the date the PIN was reset.</p>
+    dialog(`<h3>Forgot the PIN?</h3><p>Type REMOVE, then choose a new PIN. All progress stays. The admin area will show the date the PIN was reset.</p>
       <input class="txt" type="text" autocomplete="off" aria-label="Type REMOVE" data-x="a">
       <div class="sb-err" role="alert"></div>
       <div class="sb-row"><button class="sb-btn ghost" data-x="no">Cancel</button><button class="sb-btn warn" data-x="yes">Continue</button></div>`, (box, close, ov) => {
@@ -545,7 +554,7 @@
         if (a.value.trim().toUpperCase() !== 'REMOVE') { err.textContent = 'Type the word REMOVE.'; a.focus(); return; }
         close();
         // The old PIN keeps working until a new one is saved, so cancelling here changes nothing.
-        newPinDialog('Set a new parent PIN', 'Choose 4 to 8 digits.', () => { const r = root(); r.pinRemovedAt = new Date().toISOString(); saveRoot(r); onOk && onOk(); }, onCancel);
+        newPinDialog('Set a new admin PIN', 'Choose 4 to 8 digits.', () => { const r = root(); r.pinRemovedAt = new Date().toISOString(); saveRoot(r); onOk && onOk(); }, onCancel);
       };
       box.querySelector('[data-x="no"]').onclick = ov._cancel;
       box.querySelector('[data-x="yes"]').onclick = go;
@@ -553,18 +562,18 @@
     });
   }
 
-  /* Ask for the parent PIN, then run onOk. Stays unlocked for 5 minutes in this tab. */
+  /* Ask for the admin PIN, then run onOk. Stays unlocked for 5 minutes in this tab. */
   function requirePin(message, onOk, onCancel, opts = {}) {
     // opts.confirm = { title, text, ok }: for destructive actions. Asks "are you sure" even without a PIN or when unlocked.
     const proceed = () => opts.confirm ? confirmDlg(Object.assign({ danger: true }, opts.confirm), onOk, onCancel) : (onOk && onOk());
     if (!hasPin()) {
       const r = root();
-      if (!r.pinOffered) { r.pinOffered = true; saveRoot(r); return offerPin('Protect this with a parent PIN?', 'A PIN keeps kids from erasing progress or changing profiles. You can add one later in the Parent area.', proceed, onCancel || (() => {})); }
+      if (!r.pinOffered) { r.pinOffered = true; saveRoot(r); return offerPin('Protect this with an admin PIN?', 'A PIN keeps kids from erasing progress or changing profiles. You can add one later in the Admin area.', proceed, onCancel || (() => {})); }
       return proceed();
     }
     if (isUnlocked()) return proceed();
-    dialog(`<h3>Parent PIN</h3><p>${esc(message || 'Enter the parent PIN to continue.')}</p>
-      <input type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="Parent PIN" data-x="a">
+    dialog(`<h3>Admin PIN</h3><p>${esc(message || 'Enter the admin PIN to continue.')}</p>
+      <input type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="Admin PIN" data-x="a">
       <div class="sb-err" role="alert"></div>
       <div class="sb-row"><button class="sb-link" data-x="forgot" type="button">Forgot PIN?</button><button class="sb-btn ghost" data-x="no">Cancel</button><button class="sb-btn" data-x="yes">Unlock</button></div>`, (box, close, ov) => {
       const a = box.querySelector('[data-x="a"]'), err = box.querySelector('.sb-err');
@@ -586,7 +595,7 @@
       const skip = () => { close(); const r = root(); r.pinSkipped = true; saveRoot(r); onDone && onDone(); };
       ov._cancel = onCancel ? () => { close(); onCancel(); } : skip;
       box.querySelector('[data-x="skip"]').onclick = skip;
-      box.querySelector('[data-x="set"]').onclick = () => { close(); newPinDialog('Set a parent PIN', 'Choose 4 to 8 digits. Only a parent should know it.', onDone, onCancel || onDone); };
+      box.querySelector('[data-x="set"]').onclick = () => { close(); newPinDialog('Set an admin PIN', 'Choose 4 to 8 digits. Only an admin should know it.', onDone, onCancel || onDone); };
     });
   }
   /* Call after adding a profile: once there are two people and no PIN, offer one a second time. */
@@ -594,7 +603,7 @@
     const r = root();
     if (r.profiles.length >= 2 && !r.pin && !r.pinOfferedAtTwo) {
       r.pinOfferedAtTwo = true; r.pinOffered = true; saveRoot(r);
-      return offerPin('Add a parent PIN?', "Now that more than one child uses Study Buddy, a PIN keeps them from erasing each other's progress.", onDone);
+      return offerPin('Add an admin PIN?', "Now that more than one student uses Study Buddy, a PIN keeps them from erasing each other's progress.", onDone);
     }
     onDone && onDone();
   }
@@ -682,7 +691,7 @@
     card.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { e.preventDefault(); fly(1, onRight); } else if (e.key === 'ArrowLeft') { e.preventDefault(); fly(-1, onLeft); } });
   }
 
-  /* ---------- display options: theme, OpenDyslexic, text size (per child, applied as classes on <html>) ---------- */
+  /* ---------- display options: theme, OpenDyslexic, text size (per student, applied as classes on <html>) ---------- */
   const darkMQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
   function applyDisplay() {
     const h = document.documentElement, t = getSetting('theme');
@@ -717,11 +726,11 @@
   }
 
   /* ---------- backup ---------- */
-  /* the parent area reminds a parent to save a backup when the last one is old */
+  /* the admin area reminds an admin to save a backup when the last one is old */
   function markBackup() { const r = root(); r.lastBackupAt = Date.now(); saveRoot(r); }
   function exportAll() {
     const ids = new Set(root().profiles.map(p => p.id)), owner = k => { const m = k.match(/^studybuddy\.v1\.(?:child|notes|m)\.([a-z0-9]+)/i); return m ? m[1] : null; };
-    const data = {}; allKeys().filter(k => k && k.startsWith(NS) && k !== EPOCH && (!owner(k) || ids.has(owner(k)))).forEach(k => { data[k] = localStorage.getItem(k); });   // leftovers of deleted children stay out
+    const data = {}; allKeys().filter(k => k && k.startsWith(NS) && k !== EPOCH && (!owner(k) || ids.has(owner(k)))).forEach(k => { data[k] = localStorage.getItem(k); });   // leftovers of deleted students stay out
     return JSON.stringify({ app: 'study-buddy', version: 1, exported: new Date().toISOString(), data }, null, 1);
   }
   /* Check a backup file completely before touching anything. Returns { data, names } or throws an Error with a plain message. */
@@ -781,7 +790,7 @@
       if (m) { if (!ids.has(m[1])) skip.add(k); continue; }
       throw new Error('This backup is damaged, so nothing was changed.');
     }
-    const data = {}; Object.keys(o.data).forEach(k => { if (!skip.has(k)) data[k] = o.data[k]; });   // keys left over from a deleted child are dropped, not fatal
+    const data = {}; Object.keys(o.data).forEach(k => { if (!skip.has(k)) data[k] = o.data[k]; });   // keys left over from a deleted student are dropped, not fatal
     return { data, names: r.profiles.map(p => p.name.slice(0, 24)) };
   }
   /* Replace everything with the backup. The old data is kept until the new data is fully written, and put back if it can't be. */
@@ -826,7 +835,7 @@
     ready: true, BASE, DAILY_GOAL, DIFFS, DIFF_NAMES, COLORS, CAN_SPEAK, SPK_ICON,
     esc, today,
     root, profiles, profile, activeProfile, activeId, setActive, addProfile, isGuest, ensureGuest, nameDialog, afterProfileAdded, offerPin, updateProfile, deleteProfile, resetChild, resetAllProgress, eraseEverything, resetModule,
-    avatar, colorInk, initial, child,
+    avatar, colorInk, initial, child, bookmarks, isBookmarked, toggleBookmark,
     getSetting, setSetting,
     credit, slip, streakInfo, pillHTML, noteMiss, mergeProfile, mergePreview, importChild, dayKey, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
     moduleKey, requireProfile,

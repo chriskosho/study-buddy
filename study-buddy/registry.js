@@ -8,7 +8,7 @@
      tags      extra subjects or skills; a tag that matches another subject puts the module
                in that subject's "Suggested" area
      path      page to open, relative to the site root
-     storage   localStorage keys the module saves under SB.moduleKey(...), so a parent reset can clear them
+     storage   localStorage keys the module saves under SB.moduleKey(...), so an admin reset can clear them
      tools     the activities inside the module
 
    Tool fields

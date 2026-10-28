@@ -1,13 +1,13 @@
 /* Study Buddy module shell.
-   Builds the standard module page around a set of tools: header (back link, title, child, streak),
-   one tab per tool (from registry.js), the settings row (Sound, Read aloud, Reset with the parent PIN),
+   Builds the standard module page around a set of tools: header (back link, title, student, streak),
+   one tab per tool (from registry.js), the settings row (Sound, Read aloud, Reset with the admin PIN),
    ?tool=<id> deep links, lazy tool start-up, and saved per-child module state.
 
    A module page loads sb-core.js, registry.js and this file, has <div class="wrap" id="app"></div>, then calls:
 
      SBM.start({
        module: 'parts-of-speech',            // id in registry.js
-       defaults: { ... },                     // the module's saved state, per child
+       defaults: { ... },                     // the module's saved state, per student
        tools: {
          guide: { init(ctx) { ... }, leave() { ... } },   // leave() is optional (stop timers, etc.)
          ...
@@ -15,7 +15,7 @@
      });
 
    ctx (one per tool) gives: panel, tool, mod, kid, state, save(), credit(), slip(), result(score, max),
-   say(text) (only when the child's Read aloud is on), sayButton(text, label), sfx, toast(msg), esc. */
+   say(text) (only when the student's Read aloud is on), sayButton(text, label), sfx, toast(msg), esc. */
 (function () {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
@@ -45,7 +45,7 @@
           <div class="settings">
             <button class="iconbtn" id="sbSound"></button>
             ${SB.CAN_SPEAK ? '<button class="iconbtn" id="sbRead" title="Reads questions out loud"></button>' : ''}
-            <button class="iconbtn" id="sbReset" title="Erase this module's progress (parent PIN)">Reset</button>
+            <button class="iconbtn" id="sbReset" title="Erase this module's progress (admin PIN)">Reset</button>
           </div></div>
       </header>
       <div class="bar2">
@@ -74,7 +74,7 @@
           else if (r.streak > 0 && r.streak % 5 === 0) SB.toast(r.streak + ' in a row!');
         },
         slip() { SB.slip(); renderStreak(); },
-        miss(text) { SB.noteMiss(mod.id, text); },          // remembered for the parent area's "most missed"
+        miss(text) { SB.noteMiss(mod.id, text); },          // remembered for the admin area's "most missed"
         result(score, max) { SB.result(mod.id, t.id, score, max); },
         say: (text, opts) => SB.say(text, opts),
         sayButton: (text, label, audio) => SB.sayButton(text, label || 'Hear it', '', audio || ''),
@@ -107,7 +107,7 @@
     });
     $$('nav.tabs button').forEach(b => b.onclick = () => { const go = () => show(b.dataset.tab); if (window.SBPad && SBPad.isOpen() && b.dataset.tab !== current) SBPad.guard(go); else go(); });   // the scratch pad asks to save before a tool is left
 
-    $('#sbReset').onclick = () => SB.requirePin('Enter the parent PIN to erase ' + kid.name + "'s " + mod.title + ' progress.', () => {
+    $('#sbReset').onclick = () => SB.requirePin('Enter the admin PIN to erase ' + kid.name + "'s " + mod.title + ' progress.', () => {
       if (current && cfg.tools[current].leave) cfg.tools[current].leave();
       SB.resetModule(kid.id, mod.id, mod.storage || []);
       state = fresh(); save();
