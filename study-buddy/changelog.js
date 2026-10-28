@@ -12,6 +12,9 @@ window.SB_CHANGELOG = [
     'The speaker button is gone from the module cards, so it no longer crowds the bookmark.',
     'Handwriting: finished letters are centered again and show a green outline with a small dot.',
     'The top bar no longer runs off the screen with Larger text and OpenDyslexic turned on together.' ] },
+  { date: '2026-10-28', title: 'Black Beauty: the teacher\'s highlighted questions', items: [
+    'The Black Beauty study guide now marks the questions the teacher highlighted in yellow on the class study guide (31 questions, plus the note about fortitude at the end).',
+    'The Study guide opens on Highlighted only. Choose All questions to see everything; the highlighted ones stay yellow and say Highlighted in words too. Each student keeps their own choice.' ] },
   { date: '2026-10-28', title: 'Modules: Tiles or List, Sort by, and a filter', items: [
     'Above the modules there is now a Tiles / List choice. List shows one short row for each module (subject, name, a line about it, difficulty, progress), so many more fit on the screen. Each student keeps their own choice; it starts on Tiles. Utilities has it too.',
     'Sort by: Subject, A to Z, Recently used, or Not started first. When sorted by subject, the All and Saved tabs get a heading for each subject with a count.',

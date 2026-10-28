@@ -272,6 +272,43 @@ const CH = [
     ['How does BB spend the rest of his life?', 'Easy and pleasant work with the ladies and Joe Green, strengthening his spirits'] ],
     talk: 'Be able to explain how BB’s last home was just after all he had gone through in his life. BB showed fortitude and kept a good attitude even in the hard times. His fortitude paid off in the end.' }
 ];
+
+/* The questions the teacher highlighted in yellow on the study guide: [chapter, question exactly as in CH]. HL_TALK: chapters whose closing note was highlighted. */
+const HL = [
+  ['1', "What advice did she give her son?"],
+  ['3', "Ultimately, the horse has no _____ of his own, but follows his master’s."],
+  ['4', "Who was Darkie’s new master?"],
+  ['4', "What are Ginger’s bad habits?"],
+  ['6', "What does a horse give up?"],
+  ['6', "Why?"],
+  ['11', "Squire Gordon says to act more according to __________ and less according to _________."],
+  ['12', "What did BB know about the bridge?"],
+  ['12', "Squire Gordon says that “Horses do not act according to _______________ but according to _________.”"],
+  ['12', "Did BB cross the bridge?"],
+  ['13', "What is the devil’s trademark?"],
+  ['13', "What is God’s trademark?"],
+  ['20', "John says that with ______ and _______, everyone has a right to interfere."],
+  ['22', "Where are BB and Ginger now living?"],
+  ['22', "What new kind of rein will the horses have to use at Earlshall?"],
+  ['22', "What does this mean?"],
+  ['22', "Who is the person that wants this?"],
+  ['28', "What kind of a horse is BB in this new home?"],
+  ['29', "Who is BB sold to?"],
+  ['31', "Why did Mr. Barry sell BB?"],
+  ['33', "What is BB’s new owner’s name?"],
+  ['40', "Ginger used to stand up for herself. Why doesn’t she do this anymore?"],
+  ['47', "Who is BB’s new owner?"],
+  ['47', "How do Nicholas Skinner’s men treat their horses?"],
+  ['47', "What does BB start to wish?"],
+  ['47', "What happened to BB with the extremely heavy load?"],
+  ['48', "Who bought BB?"],
+  ['48', "Who convinced him to buy BB?"],
+  ['49', "What does the groom start noticing about BB?"],
+  ['49', "Who is the groom?"],
+  ['49', "How does BB spend the rest of his life?"]
+];
+const HL_TALK = ['49'];
+
 const PARTS = [
   { id: 1, label: 'Part 1', range: 'Ch. 1–21' },
   { id: 2, label: 'Part 2', range: 'Ch. 22–31' },
