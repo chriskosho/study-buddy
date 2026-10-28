@@ -14,11 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
-      - uses: actions/setup-python@v5
+          node-version: 22
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -35,6 +35,17 @@ jobs:
         run: |
           pip install playwright
           python -m playwright install --with-deps chromium
+
+      # The layout tests (no scroll bars at 1440x900, no sideways scroll at 360px) measure text. The site asks for
+      # Trebuchet MS / Segoe UI / system-ui; a plain Ubuntu runner has none of them and falls back to DejaVu Sans,
+      # which is much wider than any font a Windows, Mac, iPad or Chromebook would use. Use Inter as the stand-in,
+      # the same font the tests are run with locally, so the check measures what students see.
+      - name: Fonts for the layout tests
+        run: |
+          sudo apt-get install -y --no-install-recommends fonts-inter
+          sudo cp .github/fonts/56-prefer-inter.conf /etc/fonts/conf.d/
+          fc-cache -f >/dev/null
+          echo "sans-serif is now: $(fc-match sans-serif)"; echo "Segoe UI is now: $(fc-match 'Segoe UI')"
 
       - name: All tests
         run: python study-buddy/_dev/tests/run_all.py -j 3
