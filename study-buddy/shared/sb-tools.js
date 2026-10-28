@@ -116,17 +116,21 @@
         F.innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards.${SEC ? ' Use the arrows to open the next ' + noun + ', or go again.' : ''}</div>
           <div class="row center deckagain"><button type="button" class="btn ghost small" data-a="again-all">Go again</button>${nm ? `<button type="button" class="btn small" data-a="again-missed">Just the ${nm === 1 ? 'one' : nm} I missed</button>` : ''}</div>`;
         B.innerHTML = ''; FC.cur = null; ctx.sfx.win(); bar();
+        const hadFocus = document.activeElement === card;
+        card.removeAttribute('role'); card.tabIndex = -1; card.removeAttribute('aria-describedby');   // the finished card holds real buttons, so it is no longer one big button itself
+        if (hadFocus) $('[data-a="again-all"]', F).focus();
         $('[data-a="again-all"]', F).onclick = e => { e.stopPropagation(); build(); };
         const am = $('[data-a="again-missed"]', F); if (am) am.onclick = e => { e.stopPropagation(); const cards = [...FC.missed]; FC.missed = new Set(); FC.hist = []; FC.queue = shuffle(cards); FC.total = FC.queue.length; next(); };
         return;
       }
       const c = FC.cur = FC.queue[0];
+      card.setAttribute('role', 'button'); card.tabIndex = 0; card.setAttribute('aria-describedby', 'sbFlipTip');
       F.innerHTML = c.front; B.innerHTML = c.back; if (c.say) ctx.say(c.say); bar();
     }
     const afterUnflip = fn => { if (FC.busy) return; if (!FC.flipped) return fn(); FC.busy = true; flip(false); setTimeout(() => { FC.busy = false; fn(); }, FLIP_MS); };
     const doFlip = () => { if (!FC.cur || FC.busy) return; flip(!FC.flipped); SB.stopSpeech(); };
     card.addEventListener('click', doFlip);
-    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doFlip(); } });
+    card.addEventListener('keydown', e => { if (e.target !== card) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doFlip(); } });   // keys on the buttons inside a finished card work as usual
     const zone = $('.cardzone', P);
     const snap = () => { FC.hist.push({ q: FC.queue.slice(), m: new Set(FC.missed) }); if (FC.hist.length > 300) FC.hist.shift(); };
     const undo = () => { if (FC.busy || !FC.hist.length) return; afterUnflip(() => { const h = FC.hist.pop(); FC.queue = h.q; FC.missed = h.m; next(); SB.cardToast(zone, 'Undone'); }); };
@@ -253,7 +257,7 @@
         const skb = $('[data-a="skip"]', P); if (skb) skb.hidden = true;
         const ok = b.dataset.v === q.a;
         $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
-        if (ok) { Q.score++; ctx.credit(); ctx.sfx.good(); } else { b.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); Q.missed.push({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q) }); }
+        if (ok) { Q.score++; ctx.credit(); ctx.sfx.good(); } else { b.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); Q.missed.push({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q), audio: q.audio || '' }); }
         if (opt.onAnswer) opt.onAnswer(q, ok);
         $('.explain', P).innerHTML = (ok ? '<b style="color:var(--good-ink)">Correct!</b> ' : '<b style="color:var(--bad-ink)">Not quite.</b> ') + esc(q.why || ('The answer is: ' + q.a + '.'));
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
@@ -262,7 +266,7 @@
       if (sk) sk.onclick = () => {                              // not sure? show the answer, mark it for review, and move on (no point, no streak change)
         if (Q.answered) return; Q.answered = true; sk.hidden = true;
         $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
-        if (opt.onAnswer) opt.onAnswer(q, false); Q.missed.push({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q) });
+        if (opt.onAnswer) opt.onAnswer(q, false); Q.missed.push({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q), audio: q.audio || '' });
         $('.explain', P).innerHTML = '<b>Marked for review.</b> ' + esc(q.why || ('The answer is: ' + q.a + '.'));
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
       };
@@ -272,7 +276,7 @@
     /* number keys 1 to 4 pick a choice (when the quiz is on screen and you are not typing somewhere) */
     const onKey = e => {
       if (!P.isConnected) return document.removeEventListener('keydown', onKey);
-      if (!P.offsetParent || e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '') || document.querySelector('.sb-ov')) return;
+      if (!P.offsetParent || e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '') || document.querySelector('.sb-ov') || (e.target && e.target.closest && e.target.closest('.sbp'))) return;   // not while working in the scratch pad
       const k = +e.key; if (!(k >= 1 && k <= 9)) return; const b = $$('.opt', P)[k - 1]; if (b && !b.disabled) { e.preventDefault(); b.click(); }
     };
     document.addEventListener('keydown', onKey);
@@ -331,7 +335,7 @@
     : f.d === 1 ? `<b>${f.n}</b>` : f.dec ? `<b>${(f.n / f.d)}</b>` : `<span class="frac"><span class="fn">${f.n}</span><span class="fd">${f.d}</span></span>`;
   /* the explanation after a miss comes one step at a time ("Show the next step"); after a right answer it shows whole */
   function steps(el, text, missed) {
-    const parts = String(text).match(/[^.!?]+[.!?]+["')]?|[^.!?]+$/g) || [String(text)];
+    const parts = String(text).replace(/([.!?]+["')]?)\s+/g, '$1\u0000').split('\u0000').map(x => x.trim()).filter(Boolean);   // a step ends at . ! or ? and a space, so 3.45 stays whole
     if (!missed || parts.length < 3) { el.textContent = text; return; }
     let k = 1; const draw = () => { el.innerHTML = esc(parts.slice(0, k).join(' ').trim()) + (k < parts.length ? ' <button type="button" class="btn ghost small stepbtn">Show the next step</button>' : '');
       const b = el.querySelector('.stepbtn'); if (b) b.onclick = () => { k++; draw(); const nb = el.querySelector('.stepbtn'); (nb || el).focus && (nb ? nb.focus() : null); }; };
@@ -340,7 +344,7 @@
   /* the questions missed in a round, folded away under the result so the screen still fits */
   function reviewHTML(ctx, missed) {
     if (!missed.length) return '';
-    return `<details class="review"><summary>See the ${missed.length === 1 ? 'one' : missed.length} to practice</summary><ul>${missed.map(m => `<li>${m.pic ? `<img src="${m.pic}" alt="Your scratch pad work" class="revpic">` : ''}<span class="revq">${esc(m.q)}</span><span class="reva">Answer: <b>${esc(m.a)}</b></span>${m.say ? ctx.sayButton(m.say + '. The answer is ' + m.a + '.', 'Hear it') : ''}</li>`).join('')}</ul></details>`;
+    return `<details class="review"><summary>See the ${missed.length === 1 ? 'one' : missed.length} to practice</summary><ul>${missed.map(m => `<li>${m.pic ? `<img src="${m.pic}" alt="Your scratch pad work" class="revpic">` : ''}<span class="revq">${esc(m.q)}</span><span class="reva">Answer: <b>${esc(m.a)}</b></span>${m.audio ? ctx.sayButton(String(m.a), 'Hear the sound again', m.audio) : m.say ? ctx.sayButton(m.say + '. The answer is ' + m.a + '.', 'Hear it') : ''}</li>`).join('')}</ul></details>`;
   }
   function answer(ctx, opt) {
     const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', R = { list: [], i: 0, score: 0, tries: 0, hinted: false, missed: [] };

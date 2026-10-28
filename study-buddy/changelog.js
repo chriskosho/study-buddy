@@ -9,7 +9,7 @@ window.SB_CHANGELOG = [
     'Quizzes: press 1 to 4 on the keyboard to answer.',
     'Phonograms: new "Hear it, tap it" tool. Press the speaker, hear the sounds, tap the phonogram. No reading or typing.',
     'Handwriting: "Show me how" writes the letter stroke by stroke, with numbers where each stroke starts, in print and cursive.',
-    'Find it (South America and US States) outlines the places that took more than one try and names them to practice. Ham Radio mock exam results have a Practice button for each topic.',
+    'Find it (South America and US States) outlines the places that took more than one try and names them to practice. Ham Radio mock exam results have a Practice button for each topic, and "See your last results" opens them again afterwards.',
     'The scratch pad can share its picture on phones and tablets.' ] },
   { date: '2026-10-28', title: 'Checking for updates', items: [
     'Settings, Updates now shows which version this device has, and says when a newer version is ready.',

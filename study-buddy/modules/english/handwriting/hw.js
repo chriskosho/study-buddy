@@ -149,9 +149,9 @@
 
     /* "Show me how": the gray letter fills in along its strokes, in order, with a dot for the pencil and a number at each start.
        The fill is the font's own letter, revealed by a wide brush that follows the stroke paths in strokes.js. */
-    let demoRun = 0;
-    function demo(strokes, done) {
-      const run = ++demoRun, L = P.layout; if (!L || !strokes || !strokes.length || L.lines.length !== 1) { done && done(); return; }
+    let demoRun = 0, demoCancel = null;
+    function demo(strokes, done, cancel) {
+      const run = ++demoRun, L = P.layout, fin = () => { demoCancel = null; done && done(); }; demoCancel = cancel || null; if (!L || !strokes || !strokes.length || L.lines.length !== 1) { fin(); return; }
       const { F, lines, rowH, M } = L, line = lines[0], top = (H - rowH) / 2, ascPx = M.asc * F / 100, descPx = M.desc * F / 100;
       const base = top + (rowH - ascPx - descPx) / 2 + ascPx, font = `${F}px ${FONTS[P.style]}`;
       const mc = document.createElement('canvas').getContext('2d'); mc.font = font; const m = mc.measureText(line);
@@ -186,16 +186,17 @@
         if (tip && upto < total) { g.fillStyle = css('--hw-ink'); g.beginPath(); g.arc(tip[0], tip[1], Math.max(6, F * 0.03), 0, 7); g.fill(); }
       };
       const clear = () => { const c = demoC.getContext('2d'); c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, demoC.width, demoC.height); c.restore(); };
-      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { frame(total); setTimeout(() => { if (run === demoRun) { clear(); done && done(); } }, 2500); return; }
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { frame(total); setTimeout(() => { if (run === demoRun) { clear(); fin(); } }, 2500); return; }
       const speed = Math.max(bh, F * 0.6) / 0.85, t0 = performance.now();   // about one letter height every 0.85 seconds
       const tick = now => {
         if (run !== demoRun) return;
         const upto = (now - t0) / 1000 * speed; frame(Math.min(upto, total));
-        if (upto < total) requestAnimationFrame(tick); else setTimeout(() => { if (run === demoRun) { clear(); done && done(); } }, 1200);
+        if (upto < total) requestAnimationFrame(tick); else setTimeout(() => { if (run === demoRun) { clear(); fin(); } }, 1200);
       };
       requestAnimationFrame(tick);
     }
-    const stopDemo = () => { demoRun++; const c = demoC.getContext('2d'); c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, demoC.width, demoC.height); c.restore(); };
+    const stopDemo = () => { demoRun++; const cb = demoCancel; demoCancel = null; if (cb) cb();   // a demo cut short (new letter, style, or case) still hands its button back
+      const c = demoC.getContext('2d'); c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, demoC.width, demoC.height); c.restore(); };
 
     const ro = new ResizeObserver(() => resize()); ro.observe(host);
     return {
@@ -271,7 +272,7 @@
         const l = list()[i], strokes = (window.HW_STROKES[pad.style] || {})[l];
         if (!strokes) return;
         db.disabled = true; setMsg(msg, 'Watch the dot: numbers show where each stroke starts.');
-        pad.demo(strokes, () => { db.disabled = false; setMsg(msg, 'Now you try. Trace the gray letter.'); });
+        pad.demo(strokes, () => { db.disabled = false; setMsg(msg, 'Now you try. Trace the gray letter.'); }, () => { db.disabled = false; });
       };
       check.onclick = () => {
         const r = pad.grade(); if (!r) { setMsg(msg, 'Trace the letter first.', 'bad'); return; }

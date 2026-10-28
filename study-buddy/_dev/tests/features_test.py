@@ -51,7 +51,7 @@ async def main():
         check(await pg.locator('#tab-fraction [data-a="similar"]').is_visible(), 'after a miss, "Try a similar one" is offered')
         steps = await pg.locator('#tab-fraction .stepbtn').count()
         why = await pg.inner_text('#tab-fraction .why')
-        check(steps == 1 or len(re.findall(r'[.!?]', why)) < 3, f'after a miss, the explanation comes step by step ({steps})')
+        check(steps == 1 or len(re.findall(r'[.!?](?:\s|$)', why)) < 3, f'after a miss, the explanation comes step by step ({steps})')
         if steps:
             await pg.click('#tab-fraction .stepbtn'); check(len(await pg.inner_text('#tab-fraction .why')) > len(why) - 25, 'Show the next step adds the next part')
         hint0 = await pg.inner_text('#tab-fraction .roundbar .hint')
@@ -84,7 +84,8 @@ async def main():
             if await pg.locator('#tab-cards [data-a="again-missed"]').count(): break
             await pg.click('#tab-cards [data-a="knew"]'); await pg.wait_for_timeout(560)
         check(await pg.locator('#tab-cards [data-a="again-missed"]').count() == 1, 'the finished deck offers "Just the one I missed"')
-        await pg.click('#tab-cards [data-a="again-missed"]'); await pg.wait_for_timeout(100)
+        check(await pg.evaluate("document.querySelector('#tab-cards .fcard').getAttribute('role')") is None, 'the finished card is no longer one big button around its buttons')
+        await pg.focus('#tab-cards [data-a="again-missed"]'); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(100)
         check('of 1' in await pg.inner_text('#tab-cards .count'), 'and that deck has just the missed card')
 
         # ---- Phonograms: Hear it, tap it ----
@@ -93,6 +94,17 @@ async def main():
         same = [x for x in items if x['a'] in x['wrong']]
         check(len(items) == 10 and not same and all(x['audio'].endswith('.mp3') for x in items), 'Hear it, tap it: 10 questions, each with a recorded sound and 3 other phonograms')
         check(await pg.locator('#tab-hear .spk[data-sb-audio]').count() == 1, 'the speaker plays the recorded sound')
+        for k in range(10):
+            a = items[k]['a']
+            await pg.evaluate("a => { const b = [...document.querySelectorAll('#tab-hear .opt')].find(x => x.dataset.v !== a && !x.disabled); b && b.click(); }", a); await pg.wait_for_timeout(60)
+            nx = pg.locator('#tab-hear [data-a="next"]')
+            if await nx.count() and await nx.is_visible(): await nx.click()
+            await pg.wait_for_timeout(60)
+        await pg.wait_for_selector('#tab-hear details.review')
+        await pg.click('#tab-hear details.review summary'); await pg.wait_for_timeout(80)
+        nrev = await pg.locator('#tab-hear details.review li').count(); nspk = await pg.locator('#tab-hear details.review li .spk[data-sb-audio]').count(); check(nrev >= 1 and nspk == nrev, f'each missed sound in the list can be heard again ({nspk} of {nrev})')
+        ov = await pg.evaluate("document.documentElement.scrollHeight - innerHeight")
+        check(ov <= 0, f'the open list of 10 still fits at 1440x900 ({ov})')
 
         # ---- Ham: practice a topic from the results ----
         await pg.goto(BASE + 'modules/other/ham-technician/index.html?tool=exam'); await pg.wait_for_selector('[data-a="start"]')
@@ -103,6 +115,10 @@ async def main():
         if await nb.count(): await nb.click()
         await pg.wait_for_selector('[data-prac]')
         await pg.click('[data-prac] >> nth=1'); await pg.wait_for_selector('#tab-cards .secsel')
+        await pg.goto(BASE + 'modules/other/ham-technician/index.html?tool=exam'); await pg.wait_for_selector('[data-a="last"]')
+        await pg.click('[data-a="last"]'); await pg.wait_for_selector('[data-prac]')
+        check('Mock exam results' in await pg.inner_text('#tab-exam h2'), 'after practicing, the last exam results can be opened again')
+        await pg.goto(BASE + 'modules/other/ham-technician/index.html?tool=cards'); await pg.wait_for_selector('#tab-cards .secsel')
         sec = await pg.evaluate("document.querySelector('.secsel').value")
         check(sec.startswith('T2') or sec.startswith('T1'), f'Practice opens the flashcards at that topic ({sec})')
 
@@ -117,6 +133,9 @@ async def main():
         await pg.click('[data-a="demo"]'); await pg.wait_for_timeout(700)
         px = await pg.evaluate("(() => { const c = document.querySelector('.hw-demo'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i]) n++; return n; })()")
         check(px > 200, f'Show me how draws the letter stroke by stroke ({px} px)')
+        await pg.click('.hw-strip [data-i="2"]'); await pg.wait_for_timeout(80)
+        check(await pg.locator('[data-a="demo"]').is_enabled(), 'choosing another letter mid-demo hands the Show me how button back')
+        await pg.click('[data-a="demo"]'); await pg.wait_for_timeout(300)
         miss = await pg.evaluate("(() => { const S = window.HW_STROKES, out = []; for (const st of ['print', 'cursive']) for (const l of 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz') { const v = S[st][l]; if (!v || !v.length || v.some(s => !s.length || s.some(p => p[0] < -0.05 || p[0] > 1.05 || p[1] < -0.05 || p[1] > 1.05))) out.push(st + ' ' + l); } return out; })()")
         check(not miss, f'every letter has stroke paths inside its box, in print and cursive {miss[:6]}')
         await pg.wait_for_timeout(5000)

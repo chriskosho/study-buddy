@@ -225,4 +225,4 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - **SBT.quiz:** number keys answer; `q.audio` gives the speaker a recorded clip (Phonograms "Hear it, tap it"). **SBT.flashcards:** the finished deck offers Go again / Just the missed.
 - **Handwriting "Show me how":** `strokes.js` holds stroke paths per letter for print (hand-made, school order) and cursive (traced along the font's centerline: waypoints snapped to a thinned rendering of the glyph). The animation reveals the font's own letter through a wide brush following the paths (`Pad.demo`), so the paths only need to follow the middle of each stroke.
 - **Maps:** Find it collects targets missed at least once (and the last unfound one), outlines them, and names them with speakers at the end.
-- **Ham:** results have Practice per topic (sets `cardSec`, opens the flashcards).
+- **Ham:** results have Practice per topic (sets `cardSec`, opens the flashcards). The finished exam is kept in `st.examLast`, so the start screen offers "See your last results".

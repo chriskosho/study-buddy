@@ -79,6 +79,15 @@
           $('.hnote', P).textContent = NOTE[st.reveal];
         });
         $('[data-a="start"]', P).onclick = () => { E = { qs: pickExam(), ans: Array(TOTAL).fill(null), i: 0, mode: st.reveal, done: false, confirm: false, quit: false }; draw(); };
+        const lx = st.examLast, lq = lx && Array.isArray(lx.ids) ? lx.ids.map(id => Q.find(q => q.id === id)) : null;
+        if (lq && lq.length === TOTAL && lq.every(Boolean) && Array.isArray(lx.ans)) {
+          $('.row.center', P).insertAdjacentHTML('beforeend', '<button class="btn ghost" data-a="last">See your last results</button>');
+          $('[data-a="last"]', P).onclick = () => {
+            const ans = lx.ans.slice(0, TOTAL).map(a => (a === 0 || a === 1 || a === 2 || a === 3) ? a : null);
+            E = { qs: lq, ans, i: 0, mode: lx.mode === 'end' ? 'end' : 'now', done: true, confirm: false, quit: false, score: ans.reduce((n, a, i) => n + (a === lq[i].a ? 1 : 0), 0) };
+            results();
+          };
+        }
         const sv = st.examNow, qs = sv && Array.isArray(sv.ids) ? sv.ids.map(id => Q.find(q => q.id === id)) : null;   // an exam left unfinished (page closed): offer to carry on
         if (qs && qs.length === TOTAL && qs.every(Boolean) && Array.isArray(sv.ans)) {
           const n = sv.ans.filter(a => a != null).length;
@@ -170,7 +179,9 @@
         const score = E.ans.reduce((n, a, i) => n + (a === E.qs[i].a ? 1 : 0), 0);
         E.score = score; keep();
         const ms = new Set(st.missed || []); E.qs.forEach((q, i) => { if (E.ans[i] === q.a) ms.delete(q.id); else ms.add(q.id); });   // missed questions become a flashcard section
-        st.missed = [...ms].slice(-150); ctx.save();
+        st.missed = [...ms].slice(-150);
+        st.examLast = { ids: E.qs.map(q => q.id), ans: E.ans.slice(), mode: E.mode, score };   // kept, so the results can be opened again after practicing a topic
+        ctx.save();
         ctx.result(score, TOTAL);
         if (score >= PASS) ctx.sfx.win();
         results();
