@@ -5,7 +5,7 @@ import asyncio, http.server, threading, functools, os, sys, json
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-PORT = 8780
+PORT = (lambda s: (s.bind(('127.0.0.1', 0)), s.getsockname()[1], s.close())[1])(__import__('socket').socket())   # a free port, so tests can run side by side
 BASE = f'http://127.0.0.1:{PORT}/'
 MUL = BASE + 'modules/math/fractions-multiply/index.html'
 VOL = BASE + 'modules/math/volume/index.html'
@@ -27,6 +27,7 @@ async def stroke(pg, pts, steps=1):
     for x, y in pts[1:]: await pg.mouse.move(box['x'] + x, box['y'] + y, steps=steps)
     await pg.mouse.up()
 async def overflow(pg):
+    await pg.evaluate("document.fonts.ready.then(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))))")   # measure after fonts and layout settle
     return await pg.evaluate("({v: document.documentElement.scrollHeight - innerHeight, h: document.documentElement.scrollWidth - innerWidth})")
 async def open_pad(pg, tab):
     await pg.click('#sbPad'); await pg.wait_for_selector('.sbp')

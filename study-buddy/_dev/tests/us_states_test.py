@@ -6,7 +6,7 @@ import asyncio, http.server, threading, functools, os, sys, json
 from playwright.async_api import async_playwright
 
 SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-PORT = 8783
+PORT = (lambda s: (s.bind(('127.0.0.1', 0)), s.getsockname()[1], s.close())[1])(__import__('socket').socket())   # a free port, so tests can run side by side
 BASE = f'http://127.0.0.1:{PORT}/'
 URL = BASE + 'modules/geography/us-states/index.html'
 fails, errors = [], []
@@ -189,6 +189,8 @@ async def main():
         o = await pg.evaluate("q => STATES.find(s => q.includes(s.name)).order", await pg.inner_text('.us-body .qtext'))
         await type_q(pg, str(o)); check('Correct' in await pg.inner_text('.err'), f'an order number is accepted ({o})')
         await pg.click('.us-topics button[data-t="flags"]'); await pg.wait_for_selector('.us-body input')
+        try: await pg.wait_for_selector('.us-body .us-qflag svg', timeout=3000)   # the flag is drawn a moment after the question
+        except Exception: pass
         check(await pg.locator('.us-body .us-qflag svg').count() == 1, 'Type: Flags shows the flag')
         check(await pg.evaluate("document.querySelector('.us-qflag svg').getAttribute('aria-label')") == 'A state flag' and await pg.evaluate("document.querySelector('.qtext').children.length") >= 1, 'a flag question does not name the state in its label, and sits inside the question')
         nm = await pg.evaluate("() => { return STATES.find(s => s.id === document.querySelector('.us-qflag').dataset.s).name; }")

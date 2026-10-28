@@ -31,7 +31,8 @@
       ${speech}
       <div class="setgroup"><h3>Updates</h3>
         <div class="setrow"><span>Show the newest version of Study Buddy</span><button type="button" class="btn ghost small" id="refreshLatest">Refresh for the latest</button></div>
-        <p class="hint" id="refreshHint" role="status" aria-live="polite">Use this if a new tool or change is not showing up yet. It reloads the site's files. Names, progress, and settings are not touched.</p></div>
+        <p class="hint" id="refreshHint" role="status" aria-live="polite">Use this if a new tool or change is not showing up yet. It reloads the site's files. Names, progress, and settings are not touched.</p>
+        <p class="hint" id="versionLine">Checking the version...</p></div>
       <div class="setgroup"><h3>Parents</h3>
         <div class="setrow"><span>Progress, children, backup, and the parent PIN</span><a class="btn ghost small" href="#/parent">Open the parent area</a></div>
         <p class="hint">The parent area asks for the PIN if one is set.</p></div>
@@ -48,6 +49,16 @@
       if (k === 'sound' && v) SB.sfx.good();
       if (k === 'readAloud' && v) SB.say('Read aloud is on.');
     });
+    /* which version this device has (its offline copy), and whether the site has a newer one */
+    (async () => {
+      const line = app.querySelector('#versionLine'); if (!line) return;
+      let mine = null, live = null;
+      try { mine = ((await caches.keys()).find(k => /^study-buddy-[0-9a-f]+$/.test(k)) || '').replace('study-buddy-', '') || null; } catch (e) {}
+      try { const t = await (await fetch('sw.js', { cache: 'no-cache' })).text(); live = (t.match(/VERSION = '([0-9a-f]+)'/) || [])[1] || null; } catch (e) {}
+      if (!line.isConnected) return;
+      line.textContent = mine && live ? (mine === live ? 'Version ' + mine + '. This is the newest version.' : 'This device has version ' + mine + '. Version ' + live + ' is ready: press Refresh for the latest.')
+        : mine ? 'Version ' + mine + ' (offline, so the newest version could not be checked).' : live ? 'Version ' + live + '.' : '';
+    })();
     app.querySelector('#refreshLatest').onclick = async function () {
       const btn = this, hint = app.querySelector('#refreshHint'); btn.disabled = true; hint.textContent = 'Getting the newest files...';
       /* Get the new file list first. Only when that works are the offline copies cleared, so pressing this with no internet
