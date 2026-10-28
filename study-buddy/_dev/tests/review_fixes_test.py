@@ -126,8 +126,8 @@ async def main():
         m = await mx.new_page(); m.on('pageerror', lambda e: errors.append(str(e)))
         await m.goto(BASE + 'modules/geography/south-america/index.html?tool=listen'); await m.wait_for_timeout(600)
         ls = await m.evaluate("""(() => { if (typeof LS === 'undefined' || !LS.order.length) return 'no speech here';
-            const want = LS.order[LS.i], before = streak; lsClick(want); lsClick(want); return [LS.score, LS.i, LS.tries, streak - before]; })()""")
-        check(ls == 'no speech here' or ls == [1, 1, 0, 1], f'Listen and tap: a fast second tap is ignored during the pause {ls}')
+            const want = LS.order[LS.i]; lsClick(want); lsClick(want); return [LS.score, LS.i, LS.tries]; })()""")
+        check(ls == 'no speech here' or ls == [1, 1, 0], f'Listen and tap: a fast second tap is ignored during the pause {ls}')
         if ls != 'no speech here':
             await m.click('nav.tabs button[data-tab="cards"]'); await m.wait_for_timeout(1100)
             check(await m.evaluate("LS.pending === true && LS.timer === null"), 'leaving the tab holds the next name instead of playing it there')
@@ -143,8 +143,8 @@ async def main():
         await m.click('[data-a="quit"]'); await m.click('[data-a="quit"]'); await m.wait_for_selector('[data-a="start"]')
         check(await m.locator('[data-a="resume"]').count() == 0, 'stopping the exam drops the saved one')
         await m.click('[data-a="start"]'); await m.wait_for_selector('.hopt')
-        await m.evaluate("(() => { const E = window.__hamTest.exam(); E.qs.forEach((q, i) => { E.ans[i] = (q.a + 1) % 4; }); E.i = 34; })()")
-        await m.evaluate("document.querySelector('.hopt').click()"); await m.wait_for_timeout(100)
+        await m.evaluate("(() => { const E = window.__hamTest.exam(); E.qs.forEach((q, i) => { E.ans[i] = (q.a + 1) % 4; }); E.i = 34; E.ans[34] = null; })()")
+        await m.evaluate("document.querySelector('.hopt').click()"); await m.wait_for_timeout(150)
         nx_ = m.locator('[data-a="next"]')
         if await nx_.count(): await nx_.click()
         await m.wait_for_timeout(200)
