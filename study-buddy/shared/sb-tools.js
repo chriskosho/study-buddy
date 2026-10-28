@@ -363,8 +363,8 @@
       P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><p class="lead">${esc(opt.lead || 'Type your answer, then press Check.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">${item.practice ? 'Practice: a similar one, no score' : `Question ${numNow()} of ${tot} &middot; Score ${R.score}`}</span></div>
         <div class="row qrow"><p class="qtext">${item.q}</p>${item.say ? ctx.sayButton(item.say, 'Hear it') : ''}</div>
-        <form class="spellrow" autocomplete="off"><input aria-label="Your answer" placeholder="${kind === 'fraction' ? 'Like 3/4 or 1 3/4' : 'Answer'}" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off" autocorrect="off"'}${kind === 'fraction' ? ' size="14"' : ''} spellcheck="false"><button class="btn" type="submit">Check</button></form>
-        ${kind === 'fraction' ? '<p class="typed" aria-live="polite"></p>' : ''}${kind === 'fraction' && COARSE() ? KEYPAD : ''}
+        <form class="spellrow" autocomplete="off"><span class="spellbox"><input aria-label="Your answer" placeholder="${kind === 'fraction' ? 'Like 3/4 or 1 3/4' : 'Answer'}" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off" autocorrect="off"'}${kind === 'fraction' ? ' size="14"' : ''} spellcheck="false"><button class="btn" type="submit">Check</button>${kind === 'fraction' ? '<span class="typed" aria-live="polite"></span>' : ''}</span></form>
+        ${kind === 'fraction' && COARSE() ? KEYPAD : ''}
         <div class="err" role="alert"></div><p class="explain why"></p>
         <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}${kind !== 'text' && !item.practice ? '<button type="button" class="btn ghost" data-a="similar" hidden>Try a similar one</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
       addPad(ctx, () => plainText(item.q));

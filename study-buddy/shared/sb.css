@@ -412,7 +412,11 @@ html.sb-large .cardstage{height:calc(var(--vh, 100vh) - var(--chrome) - 450px);m
 .tool.next{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal)}
 .tool .nextlbl{font-size:13px;font-weight:800;color:var(--teal-ink);text-transform:uppercase;letter-spacing:1px}
 /* ---------- typed-fraction preview, number keys, round review, quiz key badges ---------- */
-.typed{min-height:1.6em;margin:-4px 0 6px;text-align:center;color:var(--ink2);font-size:17px}
+.spellbox{display:inline-flex;gap:10px;position:relative;flex-wrap:wrap;justify-content:center;align-items:center;max-width:100%}
+.typed{color:var(--ink2);font-size:17px;text-align:center}
+/* the typed fraction shows beside the box on a wide screen (taking no height), and under it on a narrow one */
+.spellbox .typed{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:14px;white-space:nowrap}
+@media (max-width:1100px){.spellbox .typed{position:static;transform:none;margin:0;flex-basis:100%}.spellbox .typed:empty{display:none}}
 .typed b,.typed .frac{color:var(--ink);font-size:20px}
 .keypad{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;max-width:420px;margin:0 auto 8px}
 .keypad button{font:inherit;font-weight:800;font-size:18px;min-height:44px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
