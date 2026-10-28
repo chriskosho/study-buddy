@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'Parent area: backups, history, and a clearer Progress page', items: [
+    'The parent area reminds you to save a backup when there has not been one for two weeks, and the Backup page says when the last one was.',
+    'Progress shows each child\'s last 14 days, the tools they have tried 3 or more times without mastering ("Needs help"), and the questions they miss most often. You can show everyone or one child, modules are grouped by subject and fold away, and Print gives a clean copy.',
+    'Children: progress made as Guest can be moved into a child\'s name.',
+    'Backup: "Load one child" brings back one child from a backup file without changing anyone else.' ] },
   { date: '2026-10-28', title: 'New: help for young readers, practice from mistakes, and Show me how', items: [
     'Every module and tool card has a speaker button that reads its name, so children who are not reading yet can find their way.',
     'A module you have started marks the next tool to try. The streak pill shows a small bar filling toward today\'s goal.',

@@ -74,6 +74,7 @@
           else if (r.streak > 0 && r.streak % 5 === 0) SB.toast(r.streak + ' in a row!');
         },
         slip() { SB.slip(); renderStreak(); },
+        miss(text) { SB.noteMiss(mod.id, text); },          // remembered for the parent area's "most missed"
         result(score, max) { SB.result(mod.id, t.id, score, max); },
         say: (text, opts) => SB.say(text, opts),
         sayButton: (text, label, audio) => SB.sayButton(text, label || 'Hear it', '', audio || ''),

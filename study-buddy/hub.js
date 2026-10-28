@@ -141,26 +141,67 @@
     const tabs = `<nav class="tabs" aria-label="Parent sections">${PSECTIONS.map(([k, n]) => `<a href="#/parent/${k}" aria-selected="${sec === k}">${n}</a>`).join('')}</nav>
       <div class="settings"><button class="iconbtn" id="lockBtn">${SB.hasPin() ? 'Lock and leave' : 'Leave'}</button></div>`;
     const nopin = SB.hasPin() ? '' : `<div class="note row between">No parent PIN yet, so anyone can change profiles or erase progress here.<button class="btn small" id="setPin">Set a PIN</button></div>`;
-    app.innerHTML = header('Parent area') + `<div class="bar2">${tabs}</div>${nopin}<section class="panel" id="psec"></section>`;
+    const bk = sec !== 'backup' && backupDue() ? `<div class="note row between noprint" role="status">${esc(backupLine())} Saving one every couple of weeks keeps progress safe if this browser is cleared.<button class="btn small" id="bkNow" type="button">Download backup</button></div>` : '';
+    app.innerHTML = header('Parent area') + `<div class="bar2">${tabs}</div>${nopin}${bk}<section class="panel" id="psec"></section>`;
+    if (bk) document.getElementById('bkNow').onclick = () => { saveBackup(); route(); };
     if (nopin) document.getElementById('setPin').onclick = () => SB.newPinDialog('Set a parent PIN', 'Choose 4 to 8 digits. Only a parent should know it.', route);
     document.getElementById('lockBtn').onclick = () => { SB.lock(); location.hash = '#/'; };
     ({ progress: pProgress, children: pChildren, backup: pBackup, archived: pArchived, pin: pPin })[sec](document.getElementById('psec'));
   }
 
+  /* ---------- backups: a gentle reminder once the last one is two weeks old ---------- */
+  const BACKUP_DAYS = 14;
+  const hasProgress = () => SB.profiles().some(p => Object.keys(SB.child(p.id).tools).length);
+  const backupLine = () => { const t = SB.root().lastBackupAt; return t ? 'Last backup: ' + ago(t) + '.' : 'No backup has been saved on this device yet.'; };
+  const backupDue = () => { const t = SB.root().lastBackupAt; return hasProgress() && (!t || Date.now() - t > BACKUP_DAYS * 864e5); };
+  const backupName = () => { const d = new Date(); return `study-buddy-backup-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.json`; };
+  function saveBackup() { SB.markBackup(); SB.download(backupName(), SB.exportAll()); SB.toast('Backup saved to your downloads'); }
+
+  /* ---------- progress ---------- */
+  let pWho = 'all';                                       // which child the Progress tab shows; "all" shows everyone side by side
+  const DAYS_SHOWN = 14;
+  function activityHTML(p) {
+    const days = SB.child(p.id).days || {}, out = [];
+    for (let i = DAYS_SHOWN - 1; i >= 0; i--) { const t = Date.now() - i * 864e5; out.push({ t, n: Number(days[SB.dayKey(t)]) || 0 }); }
+    const top = Math.max(SB.DAILY_GOAL, ...out.map(o => o.n)), active = out.filter(o => o.n).length;
+    const label = `${p.name}: right answers on each of the last ${DAYS_SHOWN} days. Studied on ${plural(active, 'day')}.`;
+    return `<div class="actbars" role="img" aria-label="${esc(label)}">${out.map(o => `<i title="${esc(new Date(o.t).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }))}: ${o.n}" style="height:${o.n ? Math.max(8, o.n / top * 100) : 0}%;background:${o.n ? 'var(--teal-fill)' : 'transparent'}"></i>`).join('')}</div>
+      <span class="hint">Last ${DAYS_SHOWN} days: studied on <b>${plural(active, 'day')}</b></span>`;
+  }
+  /* tools tried at least 3 times and still not mastered: where a little help goes furthest */
+  function needsHelp(p) {
+    const out = [];
+    LIVE.forEach(m => m.tools.forEach(t => { if (t.kind === 'study') return; const r = SB.toolRecord(m.id, t.id, p.id); if (r && r.attempts >= 3 && !SB.isMastered(t, r)) out.push({ m, t, r }); }));
+    return out.sort((a, b) => b.r.attempts - a.r.attempts);
+  }
+  function mostMissed(p, n = 5) {
+    const all = SB.child(p.id).misses || {}, out = [];
+    Object.entries(all).forEach(([mid, qs]) => { const m = modById(mid); if (!m || m.archived || !qs || typeof qs !== 'object') return; Object.entries(qs).forEach(([q, c]) => { if (Number(c) >= 2) out.push({ m, q, c: Number(c) }); }); });
+    return out.sort((a, b) => b.c - a.c).slice(0, n);
+  }
+  function kidSummary(p, full) {
+    const d = SB.child(p.id), s = SB.streakInfo(p.id);
+    const mastered = LIVE.reduce((a, m) => a + SB.moduleProgress(m, p.id).mastered, 0);
+    const total = LIVE.reduce((a, m) => a + SB.moduleProgress(m, p.id).total, 0);
+    const lm = d.last && modById(d.last.module), lt = toolOf(lm, d.last && d.last.tool);
+    const help = needsHelp(p), missed = mostMissed(p, full ? 8 : 3);
+    const helpHTML = help.length ? `<span class="hint">Needs help:</span><ul class="plist">${help.slice(0, full ? 8 : 3).map(h => `<li><b>${esc(h.t.name)}</b> in ${esc(h.m.title)} <span class="hint">best ${h.r.best}${h.r.max ? '/' + h.r.max : ''} after ${plural(h.r.attempts, 'round')}</span></li>`).join('')}</ul>` : '';
+    const missHTML = missed.length ? `<span class="hint">Missed most often:</span><ul class="plist">${missed.map(x => `<li>${esc(x.q)} <span class="hint">${esc(x.m.title)}, ${plural(x.c, 'time')}</span></li>`).join('')}</ul>` : '';
+    return `<div class="kidsum"><div class="row">${SB.avatar(p)}<b>${esc(p.name)}</b></div>
+      <span class="hint">Tools mastered: <b>${mastered} of ${total}</b></span>
+      <span class="hint">Today: <b>${Math.min(s.daily, s.goal)}/${s.goal}</b> right · Best streak: <b>${s.best}</b></span>
+      <span class="hint">Last: ${lt ? `<b>${esc(lt.name)}</b> in ${esc(lm.title)}, ${ago(d.last.at)}` : 'nothing yet'}</span>
+      ${activityHTML(p)}${helpHTML}${missHTML}</div>`;
+  }
   function pProgress(box) {
-    const ps = SB.profiles();
-    if (!ps.length) { box.innerHTML = '<p class="empty">No children yet. Add them under Children.</p>'; return; }
-    const sums = ps.map(p => {
-      const d = SB.child(p.id), s = SB.streakInfo(p.id);
-      const mastered = LIVE.reduce((a, m) => a + SB.moduleProgress(m, p.id).mastered, 0);
-      const total = LIVE.reduce((a, m) => a + SB.moduleProgress(m, p.id).total, 0);
-      const lm = d.last && modById(d.last.module), lt = toolOf(lm, d.last && d.last.tool);
-      return `<div class="kidsum"><div class="row">${SB.avatar(p)}<b>${esc(p.name)}</b></div>
-        <span class="hint">Tools mastered: <b>${mastered} of ${total}</b></span>
-        <span class="hint">Today: <b>${Math.min(s.daily, s.goal)}/${s.goal}</b> right · Best streak: <b>${s.best}</b></span>
-        <span class="hint">Last: ${lt ? `<b>${esc(lt.name)}</b> in ${esc(lm.title)}, ${ago(d.last.at)}` : 'nothing yet'}</span></div>`;
-    }).join('');
-    const tables = LIVE.map(m => {
+    const all = SB.profiles();
+    if (!all.length) { box.innerHTML = '<p class="empty">No children yet. Add them under Children.</p>'; return; }
+    if (pWho !== 'all' && !all.find(p => p.id === pWho)) pWho = 'all';
+    const ps = pWho === 'all' ? all : all.filter(p => p.id === pWho), one = ps.length === 1;
+    const filter = all.length > 1 ? `<div class="row pfilter" role="group" aria-label="Show progress for">${[['all', 'Everyone'], ...all.map(p => [p.id, p.name])].map(([id, n]) => `<button class="iconbtn" data-who="${esc(id)}" aria-pressed="${pWho === id}">${esc(n)}</button>`).join('')}</div>` : '';
+    const started = m => ps.some(p => m.tools.some(t => { const r = SB.toolRecord(m.id, t.id, p.id); return r && (r.attempts || r.visits); }));
+    const bySubject = REG.subjects.map(sj => ({ sj, mods: LIVE.filter(m => m.subject === sj.id) })).filter(g => g.mods.length);
+    const tables = bySubject.map(({ sj, mods }) => `<h3 class="psubj">${esc(sj.name)}</h3>` + mods.map(m => {
       const tools = [...m.tools].sort((a, b) => DIFF_ORDER(a.difficulty) - DIFF_ORDER(b.difficulty));
       const cell = (t, p) => {
         const r = SB.toolRecord(m.id, t.id, p.id);
@@ -168,13 +209,25 @@
         if (!r || r.best == null) return '<span class="hint">Not tried</span>';
         return (SB.isMastered(t, r) ? `<span class="done">${CHECK}</span> ` : '') + 'Best ' + r.best + (r.max ? '/' + r.max : '') + ` <span class="hint">(${plural(r.attempts, 'round')})</span>`;
       };
-      return `<h3 style="margin:0 0 8px">${esc(m.title)} <span class="hint">${esc(subjectName(m.subject))}</span></h3>
+      const counts = ps.map(p => { const pr = SB.moduleProgress(m, p.id); return (one ? '' : esc(p.name) + ' ') + pr.mastered + '/' + pr.total; }).join(' · ');
+      return `<details class="pmod"${started(m) ? ' open' : ''}><summary><b>${esc(m.title)}</b> <span class="hint">${one ? 'mastered ' : ''}${counts}</span></summary>
         <div class="tablewrap"><table class="ptable"><thead><tr><th>Tool</th><th>Difficulty</th>${ps.map(p => `<th>${esc(p.name)}</th>`).join('')}</tr></thead>
-        <tbody>${tools.map(t => `<tr><td><b>${esc(t.name)}</b></td><td>${SB.diffBadge(t.difficulty)}</td>${ps.map(p => `<td class="num">${cell(t, p)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-    }).join('');
-    box.innerHTML = `<h2>Progress</h2>${pinNote(SB.root())}<p class="lead">A tool counts as mastered once its best score reaches the goal in its description. Study tools have no score. Flashcards are practice only and do not count toward mastery.</p><div class="cards2">${sums}</div>${tables}`;
+        <tbody>${tools.map(t => `<tr><td><b>${esc(t.name)}</b></td><td>${SB.diffBadge(t.difficulty)}</td>${ps.map(p => `<td class="num">${cell(t, p)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
+    }).join('')).join('');
+    box.innerHTML = `<div class="row between"><h2 style="margin:0">Progress</h2><button class="btn ghost small noprint" id="printBtn" type="button">Print</button></div>${pinNote(SB.root())}
+      <p class="lead">A tool counts as mastered once its best score reaches the goal in its description. Study tools have no score. Flashcards are practice only and do not count toward mastery. "Needs help" lists tools tried at least 3 times and not mastered yet.</p>
+      ${filter}<div class="cards2${one ? ' one' : ''}">${ps.map(p => kidSummary(p, one)).join('')}</div>
+      <div class="row noprint" style="margin-bottom:10px"><button class="btn ghost small" id="openAll" type="button">Open all</button><button class="btn ghost small" id="closeAll" type="button">Close all</button></div>${tables}`;
+    box.querySelectorAll('[data-who]').forEach(b => b.onclick = () => { pWho = b.dataset.who; pProgress(box); const f = box.querySelector(`[data-who="${CSS.escape(pWho)}"]`); if (f) f.focus(); });
+    box.querySelector('#openAll').onclick = () => box.querySelectorAll('details.pmod').forEach(d => { d.open = true; });
+    box.querySelector('#closeAll').onclick = () => box.querySelectorAll('details.pmod').forEach(d => { d.open = false; });
+    box.querySelector('#printBtn').onclick = () => window.print();
     wireDismiss(box, pProgress);
   }
+  /* printing opens every module, then puts them back the way they were */
+  let printShut = [];
+  window.addEventListener('beforeprint', () => { printShut = [...document.querySelectorAll('details.pmod:not([open])')]; printShut.forEach(d => { d.open = true; }); });
+  window.addEventListener('afterprint', () => { printShut.forEach(d => { d.open = false; }); printShut = []; });
 
   function pArchived(box) {
     const ps = SB.profiles();
@@ -189,7 +242,7 @@
   }
 
   function pChildren(box) {
-    const ps = SB.profiles();
+    const ps = SB.profiles(), others = p => ps.filter(o => o.id !== p.id);
     const row = p => {
       const st = SB.child(p.id).settings;
       return `<div class="kidrow" data-id="${esc(p.id)}">${SB.avatar(p, 'lg')}
@@ -202,7 +255,7 @@
           <button class="iconbtn" data-set="readAloud" aria-pressed="${st.readAloud}" title="Reads questions out loud in tools that support it">Read aloud: ${st.readAloud ? 'on' : 'off'}</button>
           <button class="btn warn small" data-act="reset">Reset progress</button>
           <button class="btn ghost small" data-act="delete">Delete</button>
-        </div></div>`;
+        </div>${SB.isGuest(p) && others(p).length && Object.keys(SB.child(p.id).tools).length ? `<div class="row movebox"><label class="field">Move Guest's progress to<select class="moveTo">${others(p).map(o => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label><button class="btn small" data-act="move" type="button">Move</button></div>` : ''}</div>`;
     };
     let newColor = SB.COLORS[ps.length % SB.COLORS.length].c;
     box.innerHTML = `<h2>Children</h2><p class="lead">Names, colors, and settings for each child. Read aloud is off unless you turn it on.</p>
@@ -219,6 +272,12 @@
       r.querySelectorAll('.swatch').forEach(s => s.onclick = () => { SB.updateProfile(id, { color: s.dataset.c }); pChildren(box); });
       r.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { const k = b.dataset.set; SB.setSetting(k, !SB.getSetting(k, id), id); pChildren(box); });
       r.querySelector('[data-act="reset"]').onclick = () => SB.confirm({ title: 'Reset ' + p.name + "'s progress?", text: 'This erases best scores, streaks, and module progress (like passport stamps) for ' + p.name + '. Settings stay.', ok: 'Reset progress', danger: true }, () => { SB.resetChild(id); SB.toast(p.name + "'s progress was reset"); pChildren(box); });
+      const mv = r.querySelector('[data-act="move"]');
+      if (mv) mv.onclick = () => { const to = SB.profile(r.querySelector('.moveTo').value); if (!to) return; const lost = SB.mergePreview(id, to.id).notesDropped;
+        SB.confirm({ title: "Move Guest's progress to " + to.name + '?', text: "Guest's scores, rounds, today's count, history, missed questions, module progress, and notes are added to " + to.name + '. Where both saved the same thing, ' + to.name + "'s stays. Then the Guest profile is removed." + (lost ? ' Only 25 notes fit, so the ' + plural(lost, 'oldest note') + ' will be left out.' : ''), ok: 'Move progress' }, () => {
+          try { SB.mergeProfile(id, to.id); SB.toast("Guest's progress now belongs to " + to.name); } catch (err) { SB.toast(err.message); }
+          pChildren(box);
+        }); };
       r.querySelector('[data-act="delete"]').onclick = () => SB.confirm({ title: 'Delete ' + p.name + '?', text: 'This removes the profile and all of its progress from this device.', ok: 'Delete', danger: true }, () => { SB.deleteProfile(id); SB.toast(p.name + ' was removed'); pChildren(box); });
     });
     box.querySelectorAll('#newSw .swatch').forEach(s => s.onclick = () => { newColor = s.dataset.c; box.querySelectorAll('#newSw .swatch').forEach(x => x.setAttribute('aria-pressed', x === s)); });
@@ -228,23 +287,49 @@
   }
 
   function pBackup(box) {
+    const hidden = 'tabindex="-1" aria-hidden="true" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"';
     box.innerHTML = `<h2>Backup</h2>
       <p class="lead">Progress is saved in this browser on this device only. A backup file lets you keep a copy or move everything to another device, like a phone.</p>
+      <p class="${backupDue() ? 'note' : 'hint'}" id="lastBk">${esc(backupLine())}</p>
       <div class="kidrow"><div class="grow"><h3>Save a backup</h3><span class="hint">Downloads one small file with every profile, setting, and score. It also holds the parent PIN, so keep it private.</span></div><button class="btn" id="exp">Download backup</button></div>
       <div class="kidrow"><div class="grow"><h3>Load a backup</h3><span class="hint">Replaces everything on this device with the backup, including the parent PIN saved in it.</span></div>
-        <button class="btn ghost" id="pick" type="button">Choose file</button><input type="file" id="imp" accept=".json,application/json" tabindex="-1" aria-hidden="true" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></div>`;
+        <button class="btn ghost" id="pick" type="button">Choose file</button><input type="file" id="imp" accept=".json,application/json" ${hidden}></div>
+      <div class="kidrow"><div class="grow"><h3>Load one child</h3><span class="hint">Brings back one child from a backup, as a new child or in place of a child here. Everyone else on this device stays as they are.</span></div>
+        <button class="btn ghost" id="pick1" type="button">Choose file</button><input type="file" id="imp1" accept=".json,application/json" ${hidden}></div>`;
     box.querySelector('#pick').onclick = () => box.querySelector('#imp').click();
-    box.querySelector('#exp').onclick = () => { const d = new Date(); SB.download(`study-buddy-backup-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.json`, SB.exportAll()); };
-    box.querySelector('#imp').onchange = e => {
+    box.querySelector('#pick1').onclick = () => box.querySelector('#imp1').click();
+    box.querySelector('#exp').onclick = () => { saveBackup(); pBackup(box); };
+    const readFile = (e, then) => {
       const f = e.target.files[0]; if (!f) return;
       e.target.value = '';
       f.text().then(text => {
         let info; try { info = SB.checkBackup(text); } catch (err) { SB.confirm({ title: 'Cannot load this file', text: err.message + ' Nothing on this device was changed.', ok: 'OK', cancel: 'Close' }); return; }
-        SB.confirm({ title: 'Load this backup?', text: 'Everything on this device will be replaced with the backup from ' + f.name + '. It has ' + info.names.join(', ') + '.', ok: 'Load backup', danger: true }, () => {
-          try { SB.importAll(text); SB.toast('Backup loaded'); location.hash = '#/'; route(); } catch (err) { SB.toast(err.message); }
-        });
+        then(text, info, f);
       }, () => SB.toast('That file could not be read.'));
     };
+    box.querySelector('#imp').onchange = e => readFile(e, (text, info, f) => {
+      SB.confirm({ title: 'Load this backup?', text: 'Everything on this device will be replaced with the backup from ' + f.name + '. It has ' + info.names.join(', ') + '.', ok: 'Load backup', danger: true }, () => {
+        try { SB.importAll(text); SB.toast('Backup loaded'); location.hash = '#/'; route(); } catch (err) { SB.toast(err.message); }
+      });
+    });
+    box.querySelector('#imp1').onchange = e => readFile(e, text => {
+      const kids = JSON.parse(JSON.parse(text).data['studybuddy.v1.root']).profiles, here = SB.profiles();
+      SB.dialog(`<h3>Load one child</h3>
+        <label class="sb-field">Child in the backup<select id="oneFrom">${kids.map(k => `<option value="${esc(k.id)}">${esc(String(k.name).slice(0, 24))}</option>`).join('')}</select></label>
+        <label class="sb-field">Put them<select id="oneTo"><option value="">As a new child</option>${here.map(p => `<option value="${esc(p.id)}">In place of ${esc(p.name)}</option>`).join('')}</select></label>
+        <p class="sb-hint" id="oneWarn" hidden>This replaces that child's progress, settings, and notes here.</p>
+        <div class="sb-row"><button class="sb-btn ghost" data-x="no">Cancel</button><button class="sb-btn" data-x="yes">Load child</button></div>`, (dlg, close) => {
+        const to = dlg.querySelector('#oneTo'), warn = dlg.querySelector('#oneWarn'), yes = dlg.querySelector('[data-x="yes"]');
+        const sync = () => { warn.hidden = !to.value; yes.classList.toggle('warn', !!to.value); };   // starts as a new child; replacing is a choice, with a warning
+        to.onchange = sync; sync();
+        dlg.querySelector('[data-x="no"]').onclick = close;
+        yes.onclick = () => {
+          const from = dlg.querySelector('#oneFrom').value, target = to.value || null, kid = kids.find(k => k.id === from);
+          close();
+          try { SB.importChild(text, from, target); SB.toast(String(kid.name).slice(0, 24) + ' was loaded from the backup'); route(); } catch (err) { SB.toast(err.message); }
+        };
+      });
+    });
   }
 
   const pinNote = r => r.pinRemovedAt ? `<div class="note" role="status">The parent PIN was reset with "Forgot PIN" on ${esc(new Date(r.pinRemovedAt).toLocaleDateString())}. <button class="btn ghost small" id="dismiss" type="button">Dismiss</button></div>` : '';

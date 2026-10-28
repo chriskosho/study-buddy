@@ -432,3 +432,31 @@ html.sb-large .cardstage{height:calc(var(--vh, 100vh) - var(--chrome) - 450px);m
 @media (pointer:coarse){.opt .optkey{display:none}}
 .deckagain{gap:8px;margin-top:12px}
 .stepbtn{margin-left:6px;vertical-align:baseline}
+
+/* ---------- parent area: progress filters, activity, needs help, most missed, printing ---------- */
+.pfilter{gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.pfilter .iconbtn[aria-pressed="false"]{border-style:solid}
+.pfilter .iconbtn[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:700}
+.cards2.one{grid-template-columns:1fr}
+.actbars{display:flex;align-items:flex-end;gap:3px;height:44px;padding-top:2px;border-bottom:1.5px solid var(--line);margin-top:4px}
+.actbars i{flex:1;min-width:4px;border-radius:3px 3px 0 0}
+.plist{margin:0;padding-left:20px;font-size:15px;display:flex;flex-direction:column;gap:2px;overflow-wrap:anywhere}
+.psubj{margin:20px 0 8px;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--ink2)}
+details.pmod{margin-bottom:8px}
+details.pmod>summary{cursor:pointer;padding:8px 4px;font-size:18px;overflow-wrap:anywhere}
+details.pmod[open]>summary{margin-bottom:6px}
+.movebox{width:100%;justify-content:flex-end;align-items:flex-end;gap:10px}
+.field select,.sb-dlg .sb-field select{font:inherit;font-size:16px;padding:9px 12px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);min-width:0;width:100%}
+.sb-dlg .sb-field{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:12px}
+.sb-dlg p.sb-hint{font-size:15px;color:var(--coral-ink)}
+@media print{
+  :root,html.sb-dark{--paper:#fff;--card:#fff;--surface:#fff;--ink:#000;--ink2:#444;--line:#bbb;--track:#ddd;--navy:#2b4162;--navy-ink:#2b4162;--teal:#1b998b;--coral:#e4572e;--good:#2e9e5b;--bad:#d64545;--teal-ink:#0e7569;--good-ink:#1e7340;--coral-ink:#b23a15;--bad-ink:#b32d2d;--teal-fill:#0e7468;--good-fill:#1d7442;--tint-good:#dff3e6;--tint-bad:#fbe0e0;--tint-note:#fff7e3;--note-line:#f1d9a0;color-scheme:light}
+  html.sb-dark .diff.easy{color:#23784a} html.sb-dark .diff.medium{color:#8a5a00} html.sb-dark .diff.hard{color:#b73e1b}
+  body{background:#fff;color:#000}
+  .sbhead,.sbfoot,.bar2,.noprint,.note,#sbPad,.sb-toast,#sb-toast{display:none!important}
+  section.panel{border:0;padding:0}
+  details.pmod>summary{list-style:none}
+  details.pmod>summary::-webkit-details-marker{display:none}
+  .tablewrap{overflow:visible}
+  .kidsum{break-inside:avoid}
+}

@@ -123,7 +123,7 @@
         <li>Choose <b>Type</b> to use the keyboard. Press Escape when the line is done.</li>
         <li>On a tablet with a pen, turn on <b>Pen only</b> so a resting hand does not draw.</li>
         <li>When you close the pad with writing on it, it asks what to do: save a picture to this device, save to <b>My notes</b> (under your name), keep it for this session only, or not save it. Notes saved to your name are in <b>Notes</b> at the top of every page.</li></ul>`)}
-      ${sec('Saving, backups, and other devices', `<p>Progress is saved in this browser on this device. A parent can save a backup file and load it on another device in the <a href="#/parent">parent area</a>.</p>`)}
+      ${sec('Saving, backups, and other devices', `<p>Progress is saved in this browser on this device. A parent can save a backup file and load it on another device in the <a href="#/parent">parent area</a>, which reminds you when the last backup is two weeks old. "Load one child" brings back just one child from a backup.</p>`)}
       ${sec('Display options', `<p>Dark mode, the OpenDyslexic font, and larger text are in <a href="#/settings">Settings</a>. Each child keeps their own.</p>`)}
     </section>`;
   }
@@ -142,6 +142,7 @@
       ${sec('Can several children use it?', '<p>Yes. A parent adds children in the parent area. Each child has their own progress and settings.</p>')}
       ${sec('Does it work without internet?', '<p>After the first visit, most of it works offline. Wikipedia links in the study guides need internet.</p>')}
       ${sec('How do I move to a new device?', '<p>In the parent area, save a backup on the old device and load it on the new one. A backup contains the parent PIN, so keep the file private.</p>')}
+      ${sec('Someone studied as Guest. Can I keep that progress?', '<p>Yes. In the parent area, under Children, Guest has "Move Guest\'s progress to". Pick the child and press Move.</p>')}
       ${sec('I forgot the parent PIN.', '<p>In the PIN prompt choose "Forgot PIN?", type REMOVE, then choose a new PIN.</p>')}
       ${sec('Are the answers always right?', '<p>Modules built from a teacher\'s study guide keep the teacher\'s wording. Where historians disagree, a "Historians say" note links a source. If you spot a mistake, please tell the person who set up your Study Buddy.</p>')}
     </section>`;

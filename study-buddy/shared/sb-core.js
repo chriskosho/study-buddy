@@ -54,6 +54,7 @@
   const allKeys = () => { const out = []; try { for (let i = 0; i < localStorage.length; i++) out.push(localStorage.key(i)); } catch (e) {} return out; };
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
   const uid = () => Math.random().toString(36).slice(2, 7) + Date.now().toString(36).slice(-4);
+  const objOr = v => v && typeof v === 'object' && !Array.isArray(v) ? v : {};
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   function root() { return Object.assign({ profiles: [], active: null, pin: null, pinRemovedAt: null }, read(ROOT, {})); }
@@ -65,6 +66,7 @@
     if (!d.daily || typeof d.daily !== 'object') d.daily = { d: '', n: 0, done: false };
     d.daily.n = Number(d.daily.n) || 0;
     if (!d.tools || typeof d.tools !== 'object') d.tools = {};
+    d.days = objOr(d.days); d.misses = objOr(d.misses);   // the parent area's history and missed questions
     if (d.daily.d !== today()) d.daily = { d: today(), n: 0, done: false };
     return d;
   }
@@ -125,6 +127,7 @@
   function credit() {
     const id = activeId(); if (!id) return { streak: 0, daily: 0, goal: DAILY_GOAL, goalJustReached: false };
     const d = child(id); d.streak++; d.bestStreak = Math.max(d.bestStreak, d.streak); d.daily.n++;
+    logDay(d);
     let hit = false; if (d.daily.n >= DAILY_GOAL && !d.daily.done) { d.daily.done = true; hit = true; }
     saveChild(id, d); return { streak: d.streak, daily: d.daily.n, goal: DAILY_GOAL, goalJustReached: hit };
   }
@@ -132,6 +135,92 @@
   function pillHTML(s = streakInfo()) {
     const p = activeProfile(), pct = Math.min(100, s.daily / s.goal * 100);
     return `<b>Streak ${s.streak}</b><b>Today ${Math.min(s.daily, s.goal)}/${s.goal}</b><span class="goalbar" aria-hidden="true"><i style="width:${pct}%;background:${safeColor(p && p.color)}"></i></span>`;
+  }
+  /* a small history for the parent area: right answers per day, the last 60 days */
+  const dayKey = t => { const x = new Date(t); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+  function logDay(d) {
+    const days = d.days && typeof d.days === 'object' ? d.days : {}, k = dayKey(Date.now()); days[k] = (Number(days[k]) || 0) + 1;
+    const cut = dayKey(Date.now() - 60 * 864e5); Object.keys(days).forEach(x => { if (x < cut) delete days[x]; }); d.days = days;
+  }
+  /* questions missed, per module, so a parent can see what to practice (the 40 most missed per module are kept) */
+  function noteMiss(moduleId, text) {
+    const id = activeId(); if (!id || !moduleId || !text) return; const d = child(id);
+    const all = d.misses && typeof d.misses === 'object' ? d.misses : {}, m = all[moduleId] && typeof all[moduleId] === 'object' ? all[moduleId] : {};
+    const t = String(text).replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim().slice(0, 220); m[t] = (Number(m[t]) || 0) + 1;
+    const keys = Object.keys(m); if (keys.length > 40) keys.sort((a, b) => m[a] - m[b]).slice(0, keys.length - 40).forEach(k => delete m[k]);
+    all[moduleId] = m; d.misses = all; saveChild(id, d);
+  }
+  /* move everything one profile earned into another (used for Guest). Nothing is deleted unless every save worked. */
+  const NOTES_MAX = 25, NOTES_BYTES = 1200000;   // the scratch pad's own limits for notes saved to a profile
+  function mergedNotes(fromId, toId) {
+    const na = read(NS + '.notes.' + fromId, []), nb = read(NS + '.notes.' + toId, []);
+    const all = (Array.isArray(nb) ? nb : []).concat(Array.isArray(na) ? na : []).sort((x, y) => (y.at || 0) - (x.at || 0));
+    let keep = all.slice(0, NOTES_MAX); while (keep.length > 1 && JSON.stringify(keep).length > NOTES_BYTES) keep = keep.slice(0, -1);
+    return { keep, dropped: all.length - keep.length, any: Array.isArray(na) && na.length > 0 };
+  }
+  /* module state both profiles have: lists are joined, records are combined (the child's value wins a clash), anything else stays the child's */
+  function mergeState(mine, theirs) {
+    let x, y; try { x = JSON.parse(mine); y = JSON.parse(theirs); } catch (e) { return mine; }
+    if (Array.isArray(x) && Array.isArray(y)) { const seen = new Set(x.map(v => JSON.stringify(v))); return JSON.stringify(x.concat(y.filter(v => !seen.has(JSON.stringify(v))))); }
+    if (x && y && typeof x === 'object' && typeof y === 'object' && !Array.isArray(x) && !Array.isArray(y)) return JSON.stringify(Object.assign({}, y, x));
+    return mine;
+  }
+  const mergePreview = (fromId, toId) => ({ notesDropped: mergedNotes(fromId, toId).dropped });
+  function mergeProfile(fromId, toId) {
+    if (fromId === toId) return; const a = child(fromId), b = child(toId);
+    Object.entries(a.tools).forEach(([k, r]) => {
+      if (!r || typeof r !== 'object') return;
+      const t = b.tools[k];
+      if (!t || typeof t !== 'object') { b.tools[k] = r; return; }
+      t.attempts = (Number(t.attempts) || 0) + (Number(r.attempts) || 0); t.visits = (Number(t.visits) || 0) + (Number(r.visits) || 0); t.last = Math.max(Number(t.last) || 0, Number(r.last) || 0);
+      const better = t.best == null || (r.best != null && (r.max && t.max ? r.best / r.max > t.best / t.max : r.best > t.best));
+      if (better) { t.best = r.best; t.max = r.max; }
+    });
+    b.bestStreak = Math.max(b.bestStreak, a.bestStreak);
+    if (a.daily.d === b.daily.d) { b.daily.n += a.daily.n; b.daily.done = b.daily.done || a.daily.done || b.daily.n >= DAILY_GOAL; }
+    Object.entries(a.days).forEach(([k, n]) => { b.days[k] = (Number(b.days[k]) || 0) + (Number(n) || 0); });
+    Object.entries(a.misses).forEach(([mod, m]) => { const t = b.misses[mod] = objOr(b.misses[mod]); Object.entries(objOr(m)).forEach(([q, n]) => { t[q] = (Number(t[q]) || 0) + (Number(n) || 0); }); });
+    if (!b.last || (a.last && a.last.at > b.last.at)) b.last = a.last;
+    /* every write goes through one list, so a full device puts everything back the way it was */
+    const writes = { [CHILD(toId)]: JSON.stringify(b) };
+    allKeys().filter(k => k && k.startsWith(MODPREFIX(fromId))).forEach(k => {
+      const nk = MODPREFIX(toId) + k.slice(MODPREFIX(fromId).length), mine = localStorage.getItem(nk), theirs = localStorage.getItem(k);
+      writes[nk] = mine == null ? theirs : mergeState(mine, theirs);
+    });
+    const notes = mergedNotes(fromId, toId); if (notes.any) writes[NS + '.notes.' + toId] = JSON.stringify(notes.keep);
+    const old = {}; Object.keys(writes).forEach(k => { old[k] = localStorage.getItem(k); });
+    try { Object.entries(writes).forEach(([k, v]) => localStorage.setItem(k, v)); }
+    catch (e) {
+      Object.entries(old).forEach(([k, v]) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e2) {} });
+      throw new Error('There was not enough room on this device to move the progress. Nothing was changed.');
+    }
+    const r = root(); if (r.active === fromId) { r.active = toId; saveRoot(r); }
+    deleteProfile(fromId);
+  }
+  /* bring one child back from a backup file, as a new child or in place of one here; nothing else on this device changes */
+  function importChild(text, fromId, targetId) {
+    const { data } = checkBackup(text), src = JSON.parse(data[ROOT]).profiles.find(p => p.id === fromId);
+    if (!src) throw new Error('That child is not in the backup.');
+    const r = root(), isNew = !targetId, to = targetId || uid();
+    const mine = k => k === CHILD(to) || k === NS + '.notes.' + to || k.startsWith(MODPREFIX(to));
+    const old = {}; allKeys().filter(k => k && mine(k)).forEach(k => { old[k] = localStorage.getItem(k); });   // put back if it does not fit
+    try {
+      Object.keys(old).forEach(remove);
+      Object.entries(data).forEach(([k, v]) => {
+        if (k === CHILD(fromId)) localStorage.setItem(CHILD(to), v);
+        else if (k === NS + '.notes.' + fromId) localStorage.setItem(NS + '.notes.' + to, v);
+        else if (k.startsWith(MODPREFIX(fromId))) localStorage.setItem(MODPREFIX(to) + k.slice(MODPREFIX(fromId).length), v);
+      });
+    } catch (e) {
+      allKeys().filter(k => k && mine(k)).forEach(remove);
+      Object.entries(old).forEach(([k, v]) => { try { localStorage.setItem(k, v); } catch (e2) {} });
+      throw new Error('There was not enough room to load that child. Nothing was changed.');
+    }
+    if (isNew) {
+      r.profiles.push({ id: to, name: String(src.name).trim().slice(0, 24) || 'Child', color: safeColor(src.color) });
+      if (!write(ROOT, r)) { allKeys().filter(k => k && mine(k)).forEach(remove); throw new Error('There was not enough room to load that child. Nothing was changed.'); }
+    }
+    bumpEpoch(); return to;
   }
   function slip() { const id = activeId(); if (!id) return; const d = child(id); d.streak = 0; saveChild(id, d); }
   function streakInfo(id = activeId()) { if (!id) return { streak: 0, best: 0, daily: 0, goal: DAILY_GOAL }; const d = child(id); return { streak: d.streak, best: d.bestStreak, daily: d.daily.n, goal: DAILY_GOAL }; }
@@ -627,6 +716,8 @@
   }
 
   /* ---------- backup ---------- */
+  /* the parent area reminds a parent to save a backup when the last one is old */
+  function markBackup() { const r = root(); r.lastBackupAt = Date.now(); saveRoot(r); }
   function exportAll() {
     const ids = new Set(root().profiles.map(p => p.id)), owner = k => { const m = k.match(/^studybuddy\.v1\.(?:child|notes|m)\.([a-z0-9]+)/i); return m ? m[1] : null; };
     const data = {}; allKeys().filter(k => k && k.startsWith(NS) && k !== EPOCH && (!owner(k) || ids.has(owner(k)))).forEach(k => { data[k] = localStorage.getItem(k); });   // leftovers of deleted children stay out
@@ -668,6 +759,7 @@
         if ((j.streak != null && !num(j.streak)) || (j.bestStreak != null && !num(j.bestStreak))) throw new Error('This backup is damaged, so nothing was changed.');
         if (j.daily != null && (!isObj(j.daily) || !num(j.daily.n) || typeof j.daily.d !== 'string')) throw new Error('This backup is damaged, so nothing was changed.');
         if (j.settings != null && !isObj(j.settings)) throw new Error('This backup is damaged, so nothing was changed.');
+        if ((j.days != null && !isObj(j.days)) || (j.misses != null && !isObj(j.misses))) throw new Error('This backup is damaged, so nothing was changed.');
         if (j.tools != null) {
           if (!isObj(j.tools)) throw new Error('This backup is damaged, so nothing was changed.');
           for (const t of Object.values(j.tools)) if (!isObj(t) || ['attempts', 'visits', 'best', 'max', 'lastScore', 'last'].some(f => t[f] != null && !num(t[f]))) throw new Error('This backup is damaged, so nothing was changed.');
@@ -735,10 +827,10 @@
     root, profiles, profile, activeProfile, activeId, setActive, addProfile, isGuest, ensureGuest, nameDialog, afterProfileAdded, offerPin, updateProfile, deleteProfile, resetChild, resetAllProgress, eraseEverything, resetModule,
     avatar, colorInk, initial, child,
     getSetting, setSetting,
-    credit, slip, streakInfo, pillHTML, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
+    credit, slip, streakInfo, pillHTML, noteMiss, mergeProfile, mergePreview, importChild, dayKey, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
     moduleKey, requireProfile,
     tone, sfx, say, stopSpeech, stopAll, voicesFor, voiceId, voiceLabels, pickVoice, applyVoice, sayButton, toast, applyDisplay, displayDialog, swipeCard, cardToast,
     dialog, confirm: confirmDlg, requirePin, newPinDialog, hasPin, dismissPinNote, isUnlocked, lock,
-    exportAll, checkBackup, importAll, download
+    exportAll, markBackup, checkBackup, importAll, download
   };
 })();
