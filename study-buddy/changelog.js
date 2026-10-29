@@ -1,6 +1,8 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-29', title: 'Module filter box hidden', items: [
+    'The Filter modules box is gone from the module screen for now. Sort by, Tiles and List still work. The code is kept, so it can come back later.' ] },
   { date: '2026-10-28', title: 'New module: The Punic Wars', items: [
     'The Punic Wars is a new History module built from the class notes: Carthage and the 1st war, Hannibal and the 2nd war, and the results and the 3rd war.',
     'It has a Study guide with drawings, a Who\u2019s who page, and a Pictures page with spaces for busts, paintings, and photos (they appear once the picture files are added).',
