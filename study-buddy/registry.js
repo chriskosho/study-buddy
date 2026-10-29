@@ -137,6 +137,25 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'weather',
+      subject: 'science',
+      title: 'Weather',
+      blurb: 'Unit 3: the atmosphere, clouds, the water cycle, hemispheres and seasons, and the tools meteorologists use.',
+      tags: ['science', 'earth'],
+      path: 'modules/science/weather/index.html',
+      storage: ['weather'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Your Unit 3 notes with drawings, the six kinds of weather, and facts from the practice test.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary, or name the kind of weather from its picture. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions, some with weather pictures. Mastered at 8 of 10.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Clouds, the water cycle, weather tools, or hemispheres. Mastered at 80%.' },
+        { id: 'label', name: 'Label the diagram', difficulty: 'medium', blurb: 'Pick the letter for each part of the earth and of the water cycle. Mastered at 80%.' },
+        { id: 'graph', name: 'Read the graph', difficulty: 'medium', blurb: 'Read a line graph of temperatures. Mastered at 5 of 6.', masterAt: 5 },
+        { id: 'type', name: 'Type the answer', difficulty: 'hard', blurb: 'Type the missing word from a sentence in the notes. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences, like the test. Mastered at 4 of 5.' }
+      ]
+    },
+    {
       id: 'handwriting',
       subject: 'english',
       title: 'Handwriting',

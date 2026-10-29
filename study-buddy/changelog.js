@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-29', title: 'New module: Weather', items: [
+    'Weather is a new Science module for Unit 3, built from the notes and the practice test: the atmosphere, hemispheres, clouds, the water cycle, and the tools meteorologists use.',
+    'The Study guide has a drawing for each lesson, the six kinds of weather from the flip-book, and a page of facts from the practice test.',
+    'Tools: Flashcards, Quiz (some questions use weather pictures), Sort it, Label the diagram (the earth and the water cycle, like the practice test), Read the graph (a line graph of temperatures), Type the answer, and Explain it.' ] },
   { date: '2026-10-28', title: 'New module: The Punic Wars', items: [
     'The Punic Wars is a new History module built from the class notes: Carthage and the 1st war, Hannibal and the 2nd war, and the results and the 3rd war.',
     'It has a Study guide with drawings, a Who\u2019s who page, and a Pictures page with spaces for busts, paintings, and photos (they appear once the picture files are added).',
