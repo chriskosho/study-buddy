@@ -1,4 +1,4 @@
-"""The module screen: Tiles or List (each student's own choice), Sort by, subject headings, the filter box, and the list on Utilities.
+"""The module screen: Tiles or List (each student's own choice), Sort by, subject headings, and the list on Utilities.
 Run:  python3 study-buddy/_dev/tests/module_view_test.py"""
 import asyncio, http.server, threading, functools, os, sys, json
 from playwright.async_api import async_playwright
@@ -51,9 +51,6 @@ async def main():
         check(len(await pg.evaluate("SB.getSetting('collapsed')")) == 1, 'folded sections are saved per student')
         await pg.goto(BASE + '#/help'); await pg.goto(BASE + '#/home/all'); await pg.wait_for_selector('#mArea .mtoggle')
         check(await pg.locator('#mArea [id^="mg-"][hidden]').count() == 1, 'the fold is remembered')
-        await pg.fill('#mQ', 'a'); await pg.wait_for_timeout(150)
-        check(await pg.locator('#mArea [id^="mg-"][hidden]').count() == 0, 'a search shows matches inside folded sections')
-        await pg.fill('#mQ', ''); await pg.wait_for_timeout(150)
         await pg.locator('[data-all="shut"]').click(); await pg.wait_for_timeout(100)
         check(await pg.locator('#mArea [id^="mg-"][hidden]').count() == nt, 'Collapse all folds every section')
         await pg.locator('[data-all="open"]').click(); await pg.wait_for_timeout(100)
@@ -98,23 +95,10 @@ async def main():
         await pg.select_option('#mSort', 'subject'); await pg.wait_for_timeout(100)
         check(await pg.locator('#mArea .mgroup').count() == len(subs), 'Subject brings the headings back')
 
-        # ---- the filter ----
-        await pg.fill('#mQ', 'rome'); await pg.wait_for_timeout(120)
-        t = await titles(pg)
-        check(len(t) >= 1 and all('rome' in x.lower() or True for x in t) and len(t) < mods, f'the filter narrows the list {t}')
-        check(await pg.evaluate("document.activeElement.id") == 'mQ', 'typing keeps the focus in the box')
-        check('shown' in await pg.inner_text('#mStat'), 'the count is announced')
-        await pg.fill('#mQ', 'zzzqq'); await pg.wait_for_timeout(120)
-        check('No modules match' in await pg.inner_text('#mArea') and await pg.locator('#mClear').count() == 1, 'nothing matching shows a message with a Clear button')
-        await pg.click('#mClear'); await pg.wait_for_timeout(120)
-        check(await pg.locator('#mArea .modrow').count() == mods and await pg.input_value('#mQ') == '' and await pg.evaluate("document.activeElement.id") == 'mQ', 'Clear brings everything back')
-        await pg.fill('#mQ', 'noun'); await pg.wait_for_timeout(120)   # matches the description or tags
-        check(0 < await pg.locator('#mArea .modrow').count() < mods, 'the filter also looks at descriptions and tags')
-        await pg.click('nav.tabs a >> nth=2'); await pg.wait_for_selector('#mQ'); await pg.wait_for_timeout(100)
-        check(await pg.input_value('#mQ') == '', 'a new tab starts without the old filter')
-        # tiles + filter
-        await pg.locator('.seg [data-v="tiles"]').click(); await pg.fill('#mQ', 'math'); await pg.wait_for_timeout(120)
-        check(0 < await pg.locator('#mArea .modcard').count() < mods, 'the filter works with tiles too')
+        # ---- the filter is hidden for now ----
+        check(await pg.locator('#mQ').count() == 0 and await pg.locator('.mctl').count() == 1, 'the Filter modules box is hidden; Sort by and the view toggle remain')
+
+        await pg.locator('.seg [data-v="tiles"]').click(); await pg.wait_for_timeout(100)
 
         # ---- a subject tab with Suggested, and Saved ----
         await pg.evaluate("SB.toggleBookmark('parts-of-speech')"); await go(pg, '#/home/saved')
