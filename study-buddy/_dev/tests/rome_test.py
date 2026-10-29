@@ -38,7 +38,7 @@ async def main():
         pg.on('console', lambda m: m.type == 'error' and 'sw.js' not in m.text and errors.append(m.text))
 
         await pg.goto(base + 'index.html#/home/history'); await pg.wait_for_selector('a.mod')
-        txt = await pg.locator('a.mod').inner_text()
+        txt = ' '.join(await pg.locator('a.mod').all_inner_texts())
         check('Ancient Rome' in txt and 'Insane' in txt, 'History shows Ancient Rome, Easy to Insane')
 
         # study guide: every section opens and fits
