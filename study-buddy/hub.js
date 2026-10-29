@@ -80,6 +80,7 @@
   const viewMode = () => SB.getSetting('view') === 'list' ? 'list' : 'tiles';
   const sortMode = () => { const v = SB.getSetting('sort'); return SORTS.some(x => x[0] === v) ? v : 'subject'; };
   const collapsedIds = () => { const c = SB.getSetting('collapsed'); return Array.isArray(c) ? c.filter(x => typeof x === 'string') : []; };
+  const FILTER_ON = false;                              // the Filter modules box is hidden for now (owner, October 2026); set to true to bring it back
   let modQ = '', lastSubj = null;                       // the filter text lasts while the student stays on one home tab
   const subjOrder = id => REG.subjects.findIndex(s => s.id === id);
   const matches = m => { const q = modQ.trim().toLowerCase(); return !q || q.split(/\s+/).every(w => (m.title + ' ' + m.blurb + ' ' + m.tags.join(' ') + ' ' + subjectName(m.subject)).toLowerCase().includes(w)); };
@@ -159,7 +160,7 @@
     if (subj !== lastSubj) { modQ = ''; lastSubj = subj; }   // a new tab starts without the old filter
     const intro = subj === 'saved' ? `<h3>Saved modules</h3><p class="lead" style="margin:2px 0 0">The modules you saved, from every subject. Press the bookmark button on a module to take it off this list.</p>`
       : subj === 'all' ? '' : `<h3>${esc(subjectName(subj))}</h3>`;
-    const controls = `<div class="mctl"><label class="mfilter"><span class="sr">Filter modules</span><input type="search" id="mQ" placeholder="Filter modules" value="${esc(modQ)}" autocomplete="off" spellcheck="false"></label>
+    const controls = `<div class="mctl">${FILTER_ON ? `<label class="mfilter"><span class="sr">Filter modules</span><input type="search" id="mQ" placeholder="Filter modules" value="${esc(modQ)}" autocomplete="off" spellcheck="false"></label>` : ''}
       <label class="msort">Sort by <select id="mSort">${SORTS.map(([k, n]) => `<option value="${k}"${sortMode() === k ? ' selected' : ''}>${n}</option>`).join('')}</select></label>${viewToggle()}<span id="mAllBox">${groupable(subj === 'all' || subj === 'saved') ? sectionButtons() : ''}</span></div>`;
     const mine = subj === 'saved' ? saved : subj === 'all' ? LIVE : LIVE.filter(m => m.subject === subj);
     const sugg = subj !== 'saved' && subj !== 'all' ? LIVE.filter(m => m.subject !== subj && m.tags.includes(subj)) : [];
@@ -178,12 +179,12 @@
       document.getElementById('mAllBox').innerHTML = groupable(subj === 'all' || subj === 'saved') ? sectionButtons() : ''; wireAll();
       const n = mine.filter(matches).length + sugg.filter(matches).length; document.getElementById('mStat').textContent = modQ.trim() ? (n ? plural(n, 'module') + ' shown' : 'No modules match') : '';
     };
-    const wireClear = () => { const c = document.getElementById('mClear'); if (c) c.onclick = () => { modQ = ''; q.value = ''; redraw(); q.focus(); }; };
+    const wireClear = () => { const c = document.getElementById('mClear'); if (c) c.onclick = () => { modQ = ''; if (q) { q.value = ''; q.focus(); } redraw(); }; };
     const wireAll = () => app.querySelectorAll('[data-all]').forEach(b => b.onclick = () => {
       const ids = b.dataset.all === 'shut' ? REG.subjects.map(x => x.id) : []; SB.setSetting('collapsed', ids);
       app.querySelectorAll('.mtoggle').forEach(t => { const open = !ids.includes(t.dataset.sec); t.setAttribute('aria-expanded', String(open)); const box = document.getElementById(t.getAttribute('aria-controls')); if (box) box.hidden = !open; });
     });
-    q.oninput = () => { modQ = q.value; redraw(); };
+    if (q) q.oninput = () => { modQ = q.value; redraw(); };
     document.getElementById('mSort').onchange = e => { SB.setSetting('sort', e.target.value); redraw(); };
     wireToggle(redraw); wireClear(); wireSections(); wireAll();
     wireBookmarks(() => viewHome(subj));   // redraw on the tab being shown, not the default
