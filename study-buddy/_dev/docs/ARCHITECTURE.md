@@ -269,3 +269,9 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - **Calculators:** the four Study guide calculators (add/subtract, multiply, divide, measurement) use `fracBox` and `SBT.wireFrac(P)`; the Volume calculator is whole numbers only and keeps plain inputs.
 - **Tests:** `_dev/tests/fracfill.py` turns test text such as `"1 3/4"` into box entries (`fill_answer`, `fill_box`, `fill_any`) and `plain()` reads an element with stacked text put back as `3/4`. `fraction_boxes_test.py` covers the boxes, partial entries, Enter, stacked explanations and 360px.
 
+## 25. The Punic Wars (History, October 2026)
+- Source: three pages of the student's class notes (Carthage and the 1st Punic War; Hannibal and the 2nd; results and the 3rd). The notes' wording is kept. The summary lines are cut off in the photos, so they are completed from the rest of the notes.
+- Folder `modules/history/punic-wars`: `data.js` (content), `punic.js` (tools), `punic.css`, `mapdata.js` (generated map outline). Anything not in the notes is marked "added" in the app: the guide's "More to know" page, some places on the map, Hannibal's and Scipio's routes, and some timeline dates. Quiz, Type the answer, Explain it, Flashcards, and Put in order use only the notes (a test checks this).
+- Map: `mapdata.js` is made by `_dev/punic-map/geo_med.mjs` from Natural Earth 110m land (public domain, via the vega-datasets `world-110m.json` copy in that folder). Projection: x = (lon - w0) * kx, y = (n0 - lat) * ky; places and routes in `data.js` are lon/lat. Listen and tap and Find it use point markers, not country shapes.
+- Pictures: the Pictures page lists image slots (`img/<name>.jpg`); a card shows its picture once the file exists and is otherwise a labeled placeholder. Drawings in the guide are original inline SVG.
+- Black Beauty chapter 6: the question "Why?" became "Why does a horse give up its liberty?" in both `CH` and `HL`.

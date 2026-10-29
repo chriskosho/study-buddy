@@ -116,6 +116,27 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'punic-wars',
+      subject: 'history',
+      title: 'The Punic Wars',
+      blurb: 'Rome against Carthage: the three wars, Hannibal and the Alps, and how Rome became the greatest power on the Mediterranean. With a map, a timeline, and pictures.',
+      tags: ['history', 'rome'],
+      path: 'modules/history/punic-wars/index.html',
+      storage: ['punic-wars'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Your class notes, section by section, with drawings, who is who, pictures, and a clearly marked “More to know” page.' },
+        { id: 'timeline', name: 'Timeline', kind: 'study', difficulty: 'easy', blurb: 'The three wars on a line of years B.C. Dates and events that are not in the notes are marked “added”.' },
+        { id: 'study', name: 'Study map', kind: 'study', difficulty: 'easy', blurb: 'The western Mediterranean with Rome, Carthage, Sicily, Spain, and the Alps. Show Hannibal’s march. Tap a place to hear it.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Terms from the class notes. Practice only.' },
+        { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a place, then tap it on the map. Mastered at 8 of 10 on the first try.' },
+        { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 10, blurb: '60 seconds to find as many places as you can. Mastered at 10 found.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions from the class notes. Mastered at 8 of 10.' },
+        { id: 'type', name: 'Type the answer', difficulty: 'hard', blurb: 'Type the missing word from a sentence in the notes. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' },
+        { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'Put the events of the wars in order. Mastered at 80% in place on the first check.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences, like the test. Mastered at 4 of 5.' }
+      ]
+    },
+    {
       id: 'handwriting',
       subject: 'english',
       title: 'Handwriting',

@@ -1,6 +1,12 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-28', title: 'New module: The Punic Wars', items: [
+    'The Punic Wars is a new History module built from the class notes: Carthage and the 1st war, Hannibal and the 2nd war, and the results and the 3rd war.',
+    'It has a Study guide with drawings, a Who\u2019s who page, and a Pictures page with spaces for busts, paintings, and photos (they appear once the picture files are added).',
+    'A Timeline shows the three wars on a line of years B.C. A Study map shows the western Mediterranean, with Hannibal\u2019s march and Scipio\u2019s attack you can switch on. Listen and tap and Find it are played on the map.',
+    'Also Flashcards, Quiz, Type the answer, Put in order, and Explain it, all from the notes. Anything that is not in the notes (extra dates, places, and background) is marked \u201cadded\u201d and kept out of the quiz questions.',
+    'Black Beauty: the Chapter 6 question that only said \u201cWhy?\u201d now reads \u201cWhy does a horse give up its liberty?\u201d.' ] },
   { date: '2026-10-28', title: 'Fractions you can read the normal way', items: [
     'Fraction answers now use boxes drawn like a real fraction: a small box for the whole number, then a box on top, a line, and a box on the bottom. No more typing 1 3/4 with a slash. Leave the whole box empty for a plain fraction.',
     'The boxes take digits only. If only the top or only the bottom is filled in, Study Buddy asks for both before it counts a try.',

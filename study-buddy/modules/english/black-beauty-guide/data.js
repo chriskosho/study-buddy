@@ -38,7 +38,7 @@ const CH = [
     ['Whom does Black Beauty start pulling a cart with?', 'Ginger'] ] },
   { c: '6', k: true, part: 1, qa: [
     ['What does a horse give up?', 'Its liberty'],
-    ['Why?', 'So that it can do what his master wants'],
+    ['Why does a horse give up its liberty?', 'So that it can do what his master wants'],
     ['What would happen if all horses did whatever they wanted all the time?', 'No work would get done'] ],
     talk: 'Would they be living up to their full potential, contributing to the world? Discuss.' },
   { c: '7', k: false, part: 1, qa: [
@@ -280,7 +280,7 @@ const HL = [
   ['4', "Who was Darkie’s new master?"],
   ['4', "What are Ginger’s bad habits?"],
   ['6', "What does a horse give up?"],
-  ['6', "Why?"],
+  ['6', "Why does a horse give up its liberty?"],
   ['11', "Squire Gordon says to act more according to __________ and less according to _________."],
   ['12', "What did BB know about the bridge?"],
   ['12', "Squire Gordon says that “Horses do not act according to _______________ but according to _________.”"],
