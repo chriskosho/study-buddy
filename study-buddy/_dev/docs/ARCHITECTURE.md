@@ -275,3 +275,10 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - Map: `mapdata.js` is made by `_dev/punic-map/geo_med.mjs` from Natural Earth 110m land (public domain, via the vega-datasets `world-110m.json` copy in that folder). Projection: x = (lon - w0) * kx, y = (n0 - lat) * ky; places and routes in `data.js` are lon/lat. Listen and tap and Find it use point markers, not country shapes.
 - Pictures: the Pictures page lists image slots (`img/<name>.jpg`); a card shows its picture once the file exists and is otherwise a labeled placeholder. Drawings in the guide are original inline SVG.
 - Black Beauty chapter 6: the question "Why?" became "Why does a horse give up its liberty?" in both `CH` and `HL`.
+
+## 26. Weather (Science, October 2026)
+- Source: the student's Unit 3 notes (Section 1 L1 to L3, the weather flip-book, Section 2 L4 and L5) and the Unit 3 Practice Test. The notes keep the teacher's wording; the faint pencil words are read from the sentence. The practice test's answer key was not in the photos, so its answers were checked against the notes and ordinary science (the student's marks on questions 9 and 14 differed from the correct answers, and the correct answers are used). Nothing else is added.
+- Folder `modules/science/weather`: `data.js` (content), `art.js` (original SVG drawings: the six kinds of weather, cloud, tool, globe, water-cycle pictures, and `graphSVG` for the line graph), `weather.js` (tools), `weather.css`.
+- Label the diagram and Read the graph are `SBT.quiz` rounds that pass the picture through the question's `html` field (`earthLetters()`, `cycleLetters()`, `graphSVG(temps)`); the graph's seven temperatures are random each round and the answer is read from them. Quiz and Flashcards also have picture questions (`kindSVG`).
+- The study guide's "From the practice test" page marks those facts as not being in the notes.
+
