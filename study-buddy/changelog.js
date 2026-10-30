@@ -5,6 +5,11 @@ window.SB_CHANGELOG = [
     'The Quiz in nine modules now has a switch: Random 10 (a short round) or Full (every question once).',
     'Mastered now needs a good score on the Full quiz. Tools with a Full quiz show their Full best on the progress screen.',
     'Math and the timed tools are unchanged.' ] },
+  { date: '2026-10-29', title: 'Fixes from the site audit', items: [
+    'US States: the Flowers flashcards now work (they used to fail when opened).',
+    'Black Beauty: fixed "colt" in the chapter 24 answer and the spelling of "ragamuffin".',
+    'Phonograms: Spell it no longer uses "not", which sounds like "knot", and the note for ph is fixed.',
+    'The Punic Wars: removed a quiz question that used wording that is not in the class notes.' ] },
   { date: '2026-10-29', title: 'New module: Weather', items: [
     'Weather is a new Science module for Unit 3, built from the notes and the practice test: the atmosphere, hemispheres, clouds, the water cycle, and the tools meteorologists use.',
     'The Study guide has a drawing for each lesson, the six kinds of weather from the flip-book, and a page of facts from the practice test.',

@@ -76,7 +76,7 @@ const PH = [
   [63, 'wr', '/r/', '2-letter /r/', ['wrong']],
   [64, 'kn', '/n/', '2-letter /n/, used only at the beginning of a base word.', ['know']],
   [65, 'gn', '/n/', '2-letter /n/, used both at the beginning and end of a base word', ['gnaw', 'sign']],
-  [66, 'ph', '/f/', '2-letter /f/ or /f/, Greek /f/', ['graph']],
+  [66, 'ph', '/f/', '2-letter /f/, used in Greek words', ['graph']],
   [67, 'oy', '/oy/', 'that we DO use at the end of English words.', ['boy']],
   [68, 'oi', '/oy/', 'that we do NOT use at the end of English words. Why not? English words do not end with I.', ['boil']],
   [69, 'ough', '/O/ /oo/ /uff/ /off/ /aw/ /ow/', '', ['though', 'through', 'tough', 'cough', 'thought', 'bough']],
