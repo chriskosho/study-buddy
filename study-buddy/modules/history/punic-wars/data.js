@@ -87,8 +87,7 @@ const QUIZ = [
   { q: 'What started the 3rd Punic War?', a: 'Carthage attacked another country', wrong: ['Hannibal crossed the Alps', 'Rome lost Sicily', 'Rome ran out of money'] },
   { q: 'What did Rome do to Carthage even though it surrendered in the 3rd Punic War?', a: 'Burned it down and poured salt into the soil', wrong: ['Made it a Roman capital', 'Gave it back its land', 'Let it keep its navy'] },
   { q: 'After the Punic Wars, what did Rome become?', a: 'The greatest power on the Mediterranean Sea', wrong: ['A small city again', 'A part of Carthage', 'A land with no army'] },
-  { q: 'Which broke the treaty before the 3rd Punic War?', a: 'Carthage', wrong: ['Rome', 'Spain', 'Sicily'] },
-  { q: 'Where was the 1st Punic War mostly fought?', a: 'Around Sicily', wrong: ['Around Spain', 'In the Alps', 'In Egypt'] }
+  { q: 'Which broke the treaty before the 3rd Punic War?', a: 'Carthage', wrong: ['Rome', 'Spain', 'Sicily'] }
 ];
 
 /* ---- Type the answer: notes sentences with a blank ---- */

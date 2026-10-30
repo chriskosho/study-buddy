@@ -136,7 +136,7 @@ const CH = [
     ['Who has started riding BB?', 'Lady Anne'],
     ['Which horse does she try to ride?', 'Lizzie'],
     ['Why was Blantyre warning Anne against this?', 'Because Lizzie can be very nervous and unsafe'],
-    ['What happened to Lizzie while Blantyre was inside?', 'A cold ran toward her and scared her'],
+    ['What happened to Lizzie while Blantyre was inside?', 'A colt ran toward her and scared her'],
     ['What did Lizzie do?', 'Galloped away'],
     ['What happened at the dyke?', 'Lizzie fell, Anne was unconscious'],
     ['By the end of the chapter, how is Lady Anne?', 'Stable and will be able to ride again soon'],
@@ -231,7 +231,7 @@ const CH = [
     ['Why are butchers’ horses always going so fast?', 'There are lots of customers to please'] ] },
   { c: '42', k: false, part: 3, qa: [
     ['What does Jerry refuse to get involved in?', 'The election'],
-    ['What happens to Dolly?', 'She gets mud thrown at her and is called a blue raggamuffin'],
+    ['What happens to Dolly?', 'She gets mud thrown at her and is called a blue ragamuffin'],
     ['What does Harry think blue stands for?', 'Freedom'],
     ['What does Jerry say about this?', 'Liberty does not come from our colors'],
     ['Jerry says we must vote according to our …', 'Conscience'] ] },
