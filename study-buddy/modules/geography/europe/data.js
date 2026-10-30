@@ -34,7 +34,7 @@ const COUNTRIES = [
   { id: 'mc', name: 'Monaco', capital: 'Monaco', langs: ['French'], note: 'A tiny country on the coast of France. Its capital has the same name.' },
   { id: 'me', name: 'Montenegro', capital: 'Podgorica', langs: ['Montenegrin'] },
   { id: 'nl', name: 'Netherlands', capital: 'Amsterdam', langs: ['Dutch'], note: 'Amsterdam is the capital, but the government meets in The Hague.' },
-  { id: 'mk', name: 'North Macedonia', capital: 'Skopje', langs: ['Macedonian'] },
+  { id: 'mk', name: 'North Macedonia', capital: 'Skopje', langs: ['Macedonian', 'Albanian'] },
   { id: 'no', name: 'Norway', capital: 'Oslo', langs: ['Norwegian'] },
   { id: 'pl', name: 'Poland', capital: 'Warsaw', langs: ['Polish'] },
   { id: 'pt', name: 'Portugal', capital: 'Lisbon', langs: ['Portuguese'] },
