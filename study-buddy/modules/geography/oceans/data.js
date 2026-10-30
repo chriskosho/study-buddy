@@ -122,6 +122,6 @@ const ALSO = {
     pa: ['Pacific', 'the Pacific'], at: ['Atlantic', 'the Atlantic'], in: ['Indian'], so: ['Southern', 'Antarctic Ocean'], ar: ['Arctic'],
     ab: ['Arabian'], bl: ['Baltic'], br: ['Barents'], bs: ['Bering'], bb: ['Bengal'], bk: ['Black'], cb: ['Caribbean'], cp: ['Caspian'], cs: ['Coral'],
     ec: ['East China'], gm: ['Mexico'], hb: ['Hudson'], md: ['Mediterranean', 'the Mediterranean'], no: ['Norwegian'], ns: ['North'],
-    pg: ['Arabian Gulf', 'Gulf'], rs: ['Red'], ok: ['Okhotsk'], sj: ['East Sea', 'Japan Sea'], sc: ['South China'], ts: ['Tasman'], ys: ['Yellow']
+    pg: ['Arabian Gulf'], rs: ['Red'], ok: ['Okhotsk'], sj: ['East Sea', 'Japan Sea'], sc: ['South China'], ts: ['Tasman'], ys: ['Yellow']
   }
 };
