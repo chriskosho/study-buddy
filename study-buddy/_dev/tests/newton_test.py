@@ -173,6 +173,12 @@ async def main():
                 await pg.goto(base + M + '?tool=lab'); await pg.wait_for_selector('#tab-lab .gtabs'); await pg.click(f'#tab-lab .gtabs button[data-e={e}]'); await pg.wait_for_timeout(150)
                 o = await overflow(pg); check(o['h'] <= 0 and (vw == 360 or o['v'] <= 0), f'experiment {e} fits {vw}x{vh} {o}')
         await pg.set_viewport_size({'width': 1440, 'height': 900})
+        # phone: the rocket scene is drawn large enough to read
+        await pg.set_viewport_size({'width': 360, 'height': 780}); await pg.goto(base + M + '?tool=lab'); await pg.wait_for_selector('#tab-lab .gtabs'); await pg.click('#tab-lab .gtabs button[data-e=rocket]'); await pg.wait_for_timeout(150)
+        px = await pg.evaluate("(() => { const s = document.querySelector('#tab-lab .lsvg'), t = document.querySelector('#tab-lab .arrs .lbl'); return parseFloat(getComputedStyle(t).fontSize) * s.getBoundingClientRect().width / 400; })()")
+        check(px >= 11, f'phone rocket labels are readable ({px:.1f}px)')
+        h = await pg.evaluate("document.querySelector('#tab-lab .lsvg').getBoundingClientRect().height"); check(h >= 200, f'phone rocket scene is tall enough ({h:.0f}px)')
+        await pg.set_viewport_size({'width': 1440, 'height': 900})
         check(not errors, f'no page errors {errors}')
         await b.close()
     print('\n' + ('ALL PASSED' if not fails else f'{len(fails)} FAILED'))

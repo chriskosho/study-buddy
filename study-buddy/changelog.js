@@ -1,6 +1,9 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-29', title: 'Newton experiments on phones', items: [
+    'The Rocket experiment is drawn taller on phones, with bigger labels, so it is easy to read and watch.',
+    'The Scale, proportion, quantity experiment no longer has the Earth label on top of the circle, its tab is shorter, and the heading fits.' ] },
   { date: '2026-10-29', title: 'Experiments for Newton and His Laws', items: [
     'Newton and His Laws has a new Experiments tab with four animated demos: kick a ball on ice, grass, sand, or with no friction; push a toy car, a box, or a full-sized car with the same push; launch a rocket and watch the equal and opposite arrows; and slide size and mass to see scale, proportion, and quantity.',
     'It is practice only. With the device set to reduce motion, each demo skips straight to its end.' ] },

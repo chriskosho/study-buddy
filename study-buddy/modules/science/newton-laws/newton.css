@@ -32,8 +32,8 @@
 }
 
 /* Experiments */
-.lhead{display:flex;align-items:center;gap:10px;margin:0 0 6px}.lhead h3{margin:0}
-.lawtag{font-size:13px;font-weight:800;color:var(--navy-ink);border:1.5px solid var(--line);border-radius:999px;padding:1px 10px;background:var(--surface)}
+.lhead{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0 0 6px}.lhead h3{margin:0}
+.lawtag{white-space:nowrap;font-size:13px;font-weight:800;color:var(--navy-ink);border:1.5px solid var(--line);border-radius:999px;padding:1px 10px;background:var(--surface)}
 .lstage{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:4px}
 .lsvg{display:block;margin:0 auto;height:min(230px,calc(100vh - var(--chrome) - 570px));min-height:130px;width:100%}
 .lsvg .gnd{fill:#6aa84f}.lsvg .gnd.ice{fill:#9ec9dc}.lsvg .gnd.sand{fill:#d9b26f}.lsvg .gnd.space{fill:#3b3f5c}.lsvg .gnd.road{fill:#8a8f98}
@@ -56,11 +56,20 @@
 .l3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .lcard{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:8px 12px;display:flex;flex-direction:column;gap:6px}
 .lcard h4{margin:0;font-size:17px}.lcard p{margin:0;font-size:14px;line-height:1.3}
-.lsvg2{display:block;width:100%;height:auto;max-height:130px}
+.lsvg2{display:block;width:100%;height:auto;max-height:140px}
 .lsvg2 .earth{fill:#4d8fc4;stroke:var(--ink);stroke-width:2}.lsvg2 .moon{fill:#b9b3a6;stroke:var(--ink);stroke-width:2}.lsvg2 .lbl{fill:var(--ink);font:700 12px var(--font)}
 .lane{height:26px;background:var(--track);border-radius:999px;position:relative;overflow:hidden}
 .dot{position:absolute;top:3px;left:0;width:20px;height:20px;border-radius:50%;background:var(--navy);animation:lanego 1s linear infinite}
 @keyframes lanego{from{left:-20px}to{left:100%}}
+/* rocket scene is 400 wide, so its labels can be smaller than the 640-wide scenes' */
+.lsvg.rk .lbl{font-size:15px}
 @media (max-width:1000px){.l3{grid-template-columns:1fr}.bars{grid-template-columns:1fr}}
-@media (max-width:760px){.slab input{width:120px}}
+@media (max-width:760px){
+  .slab input{width:120px}
+  .lsvg{height:auto;min-height:0}
+  .lsvg:not(.rk) .lbl{font-size:21px}.lsvg .stlbl{font-size:30px}
+  .lsvg.rk .lbl{font-size:17px}
+  .lctl .btn{flex:1 1 auto}
+  .lsvg2 .lbl{font-size:13px}
+}
 .slab input{accent-color:var(--teal)}
