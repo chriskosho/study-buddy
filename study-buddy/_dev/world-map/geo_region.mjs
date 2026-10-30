@@ -26,6 +26,7 @@ const R = Math.PI / 180;
 const wrap = d => { while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; };
 function makeProj(P, k, tr) {
   const rot = P.rotate || 0, [clon, clat] = P.center;
+  if (P.type === 'equirect') return (lon, lat) => [tr[0] + k * ((lon + rot) * R), tr[1] - k * (lat * R)];   // x = longitude, y = latitude (plate carree); y grows downward. No wrapping: a window's 5th number shifts it by 360 degrees so the left edge can repeat on the right (the Pacific islands that straddle 180)
   let raw;
   if (P.type === 'laea') {
     const p0 = clat * R, l0 = (clon + rot) * R;
@@ -107,7 +108,7 @@ topo.objects.countries.geometries.forEach(g => {
   const id = idOf(g), out = [];
   polys(g).forEach(poly => {
     for (const win of CFG.windows) {
-      const rings = poly.map(r => { const c = clipRect(r.slice(0, -1), win[0], win[1], win[2], win[3]); return c.length >= 3 ? clipRect(c.map(([lo, la]) => project(lo, la)), rx0, ry0, rx1, ry1) : []; });
+      const sh = win[4] || 0, rings = poly.map(r => { const c = clipRect(r.slice(0, -1), win[0], win[1], win[2], win[3]); return c.length >= 3 ? clipRect(c.map(([lo, la]) => project(lo + sh, la)), rx0, ry0, rx1, ry1) : []; });
       if (rings[0].length >= 3) out.push(rings);
     }
   });
@@ -150,7 +151,9 @@ Object.entries(DOTS).forEach(([id, [lon, lat, nb]]) => {
   const [x, y] = project(lon, lat);
   if (x < 0 || x > W || y < 0 || y > H) { console.log('DOT OUTSIDE THE PICTURE:', id, x.toFixed(0), y.toFixed(0)); return; }
   const r = 5.2, used = new Set((nb || []).map(n => colorOf[n])); let c = 0; while (used.has(c)) c++;
-  countries[id] = { d: `M${(x - r).toFixed(1)},${y.toFixed(1)}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0Z`, label: [+x.toFixed(1), +y.toFixed(1), r], c, dot: 1 };
+  const circle = X => `M${(X - r).toFixed(1)},${y.toFixed(1)}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0Z`;
+  const [x2] = project(lon + 360, lat);                                  // a dot near the left edge is also drawn past the right edge when the picture repeats it
+  countries[id] = { d: circle(x) + (CFG.repeat && lon < -180 + CFG.repeat && x2 <= W ? circle(x2) : ''), label: [+x.toFixed(1), +y.toFixed(1), r], c, dot: 1, ...(CFG.repeat && lon < -180 + CFG.repeat && x2 <= W ? { alt: [+x2.toFixed(1), +y.toFixed(1)] } : {}) };
 });
 Object.entries(OUT).forEach(([id, [lon, lat, anchor]]) => { if (!countries[id]) return; const [x, y] = project(lon, lat); countries[id].out = [+x.toFixed(1), +y.toFixed(1), anchor || 'start']; });
 const outDir = join(HERE, '..', '..', 'modules', 'geography', CFG.slug); mkdirSync(outDir, { recursive: true });

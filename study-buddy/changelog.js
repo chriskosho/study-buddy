@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-30', title: 'New modules: World and Oceans, and a refresh button in the footer', items: [
+    'Geography has a World module: one map and one set of practice tools for all 197 countries, with a picker to focus on the whole world or one continent. The continent modules are still there.',
+    'Geography also has an Oceans module: the five oceans and 22 major seas, with a study map, flashcards, Listen and tap, Find it, Drag names, a Quiz, and Type the answer. Sizes are rounded and written as "about".',
+    'Both maps use the equirectangular projection (a flat map where longitude and latitude are a plain grid).',
+    'Every page footer now has a "Get latest version" button. It clears the saved copy and reloads the page, so a newly released update shows up.' ] },
   { date: '2026-10-30', title: 'New modules: Africa, Asia, North America, and Oceania', items: [
     'Geography has four new modules, one for each remaining continent that has countries: Africa (54 countries), Asia (49), North America with Central America and the Caribbean (23), and Oceania (14).',
     'Each one works like Europe: a study guide with every flag, capital, and main language, a study map, flashcards, Listen and tap, Find it, Drag names, a Quiz with Full mode, and Type the answer.',

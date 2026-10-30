@@ -75,6 +75,9 @@
   .sbfoot a{color:var(--navy-ink,var(--navy));font-weight:700;text-decoration:none;padding:3px 0}
   .sbfoot a:hover{text-decoration:underline}
   .sbfoot p{margin:0}
+  .sbfoot-refresh{font:inherit;font-weight:700;color:var(--navy-ink,var(--navy));background:none;border:0;padding:3px 0;cursor:pointer}
+  .sbfoot-refresh:hover{text-decoration:underline}
+  .sbfoot-refresh:disabled{opacity:.6;cursor:default}
   @media (max-width:760px){
     .sbhead-in{padding:6px 12px;gap:6px 6px}
     .sbbrand span{display:none}
@@ -189,9 +192,27 @@
           <ul class="sbmenu-list" id="sbHelpMenu" hidden><li><a href="${PAGE('help')}">Help</a></li><li><a href="${PAGE('faq')}">FAQ</a></li><li><a href="${PAGE('about')}">About</a></li></ul></div>
       </div></div>`;
   }
+  /* Get the newest version: fetch the new file list first, and only when that works clear the offline copies, so pressing this
+     with no internet never leaves the device without a working copy. say(text) reports progress. Used by the footer and Settings. */
+  async function refreshLatest(say) {
+    say = say || function () {};
+    say('Getting the newest files...');
+    let sw = null;
+    try { const res = await fetch(BASE + 'sw.js', { cache: 'reload' }); if (res.ok) sw = await res.text(); } catch (e) {}
+    if (!sw) { say('No internet right now, so nothing was changed. Study Buddy still works offline. Try again when you are online.'); return false; }
+    try {
+      const files = [...sw.matchAll(/"([^"\s]+\.(?:js|css|html|json|webmanifest))"/g)].map(m => m[1]);
+      await Promise.all(files.map(f => fetch(BASE + f, { cache: 'reload' }).catch(() => {})));
+      if ('serviceWorker' in navigator) await Promise.all((await navigator.serviceWorker.getRegistrations()).map(r => r.unregister()));
+      if (window.caches) await Promise.all((await caches.keys()).filter(k => k.startsWith('study-buddy-')).map(k => caches.delete(k)));
+    } catch (e) {}
+    say('Done. Reloading...'); setTimeout(() => location.reload(), 300);
+    return true;
+  }
+  SB.refreshLatest = refreshLatest;
   function footHTML() {
-    return `<div class="sbfoot-in"><nav aria-label="Footer"><a href="${HOME}">Home</a><a href="${HOME}">Subjects</a><a href="${PAGE('utilities')}">Utilities</a><a href="${PAGE('settings')}">Settings</a><a href="${PAGE('admin')}">Admin area</a><a href="${PAGE('help')}">Help</a><a href="${PAGE('faq')}">FAQ</a><a href="${PAGE('about')}">About</a><a href="${DONATE}" target="_blank" rel="noopener noreferrer" aria-label="Support Study Buddy with a donation (opens PayPal in a new tab)">Support Study Buddy</a></nav>
-      <p>Progress is saved on this device only. Nothing goes online.</p></div>`;
+    return `<div class="sbfoot-in"><nav aria-label="Footer"><a href="${HOME}">Home</a><a href="${HOME}">Subjects</a><a href="${PAGE('utilities')}">Utilities</a><a href="${PAGE('settings')}">Settings</a><a href="${PAGE('admin')}">Admin area</a><a href="${PAGE('help')}">Help</a><a href="${PAGE('faq')}">FAQ</a><a href="${PAGE('about')}">About</a><button type="button" class="sbfoot-refresh" id="sbFootRefresh" title="Clear the saved copy of Study Buddy on this device and load the newest version">Get latest version</button><a href="${DONATE}" target="_blank" rel="noopener noreferrer" aria-label="Support Study Buddy with a donation (opens PayPal in a new tab)">Support Study Buddy</a></nav>
+      <p id="sbFootMsg" role="status">Progress is saved on this device only. Nothing goes online.</p></div>`;
   }
 
   function closeMenus() {
@@ -258,6 +279,8 @@
       document.body.insertBefore(head, document.body.firstChild);
       foot = document.createElement('footer'); foot.className = 'sbfoot'; foot.id = 'sbFoot'; foot.innerHTML = footHTML();
       document.body.appendChild(foot);
+      const fb = foot.querySelector('#sbFootRefresh'), fm = foot.querySelector('#sbFootMsg');
+      fb.onclick = async () => { fb.disabled = true; const ok = await refreshLatest(t => { fm.textContent = t; }); if (!ok) fb.disabled = false; };
     }
     head.innerHTML = headHTML(opts); wire();
     measure();

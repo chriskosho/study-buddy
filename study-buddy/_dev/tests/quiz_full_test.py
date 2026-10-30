@@ -22,7 +22,7 @@ window.SpeechSynthesisUtterance=function(t){this.text=t};
 """
 
 MODS = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'science/newton-laws', 'science/planets', 'science/periodic-table',
-        'english/black-beauty', 'english/black-beauty-guide', 'english/phonograms', 'geography/us-states', 'geography/europe', 'geography/africa', 'geography/asia', 'geography/north-america', 'geography/oceania']
+        'english/black-beauty', 'english/black-beauty-guide', 'english/phonograms', 'geography/us-states', 'geography/europe', 'geography/africa', 'geography/asia', 'geography/north-america', 'geography/oceania', 'geography/world', 'geography/oceans']
 RUN = "(() => { let n = 0; while (!document.querySelector('.result') && n++ < 1000) { document.querySelector('.opt').click(); const x = document.querySelector('[data-a=next]'); if (x) x.click(); } return !!document.querySelector('.result'); })()"
 
 
@@ -79,8 +79,8 @@ async def main():
             await pg.goto(base + f'modules/{m}/index.html?tool=quiz'); await pg.wait_for_selector('#tab-quiz')
             if m.endswith('us-states'):
                 await pg.click('.us-topics button[data-t="capitals"]')
-            if m.split('/')[1] in ('europe', 'africa', 'asia', 'north-america', 'oceania'):
-                await pg.click('.eu-topics button[data-t="capitals"], .af-topics button[data-t="capitals"], .as-topics button[data-t="capitals"], .na-topics button[data-t="capitals"], .oc-topics button[data-t="capitals"]')
+            if m.split('/')[1] in ('europe', 'africa', 'asia', 'north-america', 'oceania', 'world', 'oceans'):
+                await pg.click('.eu-topics button[data-t="capitals"], .af-topics button[data-t="capitals"], .as-topics button[data-t="capitals"], .na-topics button[data-t="capitals"], .oc-topics button[data-t="capitals"], .wd-topics button[data-t="capitals"], .oce-topics button[data-t="map"]')
             await pg.wait_for_selector('.qmodes')
             labels = await pg.locator('.qmodes button').all_inner_texts()
             check(len(labels) == 2 and labels[0].startswith('Random') and labels[1].startswith('Full ('), f'{m}: has Random and Full switch {labels}')

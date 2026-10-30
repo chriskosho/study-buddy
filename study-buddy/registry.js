@@ -178,6 +178,44 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'world',
+      subject: 'geography',
+      title: 'World',
+      blurb: 'Every country on Earth: capitals, flags, main languages, and where each one is on the map. Study the whole world or one continent at a time.',
+      tags: [],
+      path: 'modules/geography/world/index.html',
+      storage: ['world'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Every country with its flag, capital, and main language. Search by name.' },
+        { id: 'study', name: 'Study map', kind: 'study', difficulty: 'easy', blurb: 'Every country with its name on the map. Tap one to hear it.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Map shapes, capitals, flags, languages, and every quiz question. Practice only.' },
+        { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a name, then tap the country. Mastered at 8 of 10 on the first try.' },
+        { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 20, blurb: '60 seconds to find as many countries as you can. Mastered at 20 found.' },
+        { id: 'drag', name: 'Drag names', difficulty: 'medium', masterAt: 192, blurb: 'Drag each country name onto the map, for the whole world or one continent. Mastered with all 197 placed and 5 misses or fewer.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: 'Multiple choice on capitals, flags, or languages. Mastered at 80% on the Full quiz (whole world).' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type capitals, country names, or languages. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' }
+      ]
+    },
+    {
+      id: 'oceans',
+      subject: 'geography',
+      title: 'Oceans',
+      blurb: 'The five oceans and the world\'s best-known seas, gulfs, and bays: where each one is on the map, clues, facts, and sizes.',
+      tags: [],
+      path: 'modules/geography/oceans/index.html',
+      storage: ['oceans'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Every ocean and sea with where it is, its size, and a fact. Search by name.' },
+        { id: 'study', name: 'Study map', kind: 'study', difficulty: 'easy', blurb: 'Every ocean and sea with its name on the map. Tap one to hear it.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Map shapes, clues, facts, and every quiz question. Practice only.' },
+        { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a name, then tap the ocean or sea. Mastered at 8 of 10 on the first try.' },
+        { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 15, blurb: '60 seconds to find as many oceans and seas as you can. Mastered at 15 found.' },
+        { id: 'drag', name: 'Drag names', difficulty: 'medium', masterAt: 22, blurb: 'Drag each ocean and sea name onto the map. Mastered with 5 misses or fewer.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: 'Multiple choice from the map, from clues, or on size. Mastered at 80% on the Full quiz.' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type the name from a clue or from the map. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' }
+      ]
+    },
+    {
       id: 'parts-of-speech',
       subject: 'english',
       title: 'Parts of Speech',

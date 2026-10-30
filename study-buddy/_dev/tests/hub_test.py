@@ -70,14 +70,14 @@ async def main():
 
         # ---- home ----
         check('Hi, Joshua' in await pg.locator('h1').inner_text(), 'home greets Joshua')
-        check(await pg.locator('a.mod').count() == 25, 'twenty-five module cards (Volume of Solid Figures, Measurement and Area, Division of Fractions, Multiplication of Fractions, South America, US States, Parts of Speech, Ancient Rome, Handwriting, Place Value, Planets, Periodic Table, Black Beauty, Phonograms, Greek and Latin Roots, Ham Radio Technician, Add and Subtract Fractions, The Punic Wars, Weather, Newton and His Laws, Europe, Africa, Asia, North America, Oceania; the archived Black Beauty is not shown)')
+        check(await pg.locator('a.mod').count() == 27, 'twenty-seven module cards (Volume of Solid Figures, Measurement and Area, Division of Fractions, Multiplication of Fractions, South America, US States, Parts of Speech, Ancient Rome, Handwriting, Place Value, Planets, Periodic Table, Black Beauty, Phonograms, Greek and Latin Roots, Ham Radio Technician, Add and Subtract Fractions, The Punic Wars, Weather, Newton and His Laws, Europe, Africa, Asia, North America, Oceania; the archived Black Beauty is not shown)')
         check('Easy' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text() and 'Hard' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'automatic difficulty range Easy to Hard')
         o = await overflow(pg); check(o['h'] <= 0, f'home: no sideways scroll (the All list may scroll as modules are added) {o}')
         await pg.screenshot(path=f'{OUT}/sb_home.png')
         await pg.click('nav.tabs a:has-text("Math")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 6")
         check(await pg.locator('a.mod').count() == 6, 'math filter shows Place Value and Zeros, the three fraction modules, Measurement and Area, and Volume')
-        await pg.click('nav.tabs a:has-text("Geography")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 7")
-        check(await pg.locator('a.mod').count() == 7, 'geography filter shows South America, US States, and the five Europe-style continent modules')
+        await pg.click('nav.tabs a:has-text("Geography")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 9")
+        check(await pg.locator('a.mod').count() == 9, 'geography filter shows South America, US States, the five Europe-style continent modules, World, and Oceans')
 
         # ---- module page ----
         await pg.click('a.mod[href="#/module/south-america"]'); await pg.wait_for_selector('.tool')
