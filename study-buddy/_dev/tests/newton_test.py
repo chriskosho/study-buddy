@@ -143,16 +143,23 @@ async def main():
         await pg.click('#tab-lab [data-a=go]'); await pg.wait_for_timeout(600)
         check('translate(0,-' in await pg.get_attribute('#tab-lab .rkt', 'transform'), 'the rocket rises')
         await done(); check('equal and opposite' in await pg.locator('#tab-lab .lmsg').inner_text(), 'rocket ends with the third law')
+        check('translate(0,-0.0)' in await pg.get_attribute('#tab-lab .rkt', 'transform') or 'translate(0,0.0)' in await pg.get_attribute('#tab-lab .rkt', 'transform'), 'the rocket is back on the pad after flying off')
         await pg.click('#tab-lab .gtabs button[data-e=size]')
         bs0 = await pg.evaluate("document.querySelector('#tab-lab .bf').style.width"); await pg.fill('#tab-lab .rs', '9')
         check(await pg.evaluate("document.querySelector('#tab-lab .bf').style.width") != bs0, 'bigger system, bigger force bar')
         sp0 = await pg.evaluate("document.querySelector('#tab-lab .bs').style.width"); await pg.fill('#tab-lab .rm', '9')
         check(float((await pg.evaluate("document.querySelector('#tab-lab .bs').style.width"))[:-1]) < float(sp0[:-1]), 'more mass, lower speed bar')
         rec = await pg.evaluate("SB.toolRecord('newton-laws','lab')"); check(not rec or rec.get('best') is None, f'experiments are practice only {rec}')
-        # reduced motion: the experiment jumps to its end
-        rc = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block', reduced_motion='reduce'); await rc.add_init_script(INIT); rp = await rc.new_page()
+        # reduced motion: the demos still animate (the student presses the button), and the rocket stays in view and returns to the pad
+        rc = await b.new_context(viewport={'width': 360, 'height': 780}, service_workers='block', reduced_motion='reduce'); await rc.add_init_script(INIT); rp = await rc.new_page()
         await rp.goto(base + M + '?tool=lab'); await rp.wait_for_selector('#tab-lab .lsvg'); await rp.click('#tab-lab [data-s=ice]'); await rp.click('#tab-lab [data-a=go]'); await rp.wait_for_timeout(250)
-        check('goalpost' in await rp.locator('#tab-lab .lmsg').inner_text(), 'with reduced motion the ball experiment skips to the end')
+        check('goalpost' not in await rp.locator('#tab-lab .lmsg').inner_text() and 'In motion' in await rp.locator('#tab-lab .stlbl').text_content(), 'with reduced motion the ball still rolls on screen')
+        await rp.click('#tab-lab .gtabs button[data-e=rocket]'); await rp.click('#tab-lab [data-a=go]'); await rp.wait_for_timeout(500)
+        ry = await rp.evaluate("-parseFloat(document.querySelector('#tab-lab .rkt').getAttribute('transform').match(/,(-?[\\d.]+)/)[1])")
+        check(0 < ry < 150 and await rp.locator('#tab-lab .puff').count() == 0, f'reduced motion: the rocket rises gently, with no smoke ({ry:.0f})')
+        await rp.wait_for_function("() => !document.querySelector('#tab-lab [data-a=go]').disabled", timeout=15000)
+        ry = await rp.evaluate("-parseFloat(document.querySelector('#tab-lab .rkt').getAttribute('transform').match(/,(-?[\\d.]+)/)[1])")
+        check(abs(ry) < 1 and 'equal and opposite' in await rp.locator('#tab-lab .lmsg').inner_text(), 'the rocket is back on the pad when it finishes, with the third law shown')
         await rc.close()
 
         # layout

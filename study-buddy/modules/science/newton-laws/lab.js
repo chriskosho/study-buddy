@@ -7,10 +7,10 @@
   let raf = 0;
   const stop = () => { cancelAnimationFrame(raf); raf = 0; };
   const calm = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  /* run step(dt) each frame until it returns false; with reduced motion, jump straight to the end */
+  /* run step(dt) each frame until it returns false. The demos start only when the student presses a button and the motion is the point,
+     so they always run; with reduced motion the rocket is gentler (no smoke, it stays in view) instead of skipping to the end. */
   function loop(step, done) {
     stop();
-    if (calm()) { let n = 0; while (n++ < 4000 && step(0.02) !== false); done && done(); return; }
     let last = performance.now();
     const f = now => { const dt = Math.min(0.05, (now - last) / 1000); last = now; if (step(dt) === false) { raf = 0; done && done(); return; } raf = requestAnimationFrame(f); };
     raf = requestAnimationFrame(f);
@@ -121,8 +121,8 @@
         t += dt; v += a * dt; y += v * dt;
         if (!calm()) for (let i = 0; i < 2; i++) parts.push({ x: 188 + Math.random() * 24, y: 268 - y, vy: 120 + Math.random() * 120, r: 3 + Math.random() * 4, o: 0.9 });
         parts.forEach(p => { p.y += p.vy * dt; p.r += dt * 6; p.o -= dt * 0.9; }); parts = parts.filter(p => p.o > 0 && p.y < 300);
-        draw(); return y < 300 && t < 8;
-      }, () => { parts = []; draw(); go.disabled = false; msg.textContent = 'The rocket pushed the hot gas down, and the gas pushed the rocket up with the same amount of force. For every action, there is an equal and opposite reaction.'; });
+        draw(); return y < (calm() ? 130 : 300) && t < 8;
+      }, () => { parts = []; y = 0; draw(); go.disabled = false; msg.textContent = 'The rocket pushed the hot gas down, and the gas pushed the rocket up with the same amount of force. For every action, there is an equal and opposite reaction.'; });
     };
     reset();
   }
