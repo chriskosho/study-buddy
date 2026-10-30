@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-30', title: 'New module: Europe', items: [
+    'Geography has a new module for the countries of Europe: 46 of them, including Kosovo, Cyprus, Russia, and six tiny countries (Vatican City, San Marino, Monaco, Liechtenstein, Andorra, and Malta) shown as dots with a line to their name.',
+    'It has a study guide with each flag, capital, and main language, a study map, flashcards (map shapes, capitals, flags, languages, and every quiz question), Listen and tap, Find it, Drag names, a Quiz, and Type the answer.',
+    'The list of countries is kept in one place, so countries can be added or removed to match a worksheet.' ] },
   { date: '2026-10-30', title: 'Rocket fix for phones set to reduce motion', items: [
     'On a phone with reduce motion turned on, the rocket used to vanish the moment you pressed Launch. The experiments now always animate. With reduce motion on, the rocket rises gently, with no smoke, and stays on screen.',
     'The rocket now comes back to the launch pad when it finishes, so you can launch it again.' ] },
