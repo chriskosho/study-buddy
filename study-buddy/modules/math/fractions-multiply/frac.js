@@ -46,7 +46,7 @@
   const fraction = fa('Multiply fractions', 'Unit fractions, two fractions, or three factors. Simplest form.' + FORM, G.fractionMulQ);
   const scale = { init(ctx) {
     SBT.sort(ctx, { title: 'Bigger, smaller or the same?', lead: 'Without finding the product, sort each by whether it is less than, equal to, or more than the first number.',
-      sets: [{ id: 'scale', label: 'Compare', buckets: [{ id: 'less', name: 'Less than the number' }, { id: 'equal', name: 'Equal to the number' }, { id: 'more', name: 'More than the number' }], ...(() => { const s = G.scaleSet(); return { items: s.items }; })() }],
+      sets: [{ id: 'scale', label: 'Compare', buckets: [{ id: 'less', name: 'Less than the number' }, { id: 'equal', name: 'Equal to the number' }, { id: 'more', name: 'More than the number' }], items: [], make: () => G.scaleSet().items }],
       right: (it, b) => 'Yes! ' + it.text + ' is ' + b.name.toLowerCase() + '.' });
   } };
   const recip = fa('Reciprocals', 'Swap the top and the bottom.' + FORM, G.reciprocalQ);

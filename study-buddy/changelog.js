@@ -14,6 +14,10 @@ window.SB_CHANGELOG = [
     'Weather has new flashcard decks: the four kinds of clouds (with pictures), the three weather tools (with pictures), the practice test facts, and the two diagrams.',
     'The Punic Wars has a Places on the map deck. Every deck list also has Every quiz question in Weather, The Punic Wars, Ancient Rome, Planets and the Periodic Table, so anything the Full quiz asks has a card.',
     'Periodic Table decks now show every element instead of a random 20.' ] },
+  { date: '2026-10-29', title: 'Small fixes from the site audit', items: [
+    'Fractions multiply: Bigger, smaller or the same? now gives a new set of numbers each time you start over.',
+    'Volume: Mixed review now includes the count-the-cubes and stacks problems.',
+    'Handwriting: print and cursive letters are tracked separately, so finishing a cursive letter no longer marks the print one as finished. Progress already saved counts as cursive.' ] },
   { date: '2026-10-29', title: 'Quiz: Random 10 or Full', items: [
     'The Quiz in nine modules now has a switch: Random 10 (a short round) or Full (every question once).',
     'Mastered now needs a good score on the Full quiz. Tools with a Full quiz show their Full best on the progress screen.',
