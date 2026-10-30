@@ -30,8 +30,8 @@
   const placeOf = (d, name) => d === 1 ? name.replace(/s$/, '') : name;   // 1 thousand, 3 thousands
 
   /* ---------- Place value (multiple choice) ---------- */
-  function placeValueQ() {
-    const type = pick(['value', 'value', 'place', 'digit', 'build']);
+  function placeValueQ(forceType) {
+    const type = forceType || pick(['value', 'value', 'place', 'digit', 'build']);
     const useDec = Math.random() < 0.35, n = makeNumber(rnd(4, 7), useDec ? rnd(1, 3) : 0);
     const cells = n.cells.filter(c => c.d !== 0);
     if (type === 'value') {
@@ -68,8 +68,8 @@
     let n = BigInt(digits.slice(0, keep)); if (+digits[keep] >= 5) n += 1n;
     return decStr(n.toString(), places);
   }
-  function decimalQ() {
-    const type = pick(['compare', 'compare', 'round', 'count', 'build', 'same']);
+  function decimalQ(forceType) {
+    const type = forceType || pick(['compare', 'compare', 'round', 'count', 'build', 'same']);
     if (type === 'compare') {
       const w = rnd(0, 9), a1 = rnd(1, 9), b2 = rnd(10, 99);    // e.g. 0.5 vs 0.45: more digits is not more
       let A = `${w}.${a1}`, B = `${w}.${b2}`;

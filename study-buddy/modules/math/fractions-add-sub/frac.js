@@ -3,7 +3,7 @@
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
   const G = window.FRACGEN, esc = SB.esc;
-  const many = SBT.many;   // n different questions for a round
+  const many = SBT.many, shuffle = SBT.shuffle;   // n different questions for a round
   const F = G.F;
 
   /* ===================== Study guide ===================== */
@@ -55,5 +55,18 @@
   const words = fa('Word problems', 'Decide whether to add or subtract, then solve.' + FORM, G.wordsQ);
   const review = fa('Mixed review', 'Missing numbers, three fractions at once, and bigger mixed numbers.' + FORM, G.reviewQ);
 
-  SBM.start({ module: 'fractions-add-sub', defaults: {}, tools: { guide, division, models, improper, unlike, mixedadd, mixedsub, words, review } });
+  /* ---- Quiz (Random 10 or One of each) and Flashcards: one list of problem types serves both, so every type has a card ---- */
+  const TYPES = [
+    { name: "Fractions and division", gen: G.divisionQ, cards: [["What does a fraction bar mean?", "Divide. 3/4 = 3 ÷ 4. Sharing 3 among 4 gives 3/4 each."]] },
+    { name: "Improper fractions and mixed numbers", gen: G.improperQ, cards: [["How do you change an improper fraction to a mixed number?", "Divide the top by the bottom. The answer is the whole number, and the remainder goes over the bottom. 11/4 = 2 3/4."], ["How do you change a mixed number to an improper fraction?", "Multiply the whole number by the bottom, add the top, and keep the bottom. 2 3/4 = (2 × 4 + 3)/4 = 11/4."]] },
+    { name: "Unlike denominators", gen: G.unlikeQ, cards: [["How do you add or subtract fractions with unlike denominators?", "Find a common denominator, rename both fractions, then add or subtract the tops. Simplify at the end."]] },
+    { name: "Add mixed numbers", gen: G.mixedAddQ, cards: [["How do you add mixed numbers?", "Add the whole numbers, add the fractions, and regroup if the fractions make 1 or more."]] },
+    { name: "Subtract mixed numbers", gen: () => G.mixedSubQ(Math.random() < 0.5), cards: [["What do you do when the fraction in a subtraction is too small?", "Rename 1 whole as a fraction (like 4/4) and add it to the fraction, then subtract."]] },
+    { name: "Word problems", gen: G.wordsQ, cards: [["How do you decide whether to add or subtract in a word problem?", "Putting together or finding the total means add. Taking away or finding the difference means subtract."]] }
+  ];
+  const cards = { init(ctx) { SBT.flashcards(ctx, { lead: 'Tap the card to flip it. These are the rules and facts the problems use.', build: () => shuffle(TYPES.flatMap(t => t.cards)).map(([q, a]) => ({
+    front: `<div class="tag">Rule or fact</div><div class="defline">${esc(q)}</div>`, back: `<div class="tag">Answer</div><div class="defline">${esc(a)}</div>${ctx.sayButton(q + ' ' + a, 'Hear it')}`, say: q })) }); } };
+  const quiz = { init(ctx) { SBT.answer(ctx, { title: 'Quiz', lead: 'Mixed problems.' + FORM, kind: 'fraction', rounds: 10, fullLabel: 'One of each', full: () => TYPES.map(t => t.gen()), build: () => many(() => TYPES[Math.floor(Math.random() * TYPES.length)].gen()) }); } };
+
+  SBM.start({ module: 'fractions-add-sub', defaults: {}, tools: { guide, cards, division, models, improper, unlike, mixedadd, mixedsub, words, review, quiz } });
 })();

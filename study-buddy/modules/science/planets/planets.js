@@ -41,8 +41,9 @@
   const cards = {
     init(ctx) {
       SBT.flashcards(ctx, {
-        modes: [{ id: 'name', label: 'Name the planet' }, { id: 'facts', label: 'Planet facts' }],
+        modes: [{ id: 'name', label: 'Name the planet' }, { id: 'facts', label: 'Planet facts' }, { id: 'quizq', label: 'Every quiz question' }],
         build(mode) {
+          if (mode === 'quizq') return SBT.quizCards(ctx, fullQ());
           return shuffle(PLANETS).map(p => mode === 'name'
             ? { front: `<div class="tag">Which planet is this?</div><div class="defline">${esc(p.clues[1])} ${esc(p.clues[2])}</div>`, back: `<div class="tag">Answer</div>${disc(p, 90)}<div class="big">${p.name}</div><div class="small">Planet ${PLANETS.indexOf(p) + 1} from the Sun</div>`, say: p.clues[1] + ' ' + p.clues[2] }
             : { front: `<div class="tag">What do you know about this planet?</div>${disc(p, 110)}<div class="big">${p.name}</div>`, back: `<div class="tag">${p.name}</div><ul class="cardfacts">${p.facts.map(f => `<li>${esc(f)}</li>`).join('')}</ul>${ctx.sayButton(p.name + '. ' + p.facts.join(' '), 'Hear it')}`, say: 'What do you know about ' + p.name + '?' });
@@ -85,7 +86,8 @@
   /* the made questions skip anything a chosen question already asks in other words (closest = number 1, the ice giants) */
   const overlaps = (q, txt) => (/number 1 from/.test(q.q) && /closest/i.test(txt)) || (/number 8 from/.test(q.q) && /farthest/i.test(txt))
     || (/What kind of planet is/.test(q.q) && ((q.a === 'Ice giant' && /ice giant/i.test(txt)) || (q.a === 'Gas giant' && /gas giant/i.test(txt)) || (q.a === 'Rocky' && /rocky/i.test(txt))));
-  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, full: () => [...PQUIZ, ...madeQuestions()], build: () => { const chosen = shuffle(PQUIZ).slice(0, 7), txt = chosen.map(q => q.q + ' ' + q.a).join(' ');
+  const fullQ = () => [...PQUIZ, ...madeQuestions()];
+  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, full: fullQ, build: () => { const chosen = shuffle(PQUIZ).slice(0, 7), txt = chosen.map(q => q.q + ' ' + q.a).join(' ');
     return [...chosen, ...shuffle(madeQuestions()).filter(q => !overlaps(q, txt)).slice(0, 3)]; } }); } };
 
   /* ===================== Which is more? ===================== */

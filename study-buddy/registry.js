@@ -41,6 +41,7 @@ window.SB_REGISTRY = {
       storage: ['ham-technician'],
       tools: [
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Every question, one topic at a time. Jump to any section.' },
+        { id: 'quiz', name: 'Quiz', kind: 'study', difficulty: 'medium', blurb: 'Pick a topic group and answer every question in it (Full), or 10 random ones. Practice only.' },
         { id: 'exam', name: 'Mock exam', difficulty: 'hard', masterAt: 26, blurb: '35 random questions, one from each topic group. 26 right to pass.' }
       ]
     },
@@ -180,11 +181,13 @@ window.SB_REGISTRY = {
       storage: ['place-value'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A place value chart you can type into, and the zero tricks with examples.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for place value and decimals, one card each.' },
         { id: 'place', name: 'Place value', difficulty: 'easy', blurb: 'Values, places, and digits in big numbers and decimals. Mastered at 8 of 10.' },
         { id: 'decimals', name: 'Decimal places', difficulty: 'medium', blurb: 'Compare, round, and read decimals. Mastered at 8 of 10.' },
         { id: 'multiply', name: 'Multiply with zeros', difficulty: 'medium', blurb: 'Like 9,000 × 6,000. Mastered at 8 of 10.' },
         { id: 'divide', name: 'Divide with zeros', difficulty: 'hard', blurb: 'Like 1,200,000 ÷ 3,000. Mastered at 8 of 10.' },
-        { id: 'powers', name: 'Decimals and powers of ten', difficulty: 'insane', blurb: 'Like 3.45 × 100 and 72 ÷ 1,000. Mastered at 8 of 10.' }
+        { id: 'powers', name: 'Decimals and powers of ten', difficulty: 'insane', blurb: 'Like 3.45 × 100 and 72 ÷ 1,000. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
       ]
     },
     {
@@ -197,6 +200,7 @@ window.SB_REGISTRY = {
       storage: ['fractions-add-sub'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Worked examples, and a helper that shows every step for any two fractions.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for adding and subtracting fractions, one card each.' },
         { id: 'division', name: 'Fractions and division', difficulty: 'easy', blurb: 'Like 3 \u00f7 4 as a fraction, and sharing things equally. Mastered at 8 of 10.' },
         { id: 'models', name: 'Use the models', difficulty: 'easy', blurb: 'Add and subtract fractions with pictures. Mastered at 8 of 10.' },
         { id: 'improper', name: 'Improper fractions and mixed numbers', difficulty: 'easy', blurb: 'Change between the two, in simplest form. Mastered at 8 of 10.' },
@@ -204,7 +208,8 @@ window.SB_REGISTRY = {
         { id: 'mixedadd', name: 'Add mixed numbers', difficulty: 'medium', blurb: 'Like 2 1/3 + 1 3/4. Mastered at 8 of 10.' },
         { id: 'mixedsub', name: 'Subtract mixed numbers', difficulty: 'hard', blurb: 'With and without renaming. Mastered at 8 of 10.' },
         { id: 'words', name: 'Word problems', difficulty: 'hard', blurb: 'Fractions and mixed numbers in real situations. Mastered at 8 of 10.' },
-        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Missing numbers, three fractions at once, whole numbers minus mixed numbers, and bigger mixed numbers. Mastered at 8 of 10.' }
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Missing numbers, three fractions at once, whole numbers minus mixed numbers, and bigger mixed numbers. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
       ]
     },
     {
@@ -217,6 +222,7 @@ window.SB_REGISTRY = {
       storage: ['fractions-multiply'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Worked examples, and a helper that shows every step for any two numbers.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for multiplying fractions, one card each.' },
         { id: 'whole', name: 'Fractions times whole numbers', difficulty: 'easy', blurb: 'Like 3/4 \u00d7 5. Mastered at 8 of 10.' },
         { id: 'fractionof', name: 'Fraction of a number', difficulty: 'easy', blurb: 'Like 2/3 of 12, and simple word problems. Mastered at 8 of 10.' },
         { id: 'models', name: 'Use the area model', difficulty: 'easy', blurb: 'Read a product from overlapping shading. Mastered at 8 of 10.' },
@@ -225,7 +231,8 @@ window.SB_REGISTRY = {
         { id: 'recip', name: 'Reciprocals', difficulty: 'medium', blurb: 'Swap the top and bottom. Mastered at 8 of 10.' },
         { id: 'mixed', name: 'Multiply mixed numbers', difficulty: 'hard', blurb: 'By a whole number, a fraction, or a mixed number. Mastered at 8 of 10.' },
         { id: 'words', name: 'Word problems', difficulty: 'hard', blurb: 'Recipes, gardens, and parts of parts. Mastered at 8 of 10.' },
-        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Three or more factors, missing factors, and parentheses. Mastered at 8 of 10.' }
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Three or more factors, missing factors, and parentheses. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
       ]
     },
     {
@@ -238,12 +245,14 @@ window.SB_REGISTRY = {
       storage: ['fractions-divide'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Worked examples, and a helper that shows every step for any two numbers.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for dividing fractions, one card each.' },
         { id: 'share', name: 'Share a unit fraction', difficulty: 'easy', blurb: 'Read the answer from a bar model. Mastered at 8 of 10.' },
         { id: 'fracwhole', name: 'Fractions divided by whole numbers', difficulty: 'easy', blurb: 'Like 3/4 \u00f7 2. Mastered at 8 of 10.' },
         { id: 'fit', name: 'How many fit?', difficulty: 'medium', blurb: 'Whole numbers divided by unit fractions, with pictures. Mastered at 8 of 10.' },
         { id: 'wholefrac', name: 'Whole numbers divided by fractions', difficulty: 'medium', blurb: 'Like 4 \u00f7 1/3 and 3 \u00f7 3/4. Mastered at 8 of 10.' },
         { id: 'words', name: 'Word problems', difficulty: 'hard', blurb: 'Sharing equally, and how many fit. Mastered at 8 of 10.' },
-        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Mixed numbers, fractions divided by fractions, and missing numbers. Mastered at 8 of 10.' }
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Mixed numbers, fractions divided by fractions, and missing numbers. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
       ]
     },
     {
@@ -256,13 +265,15 @@ window.SB_REGISTRY = {
       storage: ['measurement'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Worked examples, and a helper that finds the area of a rectangle, triangle or trapezoid step by step.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for units and area, one card each.' },
         { id: 'units', name: 'Convert customary units', difficulty: 'easy', blurb: 'Feet, yards, pounds and gallons, with fractions. Mastered at 8 of 10.' },
         { id: 'time', name: 'Convert units of time', difficulty: 'easy', blurb: 'Hours, minutes, days, weeks and years. Mastered at 8 of 10.' },
         { id: 'rect', name: 'Area of a rectangle', difficulty: 'medium', blurb: 'Fraction and mixed-number sides. Mastered at 8 of 10.' },
         { id: 'triangle', name: 'Area of a triangle', difficulty: 'medium', blurb: 'Acute, right and obtuse. Mastered at 8 of 10.' },
         { id: 'trapezoid', name: 'Area of a trapezoid', difficulty: 'hard', blurb: 'Two bases and a height. Mastered at 8 of 10.' },
         { id: 'composite', name: 'Composite figures', difficulty: 'hard', blurb: 'L-shapes, cut-outs, and a triangle on a rectangle. Mastered at 8 of 10.' },
-        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Fractions in every shape, and two-step conversions. Mastered at 8 of 10.' }
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Fractions in every shape, and two-step conversions. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
       ]
     },
     {
@@ -275,6 +286,7 @@ window.SB_REGISTRY = {
       storage: ['volume'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Worked examples, and a helper that finds the volume of any box and what it holds.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for volume, one card each.' },
         { id: 'cubes', name: 'Count the cubes', difficulty: 'easy', blurb: 'Layers of unit cubes in a box. Mastered at 8 of 10.' },
         { id: 'stacks', name: 'Stacks of cubes', difficulty: 'easy', blurb: 'Irregular figures built from cubes, seen from above. Mastered at 8 of 10.' },
         { id: 'formula', name: 'Use the formula', difficulty: 'medium', blurb: 'Boxes, cubes, and finding a missing edge. Mastered at 8 of 10.' },
@@ -282,7 +294,8 @@ window.SB_REGISTRY = {
         { id: 'words', name: 'Word problems', difficulty: 'hard', blurb: 'Boxes, tanks and sand. Mastered at 8 of 10.' },
         { id: 'compare', name: 'Compare volumes', difficulty: 'hard', blurb: 'How much more does the bigger box hold? Mastered at 8 of 10.' },
         { id: 'compound', name: 'Compound figures', difficulty: 'hard', blurb: 'Join two boxes, or cut a piece out. Mastered at 8 of 10.' },
-        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'All the volume skills together. Mastered at 8 of 10.' }
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'All the volume skills together. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
       ]
     },
     {

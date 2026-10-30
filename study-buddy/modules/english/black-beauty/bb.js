@@ -46,8 +46,9 @@
         back: `<div class="tag">Answer</div><div class="defline">${esc(d)}</div>${ctx.sayButton(t + '. ' + d, 'Hear it')}`,
         say: ask.replace('this', t) }));
       SBT.flashcards(ctx, {
-        modes: [{ id: 'chars', label: 'Characters' }, { id: 'homes', label: 'Homes' }, { id: 'words', label: 'Words to know' }],
+        modes: [{ id: 'chars', label: 'Characters' }, { id: 'homes', label: 'Homes' }, { id: 'words', label: 'Words to know' }, { id: 'quizq', label: 'Every quiz question' }],
         build(mode) {
+          if (mode === 'quizq') return SBT.quizCards(ctx, QUIZ);
           if (mode === 'words') return deck(WORDS, 'What does this mean?');
           if (mode === 'homes') return shuffle(HOMES).map(h => ({
             front: `<div class="tag">What happens to Beauty here?</div><div class="big">${esc(h.place)}</div>`,

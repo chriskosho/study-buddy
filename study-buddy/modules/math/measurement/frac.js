@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
-  const G = window.MEAGEN, L = window.FRACLIB, esc = SB.esc, many = SBT.many, F = L.F;
+  const G = window.MEAGEN, L = window.FRACLIB, esc = SB.esc, shuffle = SBT.shuffle, many = SBT.many, F = L.F;
 
   const guide = {
     init(ctx) {
@@ -54,5 +54,18 @@
   const composite = fa('Composite figures', 'Add or subtract areas. Corners are right angles.' + FORM, G.compositeQ);
   const review = fa('Mixed review', 'Fractions in triangles and trapezoids, two-step conversions, and composite figures.' + FORM, G.reviewQ);
 
-  SBM.start({ module: 'measurement', defaults: {}, tools: { guide, units, time, rect, triangle, trapezoid, composite, review } });
+  /* ---- Quiz (Random 10 or One of each) and Flashcards: one list of problem types serves both, so every type has a card ---- */
+  const TYPES = [
+    { name: "Convert customary units", gen: G.customaryQ, cards: [["When you change to a smaller unit, do you multiply or divide?", "Multiply. You need more of the smaller unit. 3/4 foot × 12 = 9 inches."], ["When you change to a bigger unit, do you multiply or divide?", "Divide. You need fewer of the bigger unit. 90 minutes ÷ 60 = 1 1/2 hours."], ["Customary units to know", "1 foot = 12 inches. 1 yard = 3 feet = 36 inches. 1 pound = 16 ounces. 1 gallon = 4 quarts = 16 cups. 1 quart = 2 pints. 1 pint = 2 cups."]] },
+    { name: "Convert units of time", gen: G.timeQ, cards: [["Units of time to know", "1 hour = 60 minutes. 1 minute = 60 seconds. 1 day = 24 hours. 1 week = 7 days. 1 year = 12 months."]] },
+    { name: "Area of a rectangle", gen: G.rectQ, cards: [["How do you find the area of a rectangle?", "Area = length × width. The sides can be fractions or mixed numbers."]] },
+    { name: "Area of a triangle", gen: () => G.triQ(false), cards: [["How do you find the area of a triangle?", "Area = 1/2 × base × height. The height makes a square corner with the base, even if it falls outside an obtuse triangle."]] },
+    { name: "Area of a trapezoid", gen: () => G.trapQ(false), cards: [["How do you find the area of a trapezoid?", "Area = 1/2 × (base 1 + base 2) × height. The two bases are the parallel sides."]] },
+    { name: "Composite figures", gen: G.compositeQ, cards: [["How do you find the area of a composite figure?", "Split it into rectangles and triangles, or take a missing part away from a bigger rectangle. Find each area, then add or subtract."]] }
+  ];
+  const cards = { init(ctx) { SBT.flashcards(ctx, { lead: 'Tap the card to flip it. These are the rules and facts the problems use.', build: () => shuffle(TYPES.flatMap(t => t.cards)).map(([q, a]) => ({
+    front: `<div class="tag">Rule or fact</div><div class="defline">${esc(q)}</div>`, back: `<div class="tag">Answer</div><div class="defline">${esc(a)}</div>${ctx.sayButton(q + ' ' + a, 'Hear it')}`, say: q })) }); } };
+  const quiz = { init(ctx) { SBT.answer(ctx, { title: 'Quiz', lead: 'Mixed problems.' + FORM, kind: 'fraction', rounds: 10, fullLabel: 'One of each', full: () => TYPES.map(t => t.gen()), build: () => many(() => TYPES[Math.floor(Math.random() * TYPES.length)].gen()) }); } };
+
+  SBM.start({ module: 'measurement', defaults: {}, tools: { guide, cards, units, time, rect, triangle, trapezoid, composite, review, quiz } });
 })();

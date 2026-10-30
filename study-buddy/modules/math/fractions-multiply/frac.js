@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
-  const G = window.MULGEN, L = window.FRACLIB, esc = SB.esc, many = SBT.many, F = L.F;
+  const G = window.MULGEN, L = window.FRACLIB, esc = SB.esc, shuffle = SBT.shuffle, many = SBT.many, F = L.F;
 
   /* ===================== Study guide ===================== */
   const guide = {
@@ -54,5 +54,18 @@
   const words = fa('Word problems', 'Recipes, gardens, and parts of parts.' + FORM, G.wordsQ);
   const review = fa('Mixed review', 'Three or more factors, missing factors, and parentheses.' + FORM, G.reviewQ);
 
-  SBM.start({ module: 'fractions-multiply', defaults: {}, tools: { guide, whole, fractionof, models, fraction, scale, recip, mixed, words, review } });
+  /* ---- Quiz (Random 10 or One of each) and Flashcards: one list of problem types serves both, so every type has a card ---- */
+  const TYPES = [
+    { name: "Fractions times whole numbers", gen: G.wholeMulQ, cards: [["How do you multiply a fraction by a whole number?", "Multiply the top number by the whole number and keep the bottom. Then simplify. 3 × 2/5 = 6/5 = 1 1/5."]] },
+    { name: "Fraction of a number", gen: G.fractionOfQ, cards: [["What does a fraction of a number mean?", "Multiply. 2/3 of 12 = 2/3 × 12 = 8."]] },
+    { name: "Multiply fractions", gen: G.fractionMulQ, cards: [["How do you multiply two fractions?", "Multiply the tops and multiply the bottoms. Then simplify. 1/2 × 1/3 = 1/6."]] },
+    { name: "Reciprocals", gen: G.reciprocalQ, cards: [["What is a reciprocal?", "Swap the top and the bottom. The reciprocal of 3/4 is 4/3. The reciprocal of a whole number n is 1/n."]] },
+    { name: "Multiply mixed numbers", gen: G.mixedMulQ, cards: [["How do you multiply mixed numbers?", "Change each to an improper fraction, multiply the tops and the bottoms, then simplify."]] },
+    { name: "Word problems", gen: G.wordsQ, cards: [["How do you spot a multiplication word problem about parts?", "A part of a part, or \"of\", means multiply. 1/2 of 1/3 of a cake = 1/2 × 1/3."]] }
+  ];
+  const cards = { init(ctx) { SBT.flashcards(ctx, { lead: 'Tap the card to flip it. These are the rules and facts the problems use.', build: () => shuffle(TYPES.flatMap(t => t.cards)).map(([q, a]) => ({
+    front: `<div class="tag">Rule or fact</div><div class="defline">${esc(q)}</div>`, back: `<div class="tag">Answer</div><div class="defline">${esc(a)}</div>${ctx.sayButton(q + ' ' + a, 'Hear it')}`, say: q })) }); } };
+  const quiz = { init(ctx) { SBT.answer(ctx, { title: 'Quiz', lead: 'Mixed problems.' + FORM, kind: 'fraction', rounds: 10, fullLabel: 'One of each', full: () => TYPES.map(t => t.gen()), build: () => many(() => TYPES[Math.floor(Math.random() * TYPES.length)].gen()) }); } };
+
+  SBM.start({ module: 'fractions-multiply', defaults: {}, tools: { guide, cards, whole, fractionof, models, fraction, scale, recip, mixed, words, review, quiz } });
 })();

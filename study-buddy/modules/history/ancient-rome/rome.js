@@ -45,8 +45,9 @@
   const cards = {
     init(ctx) {
       SBT.flashcards(ctx, {
-        modes: [{ id: 'terms', label: 'Study guide terms' }, { id: 'gods', label: 'Gods and goddesses' }],
+        modes: [{ id: 'terms', label: 'Study guide terms' }, { id: 'gods', label: 'Gods and goddesses' }, { id: 'quizq', label: 'Every quiz question' }],
         build(mode) {
+          if (mode === 'quizq') return SBT.quizCards(ctx, fullQ());
           if (mode === 'gods') return shuffle(GODS).map(g => ({
             front: `<div class="tag">Who is this Roman god?</div><div class="big">${esc(g.name)}</div>`,
             back: `<div class="tag">Answer</div><div class="defline">${esc(g.attr)}</div><div class="exl">Check this against your class chart.</div>${ctx.sayButton(g.name + '. ' + g.attr, 'Hear it')}`,
@@ -65,9 +66,10 @@
     q: 'Which Roman god or goddess is this: ' + g.attr.charAt(0).toLowerCase() + g.attr.slice(1) + '?',
     a: g.name, wrong: shuffle(GODS.filter(x => x.name !== g.name)).slice(0, 3).map(x => x.name),
     why: g.name + ': ' + g.attr + '. (Check your class chart.)' }));
+  const fullQ = () => [...QUIZ, ...godQuestions()];
   const quiz = {
     init(ctx) {
-      SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', full: () => [...QUIZ, ...godQuestions()], build: () => [...shuffle(QUIZ).slice(0, 8), ...shuffle(godQuestions()).slice(0, 2)] });
+      SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', full: fullQ, build: () => [...shuffle(QUIZ).slice(0, 8), ...shuffle(godQuestions()).slice(0, 2)] });
     }
   };
 

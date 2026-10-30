@@ -1,6 +1,19 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-29', title: 'Full quiz for Roots and Ham Radio', items: [
+    'Greek and Latin Roots: the Quiz has a Full version that asks every root at the chosen level (or every two-root word on Insane).',
+    'Ham Radio Technician has a new Quiz tab. Pick a topic group and answer every question in it (Full), or 10 random ones. It is practice only; the Mock exam is still the scored test, and every question already has a flashcard.' ] },
+  { date: '2026-10-29', title: 'Math: Quiz and Flashcards', items: [
+    'Each of the six math modules has a new Quiz tab with Random 10 or One of each (one problem of every kind in the module). Mastered needs a good score on One of each.',
+    'Each math module also has a Flashcards tab with the rules and facts the problems use, such as the area formulas, the unit facts, and how to divide fractions.',
+    'The Random / Full switch now sits on the same row as the tool title.' ] },
+  { date: '2026-10-29', title: 'Flashcards for Black Beauty', items: [
+    'Both Black Beauty modules have an Every quiz question flashcard deck, so everything the Full quiz asks has a card.' ] },
+  { date: '2026-10-29', title: 'More flashcards for History and Science', items: [
+    'Weather has new flashcard decks: the four kinds of clouds (with pictures), the three weather tools (with pictures), the practice test facts, and the two diagrams.',
+    'The Punic Wars has a Places on the map deck. Every deck list also has Every quiz question in Weather, The Punic Wars, Ancient Rome, Planets and the Periodic Table, so anything the Full quiz asks has a card.',
+    'Periodic Table decks now show every element instead of a random 20.' ] },
   { date: '2026-10-29', title: 'Small fixes from the site audit', items: [
     'Fractions multiply: Bigger, smaller or the same? now gives a new set of numbers each time you start over.',
     'Volume: Mixed review now includes the count-the-cubes and stacks problems.',

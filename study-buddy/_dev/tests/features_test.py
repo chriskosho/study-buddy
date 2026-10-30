@@ -43,7 +43,7 @@ async def main():
         await pg.reload(); await pg.wait_for_selector('.tool')
         nxt = await pg.locator('.tool.next h3').all_inner_texts()
         check(nxt == ['Stacks of cubes'], f'once started, the first tool not mastered (easiest first) says Try next {nxt}')
-        check(await pg.locator('.tool .tname .spk').count() == (9 if can else 0), 'each tool card has a speaker')
+        check(await pg.locator('.tool .tname .spk').count() == (11 if can else 0), 'each tool card has a speaker')
 
         # ---- typed answers: review list, Try a similar one, steps, typed preview ----
         await pg.goto(BASE + 'modules/math/fractions-multiply/index.html?tool=fraction'); await pg.wait_for_selector('#tab-fraction .qtext')

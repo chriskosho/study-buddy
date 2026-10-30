@@ -63,3 +63,4 @@ html.sb-dark .hfig img{filter:invert(1);mix-blend-mode:screen}
   .secnav{width:100%} .secsel{flex:1 1 auto;max-width:none}
 }
 .hprac{padding:3px 10px;font-size:13px;min-height:30px}
+.hpick{margin:0 0 8px;gap:8px;align-items:center}.hsel{font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);max-width:100%}

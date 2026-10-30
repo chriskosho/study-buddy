@@ -192,6 +192,7 @@
       leveled(ctx, 'quiz', (c, lv) => SBT.quiz(c, {
         title: 'Quiz', lead: lv === 'insane' ? 'Pick what the whole word means.' : 'Pick the best meaning.', rounds: lv === 'insane' ? 8 : 10,
         onAnswer: onAnswer(c), keepOrder: true, skip: true,
+        full: () => lv === 'insane' ? TWO.map(twoQuiz) : POOL(lv).map(r => rootQuiz({ id: r.id, pass: 0 })),
         build: () => lv === 'insane' ? twoWords(8).map(twoQuiz) : plan(POOL(lv).map(r => r.id), 10).map(rootQuiz)
       }));
     }

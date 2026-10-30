@@ -47,8 +47,8 @@
     init(ctx) {
       SBT.flashcards(ctx, {
         lead: 'Tap the card to flip it. Say the answer before you flip. Cards you miss come back again.',
-        modes: PARTS.map(p => ({ id: String(p.id), label: p.label + ', ' + p.range })),
-        build: mode => shuffle(CH.filter(c => c.part === +mode).flatMap(c => c.qa.filter(([q]) => !hlOn(ctx.state) || isHL(c.c, q)).map(([q, a]) => ({
+        modes: [...PARTS.map(p => ({ id: String(p.id), label: p.label + ', ' + p.range })), { id: 'quizq', label: 'Every quiz question' }],
+        build: mode => mode === 'quizq' ? SBT.quizCards(ctx, QUIZ) : shuffle(CH.filter(c => c.part === +mode).flatMap(c => c.qa.filter(([q]) => !hlOn(ctx.state) || isHL(c.c, q)).map(([q, a]) => ({
           front: `<div class="tag">${esc(chLabel(c.c))}</div><div class="big sm">${esc(q)}</div>`,
           back: `<div class="tag">Answer</div><div class="defline">${esc(a)}</div>${ctx.sayButton(q + ' ' + a, 'Hear it')}`,
           say: q }))))
