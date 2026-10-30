@@ -100,16 +100,17 @@
   /* ---------- 3. A rocket (third law) ---------- */
   function rocketLab(box) {
     let force = 3, y = 0, parts = [];
-    box.innerHTML = `<div class="lstage"><svg class="lsvg" viewBox="0 0 640 260" role="img" aria-label="A rocket on a launch pad with two equal arrows: the rocket pushes gas down and the gas pushes the rocket up">
-        <rect class="gnd road" x="-1000" y="236" width="2640" height="24"/><g class="gas"></g>
-        <g class="rkt"><path class="bx" d="M320 78C336 98 340 130 340 168V214H300V168C300 130 304 98 320 78Z"/><path class="bx" d="M300 190L282 222H300ZM340 190L358 222H340Z"/><circle class="wh" cx="320" cy="140" r="9"/>
+    box.innerHTML = `<div class="lstage"><svg class="lsvg rk" viewBox="0 0 400 300" role="img" aria-label="A rocket on a launch pad with two equal arrows: the rocket pushes gas down and the gas pushes the rocket up">
+        <rect class="gnd road" x="-1000" y="276" width="2400" height="24"/><g class="gas"></g>
+        <g class="rkt"><path class="bx" d="M200 118C216 138 220 170 220 208V254H180V208C180 170 184 138 200 118Z"/><path class="bx" d="M180 230L162 262H180ZM220 230L238 262H220Z"/><circle class="wh" cx="200" cy="180" r="9"/>
           <g class="arrs"></g></g></svg></div>
       <div class="lctl"><label class="slab">Engine force <input type="range" min="1" max="5" value="${force}" aria-label="How strong the engine is"></label>
         <button class="btn" data-a="go">Launch</button><button class="btn ghost" data-a="reset">Back to the pad</button></div>
       <p class="lmsg" aria-live="polite"></p>`;
     const svg = $('svg', box), r = $('.rkt', svg), gas = $('.gas', svg), arrs = $('.arrs', svg), msg = $('.lmsg', box), go = $('[data-a=go]', box), rng = $('input', box);
-    const arrows = () => { const L = 14 + force * 14; arrs.innerHTML = ARROW(262, 120, 262, 120 + L, 'bad') + `<text class="lbl" x="254" y="${120 + L / 2}" text-anchor="end">Rocket pushes gas down</text>`
-      + ARROW(378, 190, 378, 190 - L, 'good') + `<text class="lbl" x="386" y="${190 - L / 2}">Gas pushes rocket up</text>`; };
+    const two = (x, y, anchor, a, b) => `<text class="lbl" x="${x}" y="${y}" text-anchor="${anchor}"><tspan x="${x}">${a}</tspan><tspan x="${x}" dy="17">${b}</tspan></text>`;
+    const arrows = () => { const L = 14 + force * 14; arrs.innerHTML = ARROW(156, 150, 156, 150 + L, 'bad') + two(146, 150 + L / 2 - 4, 'end', 'Rocket pushes', 'gas down')
+      + ARROW(244, 246, 244, 246 - L, 'good') + two(254, 246 - L / 2 - 4, 'start', 'Gas pushes', 'rocket up'); };
     const draw = () => { r.setAttribute('transform', `translate(0,${(-y).toFixed(1)})`); gas.innerHTML = parts.map(p => `<circle class="puff" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${p.r.toFixed(1)}" opacity="${p.o.toFixed(2)}"/>`).join(''); };
     const reset = () => { stop(); y = 0; parts = []; go.disabled = false; arrows(); draw(); msg.textContent = 'When a rocket launches, it pushes hot gas out of its engines. The hot gas pushes back on the rocket with the same amount of force.'; };
     rng.oninput = () => { force = +rng.value; if (!raf) arrows(); };
@@ -118,9 +119,9 @@
       reset(); go.disabled = true; let v = 0, t = 0; const a = force * 45;
       loop(dt => {
         t += dt; v += a * dt; y += v * dt;
-        if (!calm()) for (let i = 0; i < 2; i++) parts.push({ x: 308 + Math.random() * 24, y: 222 - y + 6, vy: 120 + Math.random() * 120, r: 3 + Math.random() * 4, o: 0.9 });
-        parts.forEach(p => { p.y += p.vy * dt; p.r += dt * 6; p.o -= dt * 0.9; }); parts = parts.filter(p => p.o > 0 && p.y < 262);
-        draw(); return y < 290 && t < 8;
+        if (!calm()) for (let i = 0; i < 2; i++) parts.push({ x: 188 + Math.random() * 24, y: 268 - y, vy: 120 + Math.random() * 120, r: 3 + Math.random() * 4, o: 0.9 });
+        parts.forEach(p => { p.y += p.vy * dt; p.r += dt * 6; p.o -= dt * 0.9; }); parts = parts.filter(p => p.o > 0 && p.y < 300);
+        draw(); return y < 300 && t < 8;
       }, () => { parts = []; draw(); go.disabled = false; msg.textContent = 'The rocket pushed the hot gas down, and the gas pushed the rocket up with the same amount of force. For every action, there is an equal and opposite reaction.'; });
     };
     reset();
@@ -130,9 +131,9 @@
   function sizeLab(box) {
     let size = 5, mass = 5;
     box.innerHTML = `<div class="l3">
-      <div class="lcard"><h4>Scale</h4><svg class="lsvg2" viewBox="0 0 220 130" role="img" aria-label="Earth drawn bigger than the moon, with a longer gravity arrow from Earth">
-          <circle class="earth" cx="62" cy="62" r="50"/><circle class="moon" cx="176" cy="62" r="14"/>
-          ${ARROW(62, 120, 62, 80, 'good')}${ARROW(176, 120, 176, 100, 'good')}<text class="lbl" x="62" y="14" text-anchor="middle">Earth</text><text class="lbl" x="176" y="38" text-anchor="middle">moon</text></svg>
+      <div class="lcard"><h4>Scale</h4><svg class="lsvg2" viewBox="0 0 220 150" role="img" aria-label="Earth drawn bigger than the moon, with a longer gravity arrow from Earth">
+          <circle class="earth" cx="62" cy="66" r="44"/><circle class="moon" cx="176" cy="66" r="13"/>
+          ${ARROW(62, 146, 62, 114, 'good')}${ARROW(176, 146, 176, 130, 'good')}<text class="lbl" x="62" y="14" text-anchor="middle">Earth</text><text class="lbl" x="176" y="42" text-anchor="middle">moon</text></svg>
         <p>Scale is how big or small something is. The force of gravity is greater from Earth, which is bigger.</p></div>
       <div class="lcard"><h4>Proportion</h4><label class="slab">Mass <input class="rm" type="range" min="1" max="10" value="${mass}" aria-label="How much mass the object has"></label>
         <div class="lane" aria-hidden="true"><span class="dot"></span></div><div class="bars"><div><span>Speed</span><div class="lbar"><i class="bs"></i></div></div></div>
@@ -147,12 +148,12 @@
     upd();
   }
 
-  const EXPS = [['ball', 'Rolling ball', 'Newton’s first law', ballLab], ['push', 'Push it', 'Newton’s second law', pushLab], ['rocket', 'Rocket', 'Newton’s third law', rocketLab], ['size', 'Scale, proportion, quantity', 'Table 5.1', sizeLab]];
+  const EXPS = [['ball', 'Rolling ball', 'Newton’s first law', ballLab], ['push', 'Push it', 'Newton’s second law', pushLab], ['rocket', 'Rocket', 'Newton’s third law', rocketLab], ['size', 'Scale, proportion, quantity', 'Table 5.1', sizeLab, 'Scale and size']];
   window.labTool = {
     init(ctx) {
       const P = ctx.panel;
       P.innerHTML = `<h2>Experiments</h2><p class="lead">Try each one and watch what happens. Practice only.</p>
-        <div class="seg gtabs" role="group" aria-label="Experiment">${EXPS.map((e, i) => `<button data-e="${e[0]}" aria-pressed="${i === 0}">${e[1]}</button>`).join('')}</div><div class="lbody"></div>`;
+        <div class="seg gtabs" role="group" aria-label="Experiment">${EXPS.map((e, i) => `<button data-e="${e[0]}" aria-pressed="${i === 0}">${e[4] || e[1]}</button>`).join('')}</div><div class="lbody"></div>`;
       const body = $('.lbody', P);
       const show = id => { stop(); const e = EXPS.find(x => x[0] === id); body.innerHTML = `<div class="lhead"><h3>${e[1]}</h3><span class="lawtag">${e[2]}</span></div><div class="lbox"></div>`; e[3]($('.lbox', body)); };
       $$('.gtabs button', P).forEach(b => b.onclick = () => { $$('.gtabs button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); show(b.dataset.e); });
