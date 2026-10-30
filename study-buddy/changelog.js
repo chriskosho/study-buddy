@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-30', title: 'Small countries on the maps are easier to read', items: [
+    'On the Europe and US States maps, a tiny place shows a short code. Tap the place, or tap its name in the list, and the code opens into the full name. Using the keyboard to move onto a place does the same.',
+    'Zoom in once and every short code opens into the full name. Tapping a name in the list now shows that place on the map and zooms toward it if it is tiny.',
+    'On the Study map, hovering over a country shows its name, and double-tapping zooms in. In Drag names, a tiny country you just placed shows its full name for a moment.',
+    'South America got the highlight, hover name, and double-tap zoom too. These rules are now written in the style guide so every map matches.' ] },
   { date: '2026-10-30', title: 'New module: Europe', items: [
     'Geography has a new module for the countries of Europe: 46 of them, including Kosovo, Cyprus, Russia, and six tiny countries (Vatican City, San Marino, Monaco, Liechtenstein, Andorra, and Malta) shown as dots with a line to their name.',
     'It has a study guide with each flag, capital, and main language, a study map, flashcards (map shapes, capitals, flags, languages, and every quiz question), Listen and tap, Find it, Drag names, a Quiz, and Type the answer.',
