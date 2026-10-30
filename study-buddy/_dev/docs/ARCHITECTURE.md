@@ -293,5 +293,5 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 ## 28. Flashcards cover the Full quiz (October 2026)
 - `SBT.quizCards(ctx, items)` makes one card per quiz item (question on the front, answer on the back). A module's Flashcards tool adds an "Every quiz question" deck built from the same list as its Full quiz (`fullQ`), so nothing on the Full quiz lacks a card.
 - `flashcard_rule_test.py` checks the rule in the browser: it reads the Full quiz and every flashcard deck, and fails if a Full answer's text is on no card. Modules listed in `COVERED` must pass; run it with `--report` to list gaps in the others. Add a module to `COVERED` when its cards are complete.
-- Covered so far: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table.
+- Covered so far: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table, Black Beauty (story and guide), Phonograms, US States. Not covered: Greek and Latin Roots, South America and Ham Radio (no Full quiz yet) and the math modules.
 - Weather also has picture decks (cloud types, weather tools), a practice-test facts deck, and a diagrams deck (`cloudSVG`, `toolSVG` in art.js). Punic Wars has a Places on the map deck (`mapSVG({only})`).

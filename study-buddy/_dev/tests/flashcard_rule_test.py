@@ -24,7 +24,7 @@ window.SpeechSynthesisUtterance=function(t){this.text=t};
 
 MODS = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'science/planets', 'science/periodic-table',
         'english/black-beauty', 'english/black-beauty-guide', 'english/phonograms', 'geography/us-states']
-COVERED = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'science/planets', 'science/periodic-table']
+COVERED = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'science/planets', 'science/periodic-table', 'english/black-beauty', 'english/black-beauty-guide', 'english/phonograms', 'geography/us-states']
 REPORT = '--report' in sys.argv
 GATHER = """async (isUS) => {
   const strip = h => { const d = document.createElement('div'); d.innerHTML = String(h || '').replace(/<\/(div|p|span|b)>/g, '$& '); d.querySelectorAll('svg').forEach(s => { s.replaceWith(' ' + (s.getAttribute('aria-label') || '') + ' ' + (s.textContent || '') + ' '); }); return d.textContent.replace(/\s+/g, ' '); };

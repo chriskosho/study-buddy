@@ -1,6 +1,8 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-29', title: 'Flashcards for Black Beauty', items: [
+    'Both Black Beauty modules have an Every quiz question flashcard deck, so everything the Full quiz asks has a card.' ] },
   { date: '2026-10-29', title: 'More flashcards for History and Science', items: [
     'Weather has new flashcard decks: the four kinds of clouds (with pictures), the three weather tools (with pictures), the practice test facts, and the two diagrams.',
     'The Punic Wars has a Places on the map deck. Every deck list also has Every quiz question in Weather, The Punic Wars, Ancient Rome, Planets and the Periodic Table, so anything the Full quiz asks has a card.',
