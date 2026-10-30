@@ -70,6 +70,11 @@ async def main():
         rec = await pg.evaluate("SB.toolRecord('handwriting','letters')")
         check(rec and rec['best'] == 1 and rec['max'] == 52, f'first letter recorded as 1 of 52 {rec}')
         check('passed' in (await pg.locator('#tab-letters .hw-strip button[data-i="0"]').get_attribute('class') or ''), 'passed letter is marked in the strip')
+        await pg.click('#tab-letters [data-style="print"]'); await pg.wait_for_timeout(300)
+        check('passed' not in (await pg.locator('#tab-letters .hw-strip button[data-i="0"]').get_attribute('class') or ''), 'print letters are tracked apart from cursive: the first letter is not passed in print')
+        await pg.click('#tab-letters [data-style="cursive"]'); await pg.wait_for_timeout(300)
+        check('passed' in (await pg.locator('#tab-letters .hw-strip button[data-i="0"]').get_attribute('class') or ''), 'back in cursive the first letter is still passed')
+        await pg.evaluate("document.querySelector('#tab-letters [data-a=\"check\"]').hidden = true; document.querySelector('#tab-letters [data-a=\"next\"]').hidden = false")   # the style switch reset the round; move on
 
         # scribble fails
         await pg.click('#tab-letters [data-a="next"]'); await pg.wait_for_timeout(200)

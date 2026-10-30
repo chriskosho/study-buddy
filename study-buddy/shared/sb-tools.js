@@ -8,7 +8,7 @@
          Optional sections: { list: [{ id, label, group?, noStep? }], start?: id, noun?: 'section' } adds a section menu with
          Previous and Next buttons; build(modeId, sectionId) then returns that section's cards. group puts the entry under a menu heading.
 
-     SBT.sort(ctx, { lead, sets: [{ id, label, buckets: [{ id, name, html? }], items: [{ text, b }], perBucket? }],
+     SBT.sort(ctx, { lead, sets: [{ id, label, buckets: [{ id, name, html? }], items: [{ text, b }] (or make() returning items, called each round), perBucket? }],
                      right?(item, bucket), wrong?(item, bucket) })
          Drag (or tap, then tap) each item into its bucket. Result: items minus misses, out of items.
 
@@ -218,7 +218,8 @@
         bk.addEventListener('click', () => { if (S.sel) tryPlace(S.sel, bk.dataset.b); });
         bk.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && S.sel) { e.preventDefault(); tryPlace(S.sel, bk.dataset.b); } });
       });
-      const items = shuffle(set.buckets.flatMap(b => { const mine = shuffle(set.items.filter(it => it.b === b.id)); return set.perBucket ? mine.slice(0, set.perBucket) : mine; }));
+      const pool = set.make ? set.make() : set.items;   // make(): a fresh set of items every time it starts
+      const items = shuffle(set.buckets.flatMap(b => { const mine = shuffle(pool.filter(it => it.b === b.id)); return set.perBucket ? mine.slice(0, set.perBucket) : mine; }));
       S.total = items.length;
       items.forEach(it => {
         const c = document.createElement('button'); c.className = 'chip'; c.type = 'button'; c.textContent = it.text; c._item = it; c.dataset.b = it.b;
