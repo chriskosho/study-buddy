@@ -1,6 +1,9 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-30', title: 'Rocket fix for phones set to reduce motion', items: [
+    'On a phone with reduce motion turned on, the rocket used to vanish the moment you pressed Launch. The experiments now always animate. With reduce motion on, the rocket rises gently, with no smoke, and stays on screen.',
+    'The rocket now comes back to the launch pad when it finishes, so you can launch it again.' ] },
   { date: '2026-10-29', title: 'Newton experiments on phones', items: [
     'The Rocket experiment is drawn taller on phones, with bigger labels, so it is easy to read and watch.',
     'The Scale, proportion, quantity experiment no longer has the Earth label on top of the circle, its tab is shorter, and the heading fits.' ] },
