@@ -15,9 +15,8 @@
   const flag = (c, cls = '') => `<span class="eu-flag ${cls}" data-s="${c.id}">${/eu-qflag|eu-cardflag/.test(cls) ? FLAGS[c.id].replace(/aria-label="[^"]*"/, 'aria-label="A country flag"') : FLAGS[c.id]}</span>`;
   /* when the capital's name already contains the country's name, "X is the capital of which country?" would give it away */
   const giveaway = c => { const a = c.capital.toLowerCase(), b = c.name.toLowerCase(); return a.includes(b) || b.includes(a); };
-  const NAME_ALSO = { cz: ['Czech Republic', 'Czech'], gb: ['UK', 'Britain', 'Great Britain', 'The United Kingdom', 'England'], ba: ['Bosnia', 'Bosnia & Herzegovina', 'Bosnia Herzegovina'], mk: ['Macedonia'], nl: ['The Netherlands', 'Holland'], va: ['Vatican', 'The Vatican'], ie: ['Republic of Ireland'], ch: ['Swiss Confederation'], lu: ['Luxemburg'] };
-  const CAP_ALSO = { ua: ['Kiev'], md: ['Chișinău', 'Kishinev'], is: ['Reykjavík'], xk: ['Prishtina', 'Priština'], ch: ['Berne'], lu: ['Luxembourg'], ad: ['Andorra'], by: ['Mensk'], at: ['Wien'], pt: ['Lisboa'], ro: ['București'], gr: ['Athina'], hu: ['Budapesht'], fi: ['Helsingfors'] };
-  const LANG_ALSO = { Slovene: ['Slovenian'], Macedonian: ['Macedonian'], Montenegrin: ['Montenegrin', 'Serbian'], Latin: ['Latin'], Luxembourgish: ['Letzeburgesch', 'Luxemburgish'] };
+  /* alternate spellings accepted when typing come from data.js (ALSO.name, ALSO.capital, ALSO.lang) */
+  const NAME_ALSO = ALSO.name || {}, CAP_ALSO = ALSO.capital || {}, LANG_ALSO = ALSO.lang || {};
   const firstHint = t => `It starts with "${t[0]}".`;
   const nameAlts = c => [c.name, ...(NAME_ALSO[c.id] || [])];
   const capAlts = c => [c.capital, ...(CAP_ALSO[c.id] || [])];
@@ -42,6 +41,9 @@
   /* ---------- Quiz questions ---------- */
   const others = (c, f, n = 3, ok = () => true) => { const used = new Set([f(c)]), out = []; for (const o of shuffle(COUNTRIES)) { if (o === c || !ok(o)) continue; const v = f(o); if (!used.has(v)) { used.add(v); out.push(v); if (out.length === n) break; } } return out; };
   const langCount = {}; COUNTRIES.forEach(c => c.langs.forEach(l => { langCount[l] = (langCount[l] || 0) + 1; }));
+  /* when too few other countries have a different language (all of Oceania speaks English, say), fill the choices from a general list of well-known languages */
+  const MORE_LANGS = ['Spanish', 'French', 'German', 'Arabic', 'Hindi', 'Mandarin Chinese', 'Portuguese', 'Russian', 'Japanese', 'Swahili', 'Turkish', 'Italian', 'Korean', 'Dutch', 'Greek', 'Polish', 'Thai', 'Vietnamese'];
+  const padLangs = (w, mine) => { const out = w.slice(); for (const l of shuffle(MORE_LANGS)) { if (out.length >= 3) break; if (!mine.has(l) && !out.includes(l)) out.push(l); } return out; };
   const Q = {
     capitals: (c, i) => (i % 2 && !giveaway(c))
       ? { q: `${c.capital} is the capital of which country?`, a: c.name, wrong: others(c, o => o.name), why: `${c.capital} is the capital of ${c.name}.` }
@@ -50,7 +52,7 @@
     languages: (c, i) => {
       const mine = new Set(c.langs);
       if (i % 2 && c.langs.length === 1 && langCount[c.langs[0]] === 1) return { q: `In which country is ${c.langs[0]} the main language?`, a: c.name, wrong: others(c, o => o.name, 3, o => !o.langs.some(l => mine.has(l))), why: `${c.name} speaks ${lang(c)}.` };
-      return { q: `What is the main language of ${c.name}?`, a: lang(c), wrong: others(c, lang, 3, o => !o.langs.some(l => mine.has(l))), why: `The main ${c.langs.length > 1 ? 'languages of ' + c.name + ' are ' : 'language of ' + c.name + ' is '}${lang(c)}.` };
+      return { q: `What is the main language of ${c.name}?`, a: lang(c), wrong: padLangs(others(c, lang, 3, o => !o.langs.some(l => mine.has(l))), mine), why: `The main ${c.langs.length > 1 ? 'languages of ' + c.name + ' are ' : 'language of ' + c.name + ' is '}${lang(c)}.` };
     }
   };
   const quizSet = (topic, n) => shuffle(COUNTRIES).slice(0, n).map((c, i) => { const t = topic === 'mixed' ? pick(Object.keys(Q)) : topic; return Q[t](c, i + (Math.random() < 0.5 ? 1 : 0)); });

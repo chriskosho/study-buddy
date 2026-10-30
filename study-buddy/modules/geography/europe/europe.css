@@ -44,7 +44,7 @@ html.sb-dark{--map-edge:#e9e4d6;--map-sea-edge:#3b6074;--map-ctx:#33423f;--map-c
 .mapgrid.study{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
 .mapgrid>*{min-width:0}
 .mapbox{background:var(--sea);border-radius:22px;border:2px solid var(--map-sea-edge);padding:8px;position:relative}
-.mapbox svg{display:block;width:100%;height:auto;max-height:calc(var(--vh, 100vh) - var(--chrome) - 345px);touch-action:manipulation}
+.mapbox svg{display:block;width:100%;height:auto;max-height:calc(var(--vh, 100vh) - var(--chrome) - 380px);touch-action:manipulation}
 .mapbox svg.zoomed{touch-action:none;cursor:grab}
 .ctx{fill:var(--map-ctx);stroke:var(--map-ctx-edge);stroke-width:1}
 .cpath{cursor:pointer;stroke:var(--map-edge);stroke-width:1.1;stroke-linejoin:round}
@@ -95,3 +95,5 @@ html.sb-dark{--map-edge:#e9e4d6;--map-sea-edge:#3b6074;--map-ctx:#33423f;--map-c
 .lbl-open{stroke-width:3.6px}
 .srow .st{cursor:pointer;border-radius:8px}
 .srow .st:focus-visible{outline:2px solid var(--navy-ink);outline-offset:2px}
+/* a long list of names (50+ countries) scrolls inside its own box instead of making the page scroll */
+@media (min-width:761px){#tab-drag .eu-tray{max-height:calc(var(--vh, 100vh) - var(--chrome) - 490px);overflow-y:auto}}

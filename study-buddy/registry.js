@@ -102,6 +102,82 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'africa',
+      subject: 'geography',
+      title: 'Africa',
+      blurb: 'The countries of Africa: capitals, flags, main languages, and where each one is on the map.',
+      tags: [],
+      path: 'modules/geography/africa/index.html',
+      storage: ['africa'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Every country with its flag, capital, and main language. Search by name.' },
+        { id: 'study', name: 'Study map', kind: 'study', difficulty: 'easy', blurb: 'Every country with its name on the map. Tap one to hear it.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Map shapes, capitals, flags, languages, and every quiz question. Practice only.' },
+        { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a name, then tap the country. Mastered at 8 of 10 on the first try.' },
+        { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 20, blurb: '60 seconds to find as many countries as you can. Mastered at 20 found.' },
+        { id: 'drag', name: 'Drag names', difficulty: 'medium', masterAt: 49, blurb: 'Drag each country name onto the map. Mastered with 5 misses or fewer.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: 'Multiple choice on capitals, flags, or languages. Mastered at 80% on the Full quiz.' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type capitals, country names, or languages. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' }
+      ]
+    },
+    {
+      id: 'asia',
+      subject: 'geography',
+      title: 'Asia',
+      blurb: 'The countries of Asia: capitals, flags, main languages, and where each one is on the map.',
+      tags: [],
+      path: 'modules/geography/asia/index.html',
+      storage: ['asia'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Every country with its flag, capital, and main language. Search by name.' },
+        { id: 'study', name: 'Study map', kind: 'study', difficulty: 'easy', blurb: 'Every country with its name on the map. Tap one to hear it.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Map shapes, capitals, flags, languages, and every quiz question. Practice only.' },
+        { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a name, then tap the country. Mastered at 8 of 10 on the first try.' },
+        { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 20, blurb: '60 seconds to find as many countries as you can. Mastered at 20 found.' },
+        { id: 'drag', name: 'Drag names', difficulty: 'medium', masterAt: 44, blurb: 'Drag each country name onto the map. Mastered with 5 misses or fewer.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: 'Multiple choice on capitals, flags, or languages. Mastered at 80% on the Full quiz.' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type capitals, country names, or languages. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' }
+      ]
+    },
+    {
+      id: 'north-america',
+      subject: 'geography',
+      title: 'North America',
+      blurb: 'The countries of North America, Central America, and the Caribbean: capitals, flags, main languages, and where each one is on the map.',
+      tags: [],
+      path: 'modules/geography/north-america/index.html',
+      storage: ['north-america'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Every country with its flag, capital, and main language. Search by name.' },
+        { id: 'study', name: 'Study map', kind: 'study', difficulty: 'easy', blurb: 'Every country with its name on the map. Tap one to hear it.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Map shapes, capitals, flags, languages, and every quiz question. Practice only.' },
+        { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a name, then tap the country. Mastered at 8 of 10 on the first try.' },
+        { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 20, blurb: '60 seconds to find as many countries as you can. Mastered at 20 found.' },
+        { id: 'drag', name: 'Drag names', difficulty: 'medium', masterAt: 18, blurb: 'Drag each country name onto the map. Mastered with 5 misses or fewer.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: 'Multiple choice on capitals, flags, or languages. Mastered at 80% on the Full quiz.' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type capitals, country names, or languages. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' }
+      ]
+    },
+    {
+      id: 'oceania',
+      subject: 'geography',
+      title: 'Oceania',
+      blurb: 'The countries of Oceania, from Australia and New Zealand to the Pacific islands: capitals, flags, main languages, and where each one is on the map.',
+      tags: [],
+      path: 'modules/geography/oceania/index.html',
+      storage: ['oceania'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Every country with its flag, capital, and main language. Search by name.' },
+        { id: 'study', name: 'Study map', kind: 'study', difficulty: 'easy', blurb: 'Every country with its name on the map. Tap one to hear it.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Map shapes, capitals, flags, languages, and every quiz question. Practice only.' },
+        { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a name, then tap the country. Mastered at 8 of 10 on the first try.' },
+        { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 20, blurb: '60 seconds to find as many countries as you can. Mastered at 20 found.' },
+        { id: 'drag', name: 'Drag names', difficulty: 'medium', masterAt: 9, blurb: 'Drag each country name onto the map. Mastered with 5 misses or fewer.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: 'Multiple choice on capitals, flags, or languages. Mastered at 80% on the Full quiz.' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type capitals, country names, or languages. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' }
+      ]
+    },
+    {
       id: 'parts-of-speech',
       subject: 'english',
       title: 'Parts of Speech',

@@ -52,6 +52,13 @@ const COUNTRIES = [
   { id: 'va', name: 'Vatican City', capital: 'Vatican City', langs: ['Italian', 'Latin'], note: 'The smallest country in the world, inside the city of Rome. Its capital has the same name.' }
 ];
 
+/* other spellings accepted when typing: name and capital by country id, language by language name */
+const ALSO = {
+  name: { cz: ['Czech Republic', 'Czech'], gb: ['UK', 'Britain', 'Great Britain', 'The United Kingdom', 'England'], ba: ['Bosnia', 'Bosnia & Herzegovina', 'Bosnia Herzegovina'], mk: ['Macedonia'], nl: ['The Netherlands', 'Holland'], va: ['Vatican', 'The Vatican'], ie: ['Republic of Ireland'], ch: ['Swiss Confederation'], lu: ['Luxemburg'] },
+  capital: { ua: ['Kiev'], md: ['Chișinău', 'Kishinev'], is: ['Reykjavík'], xk: ['Prishtina', 'Priština'], ch: ['Berne'], lu: ['Luxembourg'], ad: ['Andorra'], by: ['Mensk'], at: ['Wien'], pt: ['Lisboa'], ro: ['București'], gr: ['Athina'], hu: ['Budapesht'], fi: ['Helsingfors'] },
+  lang: { Slovene: ['Slovenian'], Macedonian: ['Macedonian'], Montenegrin: ['Montenegrin', 'Serbian'], Latin: ['Latin'], Luxembourgish: ['Letzeburgesch', 'Luxemburgish'] }
+};
+
 /* ---- flags, drawn from simple pieces ---- */
 const FLAGS = (() => {
   const svg = (name, body, w = 300, h = 200) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="Flag of ${name}">${body}</svg>`;

@@ -23,8 +23,8 @@ window.SpeechSynthesisUtterance=function(t){this.text=t};
 
 
 MODS = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'science/newton-laws', 'science/planets', 'science/periodic-table',
-        'english/black-beauty', 'english/black-beauty-guide', 'english/phonograms', 'geography/us-states', 'geography/europe']
-COVERED = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'science/newton-laws', 'science/planets', 'science/periodic-table', 'english/black-beauty', 'english/black-beauty-guide', 'english/phonograms', 'geography/us-states', 'geography/europe']
+        'english/black-beauty', 'english/black-beauty-guide', 'english/phonograms', 'geography/us-states', 'geography/europe', 'geography/africa', 'geography/asia', 'geography/north-america', 'geography/oceania']
+COVERED = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'science/newton-laws', 'science/planets', 'science/periodic-table', 'english/black-beauty', 'english/black-beauty-guide', 'english/phonograms', 'geography/us-states', 'geography/europe', 'geography/africa', 'geography/asia', 'geography/north-america', 'geography/oceania']
 REPORT = '--report' in sys.argv
 GATHER = """async (kind) => {
   const strip = h => { const d = document.createElement('div'); d.innerHTML = String(h || '').replace(/<\/(div|p|span|b)>/g, '$& '); d.querySelectorAll('svg').forEach(s => { s.replaceWith(' ' + (s.getAttribute('aria-label') || '') + ' ' + (s.textContent || '') + ' '); }); return d.textContent.replace(/\s+/g, ' '); };
@@ -34,7 +34,7 @@ GATHER = """async (kind) => {
   SBT.quiz = (c, o) => { quizOpt = o; };
   SBT.flashcards = (c, o) => { cardsOpt = o; };
   const tab = id => { document.querySelector('nav.tabs button[data-tab="' + id + '"]').click(); };
-  const topics = () => [...document.querySelectorAll('#tab-quiz .us-topics button, #tab-quiz .eu-topics button')];
+  const topics = () => [...document.querySelectorAll('#tab-quiz .us-topics button, #tab-quiz .eu-topics button, #tab-quiz .af-topics button, #tab-quiz .as-topics button, #tab-quiz .na-topics button, #tab-quiz .oc-topics button')];
   const qs = [], text = [];
   tab('quiz');
   if (kind) { for (const b of topics()) { if (b.dataset.t === 'mixed') continue; quizOpt = null; b.click(); if (quizOpt && quizOpt.full) quizOpt.full().forEach(q => qs.push(q)); } }
@@ -60,7 +60,7 @@ async def main():
         pg.on('pageerror', lambda e: errors.append(str(e)))
         for m in MODS:
             await pg.goto(base + f'modules/{m}/index.html'); await pg.wait_for_selector('nav.tabs')
-            r = await pg.evaluate(GATHER, 'us' if m.endswith('us-states') else 'eu' if m.endswith('europe') else '')
+            r = await pg.evaluate(GATHER, 'us' if m.endswith('us-states') else 'eu' if m.split('/')[1] in ('europe', 'africa', 'asia', 'north-america', 'oceania') else '')
             if REPORT or m in COVERED:
                 print(f"{m}: {r['n']} Full questions, {r['cards']} card builds, {len(r['miss'])} without a flashcard")
                 for x in r["miss"][:80]: print('    ' + x)
