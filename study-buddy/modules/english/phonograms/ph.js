@@ -137,7 +137,7 @@
 
   /* ===================== Spell it (listen, then type) ===================== */
   /* words that sound like another word (no and know, wait and weight) are left out: hearing them, either spelling would be right */
-  const SOUNDALIKE = new Set(['no', 'know', 'to', 'ate', 'blue', 'see', 'where', 'soul', 'for', 'hoe', 'wait', 'weight', 'great', 'pie', 'new', 'veil', 'sign', 'through', 'bough', 'bread', 'boy']);
+  const SOUNDALIKE = new Set(['no', 'know', 'to', 'ate', 'blue', 'see', 'where', 'soul', 'for', 'hoe', 'wait', 'weight', 'great', 'pie', 'new', 'veil', 'sign', 'through', 'bough', 'bread', 'boy', 'not']);
   const WORDS = [...new Set(PH.flatMap(p => p.ex))].filter(w => !SOUNDALIKE.has(w));
   const spell = {
     init(ctx) {
