@@ -75,5 +75,5 @@
   /* ===================== Explain it ===================== */
   const explain = { init(ctx) { SBT.explain(ctx, { items: EXPLAIN, rounds: 5, keepFirst: true }); } };
 
-  SBM.start({ module: 'newton-laws', defaults: {}, tools: { guide, cards, quiz, type, sort, explain } });
+  SBM.start({ module: 'newton-laws', defaults: {}, tools: { guide, lab: labTool, cards, quiz, type, sort, explain } });
 })();

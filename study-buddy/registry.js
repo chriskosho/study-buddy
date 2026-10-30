@@ -166,6 +166,7 @@ window.SB_REGISTRY = {
       storage: ['newton-laws'],
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The lesson in your book\'s words, Table 5.1, and facts from the review and Quiz 2.' },
+        { id: 'lab', name: 'Experiments', kind: 'study', difficulty: 'easy', blurb: 'Kick a ball, push things, launch a rocket, and see the three laws happen. Practice only.' },
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary, the three laws, Table 5.1, and every quiz question. Practice only.' },
         { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the review and Quiz 2. Mastered at 80% on the Full quiz.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Which law it is, scale, proportion, and quantity, or patterns of motion. Mastered at 80%.' },
