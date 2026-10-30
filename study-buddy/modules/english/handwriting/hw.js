@@ -255,8 +255,9 @@
         <div class="hw-pad"></div>${penbarHTML(true, true)}<p class="msg hw-msg"></p>`;
       const host = $('.hw-pad', P), msg = $('.hw-msg', P), next = $('[data-a="next"]', P), check = $('[data-a="check"]', P);
       const list = () => set === 'upper' ? UPPER : LOWER;
-      const passedCount = () => Object.keys(st.passed || {}).length;
-      const strip = () => { $('.hw-strip', P).innerHTML = list().map((l, k) => `<button data-i="${k}" class="${(st.passed || {})[l] ? 'passed' : ''}" aria-pressed="${k === i}"${(st.passed || {})[l] ? ` aria-label="${l}, finished"` : ''}>${l}</button>`).join(''); $$('.hw-strip button', P).forEach(b => b.onclick = () => { i = +b.dataset.i; show(); }); };
+      const pkey = l => (st.style === 'print' ? 'print:' : '') + l;   // print and cursive are tracked separately (older saved progress is cursive)
+      const passedCount = () => Object.keys(st.passed || {}).filter(k => (st.style === 'print') === k.startsWith('print:')).length;
+      const strip = () => { $('.hw-strip', P).innerHTML = list().map((l, k) => `<button data-i="${k}" class="${(st.passed || {})[pkey(l)] ? 'passed' : ''}" aria-pressed="${k === i}"${(st.passed || {})[pkey(l)] ? ` aria-label="${l}, finished"` : ''}>${l}</button>`).join(''); $$('.hw-strip button', P).forEach(b => b.onclick = () => { i = +b.dataset.i; show(); }); };
       let passedNow = false;
       const pad = setupTool(ctx, host, { onStyle: () => show(), maxFont: 300, minFont: 120 });
       function show() {
@@ -279,7 +280,7 @@
         const l = list()[i];
         if (r.pass) {
           if (!passedNow) { ctx.credit(); ctx.sfx.good(); } passedNow = true; check.hidden = true;     // one credit per letter: pressing Check again gives nothing more
-          if (!(st.passed || {})[l]) { st.passed = Object.assign({}, st.passed, { [l]: true }); ctx.save(); ctx.result(passedCount(), 52); }
+          if (!(st.passed || {})[pkey(l)]) { st.passed = Object.assign({}, st.passed, { [pkey(l)]: true }); ctx.save(); ctx.result(passedCount(), 52); }
         } else if (!checked) { ctx.slip(); ctx.sfx.bad(); }
         checked = true;
         msg.innerHTML = `${starsHTML(r.stars, 3).replace('class="stars"', 'class="stars small"')}<span>${esc(feedback(r))} ${r.pass ? '' : 'Clear it and try again.'}</span>`; msg.className = 'msg hw-msg ' + (r.pass ? 'good' : 'bad');

@@ -101,6 +101,9 @@ async def main():
         # ---- sort: bigger, smaller or the same ----
         await pg.goto(MOD + '?tool=scale'); await pg.wait_for_selector('#tab-scale .chip')
         n = await pg.locator('#tab-scale .chip').count(); check(n >= 7, f'scale: {n} items to sort')
+        first = sorted(await pg.locator('#tab-scale .chip').all_inner_texts())
+        await pg.click('#tab-scale [data-a="restart"]'); await pg.wait_for_selector('#tab-scale .chip')
+        check(sorted(await pg.locator('#tab-scale .chip').all_inner_texts()) != first, 'scale: Start over brings a fresh set of items, not the same eight')
         done = 0
         while await pg.locator('#tab-scale .chip').count():
             await pg.evaluate("getSelection().removeAllRanges()")

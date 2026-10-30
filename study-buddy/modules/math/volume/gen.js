@@ -117,7 +117,7 @@
     return { q: `A bottle holds ${mL} milliliters of juice. How many liters is that? (simplest form)`, say: `A bottle holds ${mL} milliliters. How many liters is that?`, ...ans(p), chk: `${mL}/1000`, hint: '1 liter = 1,000 milliliters. Going to a bigger unit, divide.', why: `1 liter = 1,000 milliliters, so ${mL} ÷ 1,000 = ${mL}/1000.` + finish(mL, 1000).text, dims: { kind: 'ml2l', mL } };
   }
 
-  function reviewQ() { return pick([compoundQ, compoundQ, compareQ, capacityQ, wordsQ, formulaQ])(); }
+  function reviewQ() { return pick([compoundQ, compoundQ, compareQ, capacityQ, wordsQ, formulaQ, cubesQ, stacksQ])(); }
 
   const VOLGEN = { cubesQ, stacksQ, formulaQ, wordsQ, compareQ, compoundQ, capacityQ, reviewQ, prism };
   if (typeof module !== 'undefined') module.exports = VOLGEN; else root.VOLGEN = VOLGEN;

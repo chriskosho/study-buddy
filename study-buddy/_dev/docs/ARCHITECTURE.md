@@ -289,3 +289,7 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - `ctx.result(score, max, mode)` passes the mode to `SB.result`, which keeps a Full result as its own best (`fullBest`, `fullMax` in the tool record, merged by `mergeProfile`).
 - Mastery: a registry tool with `full: true` is mastered by its Full best (`masterPct`, default 80%). Random sample rounds still count for Best and attempts but not for mastery. Tools with `masterAt` are unchanged.
 - Modules with a Full quiz so far: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table, Black Beauty (story and guide), Phonograms, US States (each topic, not Mixed). Test: `quiz_full_test.py`.
+
+## 30. Small audit fixes (October 2026)
+- `SBT.sort` sets can give `make()` instead of `items`; it is called each time the sort starts, so a replay gets fresh items (used by the fractions-multiply scale sort).
+- Handwriting Letters keeps `passed` per style: cursive keys are the plain letter (as before), print keys start with `print:`. The tool's score is the count for the style on screen.
