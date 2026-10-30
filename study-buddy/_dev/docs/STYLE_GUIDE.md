@@ -87,6 +87,8 @@ Meaning of color is never the only signal: right/wrong also use text, and select
 7. *Find it* and the flashcards: the places that took more than one try are named in "Practice these"; flashcard map shapes ring a tiny place so it can be seen.
 8. *Dots for the tiniest.* Places too small to draw (microstates) are drawn as small circles at their real position, and are tappable and keyboard focusable like any other place.
 9. South America writes full names everywhere, so it only needs items 3, 4, 5, and the list buttons; if a map ever gets codes, it must meet items 1 and 2.
+10. *World exception:* on the whole-world view the codes are hidden (they would be unreadable at that size); names open from tapping, the list, or zoom. Continent views follow items 1 to 8.
+11. *Projection and water:* the World and Oceans maps use the equirectangular projection. On the Oceans map, water shapes are drawn under the land, and land borders are not drawn (only coasts).
 
 **Drag chips.** White with navy outline and hard shadow, grab cursor. While dragging, a sun-yellow ghost chip tilts -3° above the pointer. Wrong drops shake the chip; right drops remove it.
 

@@ -60,19 +60,8 @@
         : mine ? 'Version ' + mine + ' (offline, so the newest version could not be checked).' : live ? 'Version ' + live + '.' : '';
     })();
     app.querySelector('#refreshLatest').onclick = async function () {
-      const btn = this, hint = app.querySelector('#refreshHint'); btn.disabled = true; hint.textContent = 'Getting the newest files...';
-      /* Get the new file list first. Only when that works are the offline copies cleared, so pressing this with no internet
-         never leaves the device without a working copy. */
-      let sw = null;
-      try { const res = await fetch('sw.js', { cache: 'reload' }); if (res.ok) sw = await res.text(); } catch (e) {}
-      if (!sw) { btn.disabled = false; hint.textContent = 'No internet right now, so nothing was changed. Study Buddy still works offline. Try again when you are online.'; return; }
-      try {
-        const files = [...sw.matchAll(/"([^"\s]+\.(?:js|css|html|json|webmanifest))"/g)].map(m => m[1]);
-        await Promise.all(files.map(f => fetch(f, { cache: 'reload' }).catch(() => {})));                    // refresh the browser's own copies
-        if ('serviceWorker' in navigator) await Promise.all((await navigator.serviceWorker.getRegistrations()).map(r => r.unregister()));
-        if (window.caches) await Promise.all((await caches.keys()).filter(k => k.startsWith('study-buddy-')).map(k => caches.delete(k)));
-      } catch (e) {}
-      hint.textContent = 'Done. Reloading...'; setTimeout(() => location.reload(), 300);
+      const btn = this, hint = app.querySelector('#refreshHint'); btn.disabled = true;
+      if (!await SB.refreshLatest(t => { hint.textContent = t; })) btn.disabled = false;
     };
     const names = SB.profiles().map(p => p.name).join(', ');
     app.querySelector('#resetProg').onclick = () => SB.requirePin('Enter the admin PIN to reset all progress.', () => { SB.resetAllProgress(); SB.toast('All progress was reset'); },
