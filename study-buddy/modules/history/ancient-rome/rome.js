@@ -67,7 +67,7 @@
     why: g.name + ': ' + g.attr + '. (Check your class chart.)' }));
   const quiz = {
     init(ctx) {
-      SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', build: () => [...shuffle(QUIZ).slice(0, 8), ...shuffle(godQuestions()).slice(0, 2)] });
+      SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', full: () => [...QUIZ, ...godQuestions()], build: () => [...shuffle(QUIZ).slice(0, 8), ...shuffle(godQuestions()).slice(0, 2)] });
     }
   };
 

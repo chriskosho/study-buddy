@@ -184,6 +184,7 @@
       t.attempts = (Number(t.attempts) || 0) + (Number(r.attempts) || 0); t.visits = (Number(t.visits) || 0) + (Number(r.visits) || 0); t.last = Math.max(Number(t.last) || 0, Number(r.last) || 0);
       const better = t.best == null || (r.best != null && (r.max && t.max ? r.best / r.max > t.best / t.max : r.best > t.best));
       if (better) { t.best = r.best; t.max = r.max; }
+      if (r.fullBest != null && r.fullMax && (t.fullBest == null || r.fullBest / r.fullMax > t.fullBest / t.fullMax)) { t.fullBest = r.fullBest; t.fullMax = r.fullMax; }
     });
     b.bestStreak = Math.max(b.bestStreak, a.bestStreak); b.bookmarks = [...new Set(b.bookmarks.concat(a.bookmarks))].slice(0, 300);
     if (a.daily.d === b.daily.d) { b.daily.n += a.daily.n; b.daily.done = b.daily.done || a.daily.done || b.daily.n >= DAILY_GOAL; }
@@ -238,9 +239,14 @@
     const id = activeId(); if (!id) return; const d = child(id), r = rec(d, moduleId, toolId);
     r.visits++; r.last = Date.now(); d.last = { module: moduleId, tool: toolId, at: r.last }; saveChild(id, d);
   }
-  function result(moduleId, toolId, score, max) {
+  function result(moduleId, toolId, score, max, mode) {
     const id = activeId(); if (!id) return; const d = child(id), r = rec(d, moduleId, toolId);
     r.attempts++; r.lastScore = score; r.last = Date.now();
+    /* a Full quiz also keeps its own best (that is the one mastery uses for tools with a Full version) */
+    if (mode === 'full' && max) {
+      const fb = r.fullBest != null && r.fullMax ? r.fullBest / r.fullMax : -1;
+      if (score / max > fb || (score / max === fb && score > r.fullBest)) { r.fullBest = score; r.fullMax = max; }
+    }
     /* rounds can have different sizes (sets of 6, 9 or 18), so the best is the best share, not the biggest number */
     const better = r.best == null || (max && r.max ? (score / max > r.best / r.max || (score / max === r.best / r.max && score > r.best)) : score > r.best);
     if (better) { r.best = score; r.max = max == null ? null : max; }
@@ -253,6 +259,7 @@
   function isMastered(tool, r) {
     if (!tool || tool.kind === 'study' || !r || r.best == null) return false;
     if (tool.masterAt != null) return r.best >= tool.masterAt;
+    if (tool.full) return r.fullBest != null && !!r.fullMax && r.fullBest / r.fullMax >= (tool.masterPct || 0.8);   // the Full quiz decides
     if (!r.max) return false;
     return r.best / r.max >= (tool.masterPct || 0.8);
   }

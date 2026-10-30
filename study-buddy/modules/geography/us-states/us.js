@@ -173,7 +173,7 @@
   const quiz = {
     init(ctx) {
       withTopics(ctx, 'quiz', [{ id: 'mixed', label: 'Mixed' }, ...TOPICS], (c, t) => SBT.quiz(c, {
-        title: 'Quiz', lead: 'Pick the best answer. You can skip one you do not know.', rounds: 10, skip: true, build: () => quizSet(t, 10)
+        title: 'Quiz', lead: 'Pick the best answer. You can skip one you do not know.', rounds: 10, skip: true, full: t === 'mixed' ? null : () => STATES.map((s, i) => Q[t](s, i + 1)), build: () => quizSet(t, 10)
       }));
     }
   };

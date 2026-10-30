@@ -65,18 +65,18 @@
   };
 
   /* ===================== Quiz (multiple choice) ===================== */
-  function whichPhonogram() {
-    const p = pick(MULTI, 1)[0], w = p.ex[0];
+  function whichPhonogram(p = pick(MULTI, 1)[0]) {
+    const w = p.ex[0];
     const wrong = pick(MULTI.filter(o => o.p !== p.p && !w.includes(o.p) && o.s !== p.s), 3).map(o => o.p);
     return { q: `Which phonogram spells ${p.s} in “${w}”?`, a: p.p, wrong, why: `[${p.p}] says ${p.s}${p.note ? ', ' + p.note : ''}.` };
   }
-  function whichSounds() {
-    const p = pick(CORE, 1)[0], w = p.ex[0];
+  function whichSounds(p = pick(CORE, 1)[0]) {
+    const w = p.ex[0];
     const wrong = pick([...new Set(CORE.filter(o => o.s !== p.s).map(o => o.s))], 3);
     return { q: `What sounds does [${p.p}] make, as in “${w}”?`, a: p.s, wrong, why: `[${p.p}] says ${p.s}.` };
   }
-  function endOfWord() {
-    const e = pick(ENDPAIRS, 1)[0], toks = e.sound.split(' ');
+  function endOfWord(e = pick(ENDPAIRS, 1)[0]) {
+    const toks = e.sound.split(' ');
     const other = pick(MULTI.filter(o => !ENDPAIRS.some(x => x.use === o.p || x.not === o.p) && !o.s.split(' ').some(t => toks.includes(t))), 2).map(o => o.p);   // never another real spelling of that sound
     return { q: `Which spelling of ${e.sound} do we use at the END of an English word, like “${e.word}”?`, a: e.use, wrong: [e.not, ...other], why: `[${e.use}] is used at the end of English words. [${e.not}] is not, because English words do not end with ${e.not.slice(-1).toUpperCase()}.` };
   }
@@ -98,6 +98,7 @@
     init(ctx) {
       SBT.quiz(ctx, {
         rounds: 10, lead: 'Pick the best answer. You can skip one you do not know.', skip: true,
+        full: () => [...MULTI.map(p => whichPhonogram(p)), ...CORE.map(p => whichSounds(p)), ...ENDPAIRS.map(e => endOfWord(e)), ...RULEQ],
         build: () => hook('quiz', [...SBT.many(whichPhonogram, 3), ...SBT.many(whichSounds, 3), ...SBT.many(endOfWord, 3), ...pick(RULEQ, 6)])   // no question twice in a round
       });
     }

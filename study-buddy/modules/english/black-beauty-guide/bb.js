@@ -57,7 +57,7 @@
   };
 
   /* ===================== Quiz ===================== */
-  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer. You can skip one you do not know.', skip: true, build: () => pool(ctx.state, QUIZ) }); } };
+  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer. You can skip one you do not know.', skip: true, full: () => QUIZ, build: () => pool(ctx.state, QUIZ) }); } };
 
   /* ===================== Type the answer ===================== */
   const answer = {

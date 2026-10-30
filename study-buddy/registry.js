@@ -76,7 +76,7 @@ window.SB_REGISTRY = {
         { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a name, then tap the state. Mastered at 8 of 10 on the first try.' },
         { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 20, blurb: '60 seconds to find as many states as you can. Mastered at 20 found.' },
         { id: 'drag', name: 'Drag names', difficulty: 'medium', masterAt: 45, blurb: 'Drag each of the 50 names onto its state. Mastered with 5 misses or fewer.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: 'Multiple choice on capitals, flags, mottos, birds, flowers, cities, or when states joined. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: 'Multiple choice on capitals, flags, mottos, birds, flowers, cities, or when states joined. Mastered at 80% on the Full quiz.' },
         { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type capitals, state names, birds, flowers, or years. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' },
         { id: 'order', name: 'Put in order', difficulty: 'insane', blurb: 'Put states in the order they joined the United States. Mastered at 80% in place on the first check.' }
       ]
@@ -109,7 +109,7 @@ window.SB_REGISTRY = {
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Everything from the class study guide, section by section.' },
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Terms from the study guide, plus the gods and goddesses. Practice only.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions. Mastered at 80% on the Full quiz.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort facts into governments, parts of the Republic, or social classes. Mastered at 80%.' },
         { id: 'blanks', name: 'Fill it in', difficulty: 'hard', blurb: 'Type the missing word or date. Mastered at 8 of 10.' },
         { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences, like the test. Mastered at 4 of 5.' }
@@ -130,7 +130,7 @@ window.SB_REGISTRY = {
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Terms from the class notes. Practice only.' },
         { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a place, then tap it on the map. Mastered at 8 of 10 on the first try.' },
         { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 10, blurb: '60 seconds to find as many places as you can. Mastered at 10 found.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions from the class notes. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the class notes. Mastered at 80% on the Full quiz.' },
         { id: 'type', name: 'Type the answer', difficulty: 'hard', blurb: 'Type the missing word from a sentence in the notes. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' },
         { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'Put the events of the wars in order. Mastered at 80% in place on the first check.' },
         { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences, like the test. Mastered at 4 of 5.' }
@@ -147,7 +147,7 @@ window.SB_REGISTRY = {
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Your Unit 3 notes with drawings, the six kinds of weather, and facts from the practice test.' },
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary, or name the kind of weather from its picture. Practice only.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions, some with weather pictures. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions, some with weather pictures. Mastered at 80% on the Full quiz.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Clouds, the water cycle, weather tools, or hemispheres. Mastered at 80%.' },
         { id: 'label', name: 'Label the diagram', difficulty: 'medium', blurb: 'Pick the letter for each part of the earth and of the water cycle. Mastered at 80%.' },
         { id: 'graph', name: 'Read the graph', difficulty: 'medium', blurb: 'Read a line graph of temperatures. Mastered at 5 of 6.', masterAt: 5 },
@@ -298,7 +298,7 @@ window.SB_REGISTRY = {
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Name the planet from clues, or recall facts. Practice only.' },
         { id: 'order', name: 'Put in order', difficulty: 'easy', blurb: 'Order the planets from the Sun, or by size. Mastered at 7 of 8 in place.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Rocky, gas giant, or ice giant, and how many moons. Mastered at 80%.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions. Mastered at 80% on the Full quiz.' },
         { id: 'compare', name: 'Which is more?', difficulty: 'hard', blurb: 'Bigger, farther, hotter, longer year, or longer spin. Mastered at 8 of 10.' },
         { id: 'riddle', name: 'Which planet am I?', difficulty: 'insane', blurb: 'Guess the planet from a tricky first clue. Mastered at 7 of 8 on the first clue.', masterAt: 7 }
       ]
@@ -314,7 +314,7 @@ window.SB_REGISTRY = {
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A periodic table you can tap. Light up each family of elements.' },
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Symbols and names, from the first 20 to the common ones. Practice only.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: 'Symbols, atomic numbers, families, and how the table works. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: 'Symbols, atomic numbers, families, and how the table works. Mastered at 80% on the Full quiz.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Metal, nonmetal, or metalloid, and solid, liquid, or gas. Mastered at 80%.' },
         { id: 'find', name: 'Find it', difficulty: 'hard', masterAt: 15, blurb: '60 seconds to find elements on the table. Mastered at 15 found.' },
         { id: 'symbols', name: 'Type the symbol', difficulty: 'insane', blurb: 'Type the symbol from the name, including the tricky ones. Mastered at 8 of 10.' }
@@ -333,7 +333,7 @@ window.SB_REGISTRY = {
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The book, the characters, Beauty\'s homes, big ideas, and words to know.' },
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Characters, homes, and words to know. Practice only.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions about the story. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions about the story. Mastered at 80% on the Full quiz.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort characters by where they belong, horse or person, and good or bad for horses. Mastered at 80%.' },
         { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'Put the events of the story in order. Mastered at 80% in place on the first check.' },
         { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences. Mastered at 4 of 5.' }
@@ -350,7 +350,7 @@ window.SB_REGISTRY = {
       tools: [
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Every comprehension question and answer from the class guide, by part of the book.' },
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Question on the front, the guide\'s answer on the back. Practice only.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions from the guide. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the guide. Mastered at 80% on the Full quiz.' },
         { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'Put the events of the story in order. Mastered at 80% in place on the first check.' },
         { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type the answer to a guide question. Two tries, and a Skip button. Mastered at 8 of 10.' },
         { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences, checked against the guide\'s answers. Mastered at 4 of 5.' }
@@ -368,7 +368,7 @@ window.SB_REGISTRY = {
         { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'All 76 phonograms with their sounds, notes, and example words. Press the speaker to hear the words.' },
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Letters to sounds, sounds to letters, and the rules. Practice only.' },
         { id: 'hear', name: 'Hear it, tap it', difficulty: 'easy', masterAt: 8, blurb: 'Press the speaker, listen to the sounds, then tap the phonogram you heard. No reading or typing. Mastered at 8 of 10.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', blurb: '10 multiple-choice questions on sounds, spellings, and rules. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions on sounds, spellings, and rules. Mastered at 80% on the Full quiz.' },
         { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort phonograms by end-of-word use, sound, or spelling. Mastered at 80%.' },
         { id: 'answer', name: 'Type the phonogram', difficulty: 'hard', blurb: 'Type the missing phonogram from its sounds. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' },
         { id: 'spell', name: 'Spell it', difficulty: 'insane', blurb: 'Hear an example word and type it. Mastered at 8 of 10.' }
