@@ -36,7 +36,7 @@
   function toolStats(m, t, r) {
     if (t.kind === 'study') return r && r.visits ? 'Opened ' + plural(r.visits, 'time') + ', last ' + ago(r.last) : 'Not opened yet';
     if (!r || r.best == null) return r && r.visits ? 'Opened, no finished rounds yet' : 'Not tried yet';
-    return 'Best ' + r.best + (r.max ? '/' + r.max : '') + ' · ' + plural(r.attempts, 'round') + ' · last ' + ago(r.last);
+    return 'Best ' + r.best + (r.max ? '/' + r.max : '') + (r.fullBest != null ? ' · Full best ' + r.fullBest + '/' + r.fullMax : '') + ' · ' + plural(r.attempts, 'round') + ' · last ' + ago(r.last);
   }
   const toolURL = (m, t) => m.path + '?tool=' + encodeURIComponent(t.id);
 

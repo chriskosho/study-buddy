@@ -60,7 +60,7 @@
   };
 
   /* ===================== Quiz ===================== */
-  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', build: () => QUIZ }); } };
+  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', full: () => QUIZ, build: () => QUIZ }); } };
 
   /* ===================== Sort it ===================== */
   const sort = {

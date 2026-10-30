@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-29', title: 'Quiz: Random 10 or Full', items: [
+    'The Quiz in nine modules now has a switch: Random 10 (a short round) or Full (every question once).',
+    'Mastered now needs a good score on the Full quiz. Tools with a Full quiz show their Full best on the progress screen.',
+    'Math and the timed tools are unchanged.' ] },
   { date: '2026-10-29', title: 'New module: Weather', items: [
     'Weather is a new Science module for Unit 3, built from the notes and the practice test: the atmosphere, hemispheres, clouds, the water cycle, and the tools meteorologists use.',
     'The Study guide has a drawing for each lesson, the six kinds of weather from the flip-book, and a page of facts from the practice test.',

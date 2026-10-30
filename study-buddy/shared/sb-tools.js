@@ -237,20 +237,33 @@
 
   /* ---------------- Multiple-choice quiz ---------------- */
   function quiz(ctx, opt) {
-    const P = ctx.panel, n = opt.rounds || 10, Q = { qs: [], i: 0, score: 0, answered: false, missed: [] };
-    function start() { Q.qs = (opt.keepOrder ? opt.build() : shuffle(opt.build())).slice(0, n); Q.i = 0; Q.score = 0; Q.missed = []; show(); }
+    const P = ctx.panel, n = opt.rounds || 10, Q = { qs: [], i: 0, score: 0, answered: false, missed: [], mode: 'random' };
+    /* opt.full() returns every question; when it is given, the quiz has a Random sample / Full switch (Full counts for mastery) */
+    function start() {
+      Q.qs = Q.mode === 'full' && opt.full ? shuffle(opt.full()) : (opt.keepOrder ? opt.build() : shuffle(opt.build())).slice(0, n);
+      Q.i = 0; Q.score = 0; Q.missed = []; show();
+    }
+    function modeBar() {
+      if (!opt.full) return '';
+      const nf = opt.full().length;
+      return `<div class="seg qmodes" role="group" aria-label="Quiz version"><button type="button" data-m="random" aria-pressed="${Q.mode === 'random'}">Random ${n}</button><button type="button" data-m="full" aria-pressed="${Q.mode === 'full'}">Full (${nf})</button></div>`;
+    }
+    function wireModes() {
+      $$('.qmodes button', P).forEach(b => b.onclick = () => { if (Q.mode === b.dataset.m) return; Q.mode = b.dataset.m; start(); });
+    }
     function show() {
       if (Q.i >= Q.qs.length) {
-        ctx.result(Q.score, Q.qs.length); ctx.sfx.win();
-        P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><div class="result">${starsHTML(Q.score, Q.qs.length)}<p class="prompt">${Q.score} out of ${Q.qs.length}</p><p class="lead">${Q.score / Q.qs.length >= 0.9 ? 'Amazing! You really know this.' : Q.score / Q.qs.length >= 0.7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'}</p>${reviewHTML(ctx, Q.missed)}<button class="btn" data-a="again">Play again</button></div>`;
-        $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
+        ctx.result(Q.score, Q.qs.length, Q.mode); ctx.sfx.win();
+        P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2>${modeBar()}<div class="result">${starsHTML(Q.score, Q.qs.length)}<p class="prompt">${Q.score} out of ${Q.qs.length}</p><p class="lead">${Q.score / Q.qs.length >= 0.9 ? 'Amazing! You really know this.' : Q.score / Q.qs.length >= 0.7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'}</p>${reviewHTML(ctx, Q.missed)}<button class="btn" data-a="again">Play again</button></div>`;
+        wireModes(); $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
       const q = Q.qs[Q.i], opts = shuffle([q.a, ...shuffle(q.wrong).slice(0, 3)]); Q.answered = false;
-      P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2><p class="lead">${esc(opt.lead || 'Pick the best answer.')}</p>
+      P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2>${modeBar()}<p class="lead">${esc(opt.lead || 'Pick the best answer.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span class="hint">Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${Q.score}</span></div>
         <div class="qwrap"><div class="row qrow"><p class="qtext">${q.qh || esc(q.q)}</p>${ctx.sayButton(q.say || q.q, q.audio ? 'Hear the sound' : 'Hear the question', q.audio || '')}</div>${q.html || ''}
         <div class="opts">${opts.map((o, k) => `<button class="opt" data-v="${esc(o)}"><span class="optkey" aria-hidden="true">${k + 1}</span>${esc(o)}</button>`).join('')}</div>
         <p class="explain" aria-live="polite"></p><div class="row center">${opt.skip ? '<button class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button class="btn" data-a="next" hidden>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
+      wireModes();
       addPad(ctx, () => q.qh ? plainText(q.qh) : q.q);
       { const f = $('.opt', P); if (f && P.offsetParent && P.contains(document.activeElement) === false && (document.activeElement === document.body || !document.activeElement || P.dataset.sbFocus)) f.focus({ preventScroll: true }); P.dataset.sbFocus = '1'; }   // keyboard users stay in the quiz
       $$('.opt', P).forEach(b => b.onclick = () => {

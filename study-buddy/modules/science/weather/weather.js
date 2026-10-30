@@ -47,7 +47,7 @@
 
   /* ===================== Quiz ===================== */
   const kindQuestions = () => KINDS.map(k => ({ q: 'What kind of weather is this?', a: k, wrong: shuffle(KINDS.filter(x => x !== k)).slice(0, 3), html: `<div class="qpic">${kindSVG(k)}</div>` }));
-  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', build: () => [...shuffle(QUIZ).slice(0, 8), ...shuffle(kindQuestions()).slice(0, 2)] }); } };
+  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', full: () => [...QUIZ, ...kindQuestions()], build: () => [...shuffle(QUIZ).slice(0, 8), ...shuffle(kindQuestions()).slice(0, 2)] }); } };
 
   /* ===================== Type the answer ===================== */
   const type = {

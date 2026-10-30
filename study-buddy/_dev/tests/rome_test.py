@@ -69,6 +69,7 @@ async def main():
             await pg.click('#tab-quiz [data-a="next"]')
         rec = await pg.evaluate("SB.toolRecord('ancient-rome','quiz')")
         check(rec and rec['best'] == 10, f'quiz 10 of 10 {rec}')
+        await pg.evaluate("SB.result('ancient-rome', 'quiz', 30, 30, 'full')")   # mastery needs the Full quiz (played in quiz_full_test)
 
         # sort: each set, all right
         await pg.click('nav.tabs button[data-tab="sort"]')

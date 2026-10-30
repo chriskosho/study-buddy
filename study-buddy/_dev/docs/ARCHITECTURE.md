@@ -282,3 +282,10 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - Label the diagram and Read the graph are `SBT.quiz` rounds that pass the picture through the question's `html` field (`earthLetters()`, `cycleLetters()`, `graphSVG(temps)`); the graph's seven temperatures are random each round and the answer is read from them. Quiz and Flashcards also have picture questions (`kindSVG`).
 - The study guide's "From the practice test" page marks those facts as not being in the notes.
 
+
+## 27. Quiz: Random sample and Full (October 2026)
+- `SBT.quiz(ctx, { full: () => [every question] })` adds a switch above the quiz: Random 10 and Full (N). Without `full` the quiz is unchanged. Full asks every question once, in random order. Math quizzes and tools not named Quiz do not use it.
+- Rule: every question on a Full quiz must have a flashcard (either direction counts). Flashcard coverage is being completed module by module.
+- `ctx.result(score, max, mode)` passes the mode to `SB.result`, which keeps a Full result as its own best (`fullBest`, `fullMax` in the tool record, merged by `mergeProfile`).
+- Mastery: a registry tool with `full: true` is mastered by its Full best (`masterPct`, default 80%). Random sample rounds still count for Best and attempts but not for mastery. Tools with `masterAt` are unchanged.
+- Modules with a Full quiz so far: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table, Black Beauty (story and guide), Phonograms, US States (each topic, not Mixed). Test: `quiz_full_test.py`.

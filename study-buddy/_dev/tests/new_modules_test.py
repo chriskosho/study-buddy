@@ -151,6 +151,7 @@ async def main():
             await pg.click('#tab-quiz [data-a="next"]')
         rec = await record(pg, 'black-beauty', 'quiz')
         check(rec and rec['best'] == 10, f'black beauty quiz 10 of 10 {rec}')
+        await pg.evaluate("SB.result('black-beauty', 'quiz', 24, 24, 'full')")   # mastery needs the Full quiz (played in quiz_full_test)
 
         await pg.click('nav.tabs button[data-tab="sort"]')
         await sort_all(pg, 'sort', ['home', 'kind', 'who'])

@@ -153,7 +153,7 @@
         back: `<div class="tag">Answer</div><div class="defline">${esc(d)}</div>${ctx.sayButton(t + '. ' + d, 'Hear it')}`, say: 'What does ' + t + ' mean?' })) });
     }
   };
-  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', build: () => shuffle(QUIZ).slice(0, 10) }); } };
+  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', full: () => QUIZ, build: () => shuffle(QUIZ).slice(0, 10) }); } };
   const type = {
     init(ctx) {
       SBT.answer(ctx, { title: 'Type the answer', kind: 'text', typo: true, skip: true, rounds: 10,

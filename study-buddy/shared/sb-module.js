@@ -86,7 +86,7 @@
         },
         slip() { SB.slip(); renderStreak(); },
         miss(text) { SB.noteMiss(mod.id, text); },          // remembered for the admin area's "most missed"
-        result(score, max) { SB.result(mod.id, t.id, score, max); },
+        result(score, max, mode) { SB.result(mod.id, t.id, score, max, mode); },
         say: (text, opts) => SB.say(text, opts),
         sayButton: (text, label, audio) => SB.sayButton(text, label || 'Hear it', '', audio || ''),
         sfx: SB.sfx, toast: SB.toast
