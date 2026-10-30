@@ -66,12 +66,13 @@
   const cards = {
     init(ctx) {
       SBT.flashcards(ctx, {
-        modes: [{ id: 'first', label: 'First 20' }, { id: 'common', label: 'Common elements' }, { id: 'name', label: 'Name to symbol' }],
+        modes: [{ id: 'first', label: 'First 20' }, { id: 'common', label: 'Common elements' }, { id: 'name', label: 'Name to symbol' }, { id: 'quizq', label: 'Every quiz question' }],
         build(mode) {
-          if (mode === 'name') return shuffle(ELEMENTS.filter(e => e.n <= 36)).slice(0, 20).map(e => ({
+          if (mode === 'quizq') return SBT.quizCards(ctx, fullQ());
+          if (mode === 'name') return shuffle(POOL).map(e => ({
             front: `<div class="tag">What is the symbol?</div><div class="big">${e.name}</div>`,
             back: `<div class="tag">Answer</div>${tile(e, true)}<div class="small">${CATS[e.cat].name}</div>`, say: 'What is the symbol for ' + e.name + '?' }));
-          const pool = mode === 'first' ? ELEMENTS.filter(e => e.n <= 20) : shuffle(COMMON).slice(0, 20);
+          const pool = mode === 'first' ? ELEMENTS.filter(e => e.n <= 20) : shuffle(COMMON);
           return shuffle(pool).map(e => ({
             front: `<div class="tag">Which element is this?</div><div class="bigsym">${e.sym}</div>`,
             back: `<div class="tag">Answer</div><div class="big">${e.name}</div><div class="small">Atomic number ${e.n} &middot; ${CATS[e.cat].name}</div>${FACTS[e.sym] ? `<div class="small">${esc(FACTS[e.sym])}</div>` : ''}`,
@@ -93,7 +94,8 @@
     if (t === 3) { const cats = shuffle(Object.keys(CATS).filter(k => k !== e.cat && k !== 'un' && k !== 'la' && k !== 'ac' && !(k === 'nm' && (e.cat === 'hal' || e.cat === 'ng')) && !((k === 'hal' || k === 'ng') && e.cat === 'nm'))).slice(0, 3); return { q: `What kind of element is ${e.name}?`, a: CATS[e.cat].name, wrong: cats.map(k => CATS[k].name) }; }
     return { q: `At room temperature, ${e.name} is a…`, a: e.state, wrong: ['Solid', 'Liquid', 'Gas'].filter(s => s !== e.state) };
   }
-  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, full: () => [...PTQUIZ, ...POOL.map(madeQuestion)], build: () => [...shuffle(PTQUIZ).slice(0, 4), ...shuffle(POOL).slice(0, 6).map(madeQuestion)] }); } };   // six different elements, so no question gives away another
+  const fullQ = () => [...PTQUIZ, ...POOL.map(madeQuestion)];
+  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, full: fullQ, build: () => [...shuffle(PTQUIZ).slice(0, 4), ...shuffle(POOL).slice(0, 6).map(madeQuestion)] }); } };   // six different elements, so no question gives away another
 
   /* ===================== Sort it ===================== */
   const sort = {

@@ -297,6 +297,14 @@
     start();
   }
 
+  /* one flashcard for each question of a Full quiz (question on the front, answer on the back), so everything the Full quiz asks has a card */
+  function quizCards(ctx, items) {
+    return shuffle(items.slice()).map(q => ({
+      front: `<div class="tag">Quiz question</div><div class="defline">${q.qh || esc(q.q)}</div>${q.html || ''}`,
+      back: `<div class="tag">Answer</div><div class="defline">${esc(q.a)}</div>${q.why ? `<div class="exl">${esc(q.why)}</div>` : ''}${ctx.sayButton((q.say || plainText(String(q.qh || q.q))) + '. ' + q.a, 'Hear it')}`,
+      say: q.say || plainText(String(q.qh || q.q)) }));
+  }
+
   /* ---------------- Type the answer ---------------- */
   const gcdI = (a, b) => b ? gcdI(b, a % b) : Math.abs(a);
   /* "3/4", "1 3/4" or "2" -> { n, d } (improper); mixed numbers also carry w, fn, fd. null when it is not a fraction */
@@ -571,5 +579,5 @@
   /* 3/4 x 8 and 8 x 3/4 are the same question for this purpose (a sum or product with only that one operation) */
   const twinKey = q => { const c = String(q.chk || ''); if (!c) return ''; for (const op of ['*', '+']) { const parts = c.split(op); if (parts.length > 1 && !/[-:*+]/.test(parts.join(''))) return op + parts.map(x => x.trim()).sort().join(op) + '|' + (q.form || '') + '|' + (q.a || ''); } return ''; };
   const many = (fn, n = 10) => { const out = [], seen = new Set(); for (let i = 0; out.length < n && i < 400; i++) { const q = fn(), k = (q.q || '') + '|' + (q.html || '') + '|' + (q.qh || ''), t = twinKey(q); if (!seen.has(k) && !(t && seen.has(t))) { seen.add(k); if (t) seen.add(t); out.push(q); } } return out; };
-  window.SBT = { fracBox, wireFrac, stackText, loadPad, padTab, judge, stripUnit, many, flashcards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
+  window.SBT = { fracBox, wireFrac, stackText, loadPad, padTab, judge, stripUnit, many, flashcards, quizCards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
 })();

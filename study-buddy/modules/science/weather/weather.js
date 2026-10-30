@@ -32,8 +32,21 @@
   const cards = {
     init(ctx) {
       SBT.flashcards(ctx, {
-        modes: [{ id: 'terms', label: 'Vocabulary' }, { id: 'kinds', label: 'Kinds of weather' }],
+        modes: [{ id: 'terms', label: 'Vocabulary' }, { id: 'clouds', label: 'Cloud types' }, { id: 'tools', label: 'Weather tools' }, { id: 'facts', label: 'Practice test facts' }, { id: 'diagrams', label: 'Diagrams' }, { id: 'kinds', label: 'Kinds of weather' }, { id: 'quizq', label: 'Every quiz question' }],
         build(mode) {
+          if (mode === 'quizq') return SBT.quizCards(ctx, fullQ());
+          if (mode === 'clouds') return shuffle(Object.keys(CLOUD_PARTS)).map(k => ({
+            front: `<div class="tag">Which kind of cloud is this?</div><div class="kindface">${cloudSVG(k)}</div>`,
+            back: `<div class="tag">Answer</div><div class="big">${esc(k)}</div><div class="exl">${esc(D[k])}.</div>${ctx.sayButton(k + '. ' + D[k], 'Hear it')}`, say: 'Which kind of cloud is this?' }));
+          if (mode === 'tools') return shuffle(Object.keys(TOOL_PARTS)).map(k => ({
+            front: `<div class="tag">Which weather tool is this?</div><div class="kindface">${toolSVG(k)}</div>`,
+            back: `<div class="tag">Answer</div><div class="big">${esc(k)}</div><div class="exl">${esc(D[k])}.</div>${ctx.sayButton(k + '. ' + D[k], 'Hear it')}`, say: 'Which weather tool is this?' }));
+          if (mode === 'facts') return shuffle(TEST_FACTS).map(([t, d]) => ({
+            front: `<div class="tag">Practice test fact</div><div class="big">${esc(t)}</div>`,
+            back: `<div class="tag">Answer</div><div class="defline">${esc(d)}</div>${ctx.sayButton(t + '. ' + d, 'Hear it')}`, say: t }));
+          if (mode === 'diagrams') return [['The earth', earthSVG('letters'), earthSVG('names')], ['The water cycle', cycleSVG('letters'), cycleSVG('names')]].map(([t, a, b]) => ({
+            front: `<div class="tag">Name each letter</div><div class="qpic wide">${a}</div>`,
+            back: `<div class="tag">${esc(t)}</div><div class="qpic wide">${b}</div>`, say: 'Name each letter on the diagram of ' + t.toLowerCase() + '.' }));
           if (mode === 'kinds') return shuffle(KINDS).map(k => ({
             front: `<div class="tag">What kind of weather is this?</div><div class="kindface">${kindSVG(k)}</div>`,
             back: `<div class="tag">Answer</div><div class="big">${esc(k)}</div>${ctx.sayButton(k, 'Hear it')}`, say: 'What kind of weather is this?' }));
@@ -47,7 +60,8 @@
 
   /* ===================== Quiz ===================== */
   const kindQuestions = () => KINDS.map(k => ({ q: 'What kind of weather is this?', a: k, wrong: shuffle(KINDS.filter(x => x !== k)).slice(0, 3), html: `<div class="qpic">${kindSVG(k)}</div>` }));
-  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', full: () => [...QUIZ, ...kindQuestions()], build: () => [...shuffle(QUIZ).slice(0, 8), ...shuffle(kindQuestions()).slice(0, 2)] }); } };
+  const fullQ = () => [...QUIZ, ...kindQuestions()];
+  const quiz = { init(ctx) { SBT.quiz(ctx, { rounds: 10, lead: 'Pick the best answer.', full: fullQ, build: () => [...shuffle(QUIZ).slice(0, 8), ...shuffle(kindQuestions()).slice(0, 2)] }); } };
 
   /* ===================== Type the answer ===================== */
   const type = {

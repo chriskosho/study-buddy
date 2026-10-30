@@ -91,7 +91,7 @@
       return `<g class="pt${p.notes ? '' : ' extra'}" data-id="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}"><circle class="hit" cx="${x}" cy="${y}" r="22"/><circle class="dot" cx="${x}" cy="${y}" r="${p.notes ? 8 : 6}"/>${lab ? `<text class="pl" x="${x + L[0]}" y="${y + L[1]}" text-anchor="${L[2]}">${esc(p.name)}</text>` : ''}</g>`;
     };
     return `<svg class="pmap" viewBox="0 0 ${PMAP.width} ${PMAP.height}" role="group" aria-label="Map of the western Mediterranean"><rect width="${PMAP.width}" height="${PMAP.height}" class="sea"/><path class="land" d="${PMAP.land}"/>
-      <polyline class="route hr" points="${pts(HANNIBAL)}"/><polyline class="route sr" points="${pts(SCIPIO)}"/>${PLACES.map(dot).join('')}</svg>`;
+      <polyline class="route hr" points="${pts(HANNIBAL)}"/><polyline class="route sr" points="${pts(SCIPIO)}"/>${(opts.only ? PLACES.filter(p => p.id === opts.only) : PLACES).map(dot).join('')}</svg>`;
   }
   const study = {
     init(ctx) {
@@ -148,7 +148,9 @@
   /* ===================== Flashcards, Quiz, Type, Order, Explain ===================== */
   const cards = {
     init(ctx) {
-      SBT.flashcards(ctx, { modes: [{ id: 'terms', label: 'Class notes terms' }], build: () => shuffle(CARDS).map(([t, d]) => ({
+      SBT.flashcards(ctx, { modes: [{ id: 'terms', label: 'Class notes terms' }, { id: 'places', label: 'Places on the map' }, { id: 'quizq', label: 'Every quiz question' }], build: mode => mode === 'quizq' ? SBT.quizCards(ctx, QUIZ) : mode === 'places' ? shuffle(PLACES).map(p => ({
+        front: `<div class="tag">What place is the dot?</div><div class="mwrap card">${mapSVG({ labels: false, only: p.id })}</div>`,
+        back: `<div class="tag">Answer</div><div class="big">${esc(p.name)}</div><div class="exl">${esc(p.d)}</div>${ctx.sayButton(p.name + '. ' + p.d, 'Hear it')}`, say: 'What place is the dot on the map?' })) : shuffle(CARDS).map(([t, d]) => ({
         front: `<div class="tag">What does this mean?</div><div class="big">${esc(t)}</div>`,
         back: `<div class="tag">Answer</div><div class="defline">${esc(d)}</div>${ctx.sayButton(t + '. ' + d, 'Hear it')}`, say: 'What does ' + t + ' mean?' })) });
     }

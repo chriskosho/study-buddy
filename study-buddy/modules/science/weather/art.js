@@ -58,6 +58,21 @@ function cycleSVG(mode) {
     <g stroke="#2b6cb0" stroke-width="2.5" stroke-linecap="round"><line x1="112" y1="64" x2="106" y2="80"/><line x1="124" y1="64" x2="118" y2="80"/><line x1="136" y1="64" x2="130" y2="80"/><line x1="148" y1="64" x2="142" y2="80"/></g>
     ${['A', 'B', 'C'].map(mark).join('')}</svg>`;
 }
+
+/* single drawings (no labels) for flashcards, cropped from the same artwork as the pictures above */
+const CLOUD_PARTS = {
+  Cirrus: ['0 0 100 56', '#bcdcf0', '<g fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M18 26q22-12 44 0M30 38q26-10 52 2M24 14q18-8 38 0"/></g>'],
+  Cumulus: ['100 36 80 52', '#bcdcf0', '<path d="M120 74a14 14 0 0 1 4-27 18 18 0 0 1 33 2 13 13 0 0 1 4 25z" fill="#fff"/><path d="M142 66a10 10 0 0 1 2-19 14 14 0 0 1 25 3 10 10 0 0 1 1 16z" fill="#fff" opacity=".9"/>'],
+  Stratus: ['0 96 160 54', '#bcdcf0', '<rect x="12" y="104" width="130" height="16" rx="8" fill="#9aa5b1"/><rect x="30" y="124" width="100" height="12" rx="6" fill="#aab4be"/>'],
+  Nimbus: ['196 50 84 80', '#bcdcf0', '<path d="M212 96a16 16 0 0 1 4-30 22 22 0 0 1 42 2 16 16 0 0 1 4 28z" fill="#6c7683"/><g stroke="#2b6cb0" stroke-width="3" stroke-linecap="round"><line x1="226" y1="104" x2="221" y2="118"/><line x1="240" y1="104" x2="235" y2="118"/><line x1="254" y1="104" x2="249" y2="118"/></g>']
+};
+const cloudSVG = k => { const [vb, bg, body] = CLOUD_PARTS[k], [x, y, w, h] = vb.split(' '); return `<svg viewBox="${vb}" role="img" aria-label="Drawing of a ${k.toLowerCase()} cloud"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${bg}"/>${body}</svg>`; };
+const TOOL_PARTS = {
+  'Wind vane': ['0 28 100 116', '#d6ebf5', '<g stroke="#4a5563" stroke-width="4" stroke-linecap="round"><line x1="52" y1="48" x2="52" y2="136"/><line x1="26" y1="62" x2="78" y2="62"/></g><polygon points="22,40 70,40 70,34 84,44 70,54 70,48 22,48" fill="#e4572e"/><polygon points="22,40 8,32 8,56 22,48" fill="#e4572e"/>'],
+  'Anemometer': ['108 36 104 108', '#d6ebf5', '<g stroke="#4a5563" stroke-width="4" stroke-linecap="round"><line x1="160" y1="72" x2="160" y2="136"/><line x1="130" y1="72" x2="190" y2="72"/><line x1="160" y1="56" x2="160" y2="72"/></g><g fill="#f6b73c" stroke="#b9831a" stroke-width="2"><path d="M118 62a12 12 0 0 1 24 0z" transform="rotate(-20 130 62)"/><path d="M178 62a12 12 0 0 1 24 0z" transform="rotate(20 190 62)"/><path d="M148 48a12 12 0 0 1 24 0z"/></g>'],
+  'Rain gauge': ['222 46 72 98', '#d6ebf5', '<rect x="236" y="62" width="44" height="74" rx="5" fill="#fff" stroke="#4a5563" stroke-width="3"/><rect x="238" y="100" width="40" height="34" fill="#6bb4e6"/><g stroke="#4a5563" stroke-width="2"><line x1="236" y1="76" x2="248" y2="76"/><line x1="236" y1="90" x2="248" y2="90"/><line x1="236" y1="104" x2="248" y2="104"/><line x1="236" y1="118" x2="248" y2="118"/></g>']
+};
+const toolSVG = k => { const [vb, bg, body] = TOOL_PARTS[k], [x, y, w, h] = vb.split(' '); return `<svg viewBox="${vb}" role="img" aria-label="Drawing of a ${k.toLowerCase()}"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${bg}"/>${body}</svg>`; };
 /* the letters version of each diagram, for the label quiz */
 const earthLetters = () => earthSVG('letters'), cycleLetters = () => cycleSVG('letters');
 /* a line graph of seven days of temperatures */

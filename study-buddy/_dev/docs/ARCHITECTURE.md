@@ -289,3 +289,9 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - `ctx.result(score, max, mode)` passes the mode to `SB.result`, which keeps a Full result as its own best (`fullBest`, `fullMax` in the tool record, merged by `mergeProfile`).
 - Mastery: a registry tool with `full: true` is mastered by its Full best (`masterPct`, default 80%). Random sample rounds still count for Best and attempts but not for mastery. Tools with `masterAt` are unchanged.
 - Modules with a Full quiz so far: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table, Black Beauty (story and guide), Phonograms, US States (each topic, not Mixed). Test: `quiz_full_test.py`.
+
+## 28. Flashcards cover the Full quiz (October 2026)
+- `SBT.quizCards(ctx, items)` makes one card per quiz item (question on the front, answer on the back). A module's Flashcards tool adds an "Every quiz question" deck built from the same list as its Full quiz (`fullQ`), so nothing on the Full quiz lacks a card.
+- `flashcard_rule_test.py` checks the rule in the browser: it reads the Full quiz and every flashcard deck, and fails if a Full answer's text is on no card. Modules listed in `COVERED` must pass; run it with `--report` to list gaps in the others. Add a module to `COVERED` when its cards are complete.
+- Covered so far: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table.
+- Weather also has picture decks (cloud types, weather tools), a practice-test facts deck, and a diagrams deck (`cloudSVG`, `toolSVG` in art.js). Punic Wars has a Places on the map deck (`mapSVG({only})`).
