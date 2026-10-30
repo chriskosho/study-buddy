@@ -29,7 +29,7 @@ async def overflow(pg):
 async def main():
     threading.Thread(target=serve, daemon=True).start()
     base = f'http://127.0.0.1:{PORT}/'
-    TOOLS = ['guide', 'cards', 'quiz', 'sort', 'type', 'explain']
+    TOOLS = ['guide', 'lab', 'cards', 'quiz', 'sort', 'type', 'explain']
     async with async_playwright() as p:
         b = await p.chromium.launch()
         ctx = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block')
@@ -117,6 +117,44 @@ async def main():
             check('Great answer' in await pg.locator('#tab-explain .feedback').inner_text(), f'model answer {i + 1} passes')
             await pg.click('#tab-explain [data-a="next"]')
 
+        # experiments: each one runs and shows what the lesson says
+        await pg.goto(base + M + '?tool=lab'); await pg.wait_for_selector('#tab-lab .lsvg')
+        async def done(sel='#tab-lab [data-a=go]'): await pg.wait_for_function("s => !document.querySelector(s).disabled", arg=sel, timeout=15000)
+        bx = "() => +document.querySelector('#tab-lab .ball').getAttribute('transform').match(/translate\\(([-\\d.]+)/)[1]"
+        check('at rest' in (await pg.locator('#tab-lab .lmsg').inner_text()).lower(), 'ball starts at rest')
+        await pg.click('#tab-lab [data-s=ice]'); await pg.click('#tab-lab [data-a=go]'); await pg.wait_for_timeout(300)
+        check('In motion' in await pg.locator('#tab-lab .stlbl').text_content() and await pg.evaluate(bx) > 41, 'kicked ball is in motion')
+        await done(); check('goalpost' in await pg.locator('#tab-lab .lmsg').inner_text(), 'on ice the ball keeps going until the goalpost stops it')
+        await pg.click('#tab-lab [data-s=sand]'); await pg.click('#tab-lab [data-a=go]'); await done()
+        xs = await pg.evaluate(bx); check('friction' in await pg.locator('#tab-lab .lmsg').inner_text() and xs < 400, f'on sand friction stops it early ({xs:.0f})')
+        await pg.click('#tab-lab [data-a=reset]'); check(await pg.evaluate(bx) == 40, 'Put it back resets the ball')
+        await pg.click('#tab-lab .gtabs button[data-e=push]')
+        pos = "() => +document.querySelector('#tab-lab .obj').getAttribute('transform').match(/translate\\(([-\\d.]+)/)[1]"
+        await pg.click('#tab-lab [data-t=toy]'); await pg.fill('#tab-lab input[type=range]', '4'); await pg.click('#tab-lab [data-a=go]'); await done(); toy = await pg.evaluate(pos)
+        await pg.click('#tab-lab [data-t=car]'); await pg.fill('#tab-lab input[type=range]', '4'); await pg.click('#tab-lab [data-a=go]'); await done(); car = await pg.evaluate(pos)
+        check(toy > car + 100, f'the same push moves the toy car farther than the full-sized car ({toy:.0f} vs {car:.0f})')
+        check('heavier' in (await pg.locator('#tab-lab .lmsg').inner_text()).lower(), 'the heavy object message explains heavier needs more force')
+        w1 = await pg.evaluate("document.querySelector('#tab-lab .b1').style.width"); await pg.fill('#tab-lab input[type=range]', '9'); w2 = await pg.evaluate("document.querySelector('#tab-lab .b1').style.width")
+        check(w1 != w2, 'the push slider moves the Your push bar')
+        await pg.click('#tab-lab .gtabs button[data-e=rocket]')
+        arrow = "() => [...document.querySelectorAll('#tab-lab .arrs .arw line')].map(l => Math.hypot(l.getAttribute('x2') - l.getAttribute('x1'), l.getAttribute('y2') - l.getAttribute('y1')))"
+        a = await pg.evaluate(arrow); check(len(a) == 2 and abs(a[0] - a[1]) < 0.5, f'the two rocket arrows are equal {a}')
+        await pg.fill('#tab-lab input[type=range]', '5'); a2 = await pg.evaluate(arrow); check(abs(a2[0] - a2[1]) < 0.5 and a2[0] > a[0], 'a stronger engine makes both arrows longer, still equal')
+        await pg.click('#tab-lab [data-a=go]'); await pg.wait_for_timeout(600)
+        check('translate(0,-' in await pg.get_attribute('#tab-lab .rkt', 'transform'), 'the rocket rises')
+        await done(); check('equal and opposite' in await pg.locator('#tab-lab .lmsg').inner_text(), 'rocket ends with the third law')
+        await pg.click('#tab-lab .gtabs button[data-e=size]')
+        bs0 = await pg.evaluate("document.querySelector('#tab-lab .bf').style.width"); await pg.fill('#tab-lab .rs', '9')
+        check(await pg.evaluate("document.querySelector('#tab-lab .bf').style.width") != bs0, 'bigger system, bigger force bar')
+        sp0 = await pg.evaluate("document.querySelector('#tab-lab .bs').style.width"); await pg.fill('#tab-lab .rm', '9')
+        check(float((await pg.evaluate("document.querySelector('#tab-lab .bs').style.width"))[:-1]) < float(sp0[:-1]), 'more mass, lower speed bar')
+        rec = await pg.evaluate("SB.toolRecord('newton-laws','lab')"); check(not rec or rec.get('best') is None, f'experiments are practice only {rec}')
+        # reduced motion: the experiment jumps to its end
+        rc = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block', reduced_motion='reduce'); await rc.add_init_script(INIT); rp = await rc.new_page()
+        await rp.goto(base + M + '?tool=lab'); await rp.wait_for_selector('#tab-lab .lsvg'); await rp.click('#tab-lab [data-s=ice]'); await rp.click('#tab-lab [data-a=go]'); await rp.wait_for_timeout(250)
+        check('goalpost' in await rp.locator('#tab-lab .lmsg').inner_text(), 'with reduced motion the ball experiment skips to the end')
+        await rc.close()
+
         # layout
         await pg.set_viewport_size({'width': 360, 'height': 780})
         for t in TOOLS:
@@ -129,6 +167,12 @@ async def main():
             o = await overflow(pg); check(o['v'] <= 0 and o['h'] <= 0, f'1440x900 {t}: no scroll {o}')
         await pg.goto(base + M + '?tool=quiz'); await pg.wait_for_selector('#tab-quiz .opt'); await pg.click('#tab-quiz .opt >> nth=0'); await pg.wait_for_timeout(100)
         o = await overflow(pg); check(o['v'] <= 0 and o['h'] <= 0, f'1440x900 quiz after answering: no scroll {o}')
+        for vw, vh in [(360, 780), (1440, 900)]:
+            await pg.set_viewport_size({'width': vw, 'height': vh})
+            for e in ['ball', 'push', 'rocket', 'size']:
+                await pg.goto(base + M + '?tool=lab'); await pg.wait_for_selector('#tab-lab .gtabs'); await pg.click(f'#tab-lab .gtabs button[data-e={e}]'); await pg.wait_for_timeout(150)
+                o = await overflow(pg); check(o['h'] <= 0 and (vw == 360 or o['v'] <= 0), f'experiment {e} fits {vw}x{vh} {o}')
+        await pg.set_viewport_size({'width': 1440, 'height': 900})
         check(not errors, f'no page errors {errors}')
         await b.close()
     print('\n' + ('ALL PASSED' if not fails else f'{len(fails)} FAILED'))
