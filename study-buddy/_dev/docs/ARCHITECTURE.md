@@ -307,3 +307,8 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 ## 30. Small audit fixes (October 2026)
 - `SBT.sort` sets can give `make()` instead of `items`; it is called each time the sort starts, so a replay gets fresh items (used by the fractions-multiply scale sort).
 - Handwriting Letters keeps `passed` per style: cursive keys are the plain letter (as before), print keys start with `print:`. The tool's score is the count for the style on screen.
+
+## 31. Newton and His Laws (Science, October 2026)
+- Source: photos of the student's science book, Lesson 5 (pages 34 to 41: the lesson, Table 5.1, review questions 5.1 to 5.19) and Quiz 2 (questions 2.01 to 2.020). The lesson text and questions keep the book's wording. The answer key was not on the photos, so answers are worked out from the lesson text. The book's pictures are not copied.
+- Not in the lesson text, and marked that way in the study guide's last tab: the Quiz 2 facts on patterns, elliptical orbits, birds, the penny and brick, and patterns of motion in nature. Their answers rest on the question itself and ordinary science. The questions that choose TWO or THREE answers (2.015, 2.020) are asked one answer at a time.
+- Folder `modules/science/newton-laws`: `data.js` (content), `newton.js` (tools), `newton.css`. Tools: Study guide (with a "Historians say" note on the apple story, linking Wikipedia), Flashcards (including Table 5.1 and Every quiz question), Quiz (Random 10 or Full, `full: true`), Sort it, Type the answer, Explain it. It is listed in `quiz_full_test.py` and `flashcard_rule_test.py` (`COVERED`). Test: `newton_test.py`.

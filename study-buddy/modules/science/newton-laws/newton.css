@@ -1,0 +1,32 @@
+/* Newton and His Laws: styles only this module needs. */
+.gtabs{margin-bottom:14px;flex-wrap:wrap}
+.gbody h3{margin:0 0 8px}
+.ttable{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:2px solid var(--line);border-radius:16px;overflow:hidden;font-size:16px;line-height:1.3}
+.ttable th,.ttable td{padding:6px 14px;text-align:left;vertical-align:top;border-bottom:1.5px solid var(--line)}
+.ttable tr:last-child th,.ttable tr:last-child td{border-bottom:0}
+.ttable tbody th{font-weight:800;width:20%}
+.ttable td.s{width:1%;padding:4px 10px}
+.ttable .spk{width:34px;height:34px}
+.ttable .spk svg{width:18px;height:18px}
+.ttable.tbl{font-size:15px}
+.ttable.tbl thead th{background:var(--tint-note);width:auto}
+.ttable.tbl tbody th{width:12%}
+.note{background:var(--tint-note);border:2px solid var(--note-line);border-radius:12px;padding:6px 12px;font-size:14px;margin:0 0 10px}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fact{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:3px 12px;display:grid;grid-template-columns:1fr auto;gap:0 8px;align-items:center;font-size:14px;line-height:1.25}
+.fact b{grid-column:1;font-size:16px}.fact span{grid-column:1}.fact .spk{grid-column:2;grid-row:1/3;width:34px;height:34px}.fact .spk svg{width:18px;height:18px}
+.histsay{margin-top:4px;font-size:14.5px;line-height:1.4}
+.histsay summary{display:inline-block;cursor:pointer;font-weight:800;font-size:13px;color:var(--navy-ink);border:1.5px solid var(--line);border-radius:999px;padding:1px 10px;background:var(--paper)}
+.histsay[open] summary{border-color:var(--note-line);background:var(--tint-note)}
+.histsay span{display:block;margin-top:5px;padding:6px 10px;border-left:4px solid var(--note-line);background:var(--tint-note);border-radius:8px;color:var(--ink)}
+.histsay a{color:var(--navy-ink);font-weight:700}
+.qtext .blank,.blank{display:inline-block;border-bottom:3px solid var(--coral);min-width:90px;color:transparent}
+@media (max-width:1000px){.facts{grid-template-columns:1fr}}
+@media (max-width:760px){
+  .gtabs{display:flex;flex-wrap:nowrap;overflow-x:auto;border:0;background:none;gap:6px;margin:0 -14px 12px;padding:2px 14px 4px;scrollbar-width:none}
+  .gtabs::-webkit-scrollbar{display:none}
+  .gtabs button{flex:0 0 auto;white-space:nowrap;border:2px solid var(--line);border-radius:999px;background:var(--surface)}
+  .gtabs button[aria-pressed="true"]{border-color:var(--teal)}
+  .ttable{font-size:15px}.ttable th,.ttable td{padding:7px 9px}.ttable tbody th{width:30%}
+  .ttable.tbl{display:block;overflow-x:auto}
+}
