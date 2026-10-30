@@ -15,9 +15,8 @@
   const flag = (c, cls = '') => `<span class="eu-flag ${cls}" data-s="${c.id}">${/eu-qflag|eu-cardflag/.test(cls) ? FLAGS[c.id].replace(/aria-label="[^"]*"/, 'aria-label="A country flag"') : FLAGS[c.id]}</span>`;
   /* when the capital's name already contains the country's name, "X is the capital of which country?" would give it away */
   const giveaway = c => { const a = c.capital.toLowerCase(), b = c.name.toLowerCase(); return a.includes(b) || b.includes(a); };
-  const NAME_ALSO = { cz: ['Czech Republic', 'Czech'], gb: ['UK', 'Britain', 'Great Britain', 'The United Kingdom', 'England'], ba: ['Bosnia', 'Bosnia & Herzegovina', 'Bosnia Herzegovina'], mk: ['Macedonia'], nl: ['The Netherlands', 'Holland'], va: ['Vatican', 'The Vatican'], ie: ['Republic of Ireland'], ch: ['Swiss Confederation'], lu: ['Luxemburg'] };
-  const CAP_ALSO = { ua: ['Kiev'], md: ['Chișinău', 'Kishinev'], is: ['Reykjavík'], xk: ['Prishtina', 'Priština'], ch: ['Berne'], lu: ['Luxembourg'], ad: ['Andorra'], by: ['Mensk'], at: ['Wien'], pt: ['Lisboa'], ro: ['București'], gr: ['Athina'], hu: ['Budapesht'], fi: ['Helsingfors'] };
-  const LANG_ALSO = { Slovene: ['Slovenian'], Macedonian: ['Macedonian'], Montenegrin: ['Montenegrin', 'Serbian'], Latin: ['Latin'], Luxembourgish: ['Letzeburgesch', 'Luxemburgish'] };
+  /* alternate spellings accepted when typing come from data.js (ALSO.name, ALSO.capital, ALSO.lang) */
+  const NAME_ALSO = ALSO.name || {}, CAP_ALSO = ALSO.capital || {}, LANG_ALSO = ALSO.lang || {};
   const firstHint = t => `It starts with "${t[0]}".`;
   const nameAlts = c => [c.name, ...(NAME_ALSO[c.id] || [])];
   const capAlts = c => [c.capital, ...(CAP_ALSO[c.id] || [])];
