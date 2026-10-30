@@ -77,6 +77,17 @@ Meaning of color is never the only signal: right/wrong also use text, and select
 
 **Interactive map (`.mapbox`).** Sea-blue frame, countries drawn with white 1.6px borders, hover/selection highlight, small zoom bar (+, −, All) in a corner, mouse-wheel zoom and drag-to-pan.
 
+**Small places on maps (every geography map follows this; US States and Europe are the reference).** A place too small to hold its name is never left as an unreadable code:
+1. *Short code, then the name.* A tiny place shows a two-letter code (with a thin leader line to a label in the sea or margin if it is too small to sit inside). Tapping the place, tapping its name in the list, or tabbing to it opens the code into the full name (tap elsewhere to close it). Names in the list are buttons ("Show on the map"): they select the place, and zoom toward it if it is tiny.
+2. *Zoom opens every name.* From the first zoom step (1.5x) every short code becomes the full name, drawn at a steady 9.5px on screen so it does not balloon as you zoom. Names longer than 12 characters wrap onto two lines.
+3. *Selected place.* The tapped place gets a navy outline (`.sel`); its label is raised to the front.
+4. *Hover tooltip.* On the Study map every place has a `<title>` with its full name. Game maps never do (it would give the answer away).
+5. *Double-tap or double-click zooms* in on that spot, on the Study map only (the games count every tap).
+6. *Drag names:* a tiny place that was just placed shows its full name for about 2.5 seconds, then goes back to its code.
+7. *Find it* and the flashcards: the places that took more than one try are named in "Practice these"; flashcard map shapes ring a tiny place so it can be seen.
+8. *Dots for the tiniest.* Places too small to draw (microstates) are drawn as small circles at their real position, and are tappable and keyboard focusable like any other place.
+9. South America writes full names everywhere, so it only needs items 3, 4, 5, and the list buttons; if a map ever gets codes, it must meet items 1 and 2.
+
 **Drag chips.** White with navy outline and hard shadow, grab cursor. While dragging, a sun-yellow ghost chip tilts -3° above the pointer. Wrong drops shake the chip; right drops remove it.
 
 **Stats (`.stat`).** Small white rounded boxes for score, misses, time, best.

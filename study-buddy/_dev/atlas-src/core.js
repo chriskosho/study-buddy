@@ -131,6 +131,7 @@ function buildMap(svg) {
     // Only the Study map names the country; the quiz maps stay generic so they do not give the answer away.
     p.setAttribute('tabindex', '0'); p.setAttribute('role', 'button'); p.setAttribute('aria-label', svg.id === 'mapStudy' ? c.name : 'Country on the map');
     p.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); p.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
+    if (svg.id === 'mapStudy') { const ti = document.createElementNS(SVGNS, 'title'); ti.textContent = c.name; p.appendChild(ti); }   // hover tooltip (Study map only)
     svg.appendChild(p); paths[c.id] = p;
   });
   svg.appendChild(gl);
@@ -165,6 +166,7 @@ function makeZoom(svg) {
   bi.onclick = () => zoomAt(1.6, ...mid()); bo.onclick = () => zoomAt(1 / 1.6, ...mid());
   br.onclick = () => { Object.assign(vb, full); apply(); };
   svg.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.25 : 0.8, ...toSvg(e.clientX, e.clientY)); }, { passive: false });
+  if (svg.id === 'mapStudy') svg.addEventListener('dblclick', e => zoomAt(1.6, ...toSvg(e.clientX, e.clientY)));   // double-tap or double-click zooms in on that spot (Study map only)
   let pan = null;
   svg.addEventListener('pointerdown', e => { if (vb.w < full.w - 1 && e.button === 0) pan = { x: e.clientX, y: e.clientY, moved: false, id: e.pointerId }; });
   svg.addEventListener('pointermove', e => {
@@ -175,6 +177,8 @@ function makeZoom(svg) {
   });
   const end = () => { if (pan && pan.moved) { svg._justPanned = true; setTimeout(() => svg._justPanned = false, 50); } pan = null; };
   svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+  /* centers on a country (and zooms in a little on a small one) so it is easy to see */
+  svg._focus = id => { const m = MAPDATA.countries[id].label; let w = vb.w; if (w > full.w / 2.5) w = full.w / 2.5; const h = w * full.h / full.w; Object.assign(vb, { x: m[0] - w / 2, y: m[1] - h / 2, w, h }); clampPan(); apply(); };
   apply();
 }
 const clickOK = svg => !svg._justPanned;

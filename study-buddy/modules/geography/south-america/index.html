@@ -160,6 +160,8 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:10px;flex-
 .srow .sf{width:46px;flex:0 0 46px}
 .srow .st{flex:1;min-width:0}.srow .st b{display:block;line-height:1.15}.srow .st span{font-size:13px;color:var(--ink2)}
 .srow .spk{width:32px;height:32px}
+.cpath.sel{stroke:var(--navy-ink,#2b4162);stroke-width:2.6}
+.srow .st{cursor:pointer;border-radius:8px}.srow .st:focus-visible{outline:2px solid var(--navy-ink,#2b4162);outline-offset:2px}
 .mapgrid.study{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
 @media (max-width:720px){.mapgrid.study{grid-template-columns:1fr}}
 /* spell + bigger */
@@ -763,6 +765,7 @@ function buildMap(svg) {
     // Only the Study map names the country; the quiz maps stay generic so they do not give the answer away.
     p.setAttribute('tabindex', '0'); p.setAttribute('role', 'button'); p.setAttribute('aria-label', svg.id === 'mapStudy' ? c.name : 'Country on the map');
     p.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); p.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
+    if (svg.id === 'mapStudy') { const ti = document.createElementNS(SVGNS, 'title'); ti.textContent = c.name; p.appendChild(ti); }   // hover tooltip (Study map only)
     svg.appendChild(p); paths[c.id] = p;
   });
   svg.appendChild(gl);
@@ -797,6 +800,7 @@ function makeZoom(svg) {
   bi.onclick = () => zoomAt(1.6, ...mid()); bo.onclick = () => zoomAt(1 / 1.6, ...mid());
   br.onclick = () => { Object.assign(vb, full); apply(); };
   svg.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.25 : 0.8, ...toSvg(e.clientX, e.clientY)); }, { passive: false });
+  if (svg.id === 'mapStudy') svg.addEventListener('dblclick', e => zoomAt(1.6, ...toSvg(e.clientX, e.clientY)));   // double-tap or double-click zooms in on that spot (Study map only)
   let pan = null;
   svg.addEventListener('pointerdown', e => { if (vb.w < full.w - 1 && e.button === 0) pan = { x: e.clientX, y: e.clientY, moved: false, id: e.pointerId }; });
   svg.addEventListener('pointermove', e => {
@@ -807,6 +811,8 @@ function makeZoom(svg) {
   });
   const end = () => { if (pan && pan.moved) { svg._justPanned = true; setTimeout(() => svg._justPanned = false, 50); } pan = null; };
   svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+  /* centers on a country (and zooms in a little on a small one) so it is easy to see */
+  svg._focus = id => { const m = MAPDATA.countries[id].label; let w = vb.w; if (w > full.w / 2.5) w = full.w / 2.5; const h = w * full.h / full.w; Object.assign(vb, { x: m[0] - w / 2, y: m[1] - h / 2, w, h }); clampPan(); apply(); };
   apply();
 }
 const clickOK = svg => !svg._justPanned;
@@ -955,13 +961,18 @@ inits.cards = () => {
 };
 
 /* ---------- Study map (all names shown) ---------- */
+/* a tapped country (on the map or in the list) is outlined; South America always writes the full names, so nothing needs to open */
+function selectStudy(svg, id) { if (svg._sel && svg._paths[svg._sel]) svg._paths[svg._sel].classList.remove('sel'); svg._sel = id; if (id && svg._paths[id]) svg._paths[id].classList.add('sel'); }
 inits.study = () => {
   const svg = $('#mapStudy'); buildMap(svg); makeZoom(svg);
   Object.entries(svg._paths).forEach(([id, p]) => {
     addLabel(svg, id);
-    p.addEventListener('click', () => { if (clickOK(svg)) { speak(id, true); p.classList.remove('flash-good'); void p.getBBox(); p.classList.add('flash-good'); } });
+    p.addEventListener('click', () => { if (clickOK(svg)) { speak(id, true); p.classList.remove('flash-good'); void p.getBBox(); p.classList.add('flash-good'); selectStudy(svg, id); } });
+    p.addEventListener('focus', () => selectStudy(svg, id));
   });
-  $('#studyList').innerHTML = C.map(c => `<div class="srow"><div class="sf">${flagSVG(c.id)}</div><div class="st"><b>${c.name}</b><span>Capital: ${c.capital}</span></div>${spkBtn(c.id)}</div>`).join('');
+  svg.addEventListener('click', e => { if (!e.target.closest('.cpath')) selectStudy(svg, null); });
+  $('#studyList').innerHTML = C.map(c => `<div class="srow"><div class="sf">${flagSVG(c.id)}</div><div class="st" role="button" tabindex="0" data-id="${c.id}" title="Show on the map"><b>${c.name}</b><span>Capital: ${c.capital}</span></div>${spkBtn(c.id)}</div>`).join('');
+  $$('#studyList .st').forEach(el => { const go = () => { selectStudy(svg, el.dataset.id); svg._focus(el.dataset.id); }; el.addEventListener('click', go); el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
 };
 
 /* ---------- Map: drag the names ---------- */

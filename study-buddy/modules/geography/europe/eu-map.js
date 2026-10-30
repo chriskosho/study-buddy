@@ -34,6 +34,7 @@
       // keyboard access: every country takes Tab and Enter. Only the Study map names the country; the game maps stay generic.
       p.setAttribute('tabindex', '0'); p.setAttribute('role', 'button'); p.setAttribute('aria-label', named ? s.name : 'Country on the map');
       p.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); p.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
+      if (named) { const ti = document.createElementNS(SVGNS, 'title'); ti.textContent = s.name; p.appendChild(ti); }   // a hover tooltip with the full name (Study map only)
       svg.appendChild(p); paths[s.id] = p;
     });
     svg.appendChild(gl);
@@ -44,20 +45,43 @@
     const m = MAPDATA.countries[id].label, name = BYID[id].name, r = m[2], words = name.split(' ');
     const one = r * 1.8 / (name.length * 0.56), two = words.length > 1 ? Math.min(r * 1.8 / (Math.max(...words.map(w => w.length)) * 0.56), r * 1.5 / 2.2) : 0;
     if (Math.max(one, two) >= 8) return two > one ? { lines: words.length === 2 ? words : [words.slice(0, -1).join(' '), words.slice(-1)[0]], size: Math.min(11, two), x: m[0], y: m[1] } : { lines: [name], size: Math.min(11, one), x: m[0], y: m[1] };
-    return { lines: [id.toUpperCase()], size: Math.min(9, Math.max(6, r * 1.1)), x: m[0], y: m[1] };
+    return { lines: [id.toUpperCase()], size: Math.min(9, Math.max(6, r * 1.1)), x: m[0], y: m[1], short: true };
   }
+  /* SMALL-PLACE LABELS (rule in STYLE_GUIDE.md, "Maps"): a place too small for its name gets a short code, and the code opens into the full name
+     (a) when it is tapped or focused, (b) when the map is zoomed in, (c) for a moment after it is placed in Drag names. relabel() does the switching. */
+  const OPEN_ZOOM = 1.5;                                // the first press of + (1.6x) already opens the names
+  function relabel(svg) {
+    if (!svg._labels) return;
+    const vb = svg._vb || { w: W }, zoom = W / vb.w, rect = svg.getBoundingClientRect(), u = rect.width ? vb.w / rect.width : 1;
+    $$('text[data-short]', svg._labels).forEach(t => {
+      const id = t.dataset.id, open = zoom >= OPEN_ZOOM || svg._sel === id || svg._temp === id, size = open ? 9.5 * u : t._size, name = BYID[id].name;
+      const words = name.split(' '), lines = open ? (name.length > 12 && words.length > 1 ? [words.slice(0, Math.ceil(words.length / 2)).join(' '), words.slice(Math.ceil(words.length / 2)).join(' ')] : [name]) : [id.toUpperCase()];
+      const x = t.getAttribute('x'); t.textContent = ''; t.style.fontSize = size + 'px'; t.removeAttribute('y');
+      lines.forEach((ln, i) => { const ts = document.createElementNS(SVGNS, 'tspan'); ts.setAttribute('x', x); ts.setAttribute('y', t._y + size * 0.35 + (i - (lines.length - 1) / 2) * size * 1.05); ts.textContent = ln; t.appendChild(ts); });
+      t.classList.toggle('lbl-open', open && (svg._sel === id || svg._temp === id));
+      if (open && svg._sel === id) { const ln = $(`.lead-line[data-id="${id}"]`, svg._labels); svg._labels.appendChild(t); }
+    });
+    $$('.lead-dot', svg._labels).forEach(d => d.setAttribute('r', Math.max(1, 1.6 * Math.min(1.4, u))));
+  }
+  function select(svg, id) {
+    if (svg._sel && svg._paths[svg._sel]) svg._paths[svg._sel].classList.remove('sel');
+    svg._sel = id; if (id && svg._paths[id]) svg._paths[id].classList.add('sel');
+    relabel(svg);
+  }
+  function openAWhile(svg, id) { svg._temp = id; relabel(svg); clearTimeout(svg._tempT); svg._tempT = setTimeout(() => { svg._temp = null; relabel(svg); }, 2600); }
   function addLabel(svg, id) {
     if (svg._labels.querySelector(`[data-id="${id}"]`)) return;
     const m = MAPDATA.countries[id].label, mk = (tag) => document.createElementNS(SVGNS, tag);
     if (OUT.includes(id)) {
       const o = outPos(id), ln = mk('line');
       ln.setAttribute('class', 'lead-line'); ln.setAttribute('x1', m[0]); ln.setAttribute('y1', m[1]); ln.setAttribute('x2', o.x); ln.setAttribute('y2', o.y); ln.dataset.id = id;
-      const t = mk('text'); t.setAttribute('class', 'lbl lbl-out' + (o.end ? ' lbl-end' : '')); t.setAttribute('x', o.x + (o.end ? -3 : 3)); t.setAttribute('y', o.y + 3); t.style.fontSize = '8.5px'; t.textContent = id.toUpperCase(); t.dataset.id = id;
+      const t = mk('text'); t.setAttribute('class', 'lbl lbl-out' + (o.end ? ' lbl-end' : '')); t.setAttribute('x', o.x + (o.end ? -3 : 3)); t._y = o.y + 3; t._size = 8.5; t.setAttribute('y', t._y); t.style.fontSize = '8.5px'; t.textContent = id.toUpperCase(); t.dataset.id = id; t.dataset.short = '1';
       const dot = mk('circle'); dot.setAttribute('class', 'lead-dot'); dot.setAttribute('cx', m[0]); dot.setAttribute('cy', m[1]); dot.setAttribute('r', 1.6); dot.dataset.id = id;
-      svg._labels.appendChild(ln); svg._labels.appendChild(dot); svg._labels.appendChild(t); return;
+      svg._labels.appendChild(ln); svg._labels.appendChild(dot); svg._labels.appendChild(t); relabel(svg); return;
     }
     const sp = labelSpec(id), t = mk('text');
     t.setAttribute('class', 'lbl'); t.style.fontSize = sp.size + 'px'; t.dataset.id = id;
+    if (sp.short) { t.dataset.short = '1'; t._size = sp.size; t._y = sp.y; t.setAttribute('x', sp.x); t.setAttribute('y', sp.y + sp.size * 0.35); t.textContent = id.toUpperCase(); svg._labels.appendChild(t); relabel(svg); return; }
     const lh = sp.size * 1.05, top = sp.y - (sp.lines.length - 1) * lh / 2 + sp.size * 0.35;
     sp.lines.forEach((ln, i) => { const ts = mk('tspan'); ts.setAttribute('x', sp.x); ts.setAttribute('y', top + i * lh); ts.textContent = ln; t.appendChild(ts); });
     svg._labels.appendChild(t);
@@ -65,7 +89,7 @@
   /* zoom + pan: buttons, mouse wheel, drag to pan when zoomed */
   function makeZoom(svg) {
     const full = { x: 0, y: 0, w: W, h: H }, vb = svg._vb = { ...full };
-    const apply = () => { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); svg.classList.toggle('zoomed', vb.w < full.w - 1); };
+    const apply = () => { svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); svg.classList.toggle('zoomed', vb.w < full.w - 1); relabel(svg); };
     const clampPan = () => { vb.x = Math.min(Math.max(vb.x, full.x - vb.w * 0.1), full.x + full.w - vb.w * 0.9); vb.y = Math.min(Math.max(vb.y, full.y - vb.h * 0.1), full.y + full.h - vb.h * 0.9); };
     const zoomAt = (f, cx, cy) => { const nw = Math.min(full.w, Math.max(full.w / 8, vb.w / f)), nh = nw * full.h / full.w, k = nw / vb.w; vb.x = cx - (cx - vb.x) * k; vb.y = cy - (cy - vb.y) * k; vb.w = nw; vb.h = nh; clampPan(); apply(); };
     const toSvg = (cx, cy) => { const r = svg.getBoundingClientRect(); return [vb.x + (cx - r.left) / r.width * vb.w, vb.y + (cy - r.top) / r.height * vb.h]; };
@@ -75,6 +99,7 @@
     const [bi, bo, br] = bar.children, mid = () => [vb.x + vb.w / 2, vb.y + vb.h / 2];
     bi.onclick = () => zoomAt(1.6, ...mid()); bo.onclick = () => zoomAt(1 / 1.6, ...mid()); br.onclick = () => { Object.assign(vb, full); apply(); };
     svg.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.25 : 0.8, ...toSvg(e.clientX, e.clientY)); }, { passive: false });
+    if (svg.id === 'mapStudy') svg.addEventListener('dblclick', e => zoomAt(1.6, ...toSvg(e.clientX, e.clientY)));   // double-tap or double-click zooms in on that spot (Study map only: the games count every tap)
     let pan = null;
     svg.addEventListener('pointerdown', e => { if (vb.w < full.w - 1 && e.button === 0) pan = { x: e.clientX, y: e.clientY, moved: false, id: e.pointerId }; });
     svg.addEventListener('pointermove', e => {
@@ -85,6 +110,9 @@
     });
     const end = () => { if (pan && pan.moved) { svg._justPanned = true; setTimeout(() => svg._justPanned = false, 50); } pan = null; };
     svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+    /* centers on a place (and zooms in a little if it is a tiny one) so it is easy to see */
+    svg._focus = id => { const m = MAPDATA.countries[id].label; let w = vb.w; if (m[2] < 11 && w > full.w / 3) w = full.w / 3; const h = w * full.h / full.w; Object.assign(vb, { x: m[0] - w / 2, y: m[1] - h / 2, w, h }); clampPan(); apply(); };
+    if (window.ResizeObserver) new ResizeObserver(() => relabel(svg)).observe(svg);
     apply();
   }
   const clickOK = svg => !svg._justPanned;
@@ -105,11 +133,17 @@
   const study = {
     init(ctx) {
       const P = ctx.panel;
-      P.innerHTML = `<h2>Study map</h2><p class="lead">Every country with its name. Tap a country (or a speaker) to hear it. Zoom in on the small ones.</p>
+      P.innerHTML = `<h2>Study map</h2><p class="lead">Every country with its name. Tap a country, or a name in the list, to see its full name and hear it. Small ones show a short code until you tap them or zoom in.</p>
         <div class="mapgrid study">${mapBox('mapStudy', 'Labeled map of Europe')}<div><div class="studylist" id="euStudyList"></div></div></div>`;
       const svg = $('#mapStudy', P); buildMap(svg, true); makeZoom(svg);
-      Object.entries(svg._paths).forEach(([id, p]) => { addLabel(svg, id); p.addEventListener('click', () => { if (clickOK(svg)) { speakName(id); flash(p, 'flash-good'); } }); });
-      $('#euStudyList', P).innerHTML = COUNTRIES.map(s => `<div class="srow"><div class="sf"><span class="eu-flag" data-s="${s.id}">${FLAGS[s.id]}</span></div><div class="st"><b>${esc(s.name)}</b><span>${esc(s.capital)}</span></div>${ctx.sayButton(s.name + '. The capital is ' + s.capital + '.', 'Hear ' + s.name)}</div>`).join('');
+      Object.entries(svg._paths).forEach(([id, p]) => {
+        addLabel(svg, id);
+        p.addEventListener('click', () => { if (clickOK(svg)) { select(svg, id); speakName(id); flash(p, 'flash-good'); } });
+        p.addEventListener('focus', () => select(svg, id));
+      });
+      svg.addEventListener('click', e => { if (!e.target.closest('.cpath')) select(svg, null); });
+      const listEl = $('#euStudyList', P); listEl.innerHTML = COUNTRIES.map(s => `<div class="srow"><div class="sf"><span class="eu-flag" data-s="${s.id}">${FLAGS[s.id]}</span></div><div class="st" role="button" tabindex="0" data-id="${s.id}" title="Show on the map"><b>${esc(s.name)}</b><span>${esc(s.capital)}</span></div>${ctx.sayButton(s.name + '. The capital is ' + s.capital + '.', 'Hear ' + s.name)}</div>`).join('');
+      $$('.st', listEl).forEach(el => { const go = () => { select(svg, el.dataset.id); svg._focus(el.dataset.id); }; el.addEventListener('click', go); el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
     }
   };
 
@@ -257,7 +291,7 @@
         if (DR.placed.has(target)) { setMsg(BYID[target].name + ' is already placed.'); return; }
         const chip = $(`#tray .chip[data-id="${id}"]`, P), path = DR.svg._paths[target];
         if (id === target) {
-          DR.placed.add(id); chip.remove(); DR.sel = null; paint(id, true); addLabel(DR.svg, id); ctx.credit(); ctx.sfx.good(); flash(path, 'flash-good');
+          DR.placed.add(id); chip.remove(); DR.sel = null; paint(id, true); addLabel(DR.svg, id); openAWhile(DR.svg, id); ctx.credit(); ctx.sfx.good(); flash(path, 'flash-good');
           setMsg('Yes! That is ' + BYID[id].name + '.', 'good'); score();
           if (DR.placed.size === N) { ctx.result(Math.max(0, N - DR.miss), N); ctx.sfx.win(); setMsg(DR.miss === 0 ? `Perfect! All ${N} countries with no misses!` : `Done! All ${N} placed with ${DR.miss} miss${DR.miss === 1 ? '' : 'es'}.`, 'good'); }
         } else {

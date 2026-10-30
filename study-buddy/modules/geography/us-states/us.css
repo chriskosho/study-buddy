@@ -89,3 +89,8 @@ html.sb-dark{--map-edge:#e9e4d6;--map-sea-edge:#3b6074;--map-ctx:#33423f;--map-c
   .scorebar{gap:8px}.stat{min-width:0;flex:1 1 0;padding:5px 10px}.stat b{font-size:20px}.stat span{font-size:10.5px;letter-spacing:.6px}.scorebar .seg{flex:1 1 100%}
   .prompt{font-size:22px;margin:2px 0 8px}
 }
+/* small-place labels: a tapped place is outlined and its short code opens into the name */
+.cpath.sel{stroke:var(--navy-ink);stroke-width:2.6}
+.lbl-open{stroke-width:3.6px}
+.srow .st{cursor:pointer;border-radius:8px}
+.srow .st:focus-visible{outline:2px solid var(--navy-ink);outline-offset:2px}

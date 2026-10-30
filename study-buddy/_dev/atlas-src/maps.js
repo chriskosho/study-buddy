@@ -1,11 +1,16 @@
 /* ---------- Study map (all names shown) ---------- */
+/* a tapped country (on the map or in the list) is outlined; South America always writes the full names, so nothing needs to open */
+function selectStudy(svg, id) { if (svg._sel && svg._paths[svg._sel]) svg._paths[svg._sel].classList.remove('sel'); svg._sel = id; if (id && svg._paths[id]) svg._paths[id].classList.add('sel'); }
 inits.study = () => {
   const svg = $('#mapStudy'); buildMap(svg); makeZoom(svg);
   Object.entries(svg._paths).forEach(([id, p]) => {
     addLabel(svg, id);
-    p.addEventListener('click', () => { if (clickOK(svg)) { speak(id, true); p.classList.remove('flash-good'); void p.getBBox(); p.classList.add('flash-good'); } });
+    p.addEventListener('click', () => { if (clickOK(svg)) { speak(id, true); p.classList.remove('flash-good'); void p.getBBox(); p.classList.add('flash-good'); selectStudy(svg, id); } });
+    p.addEventListener('focus', () => selectStudy(svg, id));
   });
-  $('#studyList').innerHTML = C.map(c => `<div class="srow"><div class="sf">${flagSVG(c.id)}</div><div class="st"><b>${c.name}</b><span>Capital: ${c.capital}</span></div>${spkBtn(c.id)}</div>`).join('');
+  svg.addEventListener('click', e => { if (!e.target.closest('.cpath')) selectStudy(svg, null); });
+  $('#studyList').innerHTML = C.map(c => `<div class="srow"><div class="sf">${flagSVG(c.id)}</div><div class="st" role="button" tabindex="0" data-id="${c.id}" title="Show on the map"><b>${c.name}</b><span>Capital: ${c.capital}</span></div>${spkBtn(c.id)}</div>`).join('');
+  $$('#studyList .st').forEach(el => { const go = () => { selectStudy(svg, el.dataset.id); svg._focus(el.dataset.id); }; el.addEventListener('click', go); el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
 };
 
 /* ---------- Map: drag the names ---------- */
