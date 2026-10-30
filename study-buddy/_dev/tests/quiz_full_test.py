@@ -21,7 +21,7 @@ Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{speak(u
 window.SpeechSynthesisUtterance=function(t){this.text=t};
 """
 
-MODS = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'science/planets', 'science/periodic-table',
+MODS = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'science/newton-laws', 'science/planets', 'science/periodic-table',
         'english/black-beauty', 'english/black-beauty-guide', 'english/phonograms', 'geography/us-states']
 RUN = "(() => { let n = 0; while (!document.querySelector('.result') && n++ < 1000) { document.querySelector('.opt').click(); const x = document.querySelector('[data-a=next]'); if (x) x.click(); } return !!document.querySelector('.result'); })()"
 

@@ -157,6 +157,23 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'newton-laws',
+      subject: 'science',
+      title: 'Newton and His Laws',
+      blurb: 'Lesson 5: Isaac Newton, his three laws of motion, inertia, and scale, proportion, and quantity.',
+      tags: ['science', 'physics', 'forces'],
+      path: 'modules/science/newton-laws/index.html',
+      storage: ['newton-laws'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The lesson in your book\'s words, Table 5.1, and facts from the review and Quiz 2.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary, the three laws, Table 5.1, and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the review and Quiz 2. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Which law it is, scale, proportion, and quantity, or patterns of motion. Mastered at 80%.' },
+        { id: 'type', name: 'Type the answer', difficulty: 'hard', blurb: 'Type the missing word from a sentence in the lesson. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Answer in complete sentences. Mastered at 4 of 5.' }
+      ]
+    },
+    {
       id: 'handwriting',
       subject: 'english',
       title: 'Handwriting',

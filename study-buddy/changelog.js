@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-29', title: 'New module: Newton and His Laws', items: [
+    'Science has a new module for Lesson 5: Isaac Newton, his three laws of motion, inertia, and scale, proportion, and quantity. The study guide keeps the book\'s words and has Table 5.1.',
+    'Tools: Flashcards, a Quiz with Random 10 or Full (every review and Quiz 2 question), Sort it, Type the answer, and Explain it.',
+    'Facts that came only from the review questions and Quiz 2 (not the lesson text) are marked, and the apple story has a Historians say note.' ] },
   { date: '2026-10-29', title: 'Full quiz for Roots and Ham Radio', items: [
     'Greek and Latin Roots: the Quiz has a Full version that asks every root at the chosen level (or every two-root word on Insane).',
     'Ham Radio Technician has a new Quiz tab. Pick a topic group and answer every question in it (Full), or 10 random ones. It is practice only; the Mock exam is still the scored test, and every question already has a flashcard.' ] },
