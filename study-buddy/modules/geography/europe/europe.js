@@ -41,6 +41,9 @@
   /* ---------- Quiz questions ---------- */
   const others = (c, f, n = 3, ok = () => true) => { const used = new Set([f(c)]), out = []; for (const o of shuffle(COUNTRIES)) { if (o === c || !ok(o)) continue; const v = f(o); if (!used.has(v)) { used.add(v); out.push(v); if (out.length === n) break; } } return out; };
   const langCount = {}; COUNTRIES.forEach(c => c.langs.forEach(l => { langCount[l] = (langCount[l] || 0) + 1; }));
+  /* when too few other countries have a different language (all of Oceania speaks English, say), fill the choices from a general list of well-known languages */
+  const MORE_LANGS = ['Spanish', 'French', 'German', 'Arabic', 'Hindi', 'Mandarin Chinese', 'Portuguese', 'Russian', 'Japanese', 'Swahili', 'Turkish', 'Italian', 'Korean', 'Dutch', 'Greek', 'Polish', 'Thai', 'Vietnamese'];
+  const padLangs = (w, mine) => { const out = w.slice(); for (const l of shuffle(MORE_LANGS)) { if (out.length >= 3) break; if (!mine.has(l) && !out.includes(l)) out.push(l); } return out; };
   const Q = {
     capitals: (c, i) => (i % 2 && !giveaway(c))
       ? { q: `${c.capital} is the capital of which country?`, a: c.name, wrong: others(c, o => o.name), why: `${c.capital} is the capital of ${c.name}.` }
@@ -49,7 +52,7 @@
     languages: (c, i) => {
       const mine = new Set(c.langs);
       if (i % 2 && c.langs.length === 1 && langCount[c.langs[0]] === 1) return { q: `In which country is ${c.langs[0]} the main language?`, a: c.name, wrong: others(c, o => o.name, 3, o => !o.langs.some(l => mine.has(l))), why: `${c.name} speaks ${lang(c)}.` };
-      return { q: `What is the main language of ${c.name}?`, a: lang(c), wrong: others(c, lang, 3, o => !o.langs.some(l => mine.has(l))), why: `The main ${c.langs.length > 1 ? 'languages of ' + c.name + ' are ' : 'language of ' + c.name + ' is '}${lang(c)}.` };
+      return { q: `What is the main language of ${c.name}?`, a: lang(c), wrong: padLangs(others(c, lang, 3, o => !o.langs.some(l => mine.has(l))), mine), why: `The main ${c.langs.length > 1 ? 'languages of ' + c.name + ' are ' : 'language of ' + c.name + ' is '}${lang(c)}.` };
     }
   };
   const quizSet = (topic, n) => shuffle(COUNTRIES).slice(0, n).map((c, i) => { const t = topic === 'mixed' ? pick(Object.keys(Q)) : topic; return Q[t](c, i + (Math.random() < 0.5 ? 1 : 0)); });

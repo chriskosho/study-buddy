@@ -134,7 +134,7 @@ window.SB_REGISTRY = {
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Map shapes, capitals, flags, languages, and every quiz question. Practice only.' },
         { id: 'listen', name: 'Listen and tap', difficulty: 'medium', masterAt: 8, blurb: 'Hear a name, then tap the country. Mastered at 8 of 10 on the first try.' },
         { id: 'find', name: 'Find it', difficulty: 'medium', masterAt: 20, blurb: '60 seconds to find as many countries as you can. Mastered at 20 found.' },
-        { id: 'drag', name: 'Drag names', difficulty: 'medium', masterAt: 45, blurb: 'Drag each country name onto the map. Mastered with 5 misses or fewer.' },
+        { id: 'drag', name: 'Drag names', difficulty: 'medium', masterAt: 44, blurb: 'Drag each country name onto the map. Mastered with 5 misses or fewer.' },
         { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: 'Multiple choice on capitals, flags, or languages. Mastered at 80% on the Full quiz.' },
         { id: 'answer', name: 'Type the answer', difficulty: 'hard', blurb: 'Type capitals, country names, or languages. Two tries, a hint, and a Skip button. Mastered at 8 of 10.' }
       ]

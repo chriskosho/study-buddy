@@ -145,7 +145,7 @@ async def run_module(b, slug, p, want):
     first = d['dots'][0] if d['dots'] else d['outs'][0]
     check(await pg.locator('#mapStudy .lead-line').count() == len(d['outs']), T('Study map: every place with an out-label has its line'))
     name = d['by'][first]['name']
-    lab = lambda i: pg.evaluate("i => document.querySelector('#mapStudy .lbl[data-id=\"' + i + '\"]').textContent", i)
+    lab = lambda i: pg.evaluate("i => { const t = document.querySelector('#mapStudy .lbl[data-id=' + JSON.stringify(i) + ']'); const sp = [...t.querySelectorAll('tspan')]; return sp.length ? sp.map(x => x.textContent).join(' ') : t.textContent; }", i)
     check(await lab(first) == first.upper(), T(f'Study map: {first} starts with a short code'))
     await tap(pg, f'#mapStudy .cpath[data-id="{first}"]'); await pg.wait_for_timeout(100)
     check(await lab(first) == name, T(f'Study map: tapping {first} opens {name}'))

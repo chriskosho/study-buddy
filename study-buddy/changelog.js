@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-30', title: 'New modules: Africa, Asia, North America, and Oceania', items: [
+    'Geography has four new modules, one for each remaining continent that has countries: Africa (54 countries), Asia (49), North America with Central America and the Caribbean (23), and Oceania (14).',
+    'Each one works like Europe: a study guide with every flag, capital, and main language, a study map, flashcards, Listen and tap, Find it, Drag names, a Quiz with Full mode, and Type the answer.',
+    'Tiny island countries are drawn as dots with a short code that opens into the full name when you tap it or zoom in.' ] },
   { date: '2026-10-30', title: 'Small countries on the maps are easier to read', items: [
     'On the Europe and US States maps, a tiny place shows a short code. Tap the place, or tap its name in the list, and the code opens into the full name. Using the keyboard to move onto a place does the same.',
     'Zoom in once and every short code opens into the full name. Tapping a name in the list now shows that place on the map and zooms toward it if it is tiny.',
