@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
-  const G = window.DIVGEN, L = window.FRACLIB, esc = SB.esc, many = SBT.many, F = L.F;
+  const G = window.DIVGEN, L = window.FRACLIB, esc = SB.esc, shuffle = SBT.shuffle, many = SBT.many, F = L.F;
 
   const guide = {
     init(ctx) {
@@ -46,5 +46,15 @@
   const words = fa('Word problems', 'Sharing equally, and how many fit.' + FORM, G.wordsQ);
   const review = fa('Mixed review', 'Mixed numbers, fractions by fractions, and missing numbers.' + FORM, G.reviewQ);
 
-  SBM.start({ module: 'fractions-divide', defaults: {}, tools: { guide, share, fracwhole, fit, wholefrac, words, review } });
+  /* ---- Quiz (Random 10 or One of each) and Flashcards: one list of problem types serves both, so every type has a card ---- */
+  const TYPES = [
+    { name: "Fractions divided by whole numbers", gen: G.fracByWholeQ, cards: [["How do you divide a fraction by a whole number?", "Share it equally: multiply the bottom number by the whole number. 1/2 ÷ 3 = 1/6."]] },
+    { name: "Whole numbers divided by fractions", gen: G.wholeByFracQ, cards: [["How do you divide a whole number by a unit fraction?", "Multiply the whole number by the bottom number. 3 ÷ 1/4 = 3 × 4 = 12."]] },
+    { name: "Word problems", gen: G.wordsQ, cards: [["How do you decide how to divide in a word problem?", "Sharing equally means divide by the number of shares. How many fit means divide by the size of each part."]] }
+  ];
+  const cards = { init(ctx) { SBT.flashcards(ctx, { lead: 'Tap the card to flip it. These are the rules and facts the problems use.', build: () => shuffle(TYPES.flatMap(t => t.cards)).map(([q, a]) => ({
+    front: `<div class="tag">Rule or fact</div><div class="defline">${esc(q)}</div>`, back: `<div class="tag">Answer</div><div class="defline">${esc(a)}</div>${ctx.sayButton(q + ' ' + a, 'Hear it')}`, say: q })) }); } };
+  const quiz = { init(ctx) { SBT.answer(ctx, { title: 'Quiz', lead: 'One problem from each kind in this module. Random 10 mixes them up; One of each asks every kind once.' + FORM, kind: 'fraction', rounds: 10, fullLabel: 'One of each', full: () => TYPES.map(t => t.gen()), build: () => many(() => TYPES[Math.floor(Math.random() * TYPES.length)].gen()) }); } };
+
+  SBM.start({ module: 'fractions-divide', defaults: {}, tools: { guide, cards, share, fracwhole, fit, wholefrac, words, review, quiz } });
 })();

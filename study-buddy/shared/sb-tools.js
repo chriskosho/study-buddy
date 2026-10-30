@@ -243,10 +243,11 @@
       Q.qs = Q.mode === 'full' && opt.full ? shuffle(opt.full()) : (opt.keepOrder ? opt.build() : shuffle(opt.build())).slice(0, n);
       Q.i = 0; Q.score = 0; Q.missed = []; show();
     }
+    const head = t => headWith(t, modeBar());
     function modeBar() {
       if (!opt.full) return '';
       const nf = opt.full().length;
-      return `<div class="seg qmodes" role="group" aria-label="Quiz version"><button type="button" data-m="random" aria-pressed="${Q.mode === 'random'}">Random ${n}</button><button type="button" data-m="full" aria-pressed="${Q.mode === 'full'}">Full (${nf})</button></div>`;
+      return `<div class="seg qmodes" role="group" aria-label="Quiz version"><button type="button" data-m="random" aria-pressed="${Q.mode === 'random'}">Random ${n}</button><button type="button" data-m="full" aria-pressed="${Q.mode === 'full'}">${esc(opt.fullLabel || 'Full')} (${nf})</button></div>`;
     }
     function wireModes() {
       $$('.qmodes button', P).forEach(b => b.onclick = () => { if (Q.mode === b.dataset.m) return; Q.mode = b.dataset.m; start(); });
@@ -254,11 +255,11 @@
     function show() {
       if (Q.i >= Q.qs.length) {
         ctx.result(Q.score, Q.qs.length, Q.mode); ctx.sfx.win();
-        P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2>${modeBar()}<div class="result">${starsHTML(Q.score, Q.qs.length)}<p class="prompt">${Q.score} out of ${Q.qs.length}</p><p class="lead">${Q.score / Q.qs.length >= 0.9 ? 'Amazing! You really know this.' : Q.score / Q.qs.length >= 0.7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'}</p>${reviewHTML(ctx, Q.missed)}<button class="btn" data-a="again">Play again</button></div>`;
+        P.innerHTML = `${head(opt.title || 'Quiz')}<div class="result">${starsHTML(Q.score, Q.qs.length)}<p class="prompt">${Q.score} out of ${Q.qs.length}</p><p class="lead">${Q.score / Q.qs.length >= 0.9 ? 'Amazing! You really know this.' : Q.score / Q.qs.length >= 0.7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'}</p>${reviewHTML(ctx, Q.missed)}<button class="btn" data-a="again">Play again</button></div>`;
         wireModes(); $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
       const q = Q.qs[Q.i], opts = shuffle([q.a, ...shuffle(q.wrong).slice(0, 3)]); Q.answered = false;
-      P.innerHTML = `<h2>${esc(opt.title || 'Quiz')}</h2>${modeBar()}<p class="lead">${esc(opt.lead || 'Pick the best answer.')}</p>
+      P.innerHTML = `${head(opt.title || 'Quiz')}<p class="lead">${esc(opt.lead || 'Pick the best answer.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span class="hint">Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${Q.score}</span></div>
         <div class="qwrap"><div class="row qrow"><p class="qtext">${q.qh || esc(q.q)}</p>${ctx.sayButton(q.say || q.q, q.audio ? 'Hear the sound' : 'Hear the question', q.audio || '')}</div>${q.html || ''}
         <div class="opts">${opts.map((o, k) => `<button class="opt" data-v="${esc(o)}"><span class="optkey" aria-hidden="true">${k + 1}</span>${esc(o)}</button>`).join('')}</div>
@@ -296,6 +297,9 @@
     document.addEventListener('keydown', onKey);
     start();
   }
+
+  /* a tool heading; when the tool has a Full version the Random / Full switch sits on the same row, so the page stays short */
+  const headWith = (title, bar) => bar ? `<div class="qhead"><h2>${esc(title)}</h2>${bar}</div>` : `<h2>${esc(title)}</h2>`;
 
   /* one flashcard for each question of a Full quiz (question on the front, answer on the back), so everything the Full quiz asks has a card */
   function quizCards(ctx, items) {
@@ -387,25 +391,30 @@
     return `<details class="review"><summary>See the ${missed.length === 1 ? 'one' : missed.length} to practice</summary><ul>${missed.map(m => `<li>${m.pic ? `<img src="${m.pic}" alt="Your scratch pad work" class="revpic">` : ''}<span class="revq">${esc(m.q)}</span><span class="reva">Answer: <b>${m.fr ? stackText(m.a) : esc(m.a)}</b></span>${m.audio ? ctx.sayButton(String(m.a), 'Hear the sound again', m.audio) : m.say ? ctx.sayButton(m.say + '. The answer is ' + m.a + '.', 'Hear it') : ''}</li>`).join('')}</ul></details>`;
   }
   function answer(ctx, opt) {
-    const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', R = { list: [], i: 0, score: 0, tries: 0, hinted: false, missed: [] };
+    const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', R = { list: [], i: 0, score: 0, tries: 0, hinted: false, missed: [], mode: 'random' };
+    /* opt.full() returns every question (for math, one of each type): adds a Random / Full switch; Full counts for mastery */
+    const modeBar = () => opt.full ? `<div class="seg qmodes" role="group" aria-label="Quiz version"><button type="button" data-m="random" aria-pressed="${R.mode === 'random'}">Random ${n}</button><button type="button" data-m="full" aria-pressed="${R.mode === 'full'}">${esc(opt.fullLabel || 'Full')} (${opt.full().length})</button></div>` : '';
+    const head = t => headWith(t, modeBar());
+    const wireModes = () => $$('.qmodes button', P).forEach(b => b.onclick = () => { if (R.mode === b.dataset.m) return; R.mode = b.dataset.m; start(); });
     const real = () => R.list.filter(x => !x.practice), numNow = () => R.list.slice(0, R.i + 1).filter(x => !x.practice).length;   // practice questions (Try a similar one) do not count
     const check = (item, v) => judge(item, v, kind, opt);
     const shown = item => item.show || (kind === 'fraction' ? String(item.a) : kind === 'number' ? Number(item.a).toLocaleString('en-US', { maximumFractionDigits: 10 }) : [].concat(item.a)[0]);
-    function start() { R.list = opt.build().slice(0, n); R.i = 0; R.score = 0; R.missed = []; show(); }
+    function start() { R.list = R.mode === 'full' && opt.full ? shuffle(opt.full()) : opt.build().slice(0, n); R.i = 0; R.score = 0; R.missed = []; show(); }
     function show() {
       if (R.i >= R.list.length) {
         const total = real().length;
-        ctx.result(R.score, total); ctx.sfx.win();
-        P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><div class="result">${starsHTML(R.score, total)}<p class="prompt">${R.score} out of ${total}</p><p class="lead">${R.score / total >= 0.8 ? 'Excellent work!' : 'Good practice. Read the explanations, then try another round.'}</p>${reviewHTML(ctx, R.missed)}<button class="btn" data-a="again">Play again</button></div>`;
-        $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
+        ctx.result(R.score, total, R.mode); ctx.sfx.win();
+        P.innerHTML = `${head(opt.title || 'Type the answer')}<div class="result">${starsHTML(R.score, total)}<p class="prompt">${R.score} out of ${total}</p><p class="lead">${R.score / total >= 0.8 ? 'Excellent work!' : 'Good practice. Read the explanations, then try another round.'}</p>${reviewHTML(ctx, R.missed)}<button class="btn" data-a="again">Play again</button></div>`;
+        wireModes(); $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
       const item = R.list[R.i]; R.tries = 0; R.hinted = false; const tot = real().length;
-      P.innerHTML = `<h2>${esc(opt.title || 'Type the answer')}</h2><p class="lead">${esc(opt.lead || 'Type your answer, then press Check.')}</p>
+      P.innerHTML = `${head(opt.title || 'Type the answer')}<p class="lead">${esc(opt.lead || 'Type your answer, then press Check.')}</p>
         <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">${item.practice ? 'Practice: a similar one, no score' : `Question ${numNow()} of ${tot} &middot; Score ${R.score}`}</span></div>
         <div class="row qrow"><p class="qtext">${item.q}</p>${item.say ? ctx.sayButton(item.say, 'Hear it') : ''}</div>
         <form class="spellrow" autocomplete="off"><span class="spellbox">${kind === 'fraction' ? fracBox('Your answer') : `<input aria-label="Your answer" placeholder="Answer" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off" autocorrect="off"'} spellcheck="false">`}<button class="btn" type="submit">Check</button></span></form>
         <div class="err" role="alert"></div><p class="explain why"></p>
         <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}${kind !== 'text' && !item.practice ? '<button type="button" class="btn ghost" data-a="similar" hidden>Try a similar one</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
+      wireModes();
       addPad(ctx, () => plainText(item.q));
       const fb = kind === 'fraction' ? $('.fbox', P) : null; if (fb) wireFrac(P);
       const inp = fb ? { get value() { return fb.value; }, set value(x) { fb.value = x; }, classList: fb.classList, focus() { $(item.form === 'mixed' ? '.fx-w' : '.fx-n', fb).focus(); }, set disabled(x) { $$('input', fb).forEach(i => { i.disabled = x; }); }, set oninput(f) { fb.addEventListener('input', f); } } : $('input', P);

@@ -295,3 +295,10 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - `flashcard_rule_test.py` checks the rule in the browser: it reads the Full quiz and every flashcard deck, and fails if a Full answer's text is on no card. Modules listed in `COVERED` must pass; run it with `--report` to list gaps in the others. Add a module to `COVERED` when its cards are complete.
 - Covered so far: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table, Black Beauty (story and guide), Phonograms, US States. Not covered: Greek and Latin Roots, South America and Ham Radio (no Full quiz yet) and the math modules.
 - Weather also has picture decks (cloud types, weather tools), a practice-test facts deck, and a diagrams deck (`cloudSVG`, `toolSVG` in art.js). Punic Wars has a Places on the map deck (`mapSVG({only})`).
+
+## 29. Math Quiz and Flashcards (October 2026)
+- Each math module's `frac.js` (`pv.js` for Place Value) has a `TYPES` list: one entry per kind of problem, with its generator (`gen`) and the rule or fact cards (`cards`) for it. The new Quiz tab and the new Flashcards tab are both built from that list, so every kind of problem in the Full quiz has a card.
+- Quiz (`SBT.answer`, or `SBT.quiz` in Place Value) has Random 10 and **One of each** (`fullLabel`), which asks one problem of every type. Mastery uses the One of each result (`full: true` in the registry).
+- `SBT.answer` takes `full` and `fullLabel` like `SBT.quiz`. The Random / Full switch is `.qmodes` inside `.qhead` (sb.css): it floats at the right of the tool title on wide screens and sits above the question on phones.
+- The picture-model quizzes (area model, bars) are separate MC tools and are not in One of each.
+- The generators `placeValueQ(type)` and `decimalQ(type)` accept a type so Full can ask each once.

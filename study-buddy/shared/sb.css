@@ -140,6 +140,8 @@ h3{margin:0 0 4px;font-size:21px}
 @media (min-width:761px){body.sbm header.top .settings{flex:0 0 auto}}
 /* title and instructions share one line on wide screens, like Explorer's Atlas */
 body.sbm section.panel>h2{display:inline-block;margin:0 16px 4px 0}
+.qhead{position:relative}.qhead h2,body.sbm section.panel>.qhead h2{display:inline-block;margin:0 16px 4px 0}.qmodes{position:absolute;right:0;top:0}.qmodes button{padding:2px 12px;font-size:14px;line-height:1.3}
+@media (max-width:700px){.qmodes{position:static;display:flex;margin:0 0 6px}.qmodes button{flex:1}}
 body.sbm section.panel>h2+.lead{display:inline}
 body.sbm section.panel>h2+.lead+*{margin-top:14px}
 

@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-29', title: 'Math: Quiz and Flashcards', items: [
+    'Each of the six math modules has a new Quiz tab with Random 10 or One of each (one problem of every kind in the module). Mastered needs a good score on One of each.',
+    'Each math module also has a Flashcards tab with the rules and facts the problems use, such as the area formulas, the unit facts, and how to divide fractions.',
+    'The Random / Full switch now sits on the same row as the tool title.' ] },
   { date: '2026-10-29', title: 'Flashcards for Black Beauty', items: [
     'Both Black Beauty modules have an Every quiz question flashcard deck, so everything the Full quiz asks has a card.' ] },
   { date: '2026-10-29', title: 'More flashcards for History and Science', items: [

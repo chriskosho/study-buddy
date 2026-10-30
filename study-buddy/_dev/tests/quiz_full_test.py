@@ -25,6 +25,28 @@ MODS = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'scienc
         'english/black-beauty', 'english/black-beauty-guide', 'english/phonograms', 'geography/us-states']
 RUN = "(() => { let n = 0; while (!document.querySelector('.result') && n++ < 1000) { document.querySelector('.opt').click(); const x = document.querySelector('[data-a=next]'); if (x) x.click(); } return !!document.querySelector('.result'); })()"
 
+
+MATH = ['place-value', 'fractions-add-sub', 'fractions-multiply', 'fractions-divide', 'measurement', 'volume']
+async def math_checks(pg, base):
+    for m in MATH:
+        await pg.set_viewport_size({'width': 1440, 'height': 900})
+        await pg.goto(base + f'modules/math/{m}/index.html?tool=quiz'); await pg.wait_for_selector('#tab-quiz .qmodes')
+        labels = await pg.locator('#tab-quiz .qmodes button').all_inner_texts()
+        check(len(labels) == 2 and labels[0].startswith('Random') and labels[1].startswith('One of each ('), f'math {m}: Random and One of each switch {labels}')
+        n = int(labels[1].split('(')[1].rstrip(')'))
+        check(n >= 3, f'math {m}: One of each has a problem for every kind ({n})')
+        await pg.click('#tab-quiz .qmodes button[data-m="full"]')
+        check(f'of {n}' in await pg.locator('#tab-quiz .roundbar .hint').inner_text(), f'math {m}: One of each runs {n} problems')
+        o = await pg.evaluate("document.fonts.ready.then(() => ({v: document.documentElement.scrollHeight - innerHeight, h: document.documentElement.scrollWidth - innerWidth}))")
+        check(o['v'] <= 0 and o['h'] <= 0, f'math {m}: quiz fits 1440x900 {o}')
+        await pg.set_viewport_size({'width': 360, 'height': 740}); await pg.wait_for_timeout(150)
+        o = await pg.evaluate("document.documentElement.scrollWidth - innerWidth")
+        check(o <= 0, f'math {m}: quiz has no sideways scroll at 360px ({o})')
+        await pg.set_viewport_size({'width': 1440, 'height': 900})
+        await pg.goto(base + f'modules/math/{m}/index.html?tool=cards'); await pg.wait_for_selector('#tab-cards .deckbar')
+        txt = await pg.locator('#tab-cards').inner_text()
+        check('rule or fact' in txt.lower(), f'math {m}: has a rules and facts flashcard deck')
+
 async def main():
     threading.Thread(target=serve, daemon=True).start()
     base = f'http://127.0.0.1:{PORT}/'
@@ -49,6 +71,7 @@ async def main():
             check(f'out of {n}' in await pg.locator('.result').inner_text(), f'{m}: result is out of {n}')
             rec = await pg.evaluate("SB.toolRecord('" + m.split('/')[1] + "', 'quiz')")
             check(rec is not None and rec['fullMax'] == n, f'{m}: Full best saved as its own record')
+        await math_checks(pg, base)
         # mastery follows the Full quiz
         r = await pg.evaluate("[SB.isMastered({kind:'quiz', full:true}, {best:10, max:10}), SB.isMastered({kind:'quiz', full:true}, {best:10, max:10, fullBest:8, fullMax:10}), SB.isMastered({kind:'quiz', full:true}, {best:10, max:10, fullBest:7, fullMax:10}), SB.isMastered({kind:'quiz'}, {best:8, max:10})]")
         check(r == [False, True, False, True], f'mastery uses the Full best for tools with a Full quiz {r}')

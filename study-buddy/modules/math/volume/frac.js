@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
-  const G = window.VOLGEN, L = window.FRACLIB, esc = SB.esc, many = SBT.many, F = L.F;
+  const G = window.VOLGEN, L = window.FRACLIB, esc = SB.esc, shuffle = SBT.shuffle, many = SBT.many, F = L.F;
 
   const guide = {
     init(ctx) {
@@ -42,5 +42,19 @@
   const compound = fa('Compound figures', 'Add two boxes, or take a piece away.' + FORM, G.compoundQ);
   const review = fa('Mixed review', 'A bit of everything.' + FORM, G.reviewQ);
 
-  SBM.start({ module: 'volume', defaults: {}, tools: { guide, cubes, stacks, formula, capacity, words, compare, compound, review } });
+  /* ---- Quiz (Random 10 or One of each) and Flashcards: one list of problem types serves both, so every type has a card ---- */
+  const TYPES = [
+    { name: "Count the cubes", gen: G.cubesQ, cards: [["How do you count the cubes in a box?", "Count the cubes in one layer, then multiply by the number of layers."]] },
+    { name: "Stacks of cubes", gen: G.stacksQ, cards: [["How do you find the volume of a set of stacks?", "Add up the cubes in every stack."]] },
+    { name: "Use the formula", gen: G.formulaQ, cards: [["What is the formula for the volume of a box?", "Volume = length × width × height. For a cube, edge × edge × edge."], ["How do you find a missing edge of a box?", "Divide the volume by the other measurements multiplied together."]] },
+    { name: "Volume and capacity", gen: G.capacityQ, cards: [["How do cubic centimeters, milliliters and liters connect?", "1 cm³ = 1 mL. 1 liter = 1,000 mL = 1,000 cm³. To change milliliters to liters, divide by 1,000."]] },
+    { name: "Word problems", gen: G.wordsQ, cards: [["How do you solve a volume word problem?", "Picture the box and find the measurements given. Multiply them to find a volume. Divide the volume by the other measurements to find a missing one."]] },
+    { name: "Compare volumes", gen: G.compareQ, cards: [["How do you find how much more one box holds than another?", "Find the volume of each box, then subtract the smaller from the bigger."]] },
+    { name: "Compound figures", gen: G.compoundQ, cards: [["How do you find the volume of a compound figure?", "Split it into boxes and add their volumes, or take a piece away from a bigger box."]] }
+  ];
+  const cards = { init(ctx) { SBT.flashcards(ctx, { lead: 'Tap the card to flip it. These are the rules and facts the problems use.', build: () => shuffle(TYPES.flatMap(t => t.cards)).map(([q, a]) => ({
+    front: `<div class="tag">Rule or fact</div><div class="defline">${esc(q)}</div>`, back: `<div class="tag">Answer</div><div class="defline">${esc(a)}</div>${ctx.sayButton(q + ' ' + a, 'Hear it')}`, say: q })) }); } };
+  const quiz = { init(ctx) { SBT.answer(ctx, { title: 'Quiz', lead: 'One problem from each kind in this module. Random 10 mixes them up; One of each asks every kind once.' + FORM, kind: 'fraction', rounds: 10, fullLabel: 'One of each', full: () => TYPES.map(t => t.gen()), build: () => many(() => TYPES[Math.floor(Math.random() * TYPES.length)].gen()) }); } };
+
+  SBM.start({ module: 'volume', defaults: {}, tools: { guide, cards, cubes, stacks, formula, capacity, words, compare, compound, review, quiz } });
 })();

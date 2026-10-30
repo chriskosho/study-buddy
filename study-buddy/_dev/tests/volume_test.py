@@ -44,7 +44,7 @@ async def main():
 
         await pg.goto(BASE + 'index.html#/home'); await pg.wait_for_selector('.grid')
         reg = await pg.evaluate("SB_REGISTRY.modules.filter(m => m.id === 'volume').map(m => m.subject + ':' + m.tools.map(t => t.id + '/' + t.difficulty).join(','))")
-        check(reg == ['math:guide/easy,cubes/easy,stacks/easy,formula/medium,capacity/medium,words/hard,compare/hard,compound/hard,review/insane'], f'registry entry {reg}')
+        check(reg == ['math:guide/easy,cards/easy,cubes/easy,stacks/easy,formula/medium,capacity/medium,words/hard,compare/hard,compound/hard,review/insane,quiz/hard'], f'registry entry {reg}')
 
         # ---- guide and helper ----
         await pg.goto(MOD + '?tool=guide'); await pg.wait_for_selector('#tab-guide .fgout')
