@@ -1,6 +1,9 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-29', title: 'Full quiz for Roots and Ham Radio', items: [
+    'Greek and Latin Roots: the Quiz has a Full version that asks every root at the chosen level (or every two-root word on Insane).',
+    'Ham Radio Technician has a new Quiz tab. Pick a topic group and answer every question in it (Full), or 10 random ones. It is practice only; the Mock exam is still the scored test, and every question already has a flashcard.' ] },
   { date: '2026-10-29', title: 'Math: Quiz and Flashcards', items: [
     'Each of the six math modules has a new Quiz tab with Random 10 or One of each (one problem of every kind in the module). Mastered needs a good score on One of each.',
     'Each math module also has a Flashcards tab with the rules and facts the problems use, such as the area formulas, the unit facts, and how to divide fractions.',

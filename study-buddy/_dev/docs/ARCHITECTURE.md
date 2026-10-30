@@ -288,12 +288,12 @@ One module per chapter, in order, each from the IXL skill plan lessons. They sha
 - Rule: every question on a Full quiz must have a flashcard (either direction counts). Flashcard coverage is being completed module by module.
 - `ctx.result(score, max, mode)` passes the mode to `SB.result`, which keeps a Full result as its own best (`fullBest`, `fullMax` in the tool record, merged by `mergeProfile`).
 - Mastery: a registry tool with `full: true` is mastered by its Full best (`masterPct`, default 80%). Random sample rounds still count for Best and attempts but not for mastery. Tools with `masterAt` are unchanged.
-- Modules with a Full quiz so far: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table, Black Beauty (story and guide), Phonograms, US States (each topic, not Mixed). Test: `quiz_full_test.py`.
+- Modules with a Full quiz: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table, Black Beauty (story and guide), Phonograms, US States (each topic, not Mixed), Greek and Latin Roots (every root at the level; mastery stays per root), the six math modules (section 29), and Ham Radio (a practice-only Quiz: every question in one topic group). Not done: South America (its Quiz is hidden). Test: `quiz_full_test.py`.
 
 ## 28. Flashcards cover the Full quiz (October 2026)
 - `SBT.quizCards(ctx, items)` makes one card per quiz item (question on the front, answer on the back). A module's Flashcards tool adds an "Every quiz question" deck built from the same list as its Full quiz (`fullQ`), so nothing on the Full quiz lacks a card.
 - `flashcard_rule_test.py` checks the rule in the browser: it reads the Full quiz and every flashcard deck, and fails if a Full answer's text is on no card. Modules listed in `COVERED` must pass; run it with `--report` to list gaps in the others. Add a module to `COVERED` when its cards are complete.
-- Covered so far: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table, Black Beauty (story and guide), Phonograms, US States. Not covered: Greek and Latin Roots, South America and Ham Radio (no Full quiz yet) and the math modules.
+- Covered so far: Ancient Rome, Punic Wars, Weather, Planets, Periodic Table, Black Beauty (story and guide), Phonograms, US States. Roots and Ham Radio already had a card for everything, and math cards come from the same `TYPES` list as the math quiz (section 29), so the rule test does not read them.
 - Weather also has picture decks (cloud types, weather tools), a practice-test facts deck, and a diagrams deck (`cloudSVG`, `toolSVG` in art.js). Punic Wars has a Places on the map deck (`mapSVG({only})`).
 
 ## 29. Math Quiz and Flashcards (October 2026)

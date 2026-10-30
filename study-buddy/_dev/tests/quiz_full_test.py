@@ -47,6 +47,25 @@ async def math_checks(pg, base):
         txt = await pg.locator('#tab-cards').inner_text()
         check('rule or fact' in txt.lower(), f'math {m}: has a rules and facts flashcard deck')
 
+async def other_checks(pg, base):
+    # Greek and Latin Roots: every root at the level
+    await pg.goto(base + 'modules/roots/greek-latin-roots/index.html?tool=quiz'); await pg.wait_for_selector('#tab-quiz .qmodes')
+    labels = await pg.locator('#tab-quiz .qmodes button').all_inner_texts()
+    check(len(labels) == 2 and labels[1].startswith('Full ('), f'roots: Random and Full switch {labels}')
+    n = int(labels[1].split('(')[1].rstrip(')'))
+    nroots = await pg.evaluate("ROOTS.filter(r => r.level === 'easy').length")
+    check(n == nroots, f'roots: Full asks every root at the level ({n} of {nroots})')
+    # Ham Radio: Full is every question in the chosen group
+    await pg.goto(base + 'modules/other/ham-technician/index.html?tool=quiz'); await pg.wait_for_selector('#tab-quiz .hsel')
+    check(await pg.locator('#tab-quiz .qmodes').count() == 0, 'ham: no Full for every group at once')
+    gid = await pg.evaluate("HAM.GROUPS[0].id"); n = await pg.evaluate("HAM.Q.filter(q => q.g === HAM.GROUPS[0].id).length")
+    await pg.select_option('#tab-quiz .hsel', gid); await pg.wait_for_selector('#tab-quiz .qmodes')
+    labels = await pg.locator('#tab-quiz .qmodes button').all_inner_texts()
+    check(labels[1] == f'Full ({n})', f'ham: Full is every question in the group {labels}')
+    await pg.click('#tab-quiz .qmodes button[data-m="full"]')
+    check(await pg.evaluate(RUN), 'ham: Full finishes')
+    check(f'out of {n}' in await pg.locator('#tab-quiz .result').inner_text(), f'ham: result is out of {n}')
+
 async def main():
     threading.Thread(target=serve, daemon=True).start()
     base = f'http://127.0.0.1:{PORT}/'
@@ -72,6 +91,7 @@ async def main():
             rec = await pg.evaluate("SB.toolRecord('" + m.split('/')[1] + "', 'quiz')")
             check(rec is not None and rec['fullMax'] == n, f'{m}: Full best saved as its own record')
         await math_checks(pg, base)
+        await other_checks(pg, base)
         # mastery follows the Full quiz
         r = await pg.evaluate("[SB.isMastered({kind:'quiz', full:true}, {best:10, max:10}), SB.isMastered({kind:'quiz', full:true}, {best:10, max:10, fullBest:8, fullMax:10}), SB.isMastered({kind:'quiz', full:true}, {best:10, max:10, fullBest:7, fullMax:10}), SB.isMastered({kind:'quiz'}, {best:8, max:10})]")
         check(r == [False, True, False, True], f'mastery uses the Full best for tools with a Full quiz {r}')

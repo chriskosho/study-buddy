@@ -31,7 +31,7 @@ async def main():
         # ---- registry and hub ----
         await pg.goto(BASE + 'index.html#/home'); await pg.wait_for_selector('.grid')
         reg = await pg.evaluate("SB_REGISTRY.modules.filter(m => m.id === 'ham-technician').map(m => m.subject + ':' + m.tools.map(t => t.id + '/' + t.difficulty).join(','))")
-        check(reg == ['other:cards/easy,exam/hard'], f'registry entry {reg}')
+        check(reg == ['other:cards/easy,quiz/medium,exam/hard'], f'registry entry {reg}')
         check(await pg.evaluate("SB_REGISTRY.subjects.some(s => s.id === 'other' && s.name === 'Other')"), 'the Other subject exists')
         await pg.goto(BASE + 'index.html#/home/other'); await pg.wait_for_selector('.grid .mod, .grid .card')
         check('Ham Radio Technician' in await pg.inner_text('.grid'), 'Other lists the Ham Radio Technician module')

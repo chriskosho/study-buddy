@@ -236,5 +236,24 @@
     leave() { SB.stopSpeech(); }
   };
 
-  SBM.start({ module: 'ham-technician', defaults: { reveal: 'now' }, tools: { cards, exam } });
+  /* ===================== Quiz (practice by topic group) ===================== */
+  /* Random 10, or Full: every question in the chosen group. Practice only; the Mock exam is the scored test. */
+  const quizItem = q => ({ q: q.q, a: q.c[q.a], wrong: q.c.filter((_, i) => i !== q.a), why: q.x || ('The answer is: ' + q.c[q.a] + '.'), html: fig(q) });
+  const quiz = {
+    init(ctx) {
+      const P = ctx.panel, st = ctx.state;
+      P.innerHTML = `<div class="row hpick"><label class="hint" for="hq-grp">Questions from</label><select id="hq-grp" class="hsel"><option value="all">Every group (random)</option>${GROUPS.map(g => `<option value="${g.id}">${esc(gLabel(g))} (${Q.filter(q => q.g === g.id).length})</option>`).join('')}</select></div><div class="hq-body"></div>`;
+      const sel = $('#hq-grp', P), body = $('.hq-body', P), sub = Object.create(ctx, { panel: { value: body } });
+      function go() {
+        const gid = sel.value; st.quizGroup = gid; ctx.save();
+        const pool = gid === 'all' ? Q : Q.filter(q => q.g === gid);
+        body.innerHTML = '';
+        SBT.quiz(sub, { title: 'Quiz', lead: 'Pick the best answer. Practice only: the Mock exam is the scored test.', rounds: 10, fullLabel: 'Full', full: gid === 'all' ? null : () => pool.map(quizItem), build: () => SBT.shuffle(pool).slice(0, 10).map(quizItem) });
+      }
+      sel.value = GROUPS.some(g => g.id === st.quizGroup) ? st.quizGroup : 'all';
+      sel.onchange = go; go();
+    }
+  };
+
+  SBM.start({ module: 'ham-technician', defaults: { reveal: 'now' }, tools: { cards, quiz, exam } });
 })();

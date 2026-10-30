@@ -41,6 +41,7 @@ window.SB_REGISTRY = {
       storage: ['ham-technician'],
       tools: [
         { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Every question, one topic at a time. Jump to any section.' },
+        { id: 'quiz', name: 'Quiz', kind: 'study', difficulty: 'medium', blurb: 'Pick a topic group and answer every question in it (Full), or 10 random ones. Practice only.' },
         { id: 'exam', name: 'Mock exam', difficulty: 'hard', masterAt: 26, blurb: '35 random questions, one from each topic group. 26 right to pass.' }
       ]
     },
