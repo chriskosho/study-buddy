@@ -67,6 +67,8 @@ Meaning of color is never the only signal: right/wrong also use text, and select
 
 **Buttons.** `.btn` (navy, primary), `.btn.good` (green, "I knew it"), `.btn.warn` (white with coral border, "Still learning" / "Start over"), `.btn.ghost` (white with line border, "Skip" / "Hint").
 
+**Random / Full switch (`.qmodes`).** On a Quiz tab with a Full version, a small segmented control (Random 10, Full (N), or One of each (N) for math) sits at the right of the tool title (`.qhead`), so it adds no height; on phones it sits above the question. Every Full quiz question must have a flashcard (`flashcard_rule_test.py`).
+
 **Segmented control (`.seg`).** Joined buttons in a rounded frame; the active one is teal with white text, driven by `aria-pressed="true"`.
 
 **Flashcard.** 3D flip (`.face` with `backface-visibility: hidden`), landscape ~5:4, sized with `calc(100vh - 420px)` so the buttons stay on screen. Front shows the question; back shows the answer, flag, and a speaker button. Flip duration 520ms (`FLIP_MS`). The card always turns back to the front before the next card appears.
