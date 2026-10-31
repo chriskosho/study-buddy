@@ -152,7 +152,7 @@
         const c = $('#khCaps', P); c.textContent = 'Capitals: ' + (st.hunt.caps ? 'on' : 'off'); c.setAttribute('aria-pressed', !!st.hunt.caps);
       }
       function start() {
-        clearTimeout(timer);
+        clearTimeout(timer); timer = null; hunt._resume = false;   // a new round must not carry on the old round's next letter
         const keys = (SETS.find(s => s.id === st.hunt.set) || SETS[0]).keys.split('');
         list = [];
         while (list.length < ROUND) { const k = keys[Math.floor(Math.random() * keys.length)]; if (k !== list[list.length - 1]) list.push(k); }
