@@ -116,7 +116,7 @@
       const j = e.key === 'ArrowRight' ? (i + 1) % bs.length : e.key === 'ArrowLeft' ? (i - 1 + bs.length) % bs.length : e.key === 'Home' ? 0 : e.key === 'End' ? bs.length - 1 : -1;
       if (j < 0) return; e.preventDefault(); bs[j].focus(); bs[j].click();
     });
-    $$('nav.tabs button').forEach(b => b.onclick = () => { const go = () => show(b.dataset.tab); if (window.SBPad && SBPad.isOpen() && b.dataset.tab !== current) SBPad.guard(go); else go(); });   // the scratch pad asks to save before a tool is left
+    $$('nav.tabs button').forEach(b => b.onclick = () => { const go = () => show(b.dataset.tab); if (window.SBPad && SBPad.isOpen() && b.dataset.tab !== current) SBPad.guard(go); else go(); });   // the notepad asks to save before a tool is left
 
     $('#sbReset').onclick = () => SB.requirePin('Enter the admin PIN to erase ' + kid.name + "'s " + mod.title + ' progress.', () => {
       if (current && cfg.tools[current].leave) cfg.tools[current].leave();

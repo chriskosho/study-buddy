@@ -19,7 +19,7 @@
      masterPct   mastered when best / max reaches this share (default 0.8)
 */
 window.SB_REGISTRY = {
-  /* The scratch pad button shows on question tools in these subjects (and in any module marked scratchpad: true). Add a subject id to turn it on there. */
+  /* The Notepad button (the scratch pad, renamed in November 2026; the setting keeps its old name) shows on question tools in these subjects (and in any module marked scratchpad: true). Add a subject id to turn it on there. */
   scratchpad: { subjects: ['math'] },
   subjects: [
     { id: 'english', name: 'English' },
@@ -806,6 +806,6 @@ window.SB_REGISTRY = {
   /* Utilities: handy tools that are not lessons, so they have no progress or difficulty. */
   utilities: [
     { id: 'calculator', title: 'Calculator', blurb: 'Follows the order of operations, with parentheses and a history. Shows remainders for division.', path: 'utilities/calculator/index.html' },
-    { id: 'scratchpad', title: 'Scratch pad', blurb: 'Draw, type, or work things out for any homework. Save notes to your profile or as a picture.', path: 'utilities/scratchpad/index.html' }
+    { id: 'scratchpad', title: 'Notepad', blurb: 'Type, draw, and add shapes for any homework or notes. Save notes to your profile, or download them as a PDF, Word document, text, or picture.', path: 'utilities/notepad/index.html' }
   ]
 };

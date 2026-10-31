@@ -1,4 +1,4 @@
-"""Scratch pad: the button (math question tools only), drawing tools, undo/redo, erase, paper, typing, saving (device, session, profile),
+"""Notepad (was the Scratch pad) beside math questions: the button (math question tools only), drawing tools, undo/redo, erase, paper, typing, saving (device, session, profile),
 the close prompt, the My notes page, backups, and layout (Playwright + Chromium).
 Run:  python3 study-buddy/_dev/tests/scratchpad_test.py"""
 import asyncio, http.server, threading, functools, os, sys, json
@@ -52,7 +52,7 @@ async def main():
         check(await pg.evaluate("JSON.stringify(SB_REGISTRY.scratchpad)") == '{"subjects":["math"]}', 'registry turns the pad on for math only')
         for tool, kind in (('models', 'multiple choice'), ('scale', 'sort')):
             await pg.goto(MUL + '?tool=' + tool); await pg.wait_for_selector(f'#tab-{tool} h2')
-            check(await pg.locator('#sbPad').is_visible(), f'math {kind} tool has the Scratch pad button')
+            check(await pg.locator('#sbPad').is_visible() and 'Notepad' in await pg.inner_text('#sbPad'), f'math {kind} tool has the Notepad button')
         await pg.goto(VOL + '?tool=cubes'); await pg.wait_for_selector('#tab-cubes .qtext')
         check(await pg.locator('#sbPad').is_visible(), 'math typed-answer tool has the button')
         await pg.goto(VOL + '?tool=guide'); await pg.wait_for_selector('#tab-guide h2')
@@ -74,7 +74,7 @@ async def main():
         qtext = (await pg.inner_text('#tab-cubes .qtext')).replace('\n', ' ')
         await open_pad(pg, 'cubes')
         st = await state(pg)
-        check(st['tool'] == 'pen' and st['paper'] == 'blank' and not st['dirty'], f'opens as a blank page with the pen {st["tool"]}')
+        check(st['tool'] == 'pen' and st['mode'] == 'draw' and st['paper'] == 'blank' and not st['dirty'], f'beside a math question it opens as a blank page, ready to draw with the pen {st["mode"]} {st["tool"]}')
         check(len(st['question']) > 10 and st['question'][:15] in qtext.replace('  ', ' ')[:200] or len(st['question']) > 10, f'pad holds the question {st["question"][:50]!r}')
         box = await pg.locator('.sbp').bounding_box()
         check(box['x'] + box['width'] <= 1441 and box['width'] > 380, f'pad is docked at the right ({box})')
@@ -107,11 +107,11 @@ async def main():
         check([i.get('t') for i in items] == ['pen'] + tools, f'strokes are recorded with their pen {[i.get("t") for i in items]}')
         await pg.click('.sbp [data-c="#d23b2a"]'); await pg.click('.sbp [data-tool="pen"]'); await stroke(pg, [(300, 300), (360, 340)], steps=4)
         check((await state(pg))['items'][-1]['c'] == '#d23b2a', 'color change applies to the next stroke')
-        await pg.fill('.sbp input[type=range]', '14'); await pg.click('.sbp [data-tool="pen"]'); await stroke(pg, [(300, 380), (360, 380)], steps=3)
+        await pg.fill('.sbp [data-r="pen"]', '14'); await pg.click('.sbp [data-tool="pen"]'); await stroke(pg, [(300, 380), (360, 380)], steps=3)
         its = (await state(pg))['items']; check(its[-1]['w'] > its[-2]['w'], 'size slider makes a wider line')
 
         # ---- eraser: rub out and whole line ----
-        await pg.click('.sbp [data-tool="eraser"]'); check(await pg.locator('.sbp-seg').is_visible(), 'eraser shows its two modes')
+        await pg.click('.sbp [data-tool="eraser"]'); check(await pg.locator('.sbp [data-er-seg]').is_visible(), 'eraser shows its two modes')
         cnt = len((await state(pg))['items']); before = await ink(pg)
         await stroke(pg, [(30, 40), (280, 130)], steps=12)
         after = await ink(pg); check(after < before, 'rub-out eraser removes ink')
@@ -123,25 +123,25 @@ async def main():
 
         # ---- paper: lines and graph (exclusive), not in the ink ----
         await pg.click('.sbp [data-paper="lines"]'); check((await state(pg))['paper'] == 'lines', 'lines on')
-        check('lines' in await pg.get_attribute('.sbp-stage', 'class'), 'stage shows lines')
+        check('lines' in await pg.get_attribute('.sbp-sheet', 'class'), 'the page shows lines')
         await pg.click('.sbp [data-paper="graph"]'); st = await state(pg)
         check(st['paper'] == 'graph' and await pg.get_attribute('.sbp [data-paper="lines"]', 'aria-pressed') == 'false', 'graph turns lines off')
         pxg = await ink(pg); await pg.click('.sbp [data-paper="graph"]'); check((await state(pg))['paper'] == 'blank', 'graph toggles off')
         check(await ink(pg) == pxg, 'paper is not part of the drawing')
 
-        # ---- typing ----
-        await pg.click('.sbp [data-tool="text"]'); await pg.wait_for_selector('.sbp-ta')
-        check(await pg.evaluate("document.activeElement.classList.contains('sbp-ta')"), 'the Type tool focuses a text box so the keyboard works at once')
-        await pg.keyboard.type('3 x 4 = 12'); await pg.keyboard.press('Enter'); await pg.keyboard.type('check: 12 / 4'); await pg.keyboard.press('Escape')
-        its = (await state(pg))['items']; tx = [i for i in its if i['k'] == 't']
-        check(len(tx) == 1 and tx[0]['t'] == '3 x 4 = 12\ncheck: 12 / 4', f'typed notes become a text item {tx}')
-        check(await pg.locator('.sbp').count() == 1, 'Escape finished the text and left the pad open')
-        box = await pg.locator('.sbp-ink').bounding_box(); await pg.mouse.click(box['x'] + 200, box['y'] + 420); await pg.wait_for_selector('.sbp-ta')
-        await pg.keyboard.type('here too'); await pg.click('.sbp [data-tool="pen"]')
-        check(len([i for i in (await state(pg))['items'] if i['k'] == 't']) == 2, 'clicking the page places text there; picking another tool finishes it')
-        await pg.click('.sbp [data-tool="text"]'); await pg.keyboard.press('Escape')   # an empty box adds nothing
-        check(len([i for i in (await state(pg))['items'] if i['k'] == 't']) == 2, 'an empty text box adds nothing')
-        await pg.click('.sbp [data-tool="pen"]')
+        # ---- typing (Type: the keyboard writes across the whole page, under the drawing) ----
+        n_items = len((await state(pg))['items'])
+        await pg.click('.sbp [data-mode="type"]')
+        check(await pg.evaluate("document.activeElement.classList.contains('sbp-ed')"), 'Type puts the cursor in the page so the keyboard works at once')
+        await pg.keyboard.type('3 x 4 = 12'); await pg.keyboard.press('Enter'); await pg.keyboard.type('check: 12 / 4')
+        st = await state(pg); lines_typed = [l for l in st['text'].split('\n') if l.strip()]
+        check(lines_typed == ['3 x 4 = 12', 'check: 12 / 4'] and len(st['items']) == n_items, f'typed lines go into the page, not the drawing {lines_typed}')
+        ew = await pg.evaluate("(() => { const e = document.querySelector('.sbp-ed'), cs = getComputedStyle(e); return [e.querySelector('p').getBoundingClientRect().width, e.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)]; })()")
+        check(abs(ew[0] - ew[1]) < 2, f'a typed line spans the full width of the notepad {ew}')
+        await pg.keyboard.press('Control+z'); check('check' not in (await state(pg))['text'], 'Ctrl+Z undoes typing')
+        await pg.keyboard.press('Control+y'); check('check: 12 / 4' in (await state(pg))['text'], 'Ctrl+Y brings it back')
+        await pg.keyboard.press('Escape'); check(await pg.locator('.sbp').count() == 1, 'Escape leaves the text and keeps the notepad open')
+        await pg.click('.sbp [data-mode="draw"]'); await pg.click('.sbp [data-tool="pen"]')
 
         # ---- pen pressure and pen only ----
         await pg.evaluate("""() => { const c = document.querySelector('.sbp-ink'), r = c.getBoundingClientRect();
@@ -174,10 +174,12 @@ async def main():
         # ---- saving: device ----
         await pg.click('.sbp [data-a="save"]'); await pg.wait_for_selector('.sb-ov')
         check(await pg.locator('.sb-ov [data-k="profile"]').count() == 1, 'a named profile sees Save to my notes')
+        await pg.click('.sb-ov [data-k="device"]'); await pg.wait_for_selector('.sb-ov [data-k="png"]')
+        check(await pg.locator('.sb-ov [data-k="pdf"]').count() == 1 and await pg.locator('.sb-ov [data-k="docx"]').count() == 1 and await pg.locator('.sb-ov [data-k="txt"]').count() == 1, 'Download offers PDF, Word, text, and a picture')
         async with pg.expect_download() as dl:
-            await pg.click('.sb-ov [data-k="device"]')
+            await pg.click('.sb-ov [data-k="png"]')
         d = await dl.value; path = await d.path(); data = open(path, 'rb').read()
-        check(data[:8] == b'\x89PNG\r\n\x1a\n' and d.suggested_filename.startswith('scratch-note-') and d.suggested_filename.endswith('.png'), f'device save downloads a PNG ({d.suggested_filename}, {len(data)} bytes)')
+        check(data[:8] == b'\x89PNG\r\n\x1a\n' and d.suggested_filename.startswith('note-') and d.suggested_filename.endswith('.png'), f'device save downloads a PNG ({d.suggested_filename}, {len(data)} bytes)')
         check(not (await state(pg))['dirty'], 'after saving the pad counts as saved')
         keys = await pg.evaluate("Object.keys(localStorage).filter(k => k.includes('notes')).concat(Object.keys(sessionStorage).filter(k => k.includes('notes')))")
         check(keys == [], f'a device download stores nothing in the app {keys}')
@@ -185,8 +187,8 @@ async def main():
         w, h = struct.unpack('>II', data[16:24]); check(w >= 320 and h >= 220, f'picture size {w}x{h}')
         open('/tmp/pad_export.png', 'wb').write(data)
         # with the question on top, the picture is taller
-        await pg.click('.sbp [data-a="save"]'); await pg.wait_for_selector('.sb-ov'); await pg.uncheck('#sbpQ')
-        async with pg.expect_download() as dl2: await pg.click('.sb-ov [data-k="device"]')
+        await pg.click('.sbp [data-a="save"]'); await pg.wait_for_selector('.sb-ov'); await pg.click('.sb-ov [data-k="device"]'); await pg.wait_for_selector('#sbpDQ'); await pg.uncheck('#sbpDQ')
+        async with pg.expect_download() as dl2: await pg.click('.sb-ov [data-k="png"]')
         d2 = await dl2.value; data2 = open(await d2.path(), 'rb').read(); w2, h2 = struct.unpack('>II', data2[16:24])
         check(h2 < h and w2 == w, f'the question header is optional (with {h}px, without {h2}px)')
 
@@ -261,17 +263,10 @@ async def main():
         await pg.goto(MUL + '?tool=fraction'); await pg.wait_for_selector('#tab-fraction .qtext .frac'); await open_pad(pg, 'fraction')
         qq = (await state(pg))['question']; check('/' in qq and 'Question' not in qq and not any(c.isdigit() and d.isdigit() and False for c, d in zip(qq, qq[1:])), f'stacked fractions read as n/d in the pad ({qq[:70]!r})')
         await stroke(pg, [(40, 40), (120, 80), (200, 40)], steps=3); await pg.click('.sbp [data-a="undo"]')
-        await pg.click('.sbp [data-tool="text"]'); await pg.wait_for_selector('.sbp-ta'); await pg.keyboard.type('x')
-        await pg.evaluate("document.querySelector('.sbp [data-a=\"redo\"]').click()")      # redo while the text box is still open must not break the pad
-        st = await state(pg); check(isinstance(st['items'], list) and await pg.locator('.sbp').count() == 1, f'Redo with an open text box leaves a working pad ({len(st["items"])} items)')
-        await pg.click('.sbp [data-tool="pen"]'); await pg.click('.sbp [data-a="clear"]'); await pg.click('.sb-ov [data-x="yes"]')
-        await pg.click('.sbp [data-tool="text"]'); await pg.wait_for_selector('.sbp-ta')
-        await pg.keyboard.type('x'); box = await pg.locator('.sbp-ink').bounding_box()
-        await pg.mouse.click(box['x'] + 100, box['y'] + 300); await pg.wait_for_timeout(120)
-        check(await pg.locator('.sbp-ta').count() == 1 and await pg.evaluate("document.activeElement.classList.contains('sbp-ta')"), 'clicking elsewhere with the Type tool opens a fresh, focused text box (the old blur does not close it)')
-        await pg.keyboard.type('this is a long sentence that has to wrap when it is saved because the text box is narrow, and wrap it must')
-        await pg.click('.sbp [data-tool="pen"]'); tx = [i for i in (await state(pg))['items'] if i['k'] == 't']
-        check(len(tx) == 2 and '\n' in tx[1]['t'], f'a long typed line is wrapped to the box width when it is saved {tx[1]["t"][:60]!r}')
+        await pg.click('.sbp [data-mode="type"]'); await pg.keyboard.type('x')
+        await pg.evaluate("document.querySelector('.sbp [data-a=\"redo\"]').click()")      # redo right after typing must not break the notepad
+        st = await state(pg); check(isinstance(st['items'], list) and await pg.locator('.sbp').count() == 1, f'Redo right after typing leaves a working notepad ({len(st["items"])} items)')
+        await pg.keyboard.type('y'); check('y' in (await state(pg))['text'], 'and typing still works')
         await close_clean(pg)
         # hand-edited or damaged saved notes cannot hang or break the page
         await pg.evaluate("""(() => { localStorage.setItem('studybuddy.v1.notes.k1', JSON.stringify([
@@ -312,7 +307,7 @@ async def main():
         rx = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block'); await rx.add_init_script(INIT)
         rp = await rx.new_page(); rp.on('pageerror', lambda e: errors.append(str(e))); rp.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
         await rp.goto(BASE + 'index.html#/home'); await rp.wait_for_selector('.grid')
-        check(not await rp.evaluate("!!window.SBPad"), 'the hub does not load the scratch pad code until it is needed')
+        check(not await rp.evaluate("!!window.SBPad"), 'the hub does not load the notepad code until it is needed')
         await rp.goto(VOL + '?tool=cubes'); await rp.wait_for_selector('#sbPad'); await rp.click('#sbPad'); await rp.wait_for_selector('.sbp')
         await rp.evaluate("""() => { const c = document.querySelector('.sbp-ink'), r = c.getBoundingClientRect();
           const ev = (t, x, y, ty, id) => c.dispatchEvent(new PointerEvent(t, { bubbles: true, cancelable: true, pointerId: id, pointerType: ty, pressure: .5, clientX: r.left + x, clientY: r.top + y, isPrimary: ty === 'touch', button: 0, buttons: t === 'pointerup' ? 0 : 1 }));
@@ -321,7 +316,7 @@ async def main():
           ev('pointermove', 340, 350, 'touch', 31); ev('pointerup', 340, 350, 'touch', 31);
           ev('pointerdown', 300, 100, 'touch', 33); ev('pointermove', 350, 120, 'touch', 33); ev('pointerup', 350, 120, 'touch', 33); }""")
         st = await state(rp)
-        check(len(st['items']) == 1 and st['items'][0]['p'][0] == 40, f'a resting palm does not block the pen: only the pen stroke is kept ({len(st["items"])} items)')
+        check(len(st['items']) == 1 and st['items'][0]['p'][1] < 100, f'a resting palm does not block the pen: only the pen stroke is kept ({len(st["items"])} items)')
         check(st['penOnly'], 'after the first pen touch, Pen only turns itself on')
         await rp.click('.sbp [data-a="close"]'); await rp.click('.sb-ov [data-k="profile"]'); await rp.wait_for_selector('.sbp', state='detached')
         await rp.click('#sbPad'); await rp.wait_for_selector('.sbp'); check((await state(rp))['penOnly'], 'Pen only stays on for the next pad this visit')
@@ -345,7 +340,7 @@ async def main():
         await close_clean(rp)
         # Back with unsaved writing
         await rp.goto(BASE + 'index.html#/home'); await rp.goto(BASE + 'index.html#/notes'); await rp.wait_for_selector('#notesBox .sbn')
-        await rp.click('#notesBox [data-a="open"]'); await rp.wait_for_selector('.sbp'); await stroke(rp, [(30, 30), (90, 90)], steps=3)
+        await rp.click('#notesBox [data-a="open"]'); await rp.wait_for_selector('.sbp'); await rp.click('.sbp [data-mode="draw"]'); await stroke(rp, [(30, 30), (90, 90)], steps=3)
         await rp.go_back(); await rp.wait_for_selector('.sb-ov'); await rp.click('.sb-ov [data-k="keep"]'); await rp.wait_for_timeout(200)
         check(rp.url.endswith('#/notes') and await rp.locator('.sbp').count() == 1, f'Keep working after Back returns to the page the pad was on ({rp.url[-12:]})')
         await close_clean(rp); await rx.close()

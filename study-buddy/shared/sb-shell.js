@@ -117,7 +117,7 @@
   /* ---------- search ---------- */
   const PAGES = [
     { title: 'Settings', blurb: 'Theme, font, text size, sound, read aloud, and the voice', href: PAGE('settings'), words: 'display dark mode dyslexic larger text volume voice update refresh latest reload' },
-    { title: 'My notes', blurb: 'Notes saved from the scratch pad', href: PAGE('notes'), words: 'scratch pad notebook saved drawings math work' },
+    { title: 'My notes', blurb: 'Notes saved from the notepad', href: PAGE('notes'), words: 'notepad scratch pad notebook saved drawings math work new note' },
     { title: 'Help', blurb: 'How to use Study Buddy', href: PAGE('help'), words: 'how to guide tutorial' },
     { title: 'FAQ', blurb: 'Common questions and answers', href: PAGE('faq'), words: 'questions questions answers' },
     { title: 'About', blurb: 'What Study Buddy is, and your privacy', href: PAGE('about'), words: 'privacy data credits' },
@@ -186,7 +186,7 @@
           <ul class="sbresults" id="sbResults" role="listbox" tabindex="-1" aria-label="Search results" hidden></ul>
         </div>
         ${kidChip()}
-        <a class="sbbtn" href="${PAGE('notes')}" aria-label="My notes" title="Notes saved from the scratch pad">${ICON.notes}<span class="lbl">Notes</span></a>
+        <a class="sbbtn" href="${PAGE('notes')}" aria-label="My notes" title="Notes saved from the notepad">${ICON.notes}<span class="lbl">Notes</span></a>
         <a class="sbbtn" href="${PAGE('settings')}" aria-label="Settings">${ICON.gear}<span class="lbl">Settings</span></a>
         <div class="sbmenu"><button type="button" class="sbbtn" id="sbHelpBtn" aria-haspopup="true" aria-expanded="false" aria-controls="sbHelpMenu" aria-label="Help menu">${ICON.help}<span class="lbl">Help</span></button>
           <ul class="sbmenu-list" id="sbHelpMenu" hidden><li><a href="${PAGE('help')}">Help</a></li><li><a href="${PAGE('faq')}">FAQ</a></li><li><a href="${PAGE('about')}">About</a></li></ul></div>

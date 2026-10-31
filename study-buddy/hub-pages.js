@@ -111,13 +111,16 @@
       ${sec('Using the keyboard', `<ul><li><b>Tab</b> moves between buttons. <b>Enter</b> or <b>Space</b> presses one.</li>
         <li>On the South America maps, Tab moves between countries and Enter picks one.</li>
         <li><b>/</b> opens search. <b>Escape</b> stops sound or closes a menu.</li></ul>`)}
-      ${sec('The scratch pad (math)', `<p>Math questions have a <b>Scratch pad</b> button. It opens a notepad beside the question for working out the problem with a pen, finger, mouse, or keyboard.</p>
-        <ul><li>Pick a pen, pencil, marker, highlighter, brush, or the eraser. Choose a color and size. <b>Lines</b> and <b>Graph</b> turn on notebook or graph paper. <b>Undo</b>, <b>Redo</b>, and <b>Erase all</b> are at the top.</li>
-        <li>Choose <b>Type</b> to use the keyboard. Press Escape when the line is done.</li>
-        <li>On a tablet with a pen, turn on <b>Pen only</b> so a resting hand does not draw.</li>
-        <li>When you close the pad with writing on it, it asks what to do: save to <b>My notes</b> (under your name), download a picture, or not save it. Guest, which has no name, can keep a note for this session only. Notes saved to your name are in <b>Notes</b> at the top of every page.</li>
-        <li>Close the pad and open it again on the same question and your writing is still there. A new question starts on a clean page. The <b>New note</b> button starts a fresh page, and asks first if the old one is not saved.</li>
-        <li>The pad is also in <a href="#/utilities">Utilities</a> as <b>Scratch pad</b>, with no question, for any homework.</li></ul>`)}
+      ${sec('The notepad', `<p>Math questions have a <b>Notepad</b> button. It opens a notepad beside the question for working out the problem. The notepad is also in <a href="#/utilities">Utilities</a> and on the <a href="#/notes">Notes</a> page (<b>New note</b>), for any homework or notes.</p>
+        <ul><li><b>Type</b> writes with the keyboard across the whole page. Pick a font (Handwriting is first) and a size, and use bold, italic, underline, colors, highlight, links, bulleted and numbered lists, and checklists. With <b>Lines</b> on, the words sit on the lines.</li>
+        <li><b>Draw</b> has a pen, pencil, marker, highlighter, brush, and eraser, with colors and sizes. On a tablet with a pen, turn on <b>Pen only</b> so a resting hand does not draw; then one finger moves the page. Two fingers always move the page.</li>
+        <li><b>Shapes</b> adds rectangles, rounded boxes, circles, triangles, stars, lines, and arrows. Drag to draw one, then drag it to move it or drag a corner to change its size. Choose a fill, an outline color and width, and a shadow. Delete removes the chosen shape.</li>
+        <li>Drawings and shapes stay beside the words they were drawn next to, even when you type more above them.</li>
+        <li><b>Undo</b>, <b>Redo</b>, and <b>Erase all</b> work for typing, drawing, and shapes. <b>Lines</b> and <b>Graph</b> change the paper.</li>
+        <li>On a computer, <b>Full screen</b> opens the notepad over the whole window. <b>Page</b> shows a centered page like a word processor, with marks where pages end; <b>Pageless</b> uses the full width.</li>
+        <li><b>Download</b> saves a PDF (looks like the page), a Word document (the words stay editable; drawings come as a picture at the end), plain text, or a picture.</li>
+        <li>When you close the notepad with writing on it, it asks what to do: save to <b>My notes</b> (under your name), download it, or not save it. Guest, which has no name, can keep a note for this session only. Notes saved to your name are in <b>Notes</b> at the top of every page.</li>
+        <li>Close the notepad and open it again on the same question and your writing is still there. A new question starts on a clean page. <b>New note</b> starts a fresh page, and asks first if the old one is not saved.</li></ul>`)}
       ${sec('Saving, backups, and other devices', `<p>Progress is saved in this browser on this device. An admin can save a backup file and load it on another device in the <a href="#/admin">admin area</a>, which reminds you when the last backup is two weeks old. "Load one student" brings back just one student from a backup.</p>`)}
       ${sec('Display options', `<p>Dark mode, the OpenDyslexic font, and larger text are in <a href="#/settings">Settings</a>. Each student keeps their own.</p>`)}
     </section>`;
@@ -133,7 +136,7 @@
       ${sec('Why don\'t flashcards give a score or streak?', '<p>Flashcards are for practice. Credit comes from tools that check answers, like quizzes and sorting, so a score means something.</p>')}
       ${sec('The voice sounds robotic. Can I change it?', '<p>Yes. Open <a href="#/settings">Settings</a> and pick a Voice, then press Preview. Voices come from your device and browser, so a phone and a laptop can differ. Edge and Chrome often have more natural ones.</p>')}
       ${sec('How do I stop a sound that is playing?', '<p>Press the speaker button again, or press Escape. Turning Sound or Read aloud off also stops it.</p>')}
-      ${sec('Where do scratch pad notes go?', '<p>Nowhere unless you choose. A picture you save to the device downloads like any file. "My notes" are kept in this browser under that student\'s name (not for the Guest profile), and are included in an admin backup. Guest can keep a note "for this session"; it is gone when the browser tab closes. Nothing is uploaded.</p>')}
+      ${sec('Where do notepad notes go?', '<p>Nowhere unless you choose. A file you download (PDF, Word, text, or picture) goes to the device like any download. "My notes" are kept in this browser under that student\'s name (not for the Guest profile), and are included in an admin backup. Guest can keep a note "for this session"; it is gone when the browser tab closes. Nothing is uploaded.</p>')}
       ${sec('Can several students use it?', '<p>Yes. An admin adds students in the admin area. Each student has their own progress and settings.</p>')}
       ${sec('Does it work without internet?', '<p>After the first visit, most of it works offline. Wikipedia links in the study guides need internet.</p>')}
       ${sec('How do I move to a new device?', '<p>In the admin area, save a backup on the old device and load it on the new one. A backup contains the admin PIN, so keep the file private.</p>')}
@@ -176,20 +179,25 @@
       <p><a href="#/about">Back to About</a></p></section>`;
   }
 
-  /* ---------- My notes (saved from the scratch pad) ---------- */
+  /* ---------- My notes (saved from the notepad) ---------- */
   function notes(app, kid) {
     document.title = 'My notes · Study Buddy';
     app.innerHTML = top('My notes', 'for ' + esc(kid.name)) + `<section class="panel setpanel">
-      <p class="lead">${SB.isGuest(kid) ? 'Notes you keep from the scratch pad for this session are here. Add your name at the top to save notes to your profile.' : 'Notes you saved from the scratch pad. They stay on this device, under ' + esc(kid.name) + "'s profile. Open one to keep writing, or download it as a picture."}</p>
+      <div class="notes-top"><p class="lead">${SB.isGuest(kid) ? 'Notes you keep from the notepad for this session are here. Add your name at the top to save notes to your profile.' : 'Notes you saved from the notepad. They stay on this device, under ' + esc(kid.name) + "'s profile. Open one to keep writing, or download it."}</p>
+      <button type="button" class="btn" id="notesNew">New note</button></div>
       <div id="notesBox"></div></section>`;
-    const box = app.querySelector('#notesBox');
-    const draw = () => SBPad.renderList(box, { onOpen: (note, scope) => SBPad.open({ note, scope, source: note.mod, onClose: draw }) });
+    const box = app.querySelector('#notesBox'), nb = app.querySelector('#notesNew');
+    const draw = () => SBPad.renderList(box, { onOpen: (note, scope) => SBPad.open({ note, scope, source: note.mod || 'Notepad', onClose: draw, full: true }) });
+    nb.onclick = () => { const go = () => SBPad.open({ source: 'Notepad', opener: nb, onClose: draw, full: true }); if (window.SBPad) go(); else load(go); };
     if (window.SBPad) return draw();
-    box.innerHTML = '<p class="hint">Loading notes...</p>';                      // the scratch pad code loads only when it is needed
+    load(() => {});
+    function load(then) {
+    box.innerHTML = '<p class="hint">Loading notes...</p>';                      // the notepad code loads only when it is needed
     const sc = document.createElement('script'); sc.src = SB.BASE + 'shared/sb-scratchpad.js';
-    sc.onload = () => { if (box.isConnected) draw(); };
+    sc.onload = () => { if (box.isConnected) { draw(); then(); } };
     sc.onerror = () => { box.innerHTML = '<p class="hint">Notes could not load. Reload the page and try again.</p>'; };
     document.head.appendChild(sc);
+    }
   }
   window.HUBPAGES = { settings, help, faq, about, changelog, notes };
 })();
