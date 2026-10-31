@@ -5,10 +5,11 @@
          Key ids are the characters they type ('a', ';', ' ' for the space bar). zones: color each key by the finger that presses it.
      SBTY.typer(host, { text, wait, noBack, onStart(), onKey(info), onDone(result) })
          Shows the text and takes keystrokes for it. wait: a wrong key does not move on (the default). noBack: Backspace does nothing (Insane).
-         Returns { reset(text), active(), stop(), pos(), next() } and calls onDone({ chars, correct, presses, wrong, elapsed, wpm, acc }).
+         Returns { reset(text), active(), stop(), pos(), next(), started(), snapshot() } and calls onDone({ chars, correct, presses, wrong, elapsed, wpm, acc }).
      SBTY.keysFor(ch)     the keys for a character, with the other hand's Shift for capitals and symbols like ?
      SBTY.finger(k)        { hand: 'left'|'right'|'thumb', finger: 'pinky'|'ring'|'middle'|'pointer'|'thumb', name: 'left pointer finger' }
      SBTY.needsKeyboard()  true on a phone or tablet with no mouse (the tools show a notice there)
+     SBTY.shared(), SBTY.saveShared(fn), SBTY.addStats(chars)   the target speed, Fix mistakes, keyboard switch, and letter stats every typing module shares
 
    Keys are read from the whole page while a typing tool is on screen, so the student never has to click into a box first.
    Phones and tablets with only an on-screen keyboard use a hidden text box instead (tap the text to open the keyboard). */
@@ -212,12 +213,23 @@
       live: () => !stopped && host.isConnected && host.offsetParent !== null && (!opts.live || opts.live()),
       active() { handlerFor(api); },
       stop() { stopped = true; if (current === api) current = null; },
-      pos: () => pos, next: () => text[pos], started: () => !!t0
+      pos: () => pos, next: () => text[pos], started: () => !!t0,
+      /* the round so far, for timed tests that end before the text does */
+      snapshot: () => ({ chars: chars.slice(), correct: marks.slice(0, pos).filter(m => m === 'ok').length, presses, wrong, pos, text })
     };
     reset(opts.text || '');
     handlerFor(api);
     return api;
   }
 
-  window.SBTY = { keyboard, typer, finger, keyOf, keysFor, needsKeyboard, ZONE, take: handlerFor };
+  /* ---------- settings and letter stats shared by every typing module ----------
+     They live in Learn the Keys' saved state (the learn-keys module key): target speed, Fix mistakes, the keyboard switch, letter stats. */
+  const LK = () => SB.moduleKey('learn-keys');
+  const readLK = () => { try { return JSON.parse(localStorage.getItem(LK()) || '{}') || {}; } catch (e) { return {}; } };
+  function shared() { const s = readLK(); return { target: Number(s.target) || 15, wait: s.wait !== false, showKb: s.showKb !== false, stats: s.stats && typeof s.stats === 'object' ? s.stats : {}, unlocked: Number(s.unlocked) || (window.SBTG ? SBTG.START : 7) }; }
+  function saveShared(fn) { const s = readLK(); fn(s); try { localStorage.setItem(LK(), JSON.stringify(s)); } catch (e) {} }
+  /* adds a finished round's letters to the shared stats */
+  function addStats(chars) { if (window.SBTG) saveShared(s => { s.stats = SBTG.addRound(s.stats && typeof s.stats === 'object' ? s.stats : {}, chars.map(c => ({ ch: c.ch, ok: c.ok, ms: c.ms }))); }); }
+
+  window.SBTY = { keyboard, typer, finger, keyOf, keysFor, needsKeyboard, ZONE, take: handlerFor, shared, saveShared, addStats };
 })();

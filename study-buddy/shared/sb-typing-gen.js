@@ -22,6 +22,13 @@
      SBTG.pickText(list, n, rand)    n different items from a list (sentences, paragraphs), joined with spaces
      SBTG.stars(r, goal)             1 star for finishing, 2 for the accuracy goal, 3 for accuracy and speed
 
+   Tests (Speed and Accuracy Tests module):
+     SBTG.testText(level, minChars, rand)   'easy' common words, 'medium' sentences, 'hard' sentences with numbers, 'insane' paragraphs
+     SBTG.timedScore(keys, ms)       { wpm, raw, acc } for a timed test from its keystrokes [{ t, good }] and the length in ms
+     SBTG.speedBuckets(keys, ms, step)       words a minute in each step (default 5 seconds), for the chart
+     SBTG.consistency(buckets)       how steady the speed was, 0 to 1 (1 minus the spread compared with the average)
+     SBTG.cleanText(s)               pasted text made typeable: plain quotes and dashes, single spaces, keyboard characters only
+
    Speed: WPM counts 5 characters as a word. A key's speed is the time from the key before it. */
 (function (root) {
   'use strict';
@@ -281,11 +288,53 @@
     return s;
   }
 
+
+  /* ---------- tests ---------- */
+  function testText(level, minChars = 400, rand = Math.random) {
+    const X = textData(), parts = [];
+    let len = 0, guard = 0;
+    while (len < minChars && guard++ < 400) {
+      let t;
+      if (level === 'easy') t = commonWords(rand, 300, 12);
+      else if (level === 'hard') t = pickText(rand() < 0.5 ? (X.numbers || []) : (X.sentences || []), 1, rand);
+      else if (level === 'insane') t = pickText(X.paragraphs || [], 1, rand);
+      else t = pickText(X.sentences || [], 1, rand);
+      if (!t || parts.slice(-6).includes(t)) continue;
+      len += (parts.length ? 1 : 0) + t.length; parts.push(t);   // the joined length, spaces included
+    }
+    return parts.join(' ');
+  }
+  /* keys: [{ t (ms from the start), good, ch }] — net speed counts right keys, raw speed counts every key */
+  function timedScore(keys, ms) {
+    const min = ms / 60000, good = keys.filter(k => k.good).length;
+    return { wpm: min > 0 ? good / 5 / min : 0, raw: min > 0 ? keys.length / 5 / min : 0, acc: keys.length ? good / keys.length : 1 };
+  }
+  function speedBuckets(keys, ms, step = 5000) {
+    const n = Math.max(1, Math.ceil(ms / step)), b = Array(n).fill(0);
+    keys.forEach(k => { if (k.good) b[Math.min(n - 1, Math.floor(k.t / step))]++; });
+    return b.map((c, i) => { const len = Math.min(step, ms - i * step); return len > 0 ? c / 5 / (len / 60000) : 0; });
+  }
+  function consistency(b) {
+    const v = b.filter((x, i) => i < b.length - 1 || b.length === 1);   // the last step can be short, so it is left out
+    if (v.length < 2) return 1;
+    const mean = v.reduce((a, x) => a + x, 0) / v.length; if (!mean) return 0;
+    const sd = Math.sqrt(v.reduce((a, x) => a + (x - mean) * (x - mean), 0) / v.length);
+    return Math.max(0, Math.min(1, 1 - sd / mean));
+  }
+  function cleanText(s) {
+    return String(s || '')
+      .replace(/[\u2018\u2019\u201A\u2032]/g, "'").replace(/[\u201C\u201D\u201E\u2033]/g, '"')
+      .replace(/[\u2013\u2014\u2212]/g, '-').replace(/\u2026/g, '...').replace(/[\u00A0\t\r\n]+/g, ' ')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')      // é becomes e
+      .replace(/[^\x20-\x7e]/g, '').replace(/ {2,}/g, ' ').trim().slice(0, 2000);
+  }
+
   /* a small seeded random, for repeatable tests */
   function seeded(seed) { let a = seed >>> 0 || 1; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
   const api = { ORDER, START, WINDOW, MIN_SAMPLES, READY_ACC, SLOW_MS, WORDS, fnv, blocked, pseudoWord, realPool, lessonWords, addRound, keyStat, ready, confidence, focusKey, canUnlock, roundScore, seeded,
-    ROWS, rowDrill, numberDrill, capitalsDrill, punctDrill, commonWords, weakLetters, weakDrill, pickText, stars, CONTRACTIONS, HYPHENS };
+    ROWS, rowDrill, numberDrill, capitalsDrill, punctDrill, commonWords, weakLetters, weakDrill, pickText, stars, CONTRACTIONS, HYPHENS,
+    testText, timedScore, speedBuckets, consistency, cleanText };
   root.SBTG = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

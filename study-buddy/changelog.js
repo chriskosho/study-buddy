@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-31', title: 'New module: Speed and Accuracy Tests', items: [
+    'Typing has a third module, Speed and Accuracy Tests.',
+    'Speed test: 30 seconds, 1, 3, or 5 minutes, from Easy to Insane. It shows your speed, raw speed, accuracy, and how steady you were, with a chart of your speed during the test. Try the same text again to compare.',
+    'Accuracy test: type carefully, because only mistakes count. On Insane, the first mistake ends the test.',
+    'Your own text: paste spelling words or homework and practice typing it.' ] },
   { date: '2026-10-31', title: 'New module: Typing Drills', items: [
     'Typing has a second module, Typing Drills, for practicing one thing at a time.',
     'Rows (home, top, bottom, and number row), Common words, Capitals and punctuation, Weak keys (built from the letters you find hardest), Sentences, and Paragraphs (no Backspace, for experts).',

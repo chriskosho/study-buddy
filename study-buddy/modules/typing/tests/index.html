@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Speed and Accuracy Tests · Study Buddy</title>
+<meta name="theme-color" content="#2b4162">
+<link rel="icon" href="../../../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../../shared/sb.css">
+<link rel="stylesheet" href="../../../shared/sb-typing.css">
+<style>
+.tbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.tbar .row{gap:8px}
+.tclock{font:800 28px ui-monospace,Consolas,monospace;min-width:92px;text-align:center;padding:4px 14px}
+.tline{font-size:16px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;margin:0 0 10px}
+.tmsg{margin:8px 0 10px;min-height:26px}
+.tmsg:focus{outline:none}
+.tkb .sbkb{max-height:max(66px,calc(var(--vh,100vh) - var(--chrome) - 520px))}
+.tres{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;align-items:start}
+.ttiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ttiles div{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:8px 12px}
+.ttiles span{display:block;font-size:14px;color:var(--ink2)}
+.ttiles b{font-size:26px}
+.ttiles small{display:block;font-size:13px;color:var(--ink2)}
+.tchart{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:8px 10px 4px;position:relative}
+.tchart h3{font-size:16px;margin:0 0 2px}
+.tchart svg{display:block;width:100%;height:auto}
+.tchart .grid{stroke:var(--line);stroke-width:1}
+.tchart .ax{fill:var(--ink2);font:13px var(--font)}
+.tchart .ln{fill:none;stroke:var(--teal-ink);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.tchart .dot{fill:var(--teal-ink);stroke:var(--surface);stroke-width:2}
+.tchart .hit{fill:transparent}
+.tchart .cross{stroke:var(--ink2);stroke-width:1;stroke-dasharray:3 3}
+.ttip{position:absolute;pointer-events:none;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:4px 8px;font-size:14px;white-space:nowrap;transform:translate(-50%,-110%)}
+.tbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.sr{position:absolute;display:block;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}   /* display:block: a table ignores width and height */
+.tpaste textarea{width:100%;min-height:140px;border:2px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--surface);font:16px/1.45 var(--font);resize:vertical}
+.terr{color:var(--bad-ink);font-weight:700;min-height:22px;margin:6px 0}
+@media (max-width:900px){.tres{grid-template-columns:1fr}}
+@media (max-width:760px),(min-width:761px) and (max-height:520px){.tkb .sbkb{max-height:none}.ttiles b{font-size:22px}}
+</style>
+<script src="../../../shared/sb-core.js"></script>
+<script src="../../../shared/sb-shell.js"></script>
+<script src="../../../registry.js"></script>
+<script src="../../../shared/sb-module.js"></script>
+<script src="../../../shared/sb-typing-words.js"></script>
+<script src="../../../shared/sb-typing-text.js"></script>
+<script src="../../../shared/sb-typing-gen.js"></script>
+<script src="../../../shared/sb-typing.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="tests.js"></script>
+</body>
+</html>

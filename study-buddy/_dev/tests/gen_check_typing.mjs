@@ -174,6 +174,32 @@ for (let n = G.START; n <= 26; n++) {
   X.numbers.forEach(t => ok(/\d/.test(t), 'number sentences have digits: ' + t));
 }
 
+/* ---- tests ---- */
+{
+  const S = new Set(X.sentences), N = new Set(X.numbers), P = new Set(X.paragraphs), C = new Set(X.common);
+  for (let t = 0; t < 100; t++) {
+    const e = G.testText('easy', 500, rand);
+    ok(e.length >= 500 && e.split(' ').every(w => C.has(w === 'I' ? 'i' : w)), 'easy test text is common kid words');
+    const m = G.testText('medium', 700, rand);
+    ok(m.length >= 700 && X.sentences.some(x => m.startsWith(x)), 'medium test text is sentences: ' + m.slice(0, 70));
+    const h = G.testText('hard', 700, rand);
+    ok(h.length >= 700 && [...X.sentences, ...X.numbers].some(x => h.startsWith(x)), 'hard test text is sentences and number sentences');
+    const i = G.testText('insane', 300, rand);
+    ok(i.length >= 300 && X.paragraphs.some(x => i.startsWith(x)), 'insane test text is paragraphs');
+    const big = G.testText('medium', 3300, rand);
+    ok(big.length >= 3300, '5 minutes at 130 words a minute has enough text: ' + big.length);
+  }
+  const keys = []; for (let k = 0; k < 120; k++) keys.push({ t: k * 500, good: k % 10 !== 0 });
+  const sc = G.timedScore(keys, 60000);
+  ok(Math.abs(sc.wpm - 108 / 5) < 1e-9 && Math.abs(sc.raw - 24) < 1e-9 && Math.abs(sc.acc - 0.9) < 1e-9, 'timed score: speed, raw speed, accuracy');
+  const bk = G.speedBuckets(keys, 60000);
+  ok(bk.length === 12 && Math.abs(bk.reduce((a, x) => a + x, 0) / 12 - sc.wpm) < 1e-9, 'twelve 5-second steps that average to the speed');
+  ok(G.consistency([20, 20, 20, 20, 3]) === 1 && G.consistency([10, 30, 10, 30, 0]) === 0.5 && G.consistency([0, 0, 0]) === 0, 'steadiness ignores the short last step');
+  ok(G.speedBuckets([{ t: 1000, good: true }], 7000).length === 2, 'a test that ends early has a short last step');
+  ok(G.cleanText('“Hi” — it’s café…\n\n  ok \u{1F600}') === '"Hi" - it\'s cafe... ok', 'pasted text is cleaned: ' + G.cleanText('“Hi” — it’s café…\n\n  ok \u{1F600}'));
+  ok(G.cleanText('x'.repeat(5000)).length === 2000, 'pasted text is capped at 2,000 characters');
+}
+
 console.log(`typing: ${lessons} lessons checked, seed ${SEED}`);
 if (fails) { console.log(fails + ' FAILED (SEED=' + SEED + ')'); process.exit(1); }
 console.log('ALL PASSED');

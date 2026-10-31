@@ -70,7 +70,7 @@ async def main():
 
         # ---- home ----
         check('Hi, Joshua' in await pg.locator('h1').inner_text(), 'home greets Joshua')
-        check(await pg.locator('a.mod').count() == 38, 'thirty-eight module cards (Learn the Keys, Typing Drills, Multiplication and Division Facts, Fractions, Rounding and Place Value to 1,000, Telling Time and Elapsed Time, Area and Perimeter, Decimal Operations, Multi-Digit Multiplication and Long Division, The Coordinate Plane, Order of Operations, Volume of Solid Figures, Measurement and Area, Division of Fractions, Multiplication of Fractions, South America, US States, Parts of Speech, Ancient Rome, Handwriting, Place Value, Planets, Periodic Table, Black Beauty, Phonograms, Greek and Latin Roots, Ham Radio Technician, Add and Subtract Fractions, The Punic Wars, Weather, Newton and His Laws, Europe, Africa, Asia, North America, Oceania; the archived Black Beauty is not shown)')
+        check(await pg.locator('a.mod').count() == 39, 'thirty-nine module cards (Learn the Keys, Typing Drills, Speed and Accuracy Tests, Multiplication and Division Facts, Fractions, Rounding and Place Value to 1,000, Telling Time and Elapsed Time, Area and Perimeter, Decimal Operations, Multi-Digit Multiplication and Long Division, The Coordinate Plane, Order of Operations, Volume of Solid Figures, Measurement and Area, Division of Fractions, Multiplication of Fractions, South America, US States, Parts of Speech, Ancient Rome, Handwriting, Place Value, Planets, Periodic Table, Black Beauty, Phonograms, Greek and Latin Roots, Ham Radio Technician, Add and Subtract Fractions, The Punic Wars, Weather, Newton and His Laws, Europe, Africa, Asia, North America, Oceania; the archived Black Beauty is not shown)')
         check('Easy' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text() and 'Hard' in await pg.locator('a.mod[href="#/module/south-america"]').inner_text(), 'automatic difficulty range Easy to Hard')
         o = await overflow(pg); check(o['h'] <= 0, f'home: no sideways scroll (the All list may scroll as modules are added) {o}')
         await pg.screenshot(path=f'{OUT}/sb_home.png')
@@ -78,8 +78,8 @@ async def main():
         check(await pg.locator('a.mod').count() == 15, 'math filter shows the five 3rd grade modules, Decimal Operations, Multi-Digit Multiplication and Long Division, The Coordinate Plane, Order of Operations, Place Value and Zeros, the three fraction modules, Measurement and Area, and Volume')
         await pg.click('nav.tabs a:has-text("Geography")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 9")
         check(await pg.locator('a.mod').count() == 9, 'geography filter shows South America, US States, the five Europe-style continent modules, World, and Oceans')
-        await pg.click('nav.tabs a:has-text("Typing")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 2")
-        check(await pg.locator('a.mod').count() == 2 and 'Learn the Keys' in ' '.join(await pg.locator('a.mod').all_inner_texts()) and 'Typing Drills' in ' '.join(await pg.locator('a.mod').all_inner_texts()), 'typing filter shows Learn the Keys and Typing Drills')
+        await pg.click('nav.tabs a:has-text("Typing")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 3")
+        check(await pg.locator('a.mod').count() == 3 and 'Learn the Keys' in ' '.join(await pg.locator('a.mod').all_inner_texts()) and 'Typing Drills' in ' '.join(await pg.locator('a.mod').all_inner_texts()), 'typing filter shows Learn the Keys, Typing Drills, and Speed and Accuracy Tests')
         await pg.click('nav.tabs a:has-text("Geography")'); await pg.wait_for_function("document.querySelectorAll('a.mod').length === 9")
 
         # ---- module page ----

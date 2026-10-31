@@ -65,6 +65,20 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'typing-tests',
+      subject: 'typing',
+      title: 'Speed and Accuracy Tests',
+      blurb: 'Timed speed tests from 30 seconds to 5 minutes with a speed chart, accuracy tests where only mistakes count, and practice with your own text.',
+      tags: ['keyboarding'],
+      path: 'modules/typing/tests/index.html',
+      storage: ['typing-tests'],
+      tools: [
+        { id: 'speed', name: 'Speed test', difficulty: 'medium', masterAt: 20, blurb: '30 seconds, 1, 3, or 5 minutes, Easy to Insane. Shows speed, raw speed, accuracy, steadiness, and a chart. Mastered at 20 words a minute with 90% right on a test of 1 minute or more.' },
+        { id: 'accuracy', name: 'Accuracy test', difficulty: 'hard', masterPct: 0.97, blurb: 'Type carefully: only mistakes count. On Insane, the first mistake ends the test. Mastered at 97%.' },
+        { id: 'custom', name: 'Your own text', kind: 'study', difficulty: 'easy', blurb: 'Paste spelling words or homework and practice typing it. Practice only.' }
+      ]
+    },
+    {
       id: 'ham-technician',
       subject: 'other',
       title: 'Ham Radio Technician',
