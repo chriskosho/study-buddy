@@ -22,6 +22,14 @@
      SBTG.pickText(list, n, rand)    n different items from a list (sentences, paragraphs), joined with spaces
      SBTG.stars(r, goal)             1 star for finishing, 2 for the accuracy goal, 3 for accuracy and speed
 
+   Tests (Speed and Accuracy Tests module):
+     SBTG.testText(level, minChars, rand)   'easy' common words, 'medium' sentences, 'hard' sentences with numbers, 'insane' paragraphs
+     SBTG.timedScore(keys, ms)       { wpm, raw, acc } for a timed test from its keystrokes [{ t, good }] and the length in ms
+     SBTG.speedSteps(keys, ms, step)         the test in steps (default 5 seconds) with words a minute in each, for the chart
+     SBTG.speedBuckets(keys, ms, step)       just the speeds of those steps
+     SBTG.consistency(buckets)       how steady the speed was, 0 to 1 (1 minus the spread compared with the average)
+     SBTG.cleanText(s, max)             pasted text made typeable: plain quotes and dashes, single spaces, keyboard characters only
+
    Speed: WPM counts 5 characters as a word. A key's speed is the time from the key before it. */
 (function (root) {
   'use strict';
@@ -281,11 +289,67 @@
     return s;
   }
 
+
+  /* ---------- tests ---------- */
+  function testText(level, minChars = 400, rand = Math.random) {
+    const X = textData(), parts = [];
+    let len = 0, guard = 0;
+    while (len < minChars && guard++ < 400) {
+      let t;
+      if (level === 'easy') t = commonWords(rand, 300, 12);
+      else if (level === 'hard') t = pickText(rand() < 0.5 ? (X.numbers || []) : (X.sentences || []), 1, rand);
+      else if (level === 'insane') t = pickText(X.paragraphs || [], 1, rand);
+      else t = pickText(X.sentences || [], 1, rand);
+      if (!t || parts.slice(-6).includes(t)) continue;
+      len += (parts.length ? 1 : 0) + t.length; parts.push(t);   // the joined length, spaces included
+    }
+    return parts.join(' ');
+  }
+  /* keys: [{ t (ms from the start), good, ch }] — net speed counts right keys, raw speed counts every key */
+  /* keys at or after the end of the test (typed in the moment before the clock noticed) do not count.
+     presses: every key pressed, for raw speed (defaults to the keys given) */
+  function timedScore(keys, ms, presses) {
+    const k = keys.filter(x => x.t < ms), min = ms / 60000, good = k.filter(x => x.good).length, all = presses != null ? presses : k.length;
+    return { wpm: min > 0 ? good / 5 / min : 0, raw: min > 0 ? all / 5 / min : 0, acc: all ? good / all : 1 };
+  }
+  /* the test cut into steps (5 seconds by default): [{ from, to, wpm, full }]. A last step under 2 seconds joins the one before it,
+     so a test that ends just after a step does not show a false spike. */
+  function speedSteps(keys, ms, step = 5000) {
+    const n = Math.max(1, Math.ceil(ms / step)), c = Array(n).fill(0);
+    keys.forEach(k => { if (k.good && k.t < ms) c[Math.min(n - 1, Math.floor(k.t / step))]++; });
+    let out = c.map((x, i) => ({ from: i * step, to: Math.min(ms, (i + 1) * step), n: x }));
+    if (out.length > 1 && out[out.length - 1].to - out[out.length - 1].from < 2000) { const last = out.pop(); out[out.length - 1].to = last.to; out[out.length - 1].n += last.n; }
+    return out.map(x => ({ from: x.from, to: x.to, wpm: x.to > x.from ? x.n / 5 / ((x.to - x.from) / 60000) : 0, full: x.to - x.from >= step }));
+  }
+  const speedBuckets = (keys, ms, step = 5000) => speedSteps(keys, ms, step).map(x => x.wpm);
+  /* b: speeds, or steps from speedSteps (a step shorter than the others is left out) */
+  function consistency(b) {
+    const v = b.map(x => typeof x === 'object' ? (x.full || b.length === 1 ? x.wpm : null) : x).filter(x => x != null);
+    if (v.length < 2) return 1;
+    const mean = v.reduce((a, x) => a + x, 0) / v.length; if (!mean) return 0;
+    const sd = Math.sqrt(v.reduce((a, x) => a + (x - mean) * (x - mean), 0) / v.length);
+    return Math.max(0, Math.min(1, 1 - sd / mean));
+  }
+  const LETTERS = { '\u00df': 'ss', '\u00e6': 'ae', '\u00c6': 'Ae', '\u0153': 'oe', '\u0152': 'Oe', '\u00f8': 'o', '\u00d8': 'O', '\u0142': 'l', '\u0141': 'L', '\u0111': 'd', '\u0110': 'D', '\u00fe': 'th', '\u00f0': 'd' };
+  /* max: the longest text kept; it is cut at a space */
+  function cleanText(s, max = 2000) {
+    let t = String(s || '')
+      .replace(/[\u2018\u2019\u201A\u2032]/g, "'").replace(/[\u201C\u201D\u201E\u2033]/g, '"')
+      .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-').replace(/\u2026/g, '...')
+      .replace(/[\u00df\u00e6\u00c6\u0153\u0152\u00f8\u00d8\u0142\u0141\u0111\u0110\u00fe\u00f0]/g, c => LETTERS[c])
+      .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')     // é becomes e, the "fi" joined letter becomes f i
+      .replace(/[\s\u00a0\u2028\u2029]+/g, ' ')
+      .replace(/[^\x20-\x7e]/g, '').replace(/ {2,}/g, ' ').trim();
+    if (t.length > max) { t = t.slice(0, max + 1); const cut = t.lastIndexOf(' '); t = (cut > max * 0.8 ? t.slice(0, cut) : t.slice(0, max)).trim(); }
+    return t;
+  }
+
   /* a small seeded random, for repeatable tests */
   function seeded(seed) { let a = seed >>> 0 || 1; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
   const api = { ORDER, START, WINDOW, MIN_SAMPLES, READY_ACC, SLOW_MS, WORDS, fnv, blocked, pseudoWord, realPool, lessonWords, addRound, keyStat, ready, confidence, focusKey, canUnlock, roundScore, seeded,
-    ROWS, rowDrill, numberDrill, capitalsDrill, punctDrill, commonWords, weakLetters, weakDrill, pickText, stars, CONTRACTIONS, HYPHENS };
+    ROWS, rowDrill, numberDrill, capitalsDrill, punctDrill, commonWords, weakLetters, weakDrill, pickText, stars, CONTRACTIONS, HYPHENS,
+    testText, timedScore, speedSteps, speedBuckets, consistency, cleanText };
   root.SBTG = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

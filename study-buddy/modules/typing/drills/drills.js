@@ -13,10 +13,7 @@
   const GOAL_ACC = { easy: 0.90, medium: 0.93, hard: 0.95, insane: 0.97 };
 
   /* ---------- settings and stats shared with Learn the Keys ---------- */
-  const LK = () => SB.moduleKey('learn-keys');
-  const readLK = () => { try { return JSON.parse(localStorage.getItem(LK()) || '{}') || {}; } catch (e) { return {}; } };
-  function shared() { const s = readLK(); return { target: Number(s.target) || 15, wait: s.wait !== false, showKb: s.showKb !== false, stats: s.stats && typeof s.stats === 'object' ? s.stats : {}, unlocked: Number(s.unlocked) || G.START }; }
-  function saveShared(fn) { const s = readLK(); fn(s); try { localStorage.setItem(LK(), JSON.stringify(s)); } catch (e) {} }
+  const shared = SBTY.shared, saveShared = SBTY.saveShared;
 
   /* letters the student knows: the ones open in Learn the Keys, plus any typed at least 10 times in drills */
   function knownLetters(sh) {
@@ -89,7 +86,7 @@
         }
         function done(r) {
           const g = goal(), stars = G.stars(r, g), key = cfg.id + ':' + opt();
-          saveShared(s => { s.stats = G.addRound(s.stats && typeof s.stats === 'object' ? s.stats : {}, r.chars.map(c => ({ ch: c.ch, ok: c.ok, ms: c.ms }))); });
+          SBTY.addStats(r.chars);
           const b = st.best[key];
           if (!b || stars > b.stars || (stars === b.stars && r.wpm > b.wpm)) st.best[key] = { stars, wpm: Math.round(r.wpm * 10) / 10, acc: Math.round(r.acc * 1000) / 1000 };
           ctx.save();
