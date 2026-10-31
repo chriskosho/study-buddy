@@ -149,7 +149,7 @@
     }),
     paragraphs: drill({
       id: 'paragraphs',
-      lead: 'A whole paragraph, with no Backspace. Mistakes stay, so take your time.',
+      lead: 'A whole paragraph. Take your time.',   // the goal line already says there is no Backspace
       gen: () => G.pickText(X.paragraphs, 1), rows: () => 'full'
     }),
     weak: drill({

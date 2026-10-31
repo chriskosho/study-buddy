@@ -52,7 +52,8 @@ async def main():
             bad, small, fitted = [], [], []
             for mod, tools in TOOLS.items():
                 for t in tools:
-                    await pg.goto(base + mod + '/index.html?tool=' + t); await pg.wait_for_timeout(300)
+                    await pg.goto(base + mod + '/index.html?tool=' + t)
+                    await pg.evaluate("document.fonts.ready.then(() => true)"); await pg.wait_for_timeout(300)   # measure after the fonts (OpenDyslexic) have loaded
                     o = await overflow(pg)
                     if o['v'] > 0 or o['h'] > 0: bad.append(f'{mod}/{t} {o}')
                     kb = await pg.evaluate(KB)

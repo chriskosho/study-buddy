@@ -5,7 +5,7 @@ window.SB_CHANGELOG = [
     'Fixed: on many phones the keyboard did not open in the typing tools. Tap the words, or the new Show keyboard button, to type with the phone keyboard. Word Sprint and Falling Words work on phones too now.',
     'Ghost Race is now called Typing Race. You race a pacer that types at your best speed or a speed you pick.' ] },
   { date: '2026-10-31', title: 'Typing fits better with Larger text and on phones', items: [
-    'The typing modules now fit the screen with Larger text or OpenDyslexic turned on, with no scrolling on a desktop. The on-screen keyboard picture gets a little smaller when it needs to.',
+    'The typing modules now fit the screen with Larger text turned on, with no scrolling on a desktop. The on-screen keyboard picture gets a little smaller when it needs to. With OpenDyslexic, the typing pages use slightly smaller letters so they fit too.',
     'On a phone turned sideways, the words to type scroll into view when a typing tool opens.',
     'Typing progress is saved in backups, and comes back when a backup is loaded.' ] },
   { date: '2026-10-31', title: 'New module: Typing Games', items: [
