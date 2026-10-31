@@ -1,4 +1,4 @@
-/* Typing Games (Typing): Word Sprint, Falling Words, and Ghost Race. Calm games: no mascots, no flashing, no sounds while playing.
+/* Typing Games (Typing): Word Sprint, Falling Words, and Typing Race. Calm games: no mascots, no flashing, no sounds while playing.
    They are practice (registry kind 'study'): no credit or mastery, but each keeps the student's best score.
    Words come from shared/sb-typing-gen.js (SBTG.gameWords); keys from shared/sb-typing.js (SBTY.take). */
 (function () {
@@ -7,8 +7,8 @@
   const esc = SB.esc, G = window.SBTG, X = window.SBTX || { sentences: [] };
   window.SB_NO_SLASH_SEARCH = true;
   const NEEDS = SBTY.needsKeyboard();
-  const NOTE = NEEDS ? '<p class="note">This game needs a keyboard. Connect one to this phone or tablet.</p>' : '';
-  const NOTE_GHOST = NEEDS ? '<p class="note">Ghost Race works best with a keyboard. You can also tap the text to use the on-screen keyboard.</p>' : '';
+  const NOTE = NEEDS ? '<p class="note">Tap the game, or Show keyboard, to type with this device&#39;s keyboard. A real keyboard works best.</p>' : '';
+  const NOTE_RACE = NEEDS ? '<p class="note">Tap the words, or Show keyboard, to type with this device&#39;s keyboard. A real keyboard works best for learning to type.</p>' : '';
   const r1 = x => Math.round(x);
   const clock = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
   const LEVELS = [{ id: 'easy', label: 'Easy' }, { id: 'medium', label: 'Medium' }, { id: 'hard', label: 'Hard' }];
@@ -61,7 +61,7 @@
         stage.hidden = false; const o = $('.gover', P); if (o) o.remove();
         $('#wsClock', P).textContent = clock(SPRINT_MS);
         msg.textContent = note || 'Start typing when you are ready. No space needed between words.'; note = '';
-        paint(); paintLine(); SBTY.take(handler);
+        paint(); paintLine(); SBTY.take(handler); soft.clear();
       }
       function tick() { const left = SPRINT_MS - (performance.now() - t0); $('#wsClock', P).textContent = clock(left); if (left <= 0) end(); }
       function type(k) {
@@ -98,7 +98,7 @@
         paintLine();
       }
       const handler = { live: () => visible(P) && !over, type: k => type(k), back() {} };
-      stage.addEventListener('click', () => SBTY.take(handler));
+      const soft = SBTY.softKeys(stage, handler, { label: 'Type the word here' });
       P.querySelectorAll('[data-lvl]').forEach(x => x.onclick = () => { S.level = x.dataset.lvl; ctx.save(); x.blur(); start(); });
       SBTY.toView(stage);
       sprint._leave = () => { if (playing && !over) start(); };           // leaving the tab mid-game starts it over
@@ -150,7 +150,8 @@
       }
       function go() {
         cover.hidden = true; running = true; last = performance.now(); nextSpawn = last; stepAcc = 0;
-        SBTY.take(handler); area.focus && document.activeElement && document.activeElement.blur();
+        SBTY.take(handler);
+        if (SBTY.needsKeyboard()) falling._soft.open(); else if (document.activeElement) document.activeElement.blur();   // a phone: Start opens its keyboard
         raf = requestAnimationFrame(frame);
         msg.textContent = '';
       }
@@ -226,7 +227,9 @@
         paintLine();
       }
       const handler = { live: () => visible(P) && running, type: k => type(k), back };
-      area.addEventListener('click', () => { if (running) SBTY.take(handler); });
+      const kbdRow = document.createElement('div'); area.after(kbdRow);
+      const soft = SBTY.softKeys(area, handler, { label: 'Type the falling words here', buttonHost: kbdRow });
+      falling._soft = soft;
       P.querySelectorAll('[data-lvl]').forEach(x => x.onclick = () => { F.level = x.dataset.lvl; ctx.save(); x.blur(); reset(); });
       SBTY.toView(area);
       falling._leave = pause;
@@ -239,19 +242,19 @@
     enter() { if (falling._enter) falling._enter(); }
   };
 
-  /* ===================== Ghost Race ===================== */
+  /* ===================== Typing Race (tool id 'ghost', kept so saved progress still works) ===================== */
   const GHOST = [{ id: 'best', label: 'Your best' }, { id: '10', label: '10' }, { id: '15', label: '15' }, { id: '20', label: '20' }, { id: '30', label: '30' }, { id: '40', label: '40' }];
   const ghost = {
     init(ctx) {
       const P = ctx.panel, st = ctx.state;
       st.ghost = Object.assign({ speed: 'best', best: 0, wins: 0 }, st.ghost || {});
       const R = st.ghost;
-      P.innerHTML = `${NOTE_GHOST}
-        <div class="gbar"><div class="row"><b>Ghost speed</b>${seg('gs', GHOST, 'Ghost speed in words a minute')}</div></div>
+      P.innerHTML = `${NOTE_RACE}
+        <div class="gbar"><div class="row"><b>Pacer speed</b>${seg('gs', GHOST, 'Pacer speed in words a minute')}</div></div>
         <div class="gline"></div>
         <div class="gr-track" aria-hidden="true">
           <span>You</span><div class="gr-bar gr-you"><i></i></div><span class="gr-yp">0%</span>
-          <span><span class="gr-key"></span>Ghost</span><div class="gr-bar gr-ghost"><i></i></div><span class="gr-gp">0%</span>
+          <span><span class="gr-key"></span>Pacer</span><div class="gr-bar gr-ghost"><i></i></div><span class="gr-gp">0%</span>
         </div>
         <div class="grtype"></div>
         <p class="msg gmsg" role="status" tabindex="-1"></p>
@@ -283,7 +286,7 @@
         raf = requestAnimationFrame(frame);
       }
       function paintLine() {
-        $('.gline', P).innerHTML = `<span>Race the ghost through three sentences. The ghost types at <b>${ghostWpm()} words a minute</b>${R.speed === 'best' ? (R.best ? ' (your best race)' : ' (your target speed, until you finish a race)') : ''} and starts with your first key. Its place in the text has an orange line.</span><span>${R.best ? `Your best race: <b>${r1(R.best)} words a minute</b>` : ''}${R.wins ? ` Races won: ${R.wins}` : ''}</span>`;
+        $('.gline', P).innerHTML = `<span>Race the pacer through three sentences. The pacer types at <b>${ghostWpm()} words a minute</b>${R.speed === 'best' ? (R.best ? ' (your best race)' : ' (your target speed, until you finish a race)') : ''} and starts with your first key. Its place in the text has an orange line.</span><span>${R.best ? `Your best race: <b>${r1(R.best)} words a minute</b>` : ''}${R.wins ? ` Races won: ${R.wins}` : ''}</span>`;
         P.querySelectorAll('[data-gs]').forEach(x => x.setAttribute('aria-pressed', x.dataset.gs === R.speed));
       }
       function start() {
@@ -308,8 +311,8 @@
         const gap = Math.abs(ghostMs - yourMs) / 1000;
         msg.textContent = '';
         done.hidden = false; $('.grtype', P).hidden = true;   // the result takes the text's place, so it fits the screen
-        done.innerHTML = `<div class="gover"><h2>${tie ? 'You tied with the ghost' : `${won ? 'You beat the ghost' : 'The ghost won'} by ${gap.toFixed(1)} seconds`}</h2>
-          <p class="lead">You typed ${r1(wpm)} words a minute with ${Math.floor(r.acc * 100 + 1e-9)}% right.${newBest ? ' That is your best race, so the ghost will race at this speed next time on "Your best".' : r.acc < 0.9 ? ' Races at 90% right or better can become your best.' : ''}</p>
+        done.innerHTML = `<div class="gover"><h2>${tie ? 'You tied with the pacer' : `${won ? 'You beat the pacer' : 'The pacer won'} by ${gap.toFixed(1)} seconds`}</h2>
+          <p class="lead">You typed ${r1(wpm)} words a minute with ${Math.floor(r.acc * 100 + 1e-9)}% right.${newBest ? ' That is your best race, so the pacer will race at this speed next time on "Your best".' : r.acc < 0.9 ? ' Races at 90% right or better can become your best.' : ''}</p>
           <div class="row"><button class="btn" type="button" data-x="again">Race again</button></div></div>`;
         $('[data-x="again"]', done).onclick = start;
         msg.focus({ preventScroll: true });

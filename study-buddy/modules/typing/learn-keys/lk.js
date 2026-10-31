@@ -31,7 +31,7 @@
     init(ctx) {
       const P = ctx.panel, st = ctx.state;
       P.innerHTML = `
-        ${NEEDS ? '<p class="note">Typing lessons need a keyboard. Connect one to this phone or tablet. You can also tap the words to use the on-screen keyboard, or tap the keys in the picture.</p>' : ''}
+        ${NEEDS ? '<p class="note">Tap the words, or Show keyboard, to type with this device&#39;s keyboard. You can also tap the keys in the picture. A real keyboard works best for learning to type.</p>' : ''}
         <div class="lkbar">
           <div class="lkletters" aria-label="Letters in the course"></div>
           <div class="lkopts">

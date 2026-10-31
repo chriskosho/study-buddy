@@ -12,7 +12,7 @@
   const clock = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
   const LEVELS = [{ id: 'easy', label: 'Easy' }, { id: 'medium', label: 'Medium' }, { id: 'hard', label: 'Hard' }, { id: 'insane', label: 'Insane' }];
   const LEVEL_TEXT = { easy: 'common words', medium: 'sentences', hard: 'sentences with numbers', insane: 'paragraphs, no Backspace' };
-  const NOTE = NEEDS ? '<p class="note">Typing needs a keyboard. Connect one to this phone or tablet, or tap the words to use the on-screen keyboard.</p>' : '';
+  const NOTE = NEEDS ? '<p class="note">Tap the words, or Show keyboard, to type with this device&#39;s keyboard. A real keyboard works best for learning to type.</p>' : '';
   const seg = (name, list, label) => `<div class="seg" role="group" aria-label="${esc(label)}">${list.map(o => `<button type="button" data-${name}="${o.id}">${esc(o.label)}</button>`).join('')}</div>`;
   const tile = (label, value, note) => `<div><span>${esc(label)}</span><b>${value}</b>${note ? `<small>${esc(note)}</small>` : ''}</div>`;
 
