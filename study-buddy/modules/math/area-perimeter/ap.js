@@ -21,7 +21,7 @@
           <div><div class="apctl">
             <label for="ap-l">Length</label><input id="ap-l" type="range" min="1" max="12" value="7"><output id="ap-lo" for="ap-l">7</output>
             <label for="ap-w">Width</label><input id="ap-w" type="range" min="1" max="12" value="4"><output id="ap-wo" for="ap-w">4</output></div>
-            <div class="apout" aria-live="polite"></div>
+            <div class="apout" aria-live="polite"></div></div>
             <div class="rules">
               <div class="rule"><h3>Area</h3><p>Area is how much flat space a shape covers. We count <b>square units</b>. One row of squares times the number of rows: <b>length &times; width</b>.</p></div>
               <div class="rule"><h3>Perimeter</h3><p>Perimeter is the distance <b>around</b> a shape. Add up every side. We measure it in <b>units</b>.</p></div>
@@ -29,7 +29,7 @@
               <div class="rule"><h3>Missing side</h3><p>Area: divide the area by the side you know. Perimeter: subtract the sides you know, then split what is left.</p></div>
               <div class="rule"><h3>Same, but different</h3><p>Rectangles with the same perimeter can have different areas. Rectangles with the same area can have different perimeters.</p></div>
               <div class="rule"><h3>Shapes made of rectangles</h3><p>Split the shape into rectangles. Find each area. Then <b>add</b> them.</p></div>
-            </div></div></div>`;
+            </div></div>`;
       const l = $('#ap-l', P), w = $('#ap-w', P), out = $('.apout', P), view = $('.apview', P);
       const draw = () => {
         const L = +l.value, W = +w.value;
