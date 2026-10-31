@@ -39,6 +39,17 @@ html.sb-dark{
 .sbty{position:relative;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 18px;cursor:text}
 .sbty-text{position:relative;font:600 clamp(24px,2.6vw,34px)/1.6 ui-monospace,"Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;letter-spacing:.02em;overflow:hidden;max-height:calc(3 * 1.6em);color:var(--ink2)}
 html.sb-dyslexic .sbty-text{font-family:var(--font)}
+/* OpenDyslexic letters are bigger than the usual font's at the same size, so on the typing pages they are shrunk to about the usual
+   letter height (font-size-adjust sets the height of small letters). This keeps the typing screens the same size as without it. */
+html.sb-dyslexic body{font-size-adjust:0.46}
+/* Larger text makes everything 15% bigger: on a desktop, two lines of slightly smaller text and a little less space around things
+   keep the keyboard on screen at 1440x900 (this file only loads on typing pages). Phones scroll, so they keep the usual sizes. */
+@media (min-width:761px) and (min-height:521px){
+  html.sb-large .sbty-text{font-size:clamp(22px,2.2vw,30px);max-height:calc(2 * 1.6em)}
+  html.sb-large section.panel{padding:12px 18px}
+  html.sb-large section.panel .msg{margin:4px 0;min-height:22px}
+  html.sb-large .sbty{padding:8px 14px}
+}
 .sbty-text.more{-webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent);mask-image:linear-gradient(to bottom,#000 72%,transparent)}
 .sbty-text .w{white-space:nowrap}
 .sbty-text .w.long{white-space:normal;overflow-wrap:anywhere;word-break:break-all}

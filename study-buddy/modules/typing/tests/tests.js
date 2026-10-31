@@ -30,7 +30,8 @@
   }
   function draw(host, steps, ms) {
     host.innerHTML = '<h3>Words a minute during the test</h3><div class="tplot"></div><div class="ttip" hidden></div>';
-    const W = Math.max(260, Math.round(host.clientWidth - 24)), H = 170, L = 38, R = 14, T = 12, B = 26;
+    const roomy = !document.documentElement.matches('.sb-large');   // Larger text: a shorter chart so the results still fit
+    const W = Math.max(260, Math.round(host.clientWidth - 24)), H = roomy ? 170 : 120, L = 38, R = 14, T = 12, B = 26;
     const max = Math.max(...steps.map(s => s.wpm), 1);
     const top = Math.max(20, Math.ceil(max / 20) * 20);                       // 20, 40, 60...: the middle line is a round number
     const x = t => L + (W - L - R) * t / ms, y = v => T + (H - T - B) * (1 - v / top);
@@ -111,7 +112,7 @@
       function tick() { const left = ms() - (performance.now() - t0); clockEl.textContent = clock(left); if (left <= 0) finish(false); }
       function paintLine() {
         const b = S.best[S.len + ':' + S.level];
-        ui.line.innerHTML = `<span>${esc(LEVELS.find(l => l.id === S.level).label)}: ${esc(LEVEL_TEXT[S.level])}. The clock starts with your first key.${insane() ? '' : ' Fix mistakes: ' + (SBTY.shared().wait ? 'on' : 'off') + '.'}</span>
+        ui.line.innerHTML = `<span>${esc(LEVELS.find(l => l.id === S.level).label)}: ${esc(LEVEL_TEXT[S.level])}. The clock starts at your first key.${insane() ? '' : ' Fix mistakes: ' + (SBTY.shared().wait ? 'on' : 'off') + '.'}</span>
           <span>${b ? `Best for this test: <b>${r1(b.wpm)} words a minute</b>, ${pct(b.acc)} right` : 'No tests at this length and level yet'}</span>`;
         P.querySelectorAll('[data-len]').forEach(x => x.setAttribute('aria-pressed', x.dataset.len === S.len));
         P.querySelectorAll('[data-lvl]').forEach(x => x.setAttribute('aria-pressed', x.dataset.lvl === S.level));
