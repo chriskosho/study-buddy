@@ -30,7 +30,7 @@
         st.opt = st.opt || {}; st.best = st.best || {};
         const opt = () => (cfg.options && cfg.options.some(o => o.id === st.opt[cfg.id])) ? st.opt[cfg.id] : (cfg.options ? cfg.options[0].id : '');
         P.innerHTML = `
-          ${NEEDS ? '<p class="note">Typing needs a keyboard. Connect one to this phone or tablet, or tap the words to use the on-screen keyboard.</p>' : ''}
+          ${NEEDS ? '<p class="note">Tap the words, or Show keyboard, to type with this device&#39;s keyboard. A real keyboard works best for learning to type.</p>' : ''}
           <div class="dbar">
             ${cfg.options ? `<div class="seg" role="group" aria-label="${esc(cfg.optLabel || 'Which drill')}">${cfg.options.map(o => `<button type="button" data-o="${o.id}">${esc(o.label)}</button>`).join('')}</div>` : `<h2 style="margin:0">${esc(ctx.tool.name)}</h2>`}
             <div class="row">

@@ -82,14 +82,14 @@ window.SB_REGISTRY = {
       id: 'typing-games',
       subject: 'typing',
       title: 'Typing Games',
-      blurb: 'Calm games for typing practice: Word Sprint, Falling Words, and Ghost Race. Each keeps your best score.',
+      blurb: 'Calm games for typing practice: Word Sprint, Falling Words, and Typing Race. Each keeps your best score.',
       tags: ['keyboarding'],
       path: 'modules/typing/games/index.html',
       storage: ['typing-games'],
       tools: [
         { id: 'sprint', name: 'Word Sprint', kind: 'study', difficulty: 'easy', blurb: 'Type as many words as you can in 1 minute, one word at a time. Beat your best. Practice only.' },
         { id: 'falling', name: 'Falling Words', kind: 'study', difficulty: 'medium', blurb: 'Words fall slowly from the top. Type each one to clear it before it reaches the bottom. Practice only.' },
-        { id: 'ghost', name: 'Ghost Race', kind: 'study', difficulty: 'medium', blurb: 'Race a ghost that types at your best speed or a speed you pick. Practice only.' }
+        { id: 'ghost', name: 'Typing Race', kind: 'study', difficulty: 'medium', blurb: 'Race a pacer that types at your best speed or a speed you pick. Practice only.' }
       ]
     },
     {

@@ -10,7 +10,8 @@
      SBTY.finger(k)        { hand: 'left'|'right'|'thumb', finger: 'pinky'|'ring'|'middle'|'pointer'|'thumb', name: 'left pointer finger' }
      SBTY.toView(el)       on a phone turned sideways, scrolls a tool's typing area into view
      SBTY.fit()            shrinks the keyboard picture so a desktop tool screen has no scroll bar (runs by itself on resize and changes)
-     SBTY.needsKeyboard()  true on a phone or tablet with no mouse (the tools show a notice there)
+     SBTY.needsKeyboard()  true on a phone or tablet (the main pointer is a finger); the tools show a notice there
+     SBTY.softKeys(host, handler)   the phone's own keyboard: a hidden text box opened by tapping host or the Show keyboard button
      SBTY.shared(), SBTY.saveShared(fn), SBTY.addStats(chars)   the target speed, Fix mistakes, keyboard switch, and letter stats every typing module shares
 
    Keys are read from the whole page while a typing tool is on screen, so the student never has to click into a box first.
@@ -114,17 +115,65 @@
   addEventListener('resize', fit);
   try { new ResizeObserver(fit).observe(document.documentElement); } catch (e) {}
 
-  /* On a phone or tablet turned sideways (a short, wide window with no mouse) the header fills the screen, so a typing tool scrolls its
+  /* On a phone or tablet turned sideways (a short, wide window where the main pointer is a finger) the header fills the screen, so a typing tool scrolls its
      text into view the first time it opens */
   function toView(el) {
     if (!el || innerHeight > 520 || innerWidth <= innerHeight) return;
-    try { if (matchMedia('(any-pointer: fine)').matches) return; } catch (e) {}   // a short desktop window with a mouse is left alone
+    if (!needsKeyboard()) return;   // a short desktop window (the main pointer is a mouse) is left alone
     setTimeout(() => { try { el.scrollIntoView({ block: 'center' }); } catch (e) {} }, 60);
   }
 
   /* ---------- devices ---------- */
+  /* a phone or tablet: the main pointer is a finger. (Not "no fine pointer at all": phones with a pen, like a Galaxy with an S Pen,
+     also report a fine pointer, and they still need their on-screen keyboard.) */
   function needsKeyboard() {
-    try { return matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches; } catch (e) { return false; }
+    try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; }
+  }
+  const touchDevice = () => (navigator.maxTouchPoints || 0) > 0 || needsKeyboard();
+
+  /* ---------- the phone's own keyboard ----------
+     softKeys(host, handler) puts a hidden text box in host. Tapping host (or the "Show keyboard" button it adds on touch devices)
+     focuses the box, which opens the phone's keyboard, and the letters typed there go to handler.type / handler.back.
+     On-screen keyboards send "input" events rather than keys, and some build up a whole word in the box as you type, so only the
+     letters added since last time are typed, and a shorter box means Backspace. The box is emptied after each space. */
+  function softKeys(host, handler, opts = {}) {
+    const inp = document.createElement('input');
+    inp.className = 'sbty-in'; inp.type = 'text'; inp.setAttribute('aria-label', opts.label || 'Type here');
+    ['autocomplete', 'autocorrect', 'autocapitalize'].forEach(a => inp.setAttribute(a, 'off'));
+    inp.spellcheck = false; inp.setAttribute('enterkeyhint', 'next');
+    host.appendChild(inp);
+    let seen = '', btn = null;
+    inp.addEventListener('input', () => {
+      const v = inp.value;
+      if (current === handler && handler.live()) {
+        if (v.startsWith(seen)) [...v.slice(seen.length)].forEach(ch => handler.type(ch, false));
+        else if (seen.startsWith(v)) for (let i = v.length; i < seen.length; i++) handler.back();
+        else { let i = 0; while (i < v.length && v[i] === seen[i]) i++; for (let j = i; j < seen.length; j++) handler.back(); [...v.slice(i)].forEach(ch => handler.type(ch, false)); }   // a word was swapped
+      }
+      seen = v;
+      if (/\s$/.test(v) || v.length > 30) { inp.value = ''; seen = ''; }
+    });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+    const open = () => {
+      handlerFor(handler);
+      inp.focus({ preventScroll: true });
+      /* the keyboard covers the bottom of the screen, so bring the typing area to the top */
+      setTimeout(() => { try { host.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {} }, 350);
+    };
+    host.addEventListener('click', e => {
+      if (e.target.closest('button,a,select') && e.target !== btn) return;   // a Start or Play again button does its own job
+      handlerFor(handler);
+      if (touchDevice()) open();
+    });
+    if (touchDevice()) {
+      btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'btn small ghost sbty-kbd'; btn.textContent = 'Show keyboard';
+      (opts.buttonHost || host).appendChild(btn);
+      btn.addEventListener('click', e => { e.stopPropagation(); open(); });
+      inp.addEventListener('focus', () => { btn.hidden = true; });
+      inp.addEventListener('blur', () => { btn.hidden = false; });
+    }
+    return { inp, open, clear() { inp.value = ''; seen = ''; } };
   }
 
   /* ---------- reading keys ----------
@@ -154,9 +203,8 @@
   function typer(host, opts = {}) {
     host.classList.add('sbty');
     host.innerHTML = `<div class="sbty-text" aria-hidden="true"></div><div class="sbty-caps" hidden>Caps Lock is on. Press Caps Lock to turn it off.</div>
-      <input class="sbty-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type the text here" enterkeyhint="next">
       <div class="sbty-sr" aria-live="polite"></div>`;
-    const box = host.querySelector('.sbty-text'), inp = host.querySelector('.sbty-in'), caps = host.querySelector('.sbty-caps'), sr = host.querySelector('.sbty-sr');
+    const box = host.querySelector('.sbty-text'), caps = host.querySelector('.sbty-caps'), sr = host.querySelector('.sbty-sr');
     let ghostAt = -1, spans = [], text = '', marks = [], pos = 0, t0 = 0, tLast = 0, presses = 0, wrong = 0, elapsed = 0, chars = [], stopped = false, missedHere = false;
 
     function render() {
@@ -182,7 +230,7 @@
       box.classList.toggle('more', box.scrollHeight - box.scrollTop > box.clientHeight + 4);   // fades the last line when more text is below
     }
     function reset(t) {
-      text = String(t); seen = ''; inp.value = ''; ghostAt = -1; marks = []; pos = 0; t0 = 0; tLast = 0; presses = 0; wrong = 0; elapsed = 0; chars = []; stopped = false; missedHere = false;
+      text = String(t); if (soft) soft.clear(); ghostAt = -1; marks = []; pos = 0; t0 = 0; tLast = 0; presses = 0; wrong = 0; elapsed = 0; chars = []; stopped = false; missedHere = false;
       box.scrollTop = 0; render();
     }
     /* the gap between two keys counts at most 3 seconds, so a break in the middle does not spoil the speed */
@@ -229,22 +277,6 @@
       if (opts.onDone) opts.onDone(r);
     }
 
-    /* on-screen keyboards send "input" events instead of keys */
-    /* on-screen keyboards send "input" events instead of keys. Some build up a whole word in the box as you type, so only the
-       letters added since last time are typed, and a shorter box means Backspace. The box is emptied after each space. */
-    let seen = '';
-    inp.addEventListener('input', () => {
-      const v = inp.value;
-      if (current === api && api.live()) {
-        if (v.startsWith(seen)) [...v.slice(seen.length)].forEach(ch => type(ch, false));
-        else if (seen.startsWith(v)) for (let i = v.length; i < seen.length; i++) back();
-        else { let i = 0; while (i < v.length && v[i] === seen[i]) i++; for (let j = i; j < seen.length; j++) back(); [...v.slice(i)].forEach(ch => type(ch, false)); }   // a word was swapped
-      }
-      seen = v;
-      if (/\s$/.test(v) || v.length > 30) { inp.value = ''; seen = ''; }
-    });
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
-    host.addEventListener('click', () => { if (needsKeyboard()) inp.focus({ preventScroll: true }); handlerFor(api); });
 
     const api = {
       reset, type, back,
@@ -252,11 +284,12 @@
       active() { handlerFor(api); },
       stop() { stopped = true; if (current === api) current = null; },
       pos: () => pos, next: () => text[pos], started: () => !!t0,
-      /* Ghost Race: marks where the ghost is in the text (-1 for nowhere) */
+      /* Typing Race: marks where the pacer is in the text (-1 for nowhere) */
       ghost(i) { if (i !== ghostAt) { ghostAt = i; paint(); } },
       /* the round so far, for timed tests that end before the text does */
       snapshot: () => ({ chars: chars.slice(), correct: marks.slice(0, pos).filter(m => m === 'ok').length, presses, wrong, pos, text })
     };
+    const soft = softKeys(host, api, { label: 'Type the text here' });
     reset(opts.text || '');
     handlerFor(api);
     toView(host);
@@ -272,5 +305,5 @@
   /* adds a finished round's letters to the shared stats */
   function addStats(chars) { if (window.SBTG) saveShared(s => { s.stats = SBTG.addRound(s.stats && typeof s.stats === 'object' ? s.stats : {}, chars.map(c => ({ ch: c.ch, ok: c.ok, ms: c.ms }))); }); }
 
-  window.SBTY = { keyboard, typer, finger, keyOf, keysFor, needsKeyboard, ZONE, take: handlerFor, shared, saveShared, addStats, fit, toView };
+  window.SBTY = { keyboard, typer, finger, keyOf, keysFor, needsKeyboard, ZONE, take: handlerFor, shared, saveShared, addStats, fit, toView, softKeys };
 })();

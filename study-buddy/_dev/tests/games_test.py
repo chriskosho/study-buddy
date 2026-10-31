@@ -1,8 +1,8 @@
 """Typing Games test (Playwright + Chromium).
 Word Sprint: words typed key by key, Fix mistakes, the 1 minute limit (page clock fast-forwarded), the result and best, a key after time
 not starting a new game, levels. Falling Words: start, clearing a word, misses and game over (game time sped up), best, pausing when the
-tab is left, reduce motion (words step instead of glide), no two falling words starting with the same letter. Ghost Race: the ghost
-marker, beating a slow ghost, a fast ghost winning, the best race becoming the ghost's speed. Games are practice only (no results).
+tab is left, reduce motion (words step instead of glide), no two falling words starting with the same letter. Typing Race: the pacer
+marker, beating a slow pacer, a fast pacer winning, the best race becoming the pacer's speed. Games are practice only (no results).
 Layout: 1440x900 and 1280x720 with no scroll, 360px and 915x412 with no sideways scroll.
 Run:  python3 study-buddy/_dev/tests/games_test.py"""
 import asyncio, http.server, threading, functools, os, sys
@@ -80,7 +80,10 @@ async def main():
         w = await pg.evaluate(WORD)
         await pg.keyboard.type(w[0]); await pg.keyboard.type('~'); await pg.keyboard.type(w[2:], delay=10)
         check('0 words' in await pg.inner_text('#wsScore'), 'with Fix mistakes off, a word with a mistake does not count')
-        w = await pg.evaluate(WORD); await pg.keyboard.type(w[0]); await pg.keyboard.type('~')
+        w = await pg.evaluate(WORD)
+        while len(w) < 3:                                  # a two-letter word would finish at once, so skip to a longer one
+            await pg.keyboard.type(w, delay=5); w = await pg.evaluate(WORD)
+        await pg.keyboard.type(w[0]); await pg.keyboard.type('~')
         check(await pg.locator('.ws-word .bad').count() == 1, 'the skipped letter shows red')
         await pg.evaluate("(() => { const k = 'studybuddy.v1.m.k1.learn-keys', s = JSON.parse(localStorage.getItem(k) || '{}'); s.wait = true; localStorage.setItem(k, JSON.stringify(s)); })()")
         # switching to another browser tab mid-game starts over and says why
@@ -120,29 +123,29 @@ async def main():
         check(await pg.locator('.fw-lives').get_attribute('aria-label') == '0 misses left', 'misses never go below zero')
         o = await overflow(pg); check(o['v'] <= 0 and o['h'] <= 0, f'Falling Words fits 1440x900 {o}')
 
-        # ---- Ghost Race ----
+        # ---- Typing Race ----
         await pg.goto(base + M + '?tool=ghost'); await pg.wait_for_selector('#tab-ghost .sbty-text .c')
-        check('15 words a minute' in await pg.inner_text('#tab-ghost .gline'), 'with no race yet, the ghost uses the target speed')
+        check('15 words a minute' in await pg.inner_text('#tab-ghost .gline'), 'with no race yet, the pacer uses the target speed')
         await pg.click('[data-gs="10"]')
         t = await pg.evaluate(GTEXT)
         check(t[0].isupper() and t.rstrip()[-1] in '.?!', 'the race text is sentences')
         await pg.keyboard.type(t[:3], delay=20); await pg.wait_for_timeout(200)
-        check(await pg.locator('#tab-ghost .c.ghost').count() == 1, 'the ghost marker shows in the text')
+        check(await pg.locator('#tab-ghost .c.ghost').count() == 1, 'the pacer marker shows in the text')
         for c in t[3:]:                                  # about 120 words a minute on the page clock (over 150 would not count as a best)
             await pg.evaluate("window.__ff += 100"); await pg.keyboard.type(c)
         await pg.wait_for_timeout(200)
         h = await pg.inner_text('#tab-ghost .gover h2')
-        check('You beat the ghost' in h, f'beating a slow ghost: {h}')
+        check('You beat the pacer' in h, f'beating a slow pacer: {h}')
         best = (await pg.evaluate(ST))['ghost']['best']
         check(30 < best <= 150, f'the race is saved as the best ({best})')
         await pg.click('[data-gs="best"]')
-        check(f'{round(best)} words a minute' in await pg.inner_text('#tab-ghost .gline'), 'Your best makes the ghost race at the best speed')
+        check(f'{int(best + 0.5)} words a minute' in await pg.inner_text('#tab-ghost .gline'), 'Your best makes the pacer race at the best speed')   # rounds halves up, like the page
         await pg.click('[data-gs="40"]')
         t = await pg.evaluate(GTEXT)
         await pg.keyboard.type(t[0]); await pg.evaluate("window.__ff += 120000"); await pg.wait_for_timeout(100)
         await pg.keyboard.type(t[1:], delay=2); await pg.wait_for_timeout(200)
-        check('The ghost won' in await pg.inner_text('#tab-ghost .gover h2'), 'a fast ghost wins a slow race')
-        check('100%' in await pg.inner_text('#tab-ghost .gr-gp'), 'the ghost bar is full')
+        check('The pacer won' in await pg.inner_text('#tab-ghost .gover h2'), 'a fast pacer wins a slow race')
+        check('100%' in await pg.inner_text('#tab-ghost .gr-gp'), 'the pacer bar is full')
         check(await pg.locator('#tab-ghost .grtype').is_hidden(), 'the race result takes the place of the text')
         for w_, h_ in [(1280, 720), (1440, 900)]:
             await pg.set_viewport_size({'width': w_, 'height': h_}); await pg.wait_for_timeout(150)
