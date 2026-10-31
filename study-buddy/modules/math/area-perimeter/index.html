@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Area and Perimeter · Study Buddy</title>
+<meta name="theme-color" content="#2b4162">
+<link rel="icon" href="../../../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../../shared/sb.css">
+<style>
+/* pictures: sized from the width, with a height floor so they stay readable on a phone turned sideways */
+svg.apf{display:block;margin:6px auto;width:auto;max-width:100%;height:clamp(130px,calc(var(--vh, 100vh) - var(--chrome) - 640px),210px);overflow:visible}
+svg.apf .cell{stroke:var(--ink2);stroke-width:1.5}
+svg.apf .cell.on{fill:var(--tint-note)}
+svg.apf .cell.off{fill:var(--surface)}
+svg.apf .shape{fill:var(--tint-note);stroke:var(--navy-ink);stroke-width:3;stroke-linejoin:round}
+svg.apf .lb{fill:var(--ink);font-size:17px;font-weight:800;text-anchor:middle;font-family:inherit}
+svg.apf .lb.info{fill:var(--ink2);font-size:15px}
+svg.apf .lb.nm{fill:var(--ink2);font-size:14px}
+.qtext{font-size:clamp(18px,1.9vw,26px)}
+.qtext svg.apf{margin:8px auto 0}
+.apguide{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 28px;align-items:start;margin-top:10px}
+.apguide svg.apf{height:clamp(170px,calc(var(--vh, 100vh) - var(--chrome) - 300px),300px)}
+.apctl{display:grid;grid-template-columns:auto minmax(0,1fr) 3.2ch;gap:6px 10px;align-items:center;margin:0 0 8px}
+.apctl input[type=range]{width:100%;min-width:0}
+.apctl output{font-weight:800;font-size:20px}
+.apout{font-size:19px;font-weight:700;margin:4px 0 10px}
+.apout p{margin:0 0 4px}
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:6px}
+.rule{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:10px 14px}
+.rule h3{margin:0 0 4px;font-size:18px}
+.rule p{margin:0 0 4px;font-size:15px}
+@media (max-width:900px){.apguide{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.rules{grid-template-columns:1fr}svg.apf{width:min(100%,340px);height:auto}}
+</style>
+<script src="../../../shared/sb-core.js"></script>
+<script src="../../../shared/sb-shell.js"></script>
+<script src="../../../registry.js"></script>
+<script src="../../../shared/sb-module.js"></script>
+<script src="../../../shared/sb-tools.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="gen.js"></script>
+<script src="ap.js"></script>
+</body>
+</html>

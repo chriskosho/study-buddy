@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fractions · Study Buddy</title>
+<meta name="theme-color" content="#2b4162">
+<link rel="icon" href="../../../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../../shared/sb.css">
+<style>
+.fform{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
+.fform .stack{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+.fform .textin{width:84px;font-size:22px;text-align:center}
+.fform .fl{border-top:3px solid var(--ink);width:84px}
+.ferr{color:var(--bad-ink);font-weight:700;min-height:22px}
+.fview{margin:8px 0 6px}
+.fp{display:block;width:100%;max-width:520px;height:auto;min-height:56px;margin:10px 0}
+.fp[data-kind="bars"]{max-width:380px}
+.fp[data-kind="circle"]{max-width:150px;min-height:110px}
+.fp[data-kind="set"]{max-width:300px}
+.fp[data-kind="nl"]{min-height:88px}
+.fp .fc{fill:var(--surface);stroke:var(--navy-ink);stroke-width:3}
+.fp .fc.on{fill:var(--sun)}
+.fp .ax{stroke:var(--navy-ink);stroke-width:4}
+.fp .tk{stroke:var(--navy-ink);stroke-width:3}
+.fp text{fill:var(--ink);font:800 24px var(--font)}
+.fp .pt{fill:var(--coral);stroke:var(--navy-ink);stroke-width:3}
+.fp .pl{font-size:26px}
+.circles{display:flex;gap:12px;flex-wrap:wrap}
+.circles .fp{width:130px;margin:6px 0}
+.fnote{background:var(--tint-note);border:2px solid var(--note-line);border-radius:12px;padding:10px 14px;margin:8px 0;font-size:17px}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:10px}
+.rule{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 16px}
+.rule h3{margin:0 0 6px;font-size:19px}
+.rule p{margin:0 0 6px;font-size:16px}
+@media (max-width:1100px){.rules{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+  .rules{grid-template-columns:1fr}
+  .fform .textin,.fform .fl{width:70px}
+  .fp text{font-size:26px}
+}
+</style>
+<script src="../../../shared/sb-core.js"></script>
+<script src="../../../shared/sb-shell.js"></script>
+<script src="../../../registry.js"></script>
+<script src="../../../shared/sb-module.js"></script>
+<script src="../../../shared/sb-tools.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="gen.js"></script>
+<script src="fi.js"></script>
+</body>
+</html>
