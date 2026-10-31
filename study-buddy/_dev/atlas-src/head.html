@@ -388,6 +388,8 @@ html.sb-dark .spellrow input{color:var(--ink);border-color:#a9c4f0}
 .card-toast.show{opacity:1;visibility:visible;transition:opacity .15s;pointer-events:auto}
 .card-toast button{background:none;border:0;border-bottom:2px solid currentColor;color:inherit;font:inherit;padding:0;cursor:pointer}
 .deckbar .undo{padding:6px 14px;font-size:14px;flex:none}
+/* a phone turned sideways is wide but short: keep every map fully on screen (the page scrolls to it) */
+@media (min-width:761px) and (max-height:520px){.mapbox svg,#tab-study .mapbox svg{height:340px;min-height:0}}
 </style>
 </head>
 <body>

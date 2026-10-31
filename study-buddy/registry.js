@@ -342,6 +342,28 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'order-of-operations',
+      subject: 'math',
+      title: 'Order of Operations',
+      blurb: 'Parentheses, brackets, and braces, then multiply and divide, then add and subtract, left to right, and writing and reading expressions.',
+      tags: ['math', 'expressions', 'parentheses'],
+      path: 'modules/math/order-of-operations/index.html',
+      storage: ['order-of-operations'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The three steps with examples, and a helper that shows every step for any expression.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for the order of operations, one card each.' },
+        { id: 'first', name: 'What comes first?', difficulty: 'easy', blurb: 'Pick the part to work out first. Mastered at 8 of 10.' },
+        { id: 'plain', name: 'No grouping symbols', difficulty: 'easy', blurb: 'Like 8 + 6 \u00d7 2. Mastered at 8 of 10.' },
+        { id: 'next', name: 'Next step', difficulty: 'medium', blurb: 'Do only the first step and pick what is left. Mastered at 8 of 10.' },
+        { id: 'parens', name: 'Parentheses', difficulty: 'medium', blurb: 'Like (8 + 6) \u00d7 2. Mastered at 8 of 10.' },
+        { id: 'nested', name: 'Brackets and parentheses', difficulty: 'hard', blurb: 'Like [2 \u00d7 (3 + 4)] + 5. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Words and expressions', difficulty: 'hard', blurb: 'Match words to expressions, and compare without working it out. Mastered at 8 of 10.' },
+        { id: 'braces', name: 'Braces, brackets, and parentheses', difficulty: 'insane', blurb: 'Three layers, like {6 + [18 \u00f7 (5 \u2212 2)]} \u00d7 2. Mastered at 8 of 10.' },
+        { id: 'fit', name: 'Add parentheses', difficulty: 'insane', blurb: 'Find where one pair of parentheses makes it true. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
+      ]
+    },
+    {
       id: 'fractions-add-sub',
       subject: 'math',
       title: 'Add and Subtract Fractions',

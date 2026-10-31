@@ -44,7 +44,7 @@ html.sb-dark{--map-edge:#e9e4d6;--map-sea-edge:#3b6074;--map-ctx:#33423f;--map-c
 .mapgrid.study{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
 .mapgrid>*{min-width:0}
 .mapbox{background:var(--sea);border-radius:22px;border:2px solid var(--map-sea-edge);padding:8px;position:relative}
-.mapbox svg{display:block;width:100%;height:auto;max-height:calc(var(--vh, 100vh) - var(--chrome) - 380px);touch-action:manipulation}
+.mapbox svg{display:block;width:100%;height:auto;max-height:max(calc(var(--vh, 100vh) - var(--chrome) - 380px),320px);touch-action:manipulation}
 .mapbox svg.zoomed{touch-action:none;cursor:grab}
 .ctx{fill:var(--map-ctx);stroke:var(--map-ctx-edge);stroke-width:1}
 .cpath{cursor:pointer;stroke:var(--map-edge);stroke-width:1.1;stroke-linejoin:round}
@@ -71,13 +71,13 @@ html.sb-dark{--map-edge:#e9e4d6;--map-sea-edge:#3b6074;--map-ctx:#33423f;--map-c
 .srow{min-width:0;display:flex;align-items:center;gap:10px;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:4px 10px}
 .srow .sf{width:40px;flex:0 0 40px}
 .srow .st{flex:1;min-width:0}.srow .st b{display:block;line-height:1.15;font-size:16px}.srow .st span{font-size:12.5px;color:var(--ink2)}
-#tab-study .studylist{max-height:calc(var(--vh, 100vh) - var(--chrome) - 300px);overflow-y:auto;padding-right:4px}
+#tab-study .studylist{max-height:max(calc(var(--vh, 100vh) - var(--chrome) - 300px),200px);overflow-y:auto;padding-right:4px}
 .lbl-end{text-anchor:end}
 .as-mini{background:var(--sea);border-radius:14px;width:92%;height:auto;max-height:70%;border:2px solid var(--map-sea-edge)}
-@media (max-width:760px){
+@media (max-width:760px),(min-width:761px) and (max-height:520px){   /* a phone turned sideways gets the phone layout */
   .mapgrid,.mapgrid.study{grid-template-columns:minmax(0,1fr);gap:12px}
   .mapbox{padding:6px;border-radius:16px}
-  .mapbox svg{max-height:56vh}
+  .mapbox svg{max-height:max(56vh,300px)}
   .zoombar{right:8px;bottom:8px;gap:5px}.zoombar button{width:32px;height:32px;font-size:18px}
   #tab-find .mapgrid>div:not(.mapbox),#tab-listen .mapgrid>div:not(.mapbox){order:-1}
   #tab-drag .mapgrid>div:not(.mapbox){display:contents}
@@ -96,4 +96,4 @@ html.sb-dark{--map-edge:#e9e4d6;--map-sea-edge:#3b6074;--map-ctx:#33423f;--map-c
 .srow .st{cursor:pointer;border-radius:8px}
 .srow .st:focus-visible{outline:2px solid var(--navy-ink);outline-offset:2px}
 /* a long list of names (50+ countries) scrolls inside its own box instead of making the page scroll */
-@media (min-width:761px){#tab-drag .as-tray{max-height:calc(var(--vh, 100vh) - var(--chrome) - 490px);overflow-y:auto}}
+@media (min-width:761px) and (min-height:521px){#tab-drag .as-tray{max-height:max(calc(var(--vh, 100vh) - var(--chrome) - 490px),200px);overflow-y:auto}}

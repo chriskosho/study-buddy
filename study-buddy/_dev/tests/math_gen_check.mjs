@@ -259,6 +259,74 @@ const volCheck = (name, fn) => { for (let i = 0; i < N; i++) {
 }};
 volCheck('vol-cubes', VG.cubesQ); volCheck('vol-stacks', VG.stacksQ); volCheck('vol-formula', VG.formulaQ); volCheck('vol-words', VG.wordsQ);
 volCheck('vol-compare', VG.compareQ); volCheck('vol-compound', VG.compoundQ); volCheck('vol-capacity', VG.capacityQ); volCheck('vol-review', VG.reviewQ);
+
+/* Order of Operations: every problem is re-solved from its text by an independent recursive-descent evaluator (exact integers, and every
+   division must come out even). Multiple choice answers have exactly one right option; each wrong option really is wrong. */
+{
+  global.SB = global.SB || { esc: x => String(x) };
+  const OG = require('../../modules/math/order-of-operations/gen.js');
+  const ON = 3000;
+  const ev = str => { const t = str.replace(/,/g, '').match(/\d+|[+−×÷()\[\]{}]/g); let i = 0;
+    const num = () => { const x = t[i++]; if ('([{'.includes(x)) { const v = expr(); i++; return v; } return Number(x); };
+    const term = () => { let v = num(); while (t[i] === '×' || t[i] === '÷') { const o = t[i++], b = num(); if (o === '÷') { if (b === 0 || v % b) throw new Error('inexact'); v /= b; } else v *= b; } return v; };
+    const expr = () => { let v = term(); while (t[i] === '+' || t[i] === '−') { const o = t[i++], b = term(); if (o === '−' && v - b < 1) throw new Error('low'); v = o === '+' ? v + b : v - b; } return v; };
+    const r = expr(); if (i !== t.length) throw new Error('leftover'); return r; };
+  const safe = str => { try { return ev(str); } catch (e) { return null; } };
+  const mcOk2 = (t, q) => { if (q.a == null || !q.wrong || q.wrong.length < 2) return bad(t, q, 'needs an answer and 2 or more wrong options'); if (q.wrong.includes(q.a)) bad(t, q, 'answer is also a wrong option'); if (new Set(q.wrong).size !== q.wrong.length) bad(t, q, 'duplicate wrong options'); if (!q.why || /undefined|NaN/.test(q.why + q.q)) bad(t, q, 'bad explanation'); };
+  const exprIn = q => q.q.replace(/^.*?:\s*/, '');
+  for (const [name, fn, shape] of [['ooo-plain', OG.plainQ, /^[\d\s+−×÷]+$/], ['ooo-parens', OG.parensQ, /^[\d\s+−×÷()]+$/], ['ooo-nested', OG.nestedQ, /\[/], ['ooo-braces', OG.bracesQ, /\{.*\[.*\(/]]) {
+    for (let i = 0; i < ON; i++) {
+      const q = fn(), e = q.q.replace(/<[^>]+>/g, '').replace('Work it out: ', '');
+      if (ev(e) !== q.a) bad(name, q, 'wrong answer; the evaluator says ' + ev(e));
+      if (!shape.test(e)) bad(name, q, 'wrong kind of expression');
+      if (q.a < 1 || q.a > 200) bad(name, q, 'answer out of range');
+      if (q.wrong.length < 3 || q.wrong.includes(q.a) || new Set(q.wrong).size !== q.wrong.length) bad(name, q, 'wrong numbers for multiple choice');
+      if (!q.why.includes(String(q.a))) bad(name, q, 'explanation does not state the answer');
+    }
+  }
+  for (let i = 0; i < ON; i++) {   // first
+    const q = OG.firstQ(); mcOk2('ooo-first', q);
+    const e = q.q.replace(/^Which part do you work out first in /, '').replace(/\?$/, ''), v = ev(e), tk = OG.parse(e);
+    const pairOk = pr => { const m = pr.split(' '); return tk.some((x, k) => x === Number(m[0].replace(/,/g, '')) && tk[k + 1] === m[1] && tk[k + 2] === Number(m[2].replace(/,/g, ''))); };
+    if (![q.a, ...q.wrong].every(pairOk)) bad('ooo-first', q, 'an option is not in the expression');
+    const idx = OG.nextIndex(tk), right = `${tk[idx]} ${tk[idx + 1]} ${tk[idx + 2]}`;
+    if (right.replace(/\d{4,}/g, '') !== q.a.replace(/,/g, '')) bad('ooo-first', q, 'wrong first step: ' + right);
+    for (const w of q.wrong) { const m = w.split(' '); for (let k = 0; k + 2 < tk.length; k++) if (tk[k] === Number(m[0]) && tk[k + 1] === m[1] && tk[k + 2] === Number(m[2]) && k !== idx) { const nt = OG.applyAt(tk, k); if (safe(OG.render(nt)) === v) bad('ooo-first', q, 'a wrong option is also a legal first step: ' + w); } }
+  }
+  for (let i = 0; i < ON; i++) {   // next
+    const q = OG.nextQ(); mcOk2('ooo-next', q);
+    const e = q.q.replace(/^Do only the first step of /, '').replace(/\. What is left\?$/, ''), v = ev(e);
+    if (safe(q.a) !== v) bad('ooo-next', q, 'the right option changes the value');
+    if (q.wrong.some(w => safe(w) === v)) bad('ooo-next', q, 'a wrong option keeps the value, so it could be a legal step');
+    const tk = OG.parse(e); if (OG.render(OG.applyAt(tk, OG.nextIndex(tk))) !== q.a) bad('ooo-next', q, 'not the first step');
+  }
+  for (let i = 0; i < ON; i++) {   // fit
+    const q = OG.fitQ(); mcOk2('ooo-fit', q);
+    const m = q.q.match(/true: (.*) = ([\d,]+)\?$/), target = Number(m[2].replace(/,/g, '')), strip = s => s.replace(/[()]/g, '');
+    if (safe(q.a) !== target) bad('ooo-fit', q, 'right option does not give ' + target);
+    if (q.wrong.some(w => safe(w) === target)) bad('ooo-fit', q, 'a wrong option also gives the target');
+    if (![q.a, ...q.wrong].every(o => strip(o) === m[1])) bad('ooo-fit', q, 'options change more than the parentheses');
+    if (safe(m[1]) === target) bad('ooo-fit', q, 'no parentheses were needed');
+  }
+  const phr = [];
+  for (let i = 0; i < ON; i++) {   // words to expressions, expressions to words, compare
+    const q = OG.writeQ(); mcOk2('ooo-write', q);
+    if (safe(q.a) === null || q.wrong.some(w => safe(w) === safe(q.a))) bad('ooo-write', q, 'an option equals the answer in value');
+    const r = OG.readQ(); mcOk2('ooo-read', r);
+    const e = r.q.replace(/^Which words match /, '').replace(/\?$/, '');
+    const ph = OG.PHRASES.map(p => { const nums = e.match(/\d+/g).map(Number); return null; }); // (numbers come from the question; the phrase is checked below)
+    const iq = OG.interpretQ(); mcOk2('ooo-interpret', iq);
+    const mm = iq.q.match(/how does (.*) compare to (.*)\?$/), n = mm[1].match(/^(\d) × \(/) ? Number(mm[1][0]) : Number(mm[1].match(/÷ (\d)$/)[1]), times = /^\d × /.test(mm[1]);
+    const want = times ? `${n} times as large as ${mm[2]}` : `${{ 2: 'half', 3: 'one third', 4: 'one fourth', 5: 'one fifth', 6: 'one sixth' }[n]} as large as ${mm[2]}`;
+    if (iq.a !== want) bad('ooo-interpret', iq, 'wrong comparison');
+  }
+  /* every phrase matches its expression: spot check one by one with numbers, using the independent evaluator */
+  const spec = [['Add 9 and 4, then multiply by 3.', '(9 + 4) × 3', 39], ['Subtract 4 from 10, then divide by 3.', '(10 − 4) ÷ 3', 2], ['Multiply 5 by 4, then add 3.', '5 × 4 + 3', 23], ['Divide 12 by 4, then subtract 2.', '12 ÷ 4 − 2', 1], ['3 times the sum of 5 and 4.', '3 × (5 + 4)', 27], ['The difference of 9 and 4, multiplied by 3.', '(9 − 4) × 3', 15], ['Subtract the product of 2 and 3 from 10.', '10 − 2 × 3', 4], ['Add 5 to the quotient of 12 and 4.', '5 + 12 ÷ 4', 8]];
+  OG.PHRASES.forEach((p, k) => { const abc = { 0: [9, 4, 3], 1: [10, 4, 3], 2: [5, 4, 3], 3: [12, 4, 2], 4: [5, 4, 3], 5: [9, 4, 3], 6: [2, 3, 10], 7: [5, 12, 4] }[k]; const w = p.w(...abc), e = p.e(...abc);
+    if (w !== spec[k][0] || e !== spec[k][1] || ev(e) !== spec[k][2]) bad('ooo-phrases', { q: w }, `phrase ${k} does not match its expression ${e}`); });
+  /* the guide helper: any expression it accepts is solved the same way */
+  for (let i = 0; i < ON; i++) { const e = OG.make(['plain', 'one', 'sibling', 'two', 'three'][i % 5]), txt = OG.render(e.tokens); if (ev(txt) !== OG.value(OG.parse(txt)) || ev(txt) !== e.value) bad('ooo-helper', { q: txt }, 'helper and evaluator disagree'); }
+}
 /* Every typed answer, typed back into the site's own answer checker in the form the question asks for, must be accepted. */
 {
   const vm = require('node:vm'), fs = require('node:fs'), path = require('node:path');
@@ -272,5 +340,5 @@ volCheck('vol-compare', VG.compareQ); volCheck('vol-compound', VG.compoundQ); vo
   for (const [k, fns] of kinds) for (const fn of fns) for (let i = 0; i < 2000; i++) { const q = fn(); if (q.wrong) continue; const r = J({ a: q.a, form: q.form || 'any' }, q.a, 'fraction'); if (r !== 'ok') bad(k + '-judge', q, `the site's checker says "${r}" to its own answer`); }
 }
 if (fails) console.log(`Repeat this exact run with SEED=${SEED}.`);
-console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, the eight fraction problem kinds, the nine multiplication kinds, the six division kinds, the seven measurement kinds, and the eight volume kinds)`);
+console.log(fails ? `${fails} problems failed` : `ALL PASSED (${N} of each kind: place value, decimals, multiply, multiply-hard, divide, powers, Order of Operations (3,000 of each kind), the eight fraction problem kinds, the nine multiplication kinds, the six division kinds, the seven measurement kinds, and the eight volume kinds)`);
 process.exit(fails ? 1 : 0);

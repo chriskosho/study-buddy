@@ -19,6 +19,7 @@ The site lives in `study-buddy/`. Read these before changing anything:
 - Every geography map follows the "Small places on maps" rules in STYLE_GUIDE.md: a tiny place shows a short code that opens into its full name on tap (also from the list or by keyboard) and when zoomed in, has a hover tooltip on the Study map, and microstates are dots. New and old maps must match (owner's rule, October 2026).
 - Hide unused features instead of deleting them. To retire a module, archive it (`archived: true` in the registry); it stays in the admin area's Archived list.
 - Desktop first, phone friendly. No scroll bars on tool screens at 1440×900, and no sideways scroll at 360px wide (Galaxy S23).
+- Maps and tool screens also work on a phone turned sideways (915x412): never size something from the window height alone. `landscape_test.py` covers the geography maps.
 - Progress is saved locally only. No cloud.
 - Display options (dark mode, OpenDyslexic, larger text) are per student and off by default. New CSS uses the theme tokens, never literal white.
 

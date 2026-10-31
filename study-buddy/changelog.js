@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-30', title: 'New module: Order of Operations, and geography maps on a phone turned sideways', items: [
+    'Math has a new module, Order of Operations, for 5th grade: parentheses, brackets, and braces first, then multiply and divide, then add and subtract, always left to right. There are no exponents.',
+    'The study guide has a helper: type any expression and see every step. Practice tools cover what comes first, the next step, no grouping symbols, parentheses, brackets, three layers, writing and reading expressions, and adding parentheses to make a number sentence true. It also has Flashcards and a Quiz with Random 10 or One of each.',
+    'Fixed: on a phone turned sideways, the maps on the US States, Europe, Africa, Asia, North America, Oceania, World, and Oceans modules shrank to almost nothing. They now stay a good size, and the phone layout is used when the screen is wide but short.' ] },
   { date: '2026-10-30', title: 'New modules: World and Oceans, and a refresh button in the footer', items: [
     'Geography has a World module: one map and one set of practice tools for all 197 countries, with a picker to focus on the whole world or one continent. The continent modules are still there.',
     'Geography also has an Oceans module: the five oceans and 22 major seas, with a study map, flashcards, Listen and tap, Find it, Drag names, a Quiz, and Type the answer. Sizes are rounded and written as "about".',
