@@ -90,6 +90,8 @@ Meaning of color is never the only signal: right/wrong also use text, and select
 10. *World exception:* on the whole-world view the codes are hidden (they would be unreadable at that size); names open from tapping, the list, or zoom. Continent views follow items 1 to 8.
 11. *Projection and water:* the World and Oceans maps use the equirectangular projection. On the Oceans map, water shapes are drawn under the land, and land borders are not drawn (only coasts).
 
+**Landscape phones.** A window that is wide but short (a phone turned sideways, about 915x412) gets the phone layout on map screens, with a map at least 320px tall and a page that scrolls to it. Never size a map from the window height alone: always give it a floor. Check any new map module at 915x412 (`landscape_test.py`).
+
 **Drag chips.** White with navy outline and hard shadow, grab cursor. While dragging, a sun-yellow ghost chip tilts -3° above the pointer. Wrong drops shake the chip; right drops remove it.
 
 **Stats (`.stat`).** Small white rounded boxes for score, misses, time, best.
