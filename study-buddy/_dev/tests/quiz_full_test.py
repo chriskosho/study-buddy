@@ -26,7 +26,7 @@ MODS = ['history/punic-wars', 'history/ancient-rome', 'science/weather', 'scienc
 RUN = "(() => { let n = 0; while (!document.querySelector('.result') && n++ < 1000) { document.querySelector('.opt').click(); const x = document.querySelector('[data-a=next]'); if (x) x.click(); } return !!document.querySelector('.result'); })()"
 
 
-MATH = ['place-value', 'order-of-operations', 'fractions-add-sub', 'fractions-multiply', 'fractions-divide', 'measurement', 'volume']
+MATH = ['place-value', 'order-of-operations', 'decimal-operations', 'multiply-divide', 'coordinate-plane', 'fractions-add-sub', 'fractions-multiply', 'fractions-divide', 'measurement', 'volume']
 async def math_checks(pg, base):
     for m in MATH:
         await pg.set_viewport_size({'width': 1440, 'height': 900})

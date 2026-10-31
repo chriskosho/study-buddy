@@ -52,6 +52,7 @@
     return { q: s.text + (s.svg || ''), a, show: s.show, why: s.why, hint: s.hint, say: s.say || s.text };
   }
   const nearPairs = (x, y, max) => [pair(y, x), pair(x + 1, y), pair(x - 1, y), pair(x, y + 1), pair(x, y - 1), pair(x + 1, y + 1), pair(x - 1, y - 1), pair(x + 1, y - 1), pair(x - 1, y + 1), pair(x + 2, y), pair(x - 2, y), pair(x, y + 2), pair(x, y - 2)].filter(p => { const [a, b] = p.match(/\d+/g).map(Number); return inR(a, max) && inR(b, max) && !/-/.test(p); });
+  const pairs11 = p => (p.match(/\d+/g) || []).every(n => +n <= 10);
   const nums = (d, extra = []) => [d + 1, d - 1, d + 2, d - 2, ...extra].filter(v => v >= 1 && v !== d).map(String);
 
   /* ---------- read the point ---------- */
@@ -72,7 +73,8 @@
       why: `Go right ${x}, then up ${y}. Point ${right.l} is there. Point ${swap.l} is at ${pair(y, x)}: its x and y are swapped.`, hint: 'Go right first (x), then up (y). Do not swap them.', say: `Which point is at ${pair(x, y)}?` };
   }
   /* ---------- vocabulary: axes, origin, coordinates ---------- */
-  function axisQ() {
+  function axisQ() { const r = axisQ0(); r.say = r.say || r.q; return r; }
+  function axisQ0() {
     const v = rnd(0, 4), k = rnd(1, 10), m = rnd(1, 10), n = rnd(1, 10);
     if (v === 0) { const a = pair(0, k); return { q: 'Which ordered pair is on the y-axis?', a, wrong: pickWrong(a, [pair(k, 0), pair(m, n), pair(n, m), pair(k, k), pair(m + (m < 10 ? 1 : -1), n)]), why: `On the y-axis you have not moved right at all, so the x-coordinate is 0. ${a} is on it.`, hint: 'The y-axis is the up-and-down line. How far right is every point on it?' }; }
     if (v === 1) { const a = pair(k, 0); return { q: 'Which ordered pair is on the x-axis?', a, wrong: pickWrong(a, [pair(0, k), pair(m, n), pair(n, m), pair(k, k), pair(m, n + (n < 10 ? 1 : -1))]), why: `On the x-axis you have not moved up at all, so the y-coordinate is 0. ${a} is on it.`, hint: 'The x-axis is the flat line along the bottom. How far up is every point on it?' }; }
@@ -105,7 +107,7 @@
     const a = pair(...miss), [A, B, C] = seen, shareX = A[0] === miss[0] ? 'A' : 'C', shareY = shareX === 'A' ? 'C' : 'A';
     const text = `Three corners of a ${shape} are A ${pair(...A)}, B ${pair(...B)}, and C ${pair(...C)}. What are the coordinates of the fourth corner, D?`;
     const svg = plane({ pts: seen.map((p, k) => ({ x: p[0], y: p[1], l: 'ABC'[k], cls: 'hi' })), segs: [[...A, ...B], [...B, ...C]], label: `A coordinate grid with three corners, A, B, and C, of a ${shape}` });
-    const wrongs = [pair(miss[1], miss[0]), pair(miss[0] + 1, miss[1]), pair(miss[0], miss[1] + 1), pair(miss[0] - 1, miss[1]), pair(miss[0], miss[1] - 1), pair(B[0], B[1] + 1)].filter(p => !/-/.test(p) && p !== a);
+    const wrongs = [pair(miss[1], miss[0]), pair(miss[0] + 1, miss[1]), pair(miss[0], miss[1] + 1), pair(miss[0] - 1, miss[1]), pair(miss[0], miss[1] - 1), pair(B[0], B[1] + 1)].filter(p => !/-/.test(p) && p !== a && pairs11(p));
     return fin(form, { text, svg, show: a, wrong: pickWrong(a, wrongs), say: text,
       why: `The sides of a ${shape} line up with the axes, so D has the same x as ${shareX} (${miss[0]}) and the same y as ${shareY} (${miss[1]}). D is ${a}.`, hint: 'Opposite sides are straight across from each other. Which corner has the same x? Which has the same y?' });
   }
