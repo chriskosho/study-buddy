@@ -35,7 +35,7 @@
       const draw = () => {
         $('#tmgClock', P).innerHTML = G.clockSVG(h, m, `The clock shows ${h}:${pad(m)}.`);
         $('#tmgDig', P).textContent = `${h}:${pad(m)}`; $('#tmgWords', P).textContent = G.timeWords(h, m);
-        $('#tmgH', P).textContent = m === 0 ? `points to the ${h}` : m >= 45 ? `almost at the ${h % 12 + 1}` : `just past the ${h}`;
+        $('#tmgH', P).textContent = m === 0 ? `points to the ${h}` : m >= 45 ? `almost at the ${h % 12 + 1}` : m >= 15 ? `between the ${h} and the ${h % 12 + 1}` : `just past the ${h}`;
         $('#tmgM', P).textContent = m === 0 ? 'points to the 12' : `${m} minutes (${m % 5 ? `${Math.floor(m / 5)} fives and ${m % 5} more` : `the ${m / 5}`})`;
         $('.tmform .textin', P).value = `${h}:${pad(m)}`;
       };

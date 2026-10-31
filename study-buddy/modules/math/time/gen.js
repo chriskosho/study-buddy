@@ -65,7 +65,7 @@
   /* ---------- explanations ---------- */
   function readWhy(h, m) {
     const base = Math.floor(m / 5), extra = m % 5, pointed = base || 12;
-    const hourPart = m === 0 ? `The short hand is the hour hand. It points right at the ${h}, so the hour is ${h}.` : m >= 45 ? `The short hand is the hour hand. It is almost at the ${nextHour(h)} but has not reached it, so the hour is still ${h}.` : `The short hand is the hour hand. It is just past the ${h}, so the hour is ${h}.`;
+    const hourPart = m === 0 ? `The short hand is the hour hand. It points right at the ${h}, so the hour is ${h}.` : m >= 45 ? `The short hand is the hour hand. It is almost at the ${nextHour(h)} but has not reached it, so the hour is still ${h}.` : m < 15 ? `The short hand is the hour hand. It is just past the ${h}, so the hour is ${h}.` : `The short hand is the hour hand. It is between the ${h} and the ${nextHour(h)}, so the hour is ${h}.`;
     const minPart = m === 0 ? 'The long hand is the minute hand. It points to the 12, which is 0 minutes.' : extra === 0 ? `The long hand is the minute hand. It points to the ${pointed}. Count by fives: ${base} × 5 = ${m} minutes.` : `The long hand is the minute hand. It is ${plural(extra, 'small mark')} past the ${pointed}. Count by fives: ${base} × 5 = ${base * 5}, plus ${extra} more = ${m} minutes.`;
     return `${hourPart} ${minPart} The time is ${h}:${pad(m)}.`;
   }
