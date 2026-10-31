@@ -3,9 +3,10 @@
      SBTY.keyboard(host, { rows: 'full'|'letters', zones: true, onTap(k) })
          Draws a US QWERTY keyboard (SVG) in host. tapAll: Shift, Enter and the other wide keys can be tapped too. Returns { el, set(k, cls, on), only(cls, keys), dimExcept(keys), clear(cls), flash(k, good), heat(map) }.
          Key ids are the characters they type ('a', ';', ' ' for the space bar). zones: color each key by the finger that presses it.
-     SBTY.typer(host, { text, wait, onStart(), onKey(info), onDone(result) })
-         Shows the text and takes keystrokes for it. wait: a wrong key does not move on (the default).
+     SBTY.typer(host, { text, wait, noBack, onStart(), onKey(info), onDone(result) })
+         Shows the text and takes keystrokes for it. wait: a wrong key does not move on (the default). noBack: Backspace does nothing (Insane).
          Returns { reset(text), active(), stop(), pos(), next() } and calls onDone({ chars, correct, presses, wrong, elapsed, wpm, acc }).
+     SBTY.keysFor(ch)     the keys for a character, with the other hand's Shift for capitals and symbols like ?
      SBTY.finger(k)        { hand: 'left'|'right'|'thumb', finger: 'pinky'|'ring'|'middle'|'pointer'|'thumb', name: 'left pointer finger' }
      SBTY.needsKeyboard()  true on a phone or tablet with no mouse (the tools show a notice there)
 
@@ -36,7 +37,15 @@
   }
   const SHIFTED = { '~': '`', '!': '1', '@': '2', '#': '3', $: '4', '%': '5', '^': '6', '&': '7', '*': '8', '(': '9', ')': '0', _: '-', '+': '=', '{': '[', '}': ']', '|': '\\', ':': ';', '"': "'", '<': ',', '>': '.', '?': '/' };
   /* the key a character is typed on (A and a are the same key) */
-  const keyOf = ch => ch === ' ' ? ' ' : SHIFTED[ch] || String(ch).toLowerCase();
+  const keyOf = ch => ch === ' ' ? ' ' : String(ch).length > 1 ? String(ch) : SHIFTED[ch] || String(ch).toLowerCase();   // named keys (ShiftLeft) pass through
+  /* the keys pressed for a character: a capital or a shifted symbol also uses the Shift key on the other hand */
+  function keysFor(ch) {
+    if (ch == null) return [];
+    const k = keyOf(ch), shift = /[A-Z]/.test(ch) || SHIFTED[ch];
+    if (!shift) return [k];
+    const z = ZONE[k] || '';
+    return [k, z[0] === 'l' ? 'ShiftRight' : 'ShiftLeft'];
+  }
 
   function keyboard(host, opts = {}) {
     const rows = opts.rows === 'letters' ? ROWS.slice(1) : ROWS, U = 100, G = 8;
@@ -164,7 +173,7 @@
     }
     /* Backspace only matters when wrong keys move on (wait is off): it steps back so the letter can be fixed */
     function back() {
-      if (stopped || opts.wait !== false || pos === 0) return;
+      if (stopped || opts.wait !== false || opts.noBack || pos === 0) return;
       pos--; chars.pop(); if (marks[pos] === 'ok') marks[pos] = null; paint();
       if (opts.onKey) opts.onKey({ key: 'Backspace', pos, next: text[pos] });
     }
@@ -206,5 +215,5 @@
     return api;
   }
 
-  window.SBTY = { keyboard, typer, finger, keyOf, needsKeyboard, ZONE, take: handlerFor };
+  window.SBTY = { keyboard, typer, finger, keyOf, keysFor, needsKeyboard, ZONE, take: handlerFor };
 })();

@@ -7,7 +7,7 @@
   const esc = SB.esc, G = window.SBTG, ORDER = G.ORDER, TOTAL = ORDER.length;
   window.SB_NO_SLASH_SEARCH = true;   // "/" is a key to type here, not the search shortcut
   const NEEDS = SBTY.needsKeyboard();
-  const pct = x => Math.round(x * 100) + '%';
+  const pct = x => Math.floor(x * 100 + 1e-9) + '%';   // rounded down, so 100% means no mistakes at all
   const wpmTxt = x => Math.round(x) + ' words a minute';
   const UP = k => k === ';' ? ';' : k.toUpperCase();
   const fingerOf = k => { const f = SBTY.finger(k); return f ? f.name : ''; };

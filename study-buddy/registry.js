@@ -48,6 +48,23 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'typing-drills',
+      subject: 'typing',
+      title: 'Typing Drills',
+      blurb: 'Practice one thing at a time: each keyboard row, capitals and punctuation, common words, sentences, whole paragraphs, and the letters you find hardest.',
+      tags: ['keyboarding'],
+      path: 'modules/typing/drills/index.html',
+      storage: ['typing-drills'],
+      tools: [
+        { id: 'rows', name: 'Rows', difficulty: 'easy', masterAt: 3, blurb: 'The home, top, bottom, and number rows, one at a time. 3 stars: 90% right at your target speed.' },
+        { id: 'words', name: 'Common words', difficulty: 'medium', masterAt: 3, blurb: 'Words from the 100, 300, or 1,000 most common. 3 stars: 93% right at your target speed.' },
+        { id: 'marks', name: 'Capitals and punctuation', difficulty: 'medium', masterAt: 3, blurb: 'Shift for capitals, and commas, periods, question marks, apostrophes, and more. 3 stars: 93% right at your target speed.' },
+        { id: 'weak', name: 'Weak keys', difficulty: 'medium', masterAt: 3, blurb: 'Words built around your three slowest or most missed letters. 3 stars: 93% right at your target speed.' },
+        { id: 'sentences', name: 'Sentences', difficulty: 'hard', masterAt: 3, blurb: 'Three sentences with capitals and punctuation, or with numbers. 3 stars: 95% right at your target speed.' },
+        { id: 'paragraphs', name: 'Paragraphs', difficulty: 'insane', masterAt: 3, blurb: 'A whole paragraph with no Backspace. 3 stars: 97% right at your target speed.' }
+      ]
+    },
+    {
       id: 'ham-technician',
       subject: 'other',
       title: 'Ham Radio Technician',

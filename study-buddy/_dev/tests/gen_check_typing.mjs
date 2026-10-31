@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 const SITE = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const W = require(join(SITE, 'shared/sb-typing-words.js'));
 const G = require(join(SITE, 'shared/sb-typing-gen.js'));
+const X = require(join(SITE, 'shared/sb-typing-text.js'));
 
 const SEED = Number(process.env.SEED) || (Date.now() % 1e9);
 const rand = G.seeded(SEED);
@@ -101,6 +102,66 @@ for (let n = G.START; n <= 26; n++) {
   ok(Math.abs(r.wpm - 10) < 1e-9, '50 characters in a minute is 10 WPM');
   ok(Math.abs(r.acc - 50 / 55) < 1e-9, 'accuracy is right presses over all presses');
   ok(G.roundScore({ correct: 0, elapsed: 0, presses: 0, wrong: 0 }).acc === 1, 'empty round is safe');
+}
+
+
+/* ---- drills ---- */
+{
+  const ROWCH = { home: 'asdfghjkl; ', top: 'qwertyuiop ', bottom: 'zxcvbnm,. ', number: '1234567890- ' };
+  const words = t => t.split(' ').filter(Boolean);
+  for (let t = 0; t < 400; t++) {
+    for (const row of Object.keys(ROWCH)) {
+      const text = G.rowDrill(row, rand);
+      ok([...text].every(c => ROWCH[row].includes(c)), `${row} row drill uses only that row: "${text}"`);
+      ok(words(text).length === 20, `${row} row drill length`);
+      words(text).forEach(w => ok(!G.blocked(w.replace(/[^a-z]/g, ''), !G.WORDS.includes(w.replace(/[^a-z]/g, ''))), `no unkind group in ${row}: "${w}"`));
+      if (row === 'number') ok([...'0123456789'].every(d => text.includes(d)), 'number drill uses every digit: ' + text);
+    }
+    const caps = G.capitalsDrill(rand);
+    ok(/[A-Z]/.test(caps) && words(caps).every(w => /^[A-Za-z]{3,8}$/.test(w) && G.WORDS.includes(w.toLowerCase())), 'capitals drill is real words, some capitalized: ' + caps);
+    const punct = G.punctDrill(rand);
+    ok(/^[A-Za-z ,.?!;:'"()\-]+$/.test(punct), 'punctuation drill uses only letters and the taught marks: ' + punct);
+    ok(/[,.?!;:'"()\-]/.test(punct), 'punctuation drill has punctuation');
+    words(punct).forEach(w => { const bare = w.replace(/[^A-Za-z'\-]/g, ''); ok(G.CONTRACTIONS.includes(bare) || G.HYPHENS.includes(bare) || G.WORDS.includes(bare.toLowerCase()), 'punctuation drill word is real: ' + w); });
+    for (const size of [100, 300, 1000]) {
+      const cw = words(G.commonWords(rand, size)), top = new Set(G.WORDS.slice(0, size));
+      ok(cw.length === 25 && cw.every(w => top.has(w)), `common words come from the top ${size}`);
+      ok(cw.every((w, i) => !cw.slice(Math.max(0, i - 3), i).includes(w)), 'common words do not repeat within three');
+    }
+  }
+  /* weak keys */
+  const st = {}, open = G.ORDER.slice(0, 14);
+  open.forEach(k => G.addRound(st, Array.from({ length: 12 }, (x, i) => ({ ch: k, ok: k === 'e' ? i % 3 > 0 : true, ms: k === 'r' ? 1200 : k === 'u' ? 900 : 300 }))));
+  const weak = G.weakLetters(st, open, 15);
+  ok(weak.length === 3 && weak.includes('e') && weak.includes('r') && weak.includes('u'), 'weak letters are the missed and slow ones: ' + weak);
+  for (let t = 0; t < 200; t++) {
+    const w = words(G.weakDrill(st, open, 15, rand));
+    ok(w.length === 16 && w.every(x => [...x].every(c => open.includes(c))), 'weak drill uses known letters only');
+    ok(w.filter(x => weak.some(c => x.includes(c))).length >= 14, 'weak drill words carry the weak letters');
+  }
+  ok(G.weakDrill({}, open, 15, rand) === '', 'weak drill is empty with no typing yet');
+  /* stars */
+  ok(G.stars({ acc: 0.8, wpm: 30 }, { acc: 0.93, wpm: 15 }) === 1, '1 star below the accuracy goal');
+  ok(G.stars({ acc: 0.95, wpm: 10 }, { acc: 0.93, wpm: 15 }) === 2, '2 stars with accuracy but not speed');
+  ok(G.stars({ acc: 0.95, wpm: 15 }, { acc: 0.93, wpm: 15 }) === 3, '3 stars with both');
+  ok(G.pickText(['a', 'b', 'c', 'd'], 3, rand).split(' ').length === 3 && new Set(G.pickText(['a', 'b', 'c', 'd'], 4, rand).split(' ')).size === 4, 'pickText gives different items');
+}
+
+/* ---- practice sentences and paragraphs ---- */
+{
+  const all = [...X.sentences, ...X.numbers, ...X.paragraphs];
+  ok(X.sentences.length >= 200 && X.numbers.length >= 40 && X.paragraphs.length >= 30, `enough practice text (${X.sentences.length}, ${X.numbers.length}, ${X.paragraphs.length})`);
+  ok(new Set(all).size === all.length, 'no repeated practice text');
+  all.forEach(t => {
+    ok(/^[\x20-\x7e]+$/.test(t), 'plain keyboard characters only: ' + t.slice(0, 40));
+    ok(/^[A-Z"(]/.test(t) && /[.?!"')]$/.test(t), 'starts with a capital and ends with punctuation: ' + t.slice(0, 40));
+    ok(!/\s{2,}/.test(t) && t === t.trim(), 'single spaces: ' + t.slice(0, 40));
+    /* the reviewed science text may use a few words the made-up-word blocklist stops (a plant's shoot, a heart pumping blood, a penguin's fat) */
+    const SCIENCE = new Set(['blood', 'shoot', 'fat']);
+    t.toLowerCase().split(/[^a-z]+/).filter(Boolean).forEach(w => ok(SCIENCE.has(w) || !G.blocked(w), 'no blocked word in practice text: ' + w));
+  });
+  X.sentences.forEach(t => ok(!/\d/.test(t), 'plain sentences have no digits: ' + t));
+  X.numbers.forEach(t => ok(/\d/.test(t), 'number sentences have digits: ' + t));
 }
 
 console.log(`typing: ${lessons} lessons checked, seed ${SEED}`);
