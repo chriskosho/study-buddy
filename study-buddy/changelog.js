@@ -1,6 +1,12 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-31', title: 'New modules: Decimal Operations, Multi-Digit Multiplication and Long Division, and The Coordinate Plane', items: [
+    'Math has three new 5th grade modules.',
+    'Decimal Operations: adding, subtracting, multiplying, and dividing decimals, estimating, and word problems with money and measurements. The study guide has a helper that shows every step for any two decimals.',
+    'Multi-Digit Multiplication and Long Division: multiplying with 2-digit and bigger numbers, the area model, long division with 1-digit and 2-digit divisors, and what to do with remainders. The study guide helper shows the rows and every long division step.',
+    'The Coordinate Plane: reading and plotting points in the first quadrant, distances, shapes on the grid, patterns, and map problems. You can tap the grid or use the keyboard.',
+    'Each one has Flashcards, practice tools from Easy to Insane, and a Quiz with Random 10 or One of each.' ] },
   { date: '2026-10-30', title: 'New module: Order of Operations, and geography maps on a phone turned sideways', items: [
     'Math has a new module, Order of Operations, for 5th grade: parentheses, brackets, and braces first, then multiply and divide, then add and subtract, always left to right. There are no exponents.',
     'The study guide has a helper: type any expression and see every step. Practice tools cover what comes first, the next step, no grouping symbols, parentheses, brackets, three layers, writing and reading expressions, and adding parentheses to make a number sentence true. It also has Flashcards and a Quiz with Random 10 or One of each.',

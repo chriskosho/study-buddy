@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Coordinate Plane · Study Buddy</title>
+<meta name="theme-color" content="#2b4162">
+<link rel="icon" href="../../../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../../shared/sb.css">
+<style>
+/* the grid: square, never sized from the window height alone (a floor keeps it usable on a phone turned sideways) */
+.cpl{display:block;margin:6px auto 4px;width:min(100%,clamp(250px,calc(var(--vh, 100vh) - var(--chrome) - 620px),380px));height:auto;aspect-ratio:1/1;touch-action:manipulation;overflow:visible}
+.cpl .bg{fill:var(--surface);stroke:none}
+.cpl .gl{stroke:var(--line);stroke-width:1}
+.cpl .ax{stroke:var(--ink);stroke-width:2.4}
+.cpl .tk{fill:var(--ink2);font-size:20px;font-weight:700;font-family:inherit}
+.cpl .axn{fill:var(--ink);font-size:24px;font-weight:800;font-style:italic;font-family:inherit}
+.cpl .poly{fill:var(--tint-note);stroke:var(--navy-ink);stroke-width:3;stroke-linejoin:round}
+.cpl .seg{stroke:var(--navy-ink);stroke-width:4;stroke-linecap:round}
+.cpl .pt{fill:var(--coral);stroke:var(--surface);stroke-width:2.5}
+.cpl .pt.hi{fill:var(--navy)}
+.cpl .pt.pick{fill:var(--sun);stroke:var(--navy-ink);stroke-width:3}
+.cpl .pt.good{fill:var(--good);stroke:var(--navy-ink);stroke-width:3}
+.cpl .plbl{fill:var(--ink);font-size:23px;font-weight:800;font-family:inherit;paint-order:stroke;stroke:var(--surface);stroke-width:5px;stroke-linejoin:round}
+.cpl .cur{fill:none;stroke:var(--navy-ink);stroke-width:3;stroke-dasharray:5 4;pointer-events:none}
+.cpl.tap{cursor:crosshair}
+.cpl:focus{outline:none}
+.cpl:focus-visible{outline:3px solid var(--navy-ink);outline-offset:3px;border-radius:6px}
+.qtext{font-size:clamp(18px,1.9vw,26px)}   /* these questions are long sentences with numbers in them */
+.cpread{min-height:24px;margin:2px 0;text-align:center;font-weight:800;font-size:18px}
+.cpsub>h2{display:inline-block;margin:0 16px 4px 0}
+.cpsub>h2+.lead{display:inline}
+.cpmodes{position:absolute;top:clamp(16px,2vw,28px);right:clamp(16px,2vw,28px);z-index:1}
+section.panel{position:relative}
+@media (max-width:760px){.cpmodes{position:static;margin:0 0 8px}}
+.cpguide{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr);gap:8px 28px;align-items:start;margin-top:10px}
+.cpguide .cpl{margin:0;width:min(100%,clamp(280px,calc(var(--vh, 100vh) - var(--chrome) - 300px),420px))}
+.cpform{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 8px}
+.cpform .textin{width:min(200px,100%);font-size:20px}
+.cpout{font-size:20px;font-weight:800;min-height:56px}
+.cperr{color:var(--bad-ink);font-weight:700;min-height:22px}
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:6px}
+.rule{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:12px 16px}
+.rule h3{margin:0 0 6px;font-size:19px}
+.rule p{margin:0 0 6px;font-size:16px}
+@media (min-height:800px){.cpl{width:min(100%,clamp(196px,calc(var(--vh, 100vh) - var(--chrome) - 700px),380px))}}
+@media (min-height:800px){#tab-plot .cpl{width:min(100%,clamp(230px,calc(var(--vh, 100vh) - var(--chrome) - 500px),250px))}}
+@media (min-width:761px) and (min-height:760px){.qtext:has(svg.cpl){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center;text-align:left}.qtext svg.cpl{width:min(100%,clamp(230px,calc(var(--vh, 100vh) - var(--chrome) - 600px),320px));margin:0}}   /* typed questions: the words on the left, the grid on the right */
+@media (max-width:900px){.cpguide{grid-template-columns:minmax(0,1fr)}.cpguide .cpl{margin:0 auto}}
+@media (max-width:760px){.rules{grid-template-columns:1fr}}
+</style>
+<script src="../../../shared/sb-core.js"></script>
+<script src="../../../shared/sb-shell.js"></script>
+<script src="../../../registry.js"></script>
+<script src="../../../shared/sb-module.js"></script>
+<script src="../../../shared/sb-tools.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="gen.js"></script>
+<script src="cp.js"></script>
+</body>
+</html>
