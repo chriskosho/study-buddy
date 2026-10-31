@@ -218,7 +218,7 @@
     return noRepeat(() => { const w = pool[Math.floor(Math.pow(rand(), 1.3) * pool.length)]; return rand() < 0.65 ? w[0].toUpperCase() + w.slice(1) : w; }, n).join(' ');
   }
   const CONTRACTIONS = ["it's", "don't", "can't", "I'm", "you're", "we're", "they're", "isn't", "let's", "that's", "what's", "here's", "didn't", "won't", "I'll", "we'll", "she's", "he's", "aren't", "wasn't"];
-  const HYPHENS = ['x-ray', 'ice-cold', 'left-handed', 'right-handed', 'half-time', 't-shirt', 're-read', 'pop-up', 'high-five', 'merry-go-round', 'forty-two', 'twenty-one', 'well-known', 'sign-up', 'drop-off'];
+  const HYPHENS = ['x-ray', 'ice-cold', 'left-handed', 'right-handed', 'T-shirt', 're-read', 'pop-up', 'high-five', 'merry-go-round', 'forty-two', 'twenty-one', 'well-known', 'sign-up', 'drop-off'];
   function punctDrill(rand = Math.random, n = 14) {
     const pool = COMMON();
     return noRepeat(() => {
@@ -234,9 +234,13 @@
     const pool = WORDS.slice(0, size).filter(w => w.length >= 2);
     return noRepeat(() => pool[Math.floor(rand() * pool.length)], n).join(' ');
   }
-  /* the three weakest open letters that have been typed; words lean on them in turn */
+  /* the three weakest letters: most missed first, then slowest. Only letters typed at least 10 times count (so a letter typed
+     twice is not called weak), unless fewer than three have that many. */
   function weakLetters(stats, open, target, k = 3) {
-    return open.filter(c => keyStat(stats, c).n > 0).sort((a, b) => confidence(stats, a, target) - confidence(stats, b, target) || keyStat(stats, a).wpm - keyStat(stats, b).wpm).slice(0, k);
+    let cand = open.filter(c => keyStat(stats, c).n >= MIN_SAMPLES);
+    if (cand.length < k) cand = open.filter(c => keyStat(stats, c).n > 0);
+    const acc = c => Math.round(keyStat(stats, c).acc * 100);   // whole percents, so speed decides between near-equal accuracy
+    return cand.sort((a, b) => acc(a) - acc(b) || keyStat(stats, a).wpm - keyStat(stats, b).wpm).slice(0, k);
   }
   function weakDrill(stats, open, target, rand = Math.random, n = 16) {
     const weak = weakLetters(stats, open, target);

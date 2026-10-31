@@ -59,7 +59,7 @@
         function paintGoal() {
           const g = goal(), b = st.best[cfg.id + ':' + opt()];
           goalEl.innerHTML = `<span>Goal: <b>${pct(g.acc)} right</b> and <b>${g.wpm} words a minute</b></span>
-            <label>Target speed <select data-x="target" title="Words a minute">${[10, 15, 20, 25, 30, 35, 40, 50].map(v => `<option value="${v}"${v === g.wpm ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
+            <label>Target speed <select data-x="target" data-typing title="Words a minute">${[10, 15, 20, 25, 30, 35, 40, 50].map(v => `<option value="${v}"${v === g.wpm ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
             ${insane ? '<span>No Backspace here: mistakes stay.</span>' : ''}
             ${cfg.note ? cfg.note(shared()) : ''}
             <span>${b ? `Best: ${b.stars} ${b.stars === 1 ? 'star' : 'stars'}, ${wpmTxt(b.wpm)}, ${pct(b.acc)}` : 'No rounds yet'}</span>`;
@@ -94,8 +94,10 @@
           if (!b || stars > b.stars || (stars === b.stars && r.wpm > b.wpm)) st.best[key] = { stars, wpm: Math.round(r.wpm * 10) / 10, acc: Math.round(r.acc * 1000) / 1000 };
           ctx.save();
           ctx.result(stars, 3);
+          const before = SB.streakInfo();
           if (stars >= 2) ctx.credit();
-          if (stars === 3) ctx.sfx.win();
+          const goalNow = before.daily < before.goal && SB.streakInfo().daily >= before.goal;   // credit() already played the daily-goal tune
+          if (stars === 3 && !goalNow) ctx.sfx.win();
           const missed = [...new Set(r.chars.filter(c => !c.ok && c.ch !== ' ').map(c => c.ch))].slice(0, 8);
           msg.className = 'msg dmsg' + (stars === 3 ? ' good' : '');
           msg.innerHTML = `<span class="stars" aria-hidden="true">${[0, 1, 2].map(i => `<span class="${i < stars ? '' : 'off'}">&#9733;</span>`).join('')}</span>` +
@@ -106,14 +108,16 @@
           newRound();
         }
 
-        P.querySelectorAll('[data-o]').forEach(b => b.onclick = () => { st.opt[cfg.id] = b.dataset.o; ctx.save(); paintOpts(); paintGoal(); msg.textContent = ''; newRound(); b.blur(); });
+        P.querySelectorAll('[data-o]').forEach(b => b.onclick = () => { st.opt[cfg.id] = b.dataset.o; ctx.save(); paintOpts(); paintGoal(); msg.className = 'msg dmsg'; msg.textContent = cfg.lead || ''; newRound(); b.blur(); });
         const w = $('[data-x="wait"]', P);
-        if (w) w.onclick = () => { saveShared(s => { s.wait = s.wait === false; }); topts.wait = shared().wait; paintOpts(); newRound(); w.blur(); };
-        $('[data-x="kb"]', P).onclick = e => { saveShared(s => { s.showKb = s.showKb === false; }); paintOpts(); e.currentTarget.blur(); };
+        if (w) w.onclick = () => { saveShared(s => { s.wait = s.wait === false; }); topts.wait = shared().wait; paintOpts(); w.blur(); typer.active(); };   // takes effect from the next key; the round goes on
+        $('[data-x="kb"]', P).onclick = e => { saveShared(s => { s.showKb = s.showKb === false; }); paintOpts(); e.currentTarget.blur(); typer.active(); };
         paintOpts(); paintGoal();
         msg.textContent = cfg.lead || 'Start typing when you are ready.';
         newRound();
-        tool._refresh = () => { topts.wait = insane ? false : shared().wait; paintOpts(); paintGoal(); };
+        /* coming back to the tab: pick up settings changed elsewhere, and start fresh text if this round has not begun
+           (Weak keys then uses the latest weak letters, or shows text for the first time after practice elsewhere) */
+        tool._refresh = () => { topts.wait = insane ? false : shared().wait; paintOpts(); paintGoal(); if (!typer.started()) newRound(); };
       },
       enter() { if (tool._refresh) tool._refresh(); if (tool._typer) tool._typer.active(); }
     };
@@ -137,14 +141,14 @@
     words: drill({
       id: 'words', optLabel: 'How many words to pick from',
       options: [{ id: '100', label: 'Top 100' }, { id: '300', label: 'Top 300' }, { id: '1000', label: 'Top 1,000' }],
-      lead: 'These are some of the most common words in English.',
+      lead: 'These are some of the most common words in books for kids.',
       gen: o => G.commonWords(Math.random, Number(o))
     }),
     sentences: drill({
       id: 'sentences', optLabel: 'Which sentences',
       options: [{ id: 'plain', label: 'Sentences' }, { id: 'num', label: 'With numbers' }],
       lead: 'Capitals, commas, and periods count, just like letters.',
-      gen: o => G.pickText(o === 'num' ? X.numbers : X.sentences, 3), rows: o => o === 'num' ? 'full' : 'letters'
+      gen: o => G.pickText(o === 'num' ? X.numbers : X.sentences, 3), rows: () => 'full'
     }),
     paragraphs: drill({
       id: 'paragraphs',

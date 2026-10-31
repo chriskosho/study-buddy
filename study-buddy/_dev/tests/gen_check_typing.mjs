@@ -140,6 +140,14 @@ for (let n = G.START; n <= 26; n++) {
     ok(w.filter(x => weak.some(c => x.includes(c))).length >= 14, 'weak drill words carry the weak letters');
   }
   ok(G.weakDrill({}, open, 15, rand) === '', 'weak drill is empty with no typing yet');
+  /* uneven practice: a letter typed only a few times is not called weak; the most missed letters are */
+  {
+    const u = {}, mk = (k, n, hits, ms) => G.addRound(u, Array.from({ length: n }, (x, i) => ({ ch: k, ok: i < hits, ms })));
+    'asfjklgher'.split('').forEach(k => mk(k, 12, 12, 300));
+    mk('d', 4, 4, 300); mk('i', 10, 6, 300); mk('o', 20, 13, 300);
+    const wl = G.weakLetters(u, G.ORDER.slice(0, 16), 15);
+    ok(wl[0] === 'i' && wl[1] === 'o' && !wl.includes('d'), 'weak letters ignore barely typed letters and rank the most missed first: ' + wl);
+  }
   /* stars */
   ok(G.stars({ acc: 0.8, wpm: 30 }, { acc: 0.93, wpm: 15 }) === 1, '1 star below the accuracy goal');
   ok(G.stars({ acc: 0.95, wpm: 10 }, { acc: 0.93, wpm: 15 }) === 2, '2 stars with accuracy but not speed');

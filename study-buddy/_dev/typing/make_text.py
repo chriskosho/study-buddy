@@ -4,7 +4,7 @@
 import os, json
 here = os.path.dirname(os.path.abspath(__file__))
 site = os.path.dirname(os.path.dirname(here))
-data = {k: json.load(open(os.path.join(here, 'text', k + '.json'))) for k in ('sentences', 'numbers', 'paragraphs')}
+data = {k: json.load(open(os.path.join(here, 'text', k + '.json'), encoding='utf-8')) for k in ('sentences', 'numbers', 'paragraphs')}
 for k, v in data.items():
     for t in v:
         assert all(32 <= ord(c) < 127 for c in t), (k, t)
@@ -13,5 +13,5 @@ out = ('/* Study Buddy typing: practice sentences and paragraphs for children (p
        '(function (root) {\n  const SBTX = ' + json.dumps(data, indent=1) + ';\n'
        '  root.SBTX = SBTX;\n  if (typeof module === \'object\' && module.exports) module.exports = SBTX;\n'
        '})(typeof window !== \'undefined\' ? window : globalThis);\n')
-open(os.path.join(site, 'shared', 'sb-typing-text.js'), 'w').write(out)
+open(os.path.join(site, 'shared', 'sb-typing-text.js'), 'w', encoding='utf-8').write(out)
 print({k: len(v) for k, v in data.items()})

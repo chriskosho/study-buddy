@@ -96,7 +96,9 @@
      typing in another box (search, settings), or with Ctrl, Alt or the Windows/Command key (so browser shortcuts still work). */
   let current = null;
   function handlerFor(t) { current = t; }
-  const busy = e => document.querySelector('.sb-ov') || (e.target && e.target.closest && e.target.closest('input,textarea,select,[contenteditable]') && !e.target.classList.contains('sbty-in'));
+  /* a menu marked data-typing (Target speed) lets typing keys through: the first letter typed while it has focus leaves the menu and types */
+  const passes = e => e.target && e.target.matches && e.target.matches('select[data-typing]') && e.key && e.key.length === 1;
+  const busy = e => document.querySelector('.sb-ov') || (e.target && e.target.closest && e.target.closest('input,textarea,select,[contenteditable]') && !e.target.classList.contains('sbty-in') && !passes(e));
   document.addEventListener('keydown', e => {
     if (!current || !current.live()) return;
     if (e.ctrlKey || e.metaKey || e.altKey || busy(e)) return;
@@ -107,6 +109,7 @@
     if (e.key === 'Backspace') { e.preventDefault(); current.back(); return; }
     if (e.key.length !== 1) return;                       // Shift, Tab, arrows, Escape: not typing
     e.preventDefault();                                    // stops the space bar scrolling the page or pressing a button
+    if (passes(e)) e.target.blur();
     if (e.repeat) return;                                  // a key held down types once
     current.type(e.key, e.getModifierState && e.getModifierState('CapsLock'));
   }, true);
@@ -137,6 +140,7 @@
         s.className = 'c' + (text[i] === ' ' ? ' sp' : '') + (i < pos ? (m === 'ok' ? ' ok' : ' bad') : i === pos ? ' cur' + (missedHere ? ' miss' : '') : '');
       }
       const cur = spans[pos]; if (cur && cur.offsetTop > box.clientHeight * 0.55 + box.scrollTop) box.scrollTop = cur.offsetTop - box.clientHeight * 0.3;
+      box.classList.toggle('more', box.scrollHeight - box.scrollTop > box.clientHeight + 4);   // fades the last line when more text is below
     }
     function reset(t) {
       text = String(t); seen = ''; inp.value = ''; marks = []; pos = 0; t0 = 0; tLast = 0; presses = 0; wrong = 0; elapsed = 0; chars = []; stopped = false; missedHere = false;

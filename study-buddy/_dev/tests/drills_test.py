@@ -56,6 +56,11 @@ async def main():
         await open_tool(pg, base, 'weak')
         m = await pg.inner_text('#tab-weak .dmsg')
         check('needs some typing first' in m and await pg.locator('#tab-weak .dmsg a[href*="learn-keys"]').count() == 1, f'Weak keys asks for some typing first: {m}')
+        # practice in another tab, then come back: Weak keys now has text
+        await pg.click('#tabbtn-rows'); await pg.wait_for_selector('#tab-rows .sbty-text .c')
+        for _ in range(2): await type_all(pg, 'rows', delay=20)
+        await pg.click('#tabbtn-weak'); await pg.wait_for_timeout(150)
+        check(len(await pg.evaluate(TEXT('weak'))) > 10 and 'Practicing:' in await pg.inner_text('#tab-weak .dgoal'), 'Weak keys has text after practice in another tab')
 
         # ---- Rows: home row ----
         await open_tool(pg, base, 'rows')
@@ -101,8 +106,14 @@ async def main():
         p0 = await pg.evaluate(POS('rows')); t = await pg.evaluate(TEXT('rows'))
         await pg.keyboard.type(t[p0]); check(await pg.evaluate(POS('rows')) == p0 + 1, 'typing works right after changing the speed')
         await pg.select_option('#tab-rows [data-x="target"]', '15')
+        # opening the menu and leaving it with Escape: the next letter still types
+        p0 = await pg.evaluate(POS('rows')); t = await pg.evaluate(TEXT('rows'))
+        await pg.click('#tab-rows [data-x="target"]'); await pg.keyboard.press('Escape'); await pg.keyboard.type(t[p0])
+        check(await pg.evaluate(POS('rows')) == p0 + 1, 'typing works after opening the speed menu and pressing Escape')
+        p0 = await pg.evaluate(POS('rows'))
         await pg.click('#tab-rows [data-x="wait"]')
         check((await pg.evaluate(LK)).get('wait') is False, 'Fix mistakes is shared with Learn the Keys')
+        check(await pg.evaluate(POS('rows')) == p0, 'changing Fix mistakes keeps the round going')
         await pg.click('#tab-rows [data-x="wait"]')
         await pg.click('#tab-rows [data-x="kb"]'); check(await pg.locator('#tab-rows .dkb').is_hidden(), 'the keyboard can be hidden')
         await pg.click('#tab-rows [data-x="kb"]'); check(await pg.locator('#tab-rows .dkb').is_visible(), 'and shown again')
@@ -165,6 +176,18 @@ async def main():
         await pg.wait_for_timeout(150)
         m = await pg.inner_text('#tab-paragraphs .dmsg')
         check('stars' in m and '100%' not in m, f'paragraph round finishes with the mistake counted: {m}')
+
+        # ---- Learn the Keys open in another tab never erases drill practice ----
+        pg2 = await ctx.new_page(); await pg2.goto(base + 'modules/typing/learn-keys/index.html'); await pg2.wait_for_selector('#lkType .c')
+        await open_tool(pg, base, 'words')
+        await pg.select_option('#tab-words [data-x="target"]', '20')
+        await type_all(pg, 'words', delay=10)
+        n_e = len((await pg.evaluate(LK))['stats'].get('e', []))
+        await pg2.click('#lkKb')
+        lk = await pg.evaluate(LK)
+        check(lk.get('target') == 20 and len(lk['stats'].get('e', [])) == n_e, f'a save in Learn the Keys keeps the drill stats and speed (target {lk.get("target")}, e {len(lk["stats"].get("e", []))} of {n_e})')
+        await pg2.click('#lkKb'); await pg2.close()
+        await pg.select_option('#tab-words [data-x="target"]', '15')
 
         # ---- layout ----
         for tool in ['rows', 'words', 'marks', 'weak', 'sentences', 'paragraphs']:
