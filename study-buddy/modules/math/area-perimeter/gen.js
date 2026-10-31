@@ -168,7 +168,7 @@
     if (form === 'perim') {
       const t = rnd(2, 10), s = rnd(2, 10), p = 2 * (s + t);
       return prob({ k: 'missing-perim', text: `The perimeter of this rectangle is ${p} units. One side is ${s} units. How long is the side marked ?`, pic: rectPic(Math.max(s, t), Math.min(s, t), s >= t ? { top: s, left: '?' } : { top: '?', left: s }, `Perimeter = ${p} units`), a: t, unitFor: PERIM, tries: [p - s, p / 2, p - 2 * s, s + t + 1],
-        why: `The two equal sides of ${s} use ${s} + ${s} = ${2 * s}. ${p} − ${2 * s} = ${p - 2 * s} is left for the other two sides, so each is ${p - 2 * s} ÷ 2 = ${t}. The side is ${t} units.`, hint: 'Half of the perimeter is length + width. Subtract the side you know.', say: `The perimeter of this rectangle is ${p} units. One side is ${s} units. How long is the other side?` });
+        why: `Subtract the known side twice, because two sides match it: ${p} − ${s} − ${s} = ${p - 2 * s}. Split what is left between the other two sides, so each is ${p - 2 * s} ÷ 2 = ${t}. The side is ${t} units.`, hint: 'Half of the perimeter is length + width. Subtract the side you know.', say: `The perimeter of this rectangle is ${p} units. One side is ${s} units. How long is the other side?` });
     }
     const sides = polySides(3), idx = rnd(0, 2), p = sides.reduce((x, y) => x + y, 0), ans = sides[idx], shown = sides.map((x, i) => i === idx ? '?' : x), known = sides.filter((x, i) => i !== idx);
     return prob({ k: 'missing-tri', text: `The perimeter of this triangle is ${p} units. How long is the side marked ?`, pic: polyPic(shown, `Perimeter = ${p} units`), a: ans, unitFor: PERIM, tries: [p - known[0], known[0] + known[1], p - ans - 1, p],
@@ -176,7 +176,7 @@
   }
 
   /* ---------- same perimeter, different area (and the other way round) ---------- */
-  const dims = d => `${d[0]} units by ${d[1]} units`;
+  const dims = d => `${d[0]} ${un(d[0])} by ${d[1]} ${un(d[1])}`;
   const AREAS = { 12: [[2, 6], [3, 4], [1, 12]], 16: [[2, 8], [4, 4]], 18: [[2, 9], [3, 6]], 20: [[2, 10], [4, 5]], 24: [[2, 12], [3, 8], [4, 6]], 30: [[3, 10], [5, 6]], 36: [[3, 12], [4, 9], [6, 6]], 48: [[4, 12], [6, 8]] };
   function compareQ(form) {
     form = form || pick(['sameP', 'sameA', 'pickP', 'pickA']);
@@ -200,7 +200,7 @@
     const measure = d => wantP ? 2 * (d[0] + d[1]) : d[0] * d[1];
     seen.add(measure(right));
     for (let t = 0; t < 200 && opts.length < 3; t++) { const d = [rnd(3, 12), rnd(2, 9)], m = measure(d); if (!seen.has(m) && m !== target) { seen.add(m); opts.push(d); } }
-    const s = d => `${d[0]} units by ${d[1]} units`;
+    const s = d => `${d[0]} ${un(d[0])} by ${d[1]} ${un(d[1])}`;
     return out(s(right), opts.map(s), wantP ? `Which rectangle has a perimeter of ${target} units?` : `Which rectangle has an area of ${target} square units?`, '',
       wantP ? `${right[0]} + ${right[1]} + ${right[0]} + ${right[1]} = ${target}. A rectangle ${s(right)} has a perimeter of ${target} units.` : `${right[0]} × ${right[1]} = ${target}. A rectangle ${s(right)} has an area of ${target} square units.`,
       wantP ? 'Add all four sides of each rectangle, or double length plus width.' : 'Multiply the two sides of each rectangle.', wantP ? `Which rectangle has a perimeter of ${target} units?` : `Which rectangle has an area of ${target} square units?`, { target, choices: [right, ...opts] });
@@ -215,7 +215,7 @@
         why: `Split the shape into two rectangles. The bottom one is ${W} × ${h1} = ${W * h1}. The top one is ${w2} × ${h2} = ${w2 * h2}. Add: ${W * h1} + ${w2 * h2} = ${a}. The area is ${a} square units.`, hint: 'Split the shape into two rectangles. Find each area. Then add.', say: `This shape is made of two rectangles. What is its area? The sides around it are ${w2}, ${h2}, ${W - w2}, ${h1}, ${W}, ${H}.` });
     }
     const a1 = [rnd(2, 9), rnd(2, 6)], a2 = [rnd(2, 8), rnd(2, 6)], t1 = a1[0] * a1[1], t2 = a2[0] * a2[1], a = t1 + t2;
-    return prob({ k: 'composite-two', text: `A shape is made of two rectangles that do not overlap. One is ${a1[0]} units by ${a1[1]} units. The other is ${a2[0]} units by ${a2[1]} units. What is the total area?`, pic: '', a, unitFor: AREA, tries: [a1[0] * a2[0] * a1[1] * a2[1] > 400 ? t1 : Math.abs(t1 - t2) + 0, a1[0] + a1[1] + a2[0] + a2[1], t1, t2],
+    return prob({ k: 'composite-two', text: `A shape is made of two rectangles that do not overlap. One is ${a1[0]} ${un(a1[0])} by ${a1[1]} ${un(a1[1])}. The other is ${a2[0]} ${un(a2[0])} by ${a2[1]} ${un(a2[1])}. What is the total area?`, pic: '', a, unitFor: AREA, tries: [a1[0] * a2[0] * a1[1] * a2[1] > 400 ? t1 : Math.abs(t1 - t2) + 0, a1[0] + a1[1] + a2[0] + a2[1], t1, t2],
       why: `The first rectangle: ${a1[0]} × ${a1[1]} = ${t1}. The second: ${a2[0]} × ${a2[1]} = ${t2}. Add: ${t1} + ${t2} = ${a}. The total area is ${a} square units.`, hint: 'Find the area of each rectangle, then add them.', say: `A shape is made of two rectangles that do not overlap. One is ${a1[0]} by ${a1[1]}. The other is ${a2[0]} by ${a2[1]}. What is the total area?` });
   }
 

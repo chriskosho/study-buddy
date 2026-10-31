@@ -19,7 +19,7 @@
     const p = a * b, s = Math.min(a, b), l = Math.max(a, b);
     if (a === 0 || b === 0) return { why: `Any number times 0 is 0. ${a} × ${b} = 0.`, hint: 'Zero groups, or zero in each group, is nothing.' };
     if (a === 1 || b === 1) return { why: `Any number times 1 is that number. ${a} × ${b} = ${p}.`, hint: 'One group of a number is just that number.' };
-    if (s === 10) return { why: `Times 10: put a 0 after the other number. ${l} × 10 = ${p}.`, hint: 'Write the other number, then put a 0 after it.' };
+    if (a === 10 || b === 10) { const o = a === 10 ? b : a; return { why: `Times 10: put a 0 after the other number. ${o} × 10 = ${p}.`, hint: 'Write the other number, then put a 0 after it.' }; }
     if (s === 2) return { why: `Two groups of ${l} is a double: ${l} + ${l} = ${p}.`, hint: 'Double the other number.' };
     if (s === 5) return { why: `Count by 5s, ${l} times: ${Array.from({ length: l }, (_, i) => 5 * (i + 1)).join(', ')}. So ${a} × ${b} = ${p}.`, hint: 'Count by 5s.' };
     if (s === 9) return { why: `Ten ${l}s is ${10 * l}. Take away one ${l}: ${10 * l} − ${l} = ${p}.`, hint: 'Do the times 10 fact, then take away one group.' };
@@ -60,6 +60,7 @@
   function familyFactQ() {
     for (let tries = 0; tries < 200; tries++) {
       const a = rnd(2, 9), b = rnd(2, 9), p = a * b;
+      if (a === b) continue;
       const good = [`${a} × ${b} = ${p}`, `${b} × ${a} = ${p}`, `${p} ÷ ${a} = ${b}`, `${p} ÷ ${b} = ${a}`];
       const bad = [[`${a} + ${b} = ${p}`, a + b === p], [`${p} × ${a} = ${b}`, p * a === b], [`${a} ÷ ${p} = ${b}`, a / p === b], [`${b} − ${a} = ${p}`, b - a === p],
         [`${p} − ${a} = ${b}`, p - a === b], [`${a} × ${p} = ${b}`, a * p === b], [`${p} ÷ ${a} = ${a}`, p / a === a], [`${p} + ${b} = ${a}`, p + b === a]].filter(x => !x[1]).map(x => x[0]);
@@ -73,6 +74,7 @@
   function familyTrioQ() {
     for (let tries = 0; tries < 200; tries++) {
       const a = rnd(2, 9), b = rnd(2, 9), p = a * b, fmt = t => `${t[0]}, ${t[1]}, ${t[2]}`;
+      if (a === b) continue;
       const right = fmt([a, b, p]), seen = new Set([right]), wrong = [];
       for (const t of shuffle([[a, b, p + 1], [a, b, p - 1], [a, b, p + a], [a, b, p - b], [a, b + 1, p], [a + 1, b, p], [a, b, a + b], [a, b - 1, p], [a - 1, b, p]])) {
         if (t.some(x => x < 1) || isFamily(t) || seen.has(fmt(t))) continue;

@@ -101,7 +101,7 @@ async def main():
         await pg.click('.ftable th button[data-row="9"]')
         check('9 × 9 = 81' in await pg.locator('.fdetail').inner_text(), 'tapping a row number lists that times table')
         await pg.click('.ftable td button[data-a="0"][data-b="5"]')
-        check('0' in await pg.locator('.fdetail h3').inner_text() and 'divide by 0' in (await pg.locator('.fdetail').inner_text()), 'a times 0 cell explains no division facts')
+        check('0' in await pg.locator('.fdetail h3').inner_text() and 'divide by 0' in (await pg.locator('.fdetail').inner_text()).lower() and '0 ÷ 5 = 0' in (await pg.locator('.fdetail').inner_text()), 'a times 0 cell explains 0 ÷ a = 0 and no dividing by 0')
         o = await overflow(pg); check(o['h'] <= 0, f'guide has no sideways scroll at 1440 {o}')
 
         # ---- speed round ----

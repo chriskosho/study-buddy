@@ -17,7 +17,7 @@
           <div class="fdetail" aria-live="polite"></div>
         </div>
         <div class="frules">
-          <div class="frule"><h3>Times 0 and times 1</h3><p>Any number times <b>0</b> is 0. Any number times <b>1</b> is that number. <b>8 × 0 = 0</b> and <b>8 × 1 = 8</b>.</p></div>
+          <div class="frule"><h3>Times 0 and times 1</h3><p>Any number times <b>0</b> is 0. Any number times <b>1</b> is that number. <b>8 × 0 = 0</b> and <b>8 × 1 = 8</b>. Also 0 ÷ 8 = 0, but you cannot divide BY 0.</p></div>
           <div class="frule"><h3>Times 2: doubles</h3><p>Times 2 is a double. <b>2 × 7</b> is 7 + 7 = <b>14</b>.</p></div>
           <div class="frule"><h3>Times 5: count by 5s</h3><p>The answers end in 0 or 5. <b>5 × 6</b>: 5, 10, 15, 20, 25, <b>30</b>.</p></div>
           <div class="frule"><h3>Times 10</h3><p>Put a 0 after the other number. <b>10 × 7 = 70</b>.</p></div>
@@ -25,7 +25,7 @@
           <div class="frule"><h3>Break it apart</h3><p><b>6 × 7</b>: 6 = 5 + 1. 5 × 7 = 35 and 1 × 7 = 7. 35 + 7 = <b>42</b>.</p></div>
           <div class="frule"><h3>Order does not matter</h3><p><b>3 × 8 = 8 × 3 = 24</b>. Turn an array on its side and it has the same number of dots, so you only need to learn half the chart.</p></div>
           <div class="frule"><h3>Division is multiplication backwards</h3><p><b>56 ÷ 7</b>: what times 7 makes 56? 7 × 8 = 56, so <b>56 ÷ 7 = 8</b>. You cannot divide by 0.</p></div>
-          <div class="frule"><h3>Fact families</h3><p>Three numbers make four facts: 6 × 7 = 42, 7 × 6 = 42, 42 ÷ 6 = 7, 42 ÷ 7 = 6.</p></div>
+          <div class="frule"><h3>Fact families</h3><p>Three numbers make four facts: 6 × 7 = 42, 7 × 6 = 42, 42 ÷ 6 = 7, 42 ÷ 7 = 6. (If the two small numbers match, like 3, 3, and 9, there are only two facts: 3 × 3 = 9 and 9 ÷ 3 = 3.)</p></div>
           <div class="frule"><h3>Even and odd</h3><p>If either number is even, the product is even. Only odd × odd is odd: <b>3 × 7 = 21</b>.</p></div>
         </div>`;
       const detail = $('.fdetail', P), btns = $$('.ftable td button', P), heads = $$('.ftable th button', P);
@@ -33,9 +33,10 @@
         const p = a * b;
         btns.forEach(x => { x.classList.remove('sel', 'row', 'col'); }); heads.forEach(x => x.classList.remove('on'));
         const me = btns.find(x => +x.dataset.a === a && +x.dataset.b === b); me.classList.add('sel');
+        const zero = !a || !b;
         detail.innerHTML = `<h3>${a} × ${b} = ${p}</h3>
-          <div class="fpic">${G.arraySVG(Math.max(a, 1), Math.max(b, 1)).replace('class="farr"', a && b ? 'class="farr"' : 'class="farr" style="opacity:.25"')}</div>
-          ${a && b ? `<ul><li>${a} × ${b} = ${p}</li><li>${b} × ${a} = ${p}</li>${a === b ? '' : ''}<li>${p} ÷ ${a} = ${b}</li><li>${p} ÷ ${b} = ${a}</li></ul>` : `<ul><li>${a} × ${b} = 0</li><li>${b} × ${a} = 0</li></ul><p class="fnote">Any number times 0 is 0. You cannot divide by 0, so there are no division facts for this one.</p>`}
+          ${zero ? '' : `<div class="fpic">${G.arraySVG(a, b)}</div>`}
+          ${zero ? `<ul><li>${a} × ${b} = 0</li>${a === b ? '' : `<li>${b} × ${a} = 0</li>`}</ul><p class="fnote">${a === 0 && b === 0 ? 'You cannot divide by 0, so there are no division facts for this one.' : `0 ÷ ${a || b} = 0, because 0 shared into ${a || b} ${(a || b) === 1 ? 'group is' : 'groups is'} 0 each. But you cannot divide BY 0, so ${p} ÷ 0 has no answer.`}</p>` : `<ul><li>${a} × ${b} = ${p}</li>${a === b ? '' : `<li>${b} × ${a} = ${p}</li>`}<li>${p} ÷ ${a} = ${b}</li>${a === b ? '' : `<li>${p} ÷ ${b} = ${a}</li>`}</ul>`}
           <p class="fnote">${esc(G.strategy(a, b).why)}</p>`;
       };
       btns.forEach(x => x.onclick = () => show(+x.dataset.a, +x.dataset.b));
@@ -53,7 +54,7 @@
   const times = answerTool('Multiplication facts', 'Type the product. Use the tricks in the study guide if you need them.', G.timesQ);
   const divide = answerTool('Division facts', 'Think of the multiplication fact that goes with it.', G.divideQ);
   const missing = answerTool('Missing numbers', 'Find the number that makes the fact true.', G.missingQ);
-  const families = quizTool('Fact families', 'Three numbers make four facts. Pick the best answer.', G.familiesQ);
+  const families = quizTool('Fact families', 'Three different numbers make four facts. Pick the best answer.', G.familiesQ);
   const words = answerTool('Word problems', 'Equal groups, arrays, and sharing. Decide whether to multiply or divide.', () => pickOf(G.wordsQ, G.wordsQ, G.arrayQ));
   function pickOf(...fns) { return fns[Math.floor(Math.random() * fns.length)](); }
 
@@ -105,10 +106,10 @@
   /* ---- Quiz (Random 10 or One of each) and Flashcards: one list of question types serves both, so every type has a card ---- */
   const toMC = f => () => { const q = f(); return { q: q.q, html: q.html, a: String(q.a), wrong: q.wrong.map(String), why: q.why, say: q.say }; };
   const TYPES = [
-    { gen: toMC(G.timesQ), cards: [["What is any number times 0?", "0. Zero groups, or zero in each group, is nothing. 8 × 0 = 0."], ["What is any number times 1?", "The same number. 8 × 1 = 8."], ["How do you do times 2?", "Double the number. 2 × 7 is 7 + 7 = 14."], ["How do you do times 5?", "Count by 5s. The answers end in 0 or 5. 5 × 6: 5, 10, 15, 20, 25, 30."], ["How do you do times 10?", "Put a 0 after the other number. 10 × 7 = 70."], ["How do you do times 9?", "Do times 10, then take away one group. 9 × 7: 70 − 7 = 63."], ["How do you do times 3 and times 4?", "Times 3: double, then add one more group (3 × 6 is 12 + 6 = 18). Times 4: double, then double again (4 × 6 is 12 + 12 = 24)."], ["How can you find 6 × 7 if you do not remember it?", "Break 6 into 5 and 1. 5 × 7 = 35 and 1 × 7 = 7. 35 + 7 = 42."], ["Does the order of the numbers matter in multiplication?", "No. 3 × 8 = 8 × 3 = 24."]] },
+    { gen: toMC(G.timesQ), cards: [["What is any number times 0?", "0. Zero groups, or zero in each group, is nothing. 8 × 0 = 0. Also 0 ÷ 8 = 0 (for any number above 0), but you cannot divide BY 0."], ["What is any number times 1?", "The same number. 8 × 1 = 8."], ["How do you do times 2?", "Double the number. 2 × 7 is 7 + 7 = 14."], ["How do you do times 5?", "Count by 5s. The answers end in 0 or 5. 5 × 6: 5, 10, 15, 20, 25, 30."], ["How do you do times 10?", "Put a 0 after the other number. 10 × 7 = 70."], ["How do you do times 9?", "Do times 10, then take away one group. 9 × 7: 70 − 7 = 63."], ["How do you do times 3 and times 4?", "Times 3: double, then add one more group (3 × 6 is 12 + 6 = 18). Times 4: double, then double again (4 × 6 is 12 + 12 = 24)."], ["How can you find 6 × 7 if you do not remember it?", "Break 6 into 5 and 1. 5 × 7 = 35 and 1 × 7 = 7. 35 + 7 = 42."], ["Does the order of the numbers matter in multiplication?", "No. 3 × 8 = 8 × 3 = 24."]] },
     { gen: toMC(G.divideQ), cards: [["How do you find 56 ÷ 7?", "Think of the multiplication fact: what times 7 makes 56? 7 × 8 = 56, so 56 ÷ 7 = 8."], ["What is a number divided by 1?", "The same number. 9 ÷ 1 = 9."], ["Can you divide by 0?", "No. You cannot share something into 0 groups."]] },
     { gen: toMC(G.missingQ), cards: [["How do you find a missing number, like 6 × ? = 42?", "Divide the product by the number you know. 42 ÷ 6 = 7, so the missing number is 7."], ["How do you find ? ÷ 6 = 7?", "Multiply: 7 × 6 = 42, so the missing number is 42."]] },
-    { gen: G.familyFactQ, cards: [["What is a fact family?", "Three numbers that make four facts. 6, 7, and 42 make 6 × 7 = 42, 7 × 6 = 42, 42 ÷ 6 = 7, and 42 ÷ 7 = 6."]] },
+    { gen: G.familyFactQ, cards: [["What is a fact family?", "Three numbers that make four facts (two facts if the small numbers match, like 3, 3, and 9). 6, 7, and 42 make 6 × 7 = 42, 7 × 6 = 42, 42 ÷ 6 = 7, and 42 ÷ 7 = 6."]] },
     { gen: G.familyTrioQ, cards: [["How can you tell if three numbers make a fact family?", "The two small numbers must multiply to make the big one. 4, 9, and 36 work because 4 × 9 = 36."]] },
     { gen: G.familyCompleteQ, cards: [["How do you complete a fact family?", "Use the same three numbers. If 6 × 7 = 42 and 42 ÷ 6 = 7, the last fact is 42 ÷ 7 = 6."]] },
     { gen: () => G.patternQ(), cards: [["What pattern do the 9 times table answers have?", "Their digits add up to 9: 18 (1 + 8), 27 (2 + 7), 36 (3 + 6), and so on."], ["What do the 5 times table answers end in?", "0 or 5."], ["When is a product odd?", "Only when both numbers are odd. 3 × 7 = 21. If either number is even, the product is even."]] },

@@ -66,7 +66,7 @@
   function readWhy(h, m) {
     const base = Math.floor(m / 5), extra = m % 5, pointed = base || 12;
     const hourPart = m === 0 ? `The short hand is the hour hand. It points right at the ${h}, so the hour is ${h}.` : m >= 45 ? `The short hand is the hour hand. It is almost at the ${nextHour(h)} but has not reached it, so the hour is still ${h}.` : m < 15 ? `The short hand is the hour hand. It is just past the ${h}, so the hour is ${h}.` : `The short hand is the hour hand. It is between the ${h} and the ${nextHour(h)}, so the hour is ${h}.`;
-    const minPart = m === 0 ? 'The long hand is the minute hand. It points to the 12, which is 0 minutes.' : extra === 0 ? `The long hand is the minute hand. It points to the ${pointed}. Count by fives: ${base} × 5 = ${m} minutes.` : `The long hand is the minute hand. It is ${plural(extra, 'small mark')} past the ${pointed}. Count by fives: ${base} × 5 = ${base * 5}, plus ${extra} more = ${m} minutes.`;
+    const minPart = m === 0 ? 'The long hand is the minute hand. It points to the 12, which is 0 minutes.' : extra === 0 ? `The long hand is the minute hand. It points to the ${pointed}. Count by fives: ${base} × 5 = ${m} minutes.` : base === 0 ? `The long hand is the minute hand. It is ${plural(extra, 'small mark')} past the 12, so it shows ${m} ${m === 1 ? 'minute' : 'minutes'}.` : `The long hand is the minute hand. It is ${plural(extra, 'small mark')} past the ${pointed}. Count by fives: ${base} × 5 = ${base * 5}, plus ${extra} more = ${m} minutes.`;
     return `${hourPart} ${minPart} The time is ${h}:${pad(m)}.`;
   }
   const HINT_READ = 'The short hand tells the hour. The long hand tells the minutes: count by fives around the clock, then add the small marks.';
@@ -79,6 +79,10 @@
     if (e - cur) parts.push(`${clockText(cur)} to ${clockText(e)} is ${plural(e - cur, 'minute')}`);
     return parts.join('. ');
   }
+  function jumpsWhy(s, e, result) {   // the jumps, with the hour-to-minute fact stated first when whole hours are in them
+    const j = jumpsText(s, e);
+    return `${j}. ${/ is \d+ hours?(\.|$)/.test(j) ? '1 hour = 60 minutes. ' : ''}Add the jumps: ${result}.`;
+  }
   function addWhy(s, d, back) {   // adding or going back d minutes from s, hours first
     const H = Math.floor(d / 60), M = d % 60, sign = back ? -1 : 1, out = []; let cur = s;
     if (H) { out.push(`${back ? 'Go back' : 'Add'} ${plural(H, 'hour')}: ${clockText(cur)} → ${clockText(cur + sign * H * 60)}.`); cur += sign * H * 60; }
@@ -86,7 +90,7 @@
       const cm = mins(cur);
       if (!back && cm + M <= 60 && cm + M < 60) out.push(`Add ${plural(M, 'minute')}: ${clockText(cur)} → ${clockText(cur + M)}.`);
       else if (!back) { const toH = 60 - cm; out.push(`${clockText(cur)} plus ${plural(toH, 'minute')} is ${clockText(cur + toH)}${M - toH ? `, and ${plural(M - toH, 'more minute')} is ${clockText(cur + M)}` : ''}.`); }
-      else if (cm - M >= 0) out.push(`Go back ${plural(M, 'minute')}: ${clockText(cur)} → ${clockText(cur - M)}.`);
+      else if (cm === 0 || cm - M >= 0) out.push(`Go back ${plural(M, 'minute')}: ${clockText(cur)} → ${clockText(cur - M)}.`);
       else { out.push(`${clockText(cur)} back ${plural(cm, 'minute')} is ${clockText(cur - cm)}, and ${plural(M - cm, 'more minute')} back is ${clockText(cur - M)}.`); }
     }
     return out.join(' ');
@@ -124,14 +128,14 @@
     { t: 'Eli eats breakfast.', lo: 360, hi: 570, day: 'in the morning' }, { t: 'Eli gets on the school bus.', lo: 390, hi: 510, day: 'in the morning' },
     { t: 'Eli wakes up for school.', lo: 360, hi: 450, day: 'in the morning' }, { t: 'School starts.', lo: 465, hi: 540, day: 'in the morning' },
     { t: 'Eli eats a morning snack.', lo: 570, hi: 630, day: 'in the morning' }, { t: 'Eli eats lunch.', lo: 690, hi: 780, day: 'around the middle of the day' },
-    { t: 'Eli gets home from school.', lo: 870, hi: 990, day: 'in the afternoon' }, { t: 'Eli goes to soccer practice.', lo: 930, hi: 1080, day: 'in the afternoon' },
-    { t: 'Eli eats dinner.', lo: 1020, hi: 1170, day: 'in the evening' }, { t: 'Eli watches a family movie.', lo: 1110, hi: 1260, day: 'in the evening' },
+    { t: 'Eli gets home from school.', lo: 870, hi: 990, day: 'in the afternoon' }, { t: 'Eli goes to soccer practice after school.', lo: 930, hi: 1080, day: 'in the afternoon' },
+    { t: 'Eli eats dinner.', lo: 1020, hi: 1170, day: 'in the evening' }, { t: 'Eli watches a family movie after dinner.', lo: 1110, hi: 1260, day: 'in the evening' },
     { t: 'Eli goes to bed.', lo: 1170, hi: 1290, day: 'at night' }, { t: 'Eli brushes his teeth before bed.', lo: 1170, hi: 1290, day: 'at night' }
   ];
   function ampmQ() {
     const ev = pick(EVENTS), right = 5 * rnd(ev.lo / 5, ev.hi / 5), wrong = [];
     const opp = (right + 720) % 1440; wrong.push(opp);   // the same clock time in the other half of the day, plus times near it: never sensible for the event
-    for (const k of shuffle([-120, -60, -30, 30, 60, 120])) { const w = (opp + k + 1440) % 1440; if (wrong.length < 3 && !wrong.includes(w) && fullText(w) !== fullText(right)) wrong.push(w); }
+    for (const k of shuffle([-60, -30, 30, 60])) { const w = (opp + k + 1440) % 1440; if (wrong.length < 3 && !wrong.includes(w) && fullText(w) !== fullText(right)) wrong.push(w); }
     const a = fullText(right);
     const period = right < 720 ? 'a.m. is from midnight to noon' : 'p.m. is from noon to midnight';
     return { q: `Which time makes the most sense? ${ev.t}`, a, wrong: wrong.map(fullText), why: `${ev.t.replace(/\.$/, '')} ${ev.day}, so ${a} fits. Remember: ${period}.`, say: `Which time makes the most sense? ${ev.t}`, ev: ev.t };
@@ -150,7 +154,7 @@
   }
   function elapsedQ() {
     const { s, e, d } = span(10, 170), small = d < 60;
-    const why = `${jumpsText(s, e)}. Add the jumps: ${d} minutes.`.replace(/\.\./g, '.');
+    const why = jumpsWhy(s, e, `${d} minutes`).replace(/\.\./g, '.');
     return { q: `How many minutes pass from ${fullText(s)} to ${fullText(e)}?${lineSVG(s, e)}`, plain: `How many minutes pass from ${fullText(s)} to ${fullText(e)}?`, a: d, show: `${d} minutes`, wrong: minuteWrongs(d).map(x => `${x} minutes`), why: small && mins(s) + d <= 60 && Math.floor(s / 60) === Math.floor(e / 60) ? `Both times are in the ${clockText(s).split(':')[0]} o'clock hour. ${mins(e)} − ${mins(s)} = ${d} minutes.` : why, hint: 'Count up from the start time: first to the next hour, then whole hours, then to the end time.', say: `How many minutes pass from ${fullText(s)} to ${fullText(e)}?`, s, e };
   }
   function hmWrongs(d) {   // other hours-and-minutes amounts a student could land on
@@ -161,7 +165,7 @@
   function hmQ() {   // how much time in hours and minutes
     const d = 5 * rnd(13, 47); if (d % 60 === 0) return hmQ();
     const { s, e } = span(d, d), right = durText(d);
-    return { q: `How much time passes from ${fullText(s)} to ${fullText(e)}?`, html: lineSVG(s, e), a: right, wrong: hmWrongs(d), why: `${jumpsText(s, e)}. Add the jumps: ${right}.`, say: `How much time passes from ${fullText(s)} to ${fullText(e)}?`, s, e };
+    return { q: `How much time passes from ${fullText(s)} to ${fullText(e)}?`, html: lineSVG(s, e), a: right, wrong: hmWrongs(d), why: jumpsWhy(s, e, right), say: `How much time passes from ${fullText(s)} to ${fullText(e)}?`, s, e };
   }
 
   /* ---------- what time will it be? (type the time) ---------- */
@@ -177,26 +181,35 @@
   }
 
   /* ---------- word problems (multiple choice) ---------- */
-  const ACTS = ['soccer practice', 'the movie', 'the piano lesson', 'recess', 'the school play', 'art class', 'the swim lesson', 'the family bike ride', 'the library visit'];
+  /* each activity has a window for its start time (minutes after midnight), so nothing starts in the small hours */
+  const ACTS = [{ n: 'soccer practice', lo: 900, hi: 1140 }, { n: 'the movie', lo: 720, hi: 1200 }, { n: 'the piano lesson', lo: 900, hi: 1140 }, { n: 'recess', lo: 600, hi: 780 },
+    { n: 'the school play', lo: 600, hi: 1140 }, { n: 'art class', lo: 540, hi: 1020 }, { n: 'the swim lesson', lo: 540, hi: 1080 }, { n: 'the family bike ride', lo: 480, hi: 1080 }, { n: 'the library visit', lo: 600, hi: 1080 }];
+  function actSpan(act, dMin, dMax) {   // start inside the activity's window; start and end in the same a.m. or p.m. period
+    for (let t = 0; t < 500; t++) {
+      const d = 5 * rnd(dMin / 5, dMax / 5), st = 5 * rnd(Math.ceil(act.lo / 5), Math.floor(act.hi / 5));
+      if ((st < 720) === (st + d < 720) && st + d < 1440) return { s: st, e: st + d, d };
+    }
+    throw new Error('no actSpan');
+  }
   function timeOpts(r, lo, hi, back, s, d) {
     const out = [], seen = new Set([r]);
     for (const w of shuffle([r + 10, r - 10, r + 60, r - 60, r + 20, r - 20, r + 5, r - 5, r + 30, r - 30, back ? s + d : s - d])) if (!seen.has(w) && w > lo && w < hi && clockText(w) !== clockText(r)) { seen.add(w); out.push(w); }
     return out.slice(0, 3);
   }
   function wordsQ() {
-    const act = pick(ACTS), kind = pick(['mins', 'end', 'start', 'hm']);
+    const actO = pick(ACTS), act = actO.n, kind = pick(['mins', 'end', 'start', 'hm']), Act = cap(act);
     if (kind === 'mins') {
-      const { s, e, d } = span(15, 120), Act = cap(act);
-      return { q: `${Act} starts at ${fullText(s)} and ends at ${fullText(e)} How many minutes does it last?`, a: `${d} minutes`, wrong: minuteWrongs(d).map(x => `${x} minutes`), why: `${jumpsText(s, e)}. Add the jumps: ${d} minutes.`, say: `${Act} starts at ${fullText(s)} and ends at ${fullText(e)} How many minutes does it last?`, k: 'mins', s, e };
+      const { s, e, d } = actSpan(actO, 15, 120);
+      return { q: `${Act} starts at ${fullText(s)} and ends at ${fullText(e)} How many minutes does it last?`, a: `${d} minutes`, wrong: minuteWrongs(d).map(x => `${x} minutes`), why: jumpsWhy(s, e, `${d} minutes`), say: `${Act} starts at ${fullText(s)} and ends at ${fullText(e)} How many minutes does it last?`, k: 'mins', s, e };
     }
     if (kind === 'hm') {
       const d = 5 * rnd(13, 47); if (d % 60 === 0) return wordsQ();
-      const { s, e } = span(d, d), right = durText(d), Act = cap(act);
-      return { q: `${Act} starts at ${fullText(s)} and ends at ${fullText(e)} How long does it last?`, a: right, wrong: hmWrongs(d), why: `${jumpsText(s, e)}. Add the jumps: ${right}.`, say: `${Act} starts at ${fullText(s)} and ends at ${fullText(e)} How long does it last?`, k: 'hm', s, e };
+      const { s, e } = actSpan(actO, d, d), right = durText(d);
+      return { q: `${Act} starts at ${fullText(s)} and ends at ${fullText(e)} How long does it last?`, a: right, wrong: hmWrongs(d), why: jumpsWhy(s, e, right), say: `${Act} starts at ${fullText(s)} and ends at ${fullText(e)} How long does it last?`, k: 'hm', s, e };
     }
-    const back = kind === 'start', pm = Math.random() < 0.5, base = pm ? 720 : 0, d = pick([5 * rnd(3, 11), 60 + 5 * rnd(1, 11), 120 + 5 * rnd(0, 6)]);
-    const lo = base + (back ? d + 60 : 60), hi = base + 720 - (back ? 5 : d + 5), known = 5 * rnd(Math.ceil(lo / 5), Math.floor(hi / 5)), r = back ? known - d : known + d;
-    const opts = timeOpts(r, base + 59, base + 720, back, known, d), Act = cap(act);
+    const back = kind === 'start', d = pick([5 * rnd(3, 11), 60 + 5 * rnd(1, 11), 120 + 5 * rnd(0, 6)]);
+    const sp = actSpan(actO, d, d), known = back ? sp.e : sp.s, r = back ? sp.s : sp.e, base = r < 720 ? 0 : 720;
+    const opts = timeOpts(r, Math.max(base + 59, 359), base + 720, back, known, d);
     if (opts.length < 3) return wordsQ();
     const q = back ? `${Act} ends at ${fullText(known)} and lasts ${durText(d)}. What time did it start?` : `${Act} starts at ${fullText(known)} and lasts ${durText(d)}. What time does it end?`;
     return { q, a: fullText(r), wrong: opts.map(fullText), why: `${addWhy(known, d, back)} It ${back ? 'started' : 'ends'} at ${fullText(r)}.`, say: q, k: kind, s: known, d };

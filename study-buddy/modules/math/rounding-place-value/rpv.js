@@ -83,7 +83,7 @@
     { gen: toMC(G.round100Q), cards: [["How do you round to the nearest 100?", "Look at the tens digit. 4 or less: keep the hundreds digit. 5 or more: add 1 to the hundreds digit. Then the tens and ones become 0."], ["What does 962 round to, to the nearest 100?", "1,000. The tens digit is 6, so round up, and 9 hundreds plus 1 more hundred is 10 hundreds."]] },
     { gen: G.estimateSumQ, cards: [["How do you estimate a sum?", "Round each number first, then add the rounded numbers. 348 + 215 is about 300 + 200 = 500. About means close, not exact."]] },
     { gen: G.estimateDiffQ, cards: [["How do you estimate a difference?", "Round each number first, then subtract. 774 − 296 is about 800 − 300 = 500."]] },
-    { gen: toMC(G.addQ), cards: [["How do you add 3-digit numbers?", "Add the ones, then the tens, then the hundreds. If a place has 10 or more, write the ones and carry the tens. 276 + 158 = 434."]] },
+    { gen: toMC(G.addQ), cards: [["How do you add 3-digit numbers?", "Add the ones, then the tens, then the hundreds. If a place has 10 or more, write the ones and carry 1 to the next place. 276 + 158 = 434."]] },
     { gen: toMC(G.subQ), cards: [["How do you subtract with regrouping?", "If the top digit is smaller, take 1 from the next place on the left and add 10 to this place. 432 − 187: 12 − 7 = 5, 12 − 8 = 4, 3 − 1 = 2, so 245."]] },
     { gen: toMC(G.wordsQ), cards: [["How can you check an answer?", "Ask if it makes sense, and estimate with rounding. Adding and subtracting undo each other, so you can check 276 + 158 = 434 by working 434 − 158."]] }
   ];

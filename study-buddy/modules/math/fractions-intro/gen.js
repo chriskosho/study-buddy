@@ -11,8 +11,8 @@
   const txt = (n, d) => `${n}/${d}`;
   const same = (a, b) => a.n * b.d === b.n * a.d;             // equal in value
   const NAMES = ['Mia', 'Ben', 'Ava', 'Leo', 'Zoe', 'Kai', 'Ana', 'Sam', 'Eli', 'Maya'];
-  const PARTS = { 2: 'halves', 3: 'thirds', 4: 'fourths', 5: 'fifths', 6: 'sixths', 8: 'eighths', 10: 'tenths', 12: 'twelfths' };
-  const PART1 = { 2: 'half', 3: 'third', 4: 'fourth', 5: 'fifth', 6: 'sixth', 8: 'eighth', 10: 'tenth', 12: 'twelfth' };
+  const PARTS = { 2: 'halves', 3: 'thirds', 4: 'fourths', 5: 'fifths', 6: 'sixths', 7: 'sevenths', 8: 'eighths', 9: 'ninths', 10: 'tenths', 11: 'elevenths', 12: 'twelfths' };
+  const PART1 = { 2: 'half', 3: 'third', 4: 'fourth', 5: 'fifth', 6: 'sixth', 7: 'seventh', 8: 'eighth', 9: 'ninth', 10: 'tenth', 11: 'eleventh', 12: 'twelfth' };
   const WORD = n => ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'][n] || String(n);
   const sayFrac = (n, d) => `${WORD(n)} ${n === 1 ? PART1[d] || 'over ' + d : PARTS[d] || 'over ' + d}`;
 
@@ -75,7 +75,7 @@
       const wrong = wrongFracs(ans, [F(ans.n + 1, d), F(ans.n - 1, d), F(on === ans.n ? d - on : on, d), F(ans.n, d + 1), F(ans.n, d - 1), F(ans.n + 2, d), F(d, ans.n)]);
       if (wrong.length < 3) continue;
       const what = notShaded ? 'NOT shaded' : 'shaded';
-      return withPic({ q: `What fraction of the ${noun} is ${what}?`, a: txt(ans.n, ans.d), wrong, why: `The ${noun} is split into ${d} equal ${each}, so the denominator is ${d}. ${ans.n} of them ${shape === 'set' ? 'are' : 'are'} ${what}, so the numerator is ${ans.n}. The fraction is ${txt(ans.n, ans.d)}.`, hint: 'The bottom number is how many equal parts in all. The top number is how many parts you are talking about.', say: `What fraction of the ${noun} is ${what}?` }, pic);
+      return withPic({ q: `What fraction of the ${noun} is ${what}?`, a: txt(ans.n, ans.d), wrong, why: `${shape === 'set' ? `There are ${d} counters in all, so the denominator is ${d}.` : `The ${noun} is split into ${d} equal ${each}, so the denominator is ${d}.`} ${ans.n} of them ${shape === 'set' ? 'are' : 'are'} ${what}, so the numerator is ${ans.n}. The fraction is ${txt(ans.n, ans.d)}.`, hint: 'The bottom number is how many equal parts in all. The top number is how many parts you are talking about.', say: `What fraction of the ${noun} is ${what}?` }, pic);
     }
     throw new Error('no nameQ');
   }
@@ -148,7 +148,7 @@
       const { n, d, k, e, m } = equivPair(), ans = F(m, e);
       const wrong = wrongFracs(ans, [F(n + k, d + k), F(m, d), F(n, e), F(m + 1, e), F(m - 1, e), F(d, e), F(n + 1, e)].map(f => f.n >= f.d + 3 ? F(0, 0) : f));
       if (wrong.length < 3 || wrong.some(x => same(F(...x.split('/').map(Number)), F(n, d)))) continue;
-      return withPic({ q: `Which fraction is equal to ${txt(n, d)}?`, a: txt(m, e), wrong, why: `${txt(n, d)} = ${txt(n + '×' + k, d + '×' + k).replace(/\//, '/')} = ${txt(m, e)}. Multiplying the top and bottom by the same number gives the same amount. Adding to the top and bottom does not.`, hint: `Cut every part into ${k} equal pieces. What do the top and bottom become?`, say: `Which fraction is equal to ${sayFrac(n, d)}?` }, bars([{ d, on: n }, { d: e, on: m }], `Two bars the same length. The top bar is cut into ${d} equal parts with ${n} shaded. The bottom bar is cut into ${e} equal parts with ${m} shaded.`));
+      return withPic({ q: `Which fraction is equal to ${txt(n, d)}?`, a: txt(m, e), wrong, why: `${txt(n, d)} = (${n} × ${k})/(${d} × ${k}) = ${txt(m, e)}. Multiplying the top and bottom by the same number gives the same amount. Adding to the top and bottom does not.`, hint: `Cut every part into ${k} equal pieces. What do the top and bottom become?`, say: `Which fraction is equal to ${sayFrac(n, d)}?` }, bars([{ d, on: n }, { d: e, on: m }], `Two bars the same length. The top bar is cut into ${d} equal parts with ${n} shaded. The bottom bar is cut into ${e} equal parts with ${m} shaded.`));
     }
     throw new Error('no equivPickQ');
   }
@@ -198,7 +198,7 @@
       let a, b, why, hint;
       if (same_den) { const d = pick([4, 6, 8, 10]); let n1 = rnd(1, d - 1), n2 = rnd(1, d - 1); if (n1 === n2) n2 = n1 === d - 1 ? n1 - 1 : n1 + 1; a = F(n1, d); b = F(n2, d); why = `The denominators match, so compare the tops: ${Math.max(n1, n2)} is more than ${Math.min(n1, n2)}.`; hint = 'The bottom numbers are the same. Compare the top numbers.'; }
       else { const n = pick([1, 2]), d1 = pick([3, 4, 5, 6, 8]), d2 = pick([3, 4, 5, 6, 8]); if (d1 === d2 || n >= Math.min(d1, d2)) return null; a = F(n, d1); b = F(n, d2); why = `The tops match, but ${PARTS[Math.max(d1, d2)]} are smaller than ${PARTS[Math.min(d1, d2)]}. The smaller denominator means bigger pieces, so ${txt(n, Math.min(d1, d2))} is more.`; hint = 'The top numbers are the same. Pieces get smaller when a whole is cut into more parts.'; }
-      const unit = pick([['ate', 'of the same pizza', 'ate more'], ['walked', 'of a mile', 'walked farther'], ['drank', 'of a liter of juice', 'drank more']]);
+      const unit = pick([['ate', 'of an identical pizza', 'ate more'], ['walked', 'of a mile', 'walked farther'], ['drank', 'of a liter of juice', 'drank more']]);
       const winner = rel(a, b) === '>' ? nm : nm2;
       return { cmp: true, q: `${nm} ${unit[0]} ${txt(a.n, a.d)} ${unit[1]}. ${nm2} ${unit[0]} ${txt(b.n, b.d)} ${unit[1]}. Who ${unit[2]}?`, a: winner, wrong: [nm === winner ? nm2 : nm, 'They are equal'], why: `${why} So ${winner} ${unit[2]}.`, hint, say: null };
     };
