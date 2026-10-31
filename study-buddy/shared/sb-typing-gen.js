@@ -9,7 +9,7 @@
      SBTG.addRound(stats, chars)     add a finished round's keystrokes to the per-key stats (the last 30 per key are kept)
      SBTG.keyStat(stats, k)          { n, acc, ms, wpm } for one key
      SBTG.ready(stats, k, target)    the key is fast and accurate enough (10+ samples, 95%+, target speed)
-     SBTG.focusKey(open, stats, target)      the weakest open letter, which the lesson practises most
+     SBTG.focusKey(open, stats, target)      the weakest open letter, which the lesson practices most
      SBTG.canUnlock(open, stats, target)     every open letter is ready, so the next one can open
      SBTG.roundScore(r)              { wpm, acc } for a finished round
 

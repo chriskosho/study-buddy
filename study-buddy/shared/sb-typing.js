@@ -2,7 +2,7 @@
 
      SBTY.keyboard(host, { rows: 'full'|'letters', zones: true, onTap(k) })
          Draws a US QWERTY keyboard (SVG) in host. Returns { el, set(k, cls, on), only(cls, keys), dimExcept(keys), clear(cls), flash(k, good), heat(map) }.
-         Key ids are the characters they type ('a', ';', ' ' for the space bar). zones: colour each key by the finger that presses it.
+         Key ids are the characters they type ('a', ';', ' ' for the space bar). zones: color each key by the finger that presses it.
      SBTY.typer(host, { text, wait, onStart(), onKey(info), onDone(result) })
          Shows the text and takes keystrokes for it. wait: a wrong key does not move on (the default).
          Returns { reset(text), active(), stop(), pos(), next() } and calls onDone({ chars, correct, presses, wrong, elapsed, wpm, acc }).
@@ -71,7 +71,7 @@
       dimExcept(list) { const want = new Set((list || []).map(keyOf)); want.add(' '); Object.keys(keys).forEach(k => keys[k].classList.toggle('off', !want.has(k))); },
       clear(cls) { Object.values(keys).forEach(g => g.classList.remove(cls)); },
       flash(k, good) { const g = get(k); if (!g) return; const c = good ? 'hit' : 'miss'; g.classList.remove('hit', 'miss'); void g.getBBox; g.classList.add(c); clearTimeout(g._t); g._t = setTimeout(() => g.classList.remove(c), 260); },
-      /* heat: { key: 0..4 } colours keys from weak (0) to strong (4); keys not listed are plain */
+      /* heat: { key: 0..4 } colors keys from weak (0) to strong (4); keys not listed are plain */
       heat(map) { Object.keys(keys).forEach(k => { for (let i = 0; i < 5; i++) keys[k].classList.remove('h' + i); if (map && map[k] != null) keys[k].classList.add('h' + map[k]); }); },
       keys
     };
@@ -106,14 +106,20 @@
       <input class="sbty-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type the text here" enterkeyhint="next">
       <div class="sbty-sr" aria-live="polite"></div>`;
     const box = host.querySelector('.sbty-text'), inp = host.querySelector('.sbty-in'), caps = host.querySelector('.sbty-caps'), sr = host.querySelector('.sbty-sr');
-    let text = '', marks = [], pos = 0, t0 = 0, tLast = 0, presses = 0, wrong = 0, elapsed = 0, chars = [], stopped = false, missedHere = false;
+    let spans = [], text = '', marks = [], pos = 0, t0 = 0, tLast = 0, presses = 0, wrong = 0, elapsed = 0, chars = [], stopped = false, missedHere = false;
 
     function render() {
-      box.innerHTML = [...text].map((c, i) => `<span class="c${c === ' ' ? ' sp' : ''}" data-i="${i}">${c === ' ' ? '<i>&middot;</i>' : esc(c)}</span>`).join('');
+      /* each word sits in a no-wrap group, so lines only break at spaces */
+      let h = '', inWord = false;
+      [...text].forEach((c, i) => {
+        if (c === ' ') { if (inWord) { h += '</span>'; inWord = false; } h += `<span class="c sp" data-i="${i}"><i>&middot;</i></span><wbr>`; }
+        else { if (!inWord) { h += '<span class="w">'; inWord = true; } h += `<span class="c" data-i="${i}">${esc(c)}</span>`; }
+      });
+      box.innerHTML = h + (inWord ? '</span>' : '');
+      spans = [...box.querySelectorAll('.c')];
       paint();
     }
     function paint() {
-      const spans = box.children;
       for (let i = 0; i < spans.length; i++) {
         const m = marks[i], s = spans[i];
         s.className = 'c' + (text[i] === ' ' ? ' sp' : '') + (i < pos ? (m === 'ok' ? ' ok' : ' bad') : i === pos ? ' cur' + (missedHere ? ' miss' : '') : '');

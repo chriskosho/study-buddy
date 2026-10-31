@@ -1,4 +1,4 @@
-/* Study Buddy typing: the keyboard, the text being typed, and the key colours. Uses the theme tokens from sb.css. */
+/* Study Buddy typing: the keyboard, the text being typed, and the key colors. Uses the theme tokens from sb.css. */
 :root{
   --fz-p:#f3dcef; --fz-r:#dfe6fb; --fz-m:#dcf1e4; --fz-i:#fdebc8; --fz-t:#e9e5dc;
   --heat0:#f6c9c9; --heat1:#f8dfc0; --heat2:#f7efbf; --heat3:#d9eecb; --heat4:#bfe5cc;
@@ -37,8 +37,9 @@ html.sb-dark{
 
 /* ---------- the text being typed ---------- */
 .sbty{position:relative;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 18px;cursor:text}
-.sbty-text{font:600 clamp(24px,2.6vw,34px)/1.6 ui-monospace,"Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;letter-spacing:.02em;overflow:hidden;max-height:calc(3 * 1.6em);overflow-wrap:anywhere;color:var(--ink2)}
+.sbty-text{position:relative;font:600 clamp(24px,2.6vw,34px)/1.6 ui-monospace,"Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;letter-spacing:.02em;overflow:hidden;max-height:calc(3 * 1.6em);color:var(--ink2)}
 html.sb-dyslexic .sbty-text{font-family:var(--font)}
+.sbty-text .w{white-space:nowrap}
 .sbty-text .c{border-bottom:3px solid transparent;border-radius:3px}
 .sbty-text .c.sp i{font-style:normal;opacity:0}
 .sbty-text .c.ok{color:var(--ink)}

@@ -50,7 +50,7 @@
         const o = open(st), tg = target(st), f = G.focusKey(o, st.stats, tg);
         $('.lkletters', P).innerHTML = ORDER.map(k => {
           const on = o.includes(k), rd = on && G.ready(st.stats, k, tg);
-          return `<span class="${on ? '' : 'off'}${rd ? ' ready' : ''}${k === f ? ' focus' : ''}" title="${on ? (rd ? 'Ready' : 'Practising') : 'Opens later'}">${esc(k)}</span>`;
+          return `<span class="${on ? '' : 'off'}${rd ? ' ready' : ''}${k === f ? ' focus' : ''}" title="${on ? (rd ? 'Ready' : 'Practicing') : 'Opens later'}">${esc(k)}</span>`;
         }).join('');
         kb.dimExcept(o);
         ORDER.forEach(k => { kb.set(k, 'ready', o.includes(k) && G.ready(st.stats, k, tg)); kb.set(k, 'focus', k === f); });
@@ -201,11 +201,11 @@
     init(ctx) {
       const P = ctx.panel;
       P.innerHTML = `<h2>Keyboard map</h2>
-        <p class="lead">Each colour is one finger. Press any key, or tap one, to see which finger types it.</p>
+        <p class="lead">Each color is one finger. Press any key, or tap one, to see which finger types it.</p>
         <div class="kmgrid">
           <div>
             <div class="kmkb"></div>
-            <div class="kmlegend" aria-label="Colours">
+            <div class="kmlegend" aria-label="Colors">
               <span><i style="background:var(--fz-p)"></i>Pinky fingers</span><span><i style="background:var(--fz-r)"></i>Ring fingers</span>
               <span><i style="background:var(--fz-m)"></i>Middle fingers</span><span><i style="background:var(--fz-i)"></i>Pointer fingers</span>
               <span><i style="background:var(--fz-t)"></i>Thumbs (space bar)</span>
@@ -247,7 +247,7 @@
         <div class="ksgrid">
           <div>
             <div class="row between" style="margin-bottom:6px"><b>How each letter is going</b>
-              <div class="seg" role="group" aria-label="Colour the keys by"><button type="button" data-m="speed">Speed</button><button type="button" data-m="acc">Accuracy</button></div></div>
+              <div class="seg" role="group" aria-label="Color the keys by"><button type="button" data-m="speed">Speed</button><button type="button" data-m="acc">Accuracy</button></div></div>
             <div class="kskb"></div>
             <div class="kslegend" aria-hidden="true"><span id="ksLo"></span><i style="background:var(--heat0)"></i><i style="background:var(--heat1)"></i><i style="background:var(--heat2)"></i><i style="background:var(--heat3)"></i><i style="background:var(--heat4)"></i><span id="ksHi"></span></div>
           </div>
@@ -273,7 +273,7 @@
         kb.dimExcept(o);
         $('.kskeys', P).innerHTML = o.map(k => {
           const s = G.keyStat(st.stats || {}, k), rd = G.ready(st.stats || {}, k, tg);
-          return `<div class="${rd ? 'ready' : ''}${k === f ? ' focus' : ''}"><b>${esc(k)}</b>${rd ? 'Ready' : k === f ? 'Focus' : 'Practising'}<br>${s.n ? Math.round(s.wpm) + ' WPM · ' + pct(s.acc) : 'Not typed yet'}</div>`;
+          return `<div class="${rd ? 'ready' : ''}${k === f ? ' focus' : ''}"><b>${esc(k)}</b>${rd ? 'Ready' : k === f ? 'Focus' : 'Practicing'}<br>${s.n ? Math.round(s.wpm) + ' WPM · ' + pct(s.acc) : 'Not typed yet'}</div>`;
         }).join('');
       }
       P.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { mode = b.dataset.m; paint(); });
