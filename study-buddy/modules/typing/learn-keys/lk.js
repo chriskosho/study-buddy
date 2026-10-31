@@ -111,7 +111,7 @@
   const hunt = {
     init(ctx) {
       const P = ctx.panel, st = ctx.state;
-      st.hunt = Object.assign({ set: 'home', caps: false }, st.hunt || {});
+      st.hunt = Object.assign({ set: 'home', caps: true }, st.hunt || {});   // capitals by default: they match the letters printed on the keys
       P.classList.add('hunt');
       P.innerHTML = `
         <div class="hunthead">
@@ -291,7 +291,7 @@
 
   SBM.start({
     module: 'learn-keys',
-    defaults: { unlocked: G.START, stats: {}, target: 15, wait: true, showKb: true, rounds: [], best: 0, hunt: { set: 'home', caps: false } },
+    defaults: { unlocked: G.START, stats: {}, target: 15, wait: true, showKb: true, rounds: [], best: 0, hunt: { set: 'home', caps: true } },
     tools: { lesson, hunt, map, stats }
   });
 })();

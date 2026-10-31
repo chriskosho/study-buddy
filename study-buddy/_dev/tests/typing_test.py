@@ -149,13 +149,13 @@ async def main():
         check(await pg.locator('.khkb g.k.off').count() > 20, 'keys outside the home row are dimmed')
         letters = []
         for i in range(10):
-            want = (await pg.inner_text('.huntletter')).strip()
+            want = (await pg.inner_text('.huntletter')).strip().lower()
             letters.append(want)
             if i == 0:
                 bad = 'a' if want != 'a' else 's'
                 await pg.keyboard.type(bad)
                 m = await pg.inner_text('#tab-hunt .msg')
-                check('Look for ' + want in m and 'finger' in m, f'a wrong key gives a hint: {m}')
+                check('look for ' + want in m.lower() and 'finger' in m, f'a wrong key gives a hint: {m}')
                 check(await pg.locator(f'.khkb g.k.hint[data-k="{want}"]').count() == 1, 'the right key is outlined')
             if i == 1:
                 await pg.locator(f'.khkb g.k[data-k="{want}"]').click()   # tapping a key works too
@@ -168,19 +168,20 @@ async def main():
         check(rec.get('best') == 9 and rec.get('max') == 10, f'Key Hunt result saved: {rec}')
         await pg.click('#khAgain'); check(await pg.locator('.huntletter').count() == 1, 'Play again starts a new round')
         # leaving the tab right after an answer pauses the round
-        want = (await pg.inner_text('.huntletter')).strip()
+        want = (await pg.inner_text('.huntletter')).strip().lower()
         await pg.keyboard.type(want); await pg.click('#tabbtn-map'); await pg.wait_for_timeout(900)
         await pg.click('#tabbtn-hunt'); await pg.wait_for_timeout(100)
         check(await pg.inner_text('#khRound') == '2 of 10', 'Key Hunt waits while another tab is open, then carries on')
         await pg.keyboard.press('Space'); check('Look for' not in await pg.inner_text('#tab-hunt .msg'), 'the space bar is ignored in Key Hunt')
         await pg.click('[data-set="top"]')
-        want = (await pg.inner_text('.huntletter')).strip()
+        want = (await pg.inner_text('.huntletter')).strip().lower()
         check(want in 'qwertyuiop', 'Top row asks top-row letters')
+        check((await pg.inner_text('.huntletter')).strip() == want.upper(), 'Key Hunt shows capitals by default, like the keys')
         await pg.click('#khCaps')
-        check((await pg.inner_text('.huntletter')).strip() == want.upper(), 'Capitals shows the capital letter')
+        check((await pg.inner_text('.huntletter')).strip() == want, 'turning Capitals off shows the small letter')
         await pg.keyboard.type(want)
         await pg.wait_for_timeout(100)
-        check('Yes' in await pg.inner_text('#tab-hunt .msg'), 'the lowercase key answers a capital')
+        check('Yes' in await pg.inner_text('#tab-hunt .msg'), 'the key answers the small letter too')
 
         # ---- Keyboard map ----
         await pg.goto(base + M + '?tool=map'); await pg.wait_for_selector('.kmkb svg')
@@ -195,8 +196,9 @@ async def main():
         # ---- Key stats ----
         await pg.goto(base + M + '?tool=stats'); await pg.wait_for_selector('.ksum')
         s = await pg.inner_text('.ksum')
-        check('8 of 26' in s and 'words a minute' in s, f'stats summary: {s}')
-        check(await pg.locator('.kskeys > div').count() == 8, 'one box per open letter')
+        n_open = (await pg.evaluate(STATE)).get('unlocked', 7)   # usually 8; a fast run can open a ninth letter
+        check(f'{n_open} of 26' in s and n_open >= 8 and 'words a minute' in s, f'stats summary: {s}')
+        check(await pg.locator('.kskeys > div').count() == n_open, 'one box per open letter')
         check(await pg.locator('.kskb g.k.h4, .kskb g.k.h3').count() >= 6, 'fast letters are coloured')
         await pg.click('[data-m="acc"]'); check('Few mistakes' in await pg.inner_text('.kslegend'), 'accuracy view')
 
@@ -232,7 +234,7 @@ async def main():
         await mp.evaluate("(ch) => { const i = document.querySelector('#lkType .sbty-in'); i.value = i.value + ch; i.dispatchEvent(new Event('input')); }", t[3])
         check(await mp.evaluate(POS) == 4, 'letters already in the box are not typed twice')
         await mp.goto(base + M + '?tool=hunt'); await mp.wait_for_selector('.huntletter')
-        want = (await mp.inner_text('.huntletter')).strip()
+        want = (await mp.inner_text('.huntletter')).strip().lower()
         await mp.locator(f'.khkb g.k[data-k="{want}"]').tap()
         await mp.wait_for_timeout(100)
         check('Yes' in await mp.inner_text('#tab-hunt .msg'), 'Key Hunt works by tapping on a phone')
