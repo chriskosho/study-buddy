@@ -122,7 +122,7 @@
       <input class="sbty-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type the text here" enterkeyhint="next">
       <div class="sbty-sr" aria-live="polite"></div>`;
     const box = host.querySelector('.sbty-text'), inp = host.querySelector('.sbty-in'), caps = host.querySelector('.sbty-caps'), sr = host.querySelector('.sbty-sr');
-    let spans = [], text = '', marks = [], pos = 0, t0 = 0, tLast = 0, presses = 0, wrong = 0, elapsed = 0, chars = [], stopped = false, missedHere = false;
+    let ghostAt = -1, spans = [], text = '', marks = [], pos = 0, t0 = 0, tLast = 0, presses = 0, wrong = 0, elapsed = 0, chars = [], stopped = false, missedHere = false;
 
     function render() {
       /* each word sits in a no-wrap group, so lines only break at spaces */
@@ -141,13 +141,13 @@
     function paint() {
       for (let i = 0; i < spans.length; i++) {
         const m = marks[i], s = spans[i];
-        s.className = 'c' + (text[i] === ' ' ? ' sp' : '') + (i < pos ? (m === 'ok' ? ' ok' : ' bad') : i === pos ? ' cur' + (missedHere ? ' miss' : '') : '');
+        s.className = 'c' + (text[i] === ' ' ? ' sp' : '') + (i < pos ? (m === 'ok' ? ' ok' : ' bad') : i === pos ? ' cur' + (missedHere ? ' miss' : '') : '') + (i === ghostAt ? ' ghost' : '');
       }
       const cur = spans[pos]; if (cur && cur.offsetTop > box.clientHeight * 0.55 + box.scrollTop) box.scrollTop = cur.offsetTop - box.clientHeight * 0.3;
       box.classList.toggle('more', box.scrollHeight - box.scrollTop > box.clientHeight + 4);   // fades the last line when more text is below
     }
     function reset(t) {
-      text = String(t); seen = ''; inp.value = ''; marks = []; pos = 0; t0 = 0; tLast = 0; presses = 0; wrong = 0; elapsed = 0; chars = []; stopped = false; missedHere = false;
+      text = String(t); seen = ''; inp.value = ''; ghostAt = -1; marks = []; pos = 0; t0 = 0; tLast = 0; presses = 0; wrong = 0; elapsed = 0; chars = []; stopped = false; missedHere = false;
       box.scrollTop = 0; render();
     }
     /* the gap between two keys counts at most 3 seconds, so a break in the middle does not spoil the speed */
@@ -217,6 +217,8 @@
       active() { handlerFor(api); },
       stop() { stopped = true; if (current === api) current = null; },
       pos: () => pos, next: () => text[pos], started: () => !!t0,
+      /* Ghost Race: marks where the ghost is in the text (-1 for nowhere) */
+      ghost(i) { if (i !== ghostAt) { ghostAt = i; paint(); } },
       /* the round so far, for timed tests that end before the text does */
       snapshot: () => ({ chars: chars.slice(), correct: marks.slice(0, pos).filter(m => m === 'ok').length, presses, wrong, pos, text })
     };

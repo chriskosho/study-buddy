@@ -214,6 +214,22 @@ for (let n = G.START; n <= 26; n++) {
   ok(cut.length <= 2000 && cut.endsWith('word'), 'long text is cut at a space');
 }
 
+/* ---- games ---- */
+{
+  const C = new Set(X.common);
+  for (const level of ['easy', 'medium', 'hard']) {
+    const pool = G.gamePool(level);
+    ok(pool.length >= 150, `${level} game pool has enough words (${pool.length})`);
+    for (let t = 0; t < 100; t++) {
+      const ws = G.gameWords(level, 40, rand);
+      ok(ws.length === 40 && ws.every(w => C.has(w.toLowerCase()) && /^[A-Za-z]+$/.test(w) && !G.blocked(w.toLowerCase())), `${level} game words are common kid words`);
+      ok(ws.every((w, i) => !ws.slice(Math.max(0, i - 3), i).includes(w)), `${level} game words do not repeat within three`);
+      if (level === 'easy') ok(ws.every(w => w.length <= 5), 'easy game words are short');
+      if (level === 'hard') ok(ws.every(w => w.length >= 6), 'hard game words are long');
+    }
+  }
+}
+
 console.log(`typing: ${lessons} lessons checked, seed ${SEED}`);
 if (fails) { console.log(fails + ' FAILED (SEED=' + SEED + ')'); process.exit(1); }
 console.log('ALL PASSED');

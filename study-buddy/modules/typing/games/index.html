@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Typing Games · Study Buddy</title>
+<meta name="theme-color" content="#2b4162">
+<link rel="icon" href="../../../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../../shared/sb.css">
+<link rel="stylesheet" href="../../../shared/sb-typing.css">
+<style>
+.gbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.gbar .row{gap:8px}
+.gpill{font:800 22px ui-monospace,Consolas,monospace;padding:4px 14px}
+.gline{font-size:16px;margin:0 0 10px;display:flex;flex-wrap:wrap;gap:4px 16px}
+.gmsg{margin:8px 0;min-height:26px}
+.gmsg:focus{outline:none}
+.gover{text-align:center;padding:18px 10px}
+.gover h2{margin-bottom:4px}
+.gover .row{justify-content:center;margin-top:12px}
+/* Word Sprint */
+.ws-stage{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:22px 18px;text-align:center;min-height:190px;display:flex;flex-direction:column;justify-content:center;gap:12px;cursor:text}
+.ws-word{font:700 clamp(40px,6vw,64px)/1.2 ui-monospace,Consolas,monospace;letter-spacing:.04em;overflow-wrap:anywhere}
+html.sb-dyslexic .ws-word,html.sb-dyslexic .fw-word{font-family:var(--font)}
+.ws-word .ok{color:var(--good-ink)}
+.ws-word .cur{background:var(--hl);border-bottom:4px solid var(--navy-ink);border-radius:4px}
+.ws-word .cur.miss{background:var(--tint-bad);border-bottom-color:var(--bad-ink)}
+.ws-word .todo{color:var(--ink2)}
+.ws-next{font:600 22px ui-monospace,Consolas,monospace;color:var(--ink2);letter-spacing:.03em}
+html.sb-dyslexic .ws-next{font-family:var(--font)}
+/* Falling Words */
+.fw-area{position:relative;overflow:hidden;background:var(--surface);border:2px solid var(--line);border-radius:18px;height:max(260px,calc(var(--vh,100vh) - var(--chrome) - 330px));cursor:text}
+.fw-floor{position:absolute;left:0;right:0;bottom:0;height:8px;background:var(--track)}
+.fw-word{position:absolute;top:0;font:700 26px/1.2 ui-monospace,Consolas,monospace;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:2px 10px;white-space:nowrap;will-change:transform}
+.fw-word.target{border-color:var(--navy-ink)}
+.fw-word .ok{color:var(--good-ink)}
+.fw-word .todo{color:var(--ink)}
+.fw-cover{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--surface)}
+.fw-cover > div{text-align:center;padding:12px}
+.fw-lives{display:inline-flex;gap:4px;vertical-align:middle}
+.fw-lives i{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--navy-ink)}
+.fw-lives i.on{background:var(--navy-ink)}
+/* Ghost Race */
+.gr-track{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 10px;align-items:center;margin:0 0 10px;font-size:16px}
+.gr-bar{height:14px;border-radius:8px;background:var(--track);overflow:hidden}
+.gr-bar i{display:block;height:100%;width:0}
+.gr-you i{background:var(--navy-ink)}
+.gr-ghost i{background:var(--coral)}
+.gr-key{display:inline-block;width:22px;height:5px;background:var(--coral);vertical-align:middle;margin-right:4px}
+@media (max-width:760px),(min-width:761px) and (max-height:520px){.fw-area{height:300px}.fw-word{font-size:22px}}
+</style>
+<script src="../../../shared/sb-core.js"></script>
+<script src="../../../shared/sb-shell.js"></script>
+<script src="../../../registry.js"></script>
+<script src="../../../shared/sb-module.js"></script>
+<script src="../../../shared/sb-typing-words.js"></script>
+<script src="../../../shared/sb-typing-text.js"></script>
+<script src="../../../shared/sb-typing-gen.js"></script>
+<script src="../../../shared/sb-typing.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="games.js"></script>
+</body>
+</html>
