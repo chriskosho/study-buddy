@@ -2,7 +2,8 @@
 - Every typing tool fits 1440x900 with no scroll bars under each display option: default, Larger text, OpenDyslexic, both, and both in dark mode,
   including the screens after a round (drill results, speed and accuracy test results, game over, race result).
 - The keyboard picture never shrinks below a readable size, and default settings keep the full CSS size.
-- Phones: no sideways scroll at 360x740 or 915x412, and the text to type is on the first screen in landscape.
+- Phones: no sideways scroll at 360x740 or 915x412, the text to type is on the first screen in landscape, and Larger text keeps phone sizes.
+- A shorter desktop window: the keyboard shrinks to fit and grows back; a medium window keeps the Keyboard map boxes apart; a short window with a mouse opens at the top.
 - Backups: typing progress in all four modules goes out in a backup and comes back exactly after Erase everything.
 Run:  python3 study-buddy/_dev/tests/typing_polish_test.py"""
 import asyncio, http.server, threading, functools, os, sys, json
@@ -31,7 +32,8 @@ TOOLS = {'learn-keys': ['lesson', 'hunt', 'map', 'stats'], 'drills': ['rows', 'w
 DISPLAYS = [('default', {}), ('Larger text', {'size': 'large'}), ('OpenDyslexic', {'font': 'dyslexic'}),
             ('Larger text + OpenDyslexic', {'size': 'large', 'font': 'dyslexic'}), ('both, dark', {'size': 'large', 'font': 'dyslexic', 'theme': 'dark'})]
 def TEXT(tool): return f"[...document.querySelectorAll('#tab-{tool} .sbty-text .c')].map(s => s.classList.contains('sp') ? ' ' : s.textContent).join('')"
-KB = "(() => { const s = [...document.querySelectorAll('svg.sbkb')].find(x => x.getClientRects().length); return s ? s.getBoundingClientRect().height : 0; })()"
+KB = "(() => { const s = [...document.querySelectorAll('svg.sbkb')].filter(x => x.getClientRects().length).pop(); return s ? s.getBoundingClientRect().height : 0; })()"   # the last visible keyboard (the one fit() sizes)
+FITTED = "[...document.querySelectorAll('svg.sbkb')].some(x => x.style.maxHeight)"
 
 async def overflow(pg):
     return await pg.evaluate("({v: document.documentElement.scrollHeight - innerHeight, h: document.documentElement.scrollWidth - innerWidth})")
@@ -47,7 +49,7 @@ async def main():
             ctx = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block')
             await ctx.add_init_script(init(st))
             pg = await ctx.new_page(); pg.on('pageerror', lambda e: errors.append(str(e)))
-            bad, small = [], []
+            bad, small, fitted = [], [], []
             for mod, tools in TOOLS.items():
                 for t in tools:
                     await pg.goto(base + mod + '/index.html?tool=' + t); await pg.wait_for_timeout(300)
@@ -55,10 +57,13 @@ async def main():
                     if o['v'] > 0 or o['h'] > 0: bad.append(f'{mod}/{t} {o}')
                     kb = await pg.evaluate(KB)
                     if kb and kb < 79: small.append(f'{mod}/{t} {kb:.0f}px')
+                    if name == 'default' and await pg.evaluate(FITTED): fitted.append(f'{mod}/{t}')
+                    if name == 'default' and await pg.evaluate('scrollY') != 0: fitted.append(f'{mod}/{t} scrolled')
             check(not bad, f'{name}: every typing tool fits 1440x900 {bad}')
             check(not small, f'{name}: keyboard pictures stay at least about 80px tall {small}')
+            if name == 'default': check(not fitted, f'default settings: every keyboard keeps its CSS size and no page opens scrolled {fitted}')
             # the screens after a round, with the larger settings
-            if name in ('Larger text + OpenDyslexic', 'default'):
+            if name != 'Larger text':
                 after = []
                 await pg.goto(base + 'drills/index.html?tool=paragraphs'); await pg.wait_for_selector('#tab-paragraphs .sbty-text .c')
                 t = await pg.evaluate(TEXT('paragraphs')); await pg.keyboard.type(t, delay=0); await pg.wait_for_timeout(200)
@@ -80,20 +85,29 @@ async def main():
                 check(not over, f'{name}: result screens fit 1440x900 {over}')
             await ctx.close()
 
-        # ---- default settings keep the full keyboard size (the fit only shrinks when needed) ----
+        # ---- a shorter desktop window: the Lesson keyboard shrinks to fit, and grows back ----
         ctx = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block'); await ctx.add_init_script(init({}))
         pg = await ctx.new_page()
         await pg.goto(base + 'learn-keys/index.html'); await pg.wait_for_selector('svg.sbkb'); await pg.wait_for_timeout(300)
-        check(await pg.evaluate("document.querySelector('#tab-lesson svg.sbkb').style.maxHeight") == '', 'at default settings the Lesson keyboard keeps its CSS size')
-        # a shorter window: the keyboard shrinks instead of the page scrolling
-        await pg.set_viewport_size({'width': 1366, 'height': 640}); await pg.wait_for_timeout(300)
+        full = await pg.evaluate(KB)
+        await pg.set_viewport_size({'width': 1366, 'height': 640}); await pg.wait_for_timeout(400)
         o = await overflow(pg); kb = await pg.evaluate(KB)
-        check(o['v'] <= 0 or kb <= 81, f'at 1366x640 the keyboard shrinks to fit (overflow {o["v"]}, keyboard {kb:.0f}px)')
+        check(o['v'] <= 0 and kb < full, f'at 1366x640 the Lesson keyboard shrinks and the page fits (overflow {o["v"]}, keyboard {kb:.0f} of {full:.0f}px)')
+        await pg.set_viewport_size({'width': 1440, 'height': 900}); await pg.wait_for_timeout(400)
+        check(abs(await pg.evaluate(KB) - full) < 2 and not await pg.evaluate(FITTED), 'back at 1440x900 the keyboard returns to its full size')
+        await ctx.close()
+
+        # ---- a medium-width window with Larger text and OpenDyslexic: the Keyboard map's boxes do not cover each other ----
+        ctx = await b.new_context(viewport={'width': 1100, 'height': 700}, service_workers='block'); await ctx.add_init_script(init({'size': 'large', 'font': 'dyslexic'}))
+        pg = await ctx.new_page()
+        await pg.goto(base + 'learn-keys/index.html?tool=map'); await pg.wait_for_selector('.kmpress'); await pg.keyboard.press('Enter'); await pg.wait_for_timeout(200)
+        r = await pg.evaluate("(() => { const a = document.querySelector('.kmpress').getBoundingClientRect(), b = document.querySelector('.kmlegend').getBoundingClientRect(); return [a.bottom, b.top]; })()")
+        check(r[0] <= r[1] + 1, f'at 1100x700 the finger box sits above the color key {r}')
         await ctx.close()
 
         # ---- phones ----
         for vw, vh in [(360, 740), (915, 412)]:
-            ctx = await b.new_context(viewport={'width': vw, 'height': vh}, service_workers='block', has_touch=True, is_mobile=vw < 400)
+            ctx = await b.new_context(viewport={'width': vw, 'height': vh}, service_workers='block', has_touch=True, is_mobile=True)
             await ctx.add_init_script(init({})); pg = await ctx.new_page(); pg.on('pageerror', lambda e: errors.append(str(e)))
             side, hidden = [], []
             for mod, tools in TOOLS.items():
@@ -108,7 +122,20 @@ async def main():
                     r = await pg.evaluate(f"(() => {{ const r = document.querySelector('{sel}').getBoundingClientRect(); return [r.top, r.bottom, innerHeight]; }})()")
                     if not (r[0] >= 0 and r[0] < r[2] - 60): hidden.append(f'{mod}/{t} top {r[0]:.0f}')
                 check(not hidden, f'{vw}x{vh}: the text to type is on screen when a tool opens {hidden}')
+            # Larger text on a phone keeps the phone sizes
+            lctx = await b.new_context(viewport={'width': vw, 'height': vh}, service_workers='block', has_touch=True, is_mobile=True)
+            await lctx.add_init_script(init({'size': 'large'})); lp = await lctx.new_page()
+            await lp.goto(base + 'games/index.html?tool=falling'); await lp.wait_for_selector('.fw-area')
+            h = await lp.evaluate("parseFloat(getComputedStyle(document.querySelector('.fw-area')).height)")
+            check(abs(h - 300) < 1, f'{vw}x{vh} with Larger text: the Falling Words area keeps its phone size ({h:.0f}px)')
+            await lctx.close()
             await ctx.close()
+
+        # ---- a short desktop window with a mouse opens at the top ----
+        ctx = await b.new_context(viewport={'width': 1280, 'height': 500}, service_workers='block'); await ctx.add_init_script(init({}))
+        pg = await ctx.new_page(); await pg.goto(base + 'learn-keys/index.html'); await pg.wait_for_timeout(400)
+        check(await pg.evaluate('scrollY') == 0, 'a short desktop window with a mouse is not scrolled when a tool opens')
+        await ctx.close()
 
         # ---- backups carry typing progress ----
         ctx = await b.new_context(viewport={'width': 1440, 'height': 900}, service_workers='block'); await ctx.add_init_script(init({}))

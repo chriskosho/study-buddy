@@ -93,7 +93,8 @@
   /* ---------- fitting the screen ----------
      Tool screens have no scroll bars on a desktop (1440x900 and up), even with Larger text and OpenDyslexic on, which make
      the words above the keyboard taller than any fixed size can allow for. After the CSS size is applied, the keyboard picture
-     shrinks by however much the page is still too tall, but only when that removes the scroll bar and leaves the keyboard at least 70px and about a third of its size. Phones and short windows scroll instead. */
+     shrinks by however much the page is still too tall, as long as that leaves it at least 70px and about a third of its size
+     (if something else is too tall, the page may still scroll a little). Phones and short windows scroll instead. */
   let fitQueued = false;
   function fit() {
     if (fitQueued) return; fitQueued = true;
@@ -113,9 +114,11 @@
   addEventListener('resize', fit);
   try { new ResizeObserver(fit).observe(document.documentElement); } catch (e) {}
 
-  /* On a phone turned sideways (a short, wide window) the header fills the screen, so a typing tool scrolls its text into view when it opens */
+  /* On a phone or tablet turned sideways (a short, wide window with no mouse) the header fills the screen, so a typing tool scrolls its
+     text into view the first time it opens */
   function toView(el) {
     if (!el || innerHeight > 520 || innerWidth <= innerHeight) return;
+    try { if (matchMedia('(any-pointer: fine)').matches) return; } catch (e) {}   // a short desktop window with a mouse is left alone
     setTimeout(() => { try { el.scrollIntoView({ block: 'center' }); } catch (e) {} }, 60);
   }
 
