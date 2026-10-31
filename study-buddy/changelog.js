@@ -1,6 +1,8 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-31', title: 'A back arrow on every screen', items: [
+    'Every screen except Home now has a round back arrow at the left of the trail at the top (Home > Subject > Module). It goes up one step: from a tool to its subject, from a subject to Home. The trail still works as before.' ] },
   { date: '2026-10-31', title: 'The Scratch pad is now the Notepad', items: [
     'The Scratch pad is now called the Notepad, and it is a real notebook. It is still beside math questions, in Utilities, and now on the Notes page with a New note button.',
     'Type: write across the whole page with bold, italic, underline, strikethrough, colors, highlight, links, headings, bulleted and numbered lists, checklists, and alignment. Choose a font (Handwriting is first) and a size. With Lines on, the words sit on the lines.',
