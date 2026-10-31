@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Decimal Operations · Study Buddy</title>
+<meta name="theme-color" content="#2b4162">
+<link rel="icon" href="../../../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../../shared/sb.css">
+<style>
+.dform{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 12px}
+.dform .textin{width:min(180px,40vw);font-size:20px}
+.dform select{font:inherit;font-size:20px;font-weight:800;padding:8px 12px;border:2px solid var(--navy);border-radius:12px;background:var(--surface);color:var(--ink)}
+.derr{color:var(--bad-ink);font-weight:700;min-height:22px}
+.dsteps{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:8px;counter-reset:ds}
+.dsteps li{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px 14px 10px 50px;position:relative;font-size:17px;overflow-wrap:anywhere}
+.dsteps li:not(.col)::before{counter-increment:ds;content:counter(ds);position:absolute;left:12px;top:9px;width:28px;height:28px;line-height:28px;text-align:center;border-radius:14px;background:var(--navy);color:#fff;font-weight:800;font-size:15px}
+.dsteps li.col{padding-left:50px}
+.dsteps pre{margin:0;font:800 22px/1.3 ui-monospace,Menlo,Consolas,monospace;white-space:pre;overflow-x:auto}
+.dsteps li.last{background:var(--tint-good)}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:10px}
+.rule{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 16px}
+.rule h3{margin:0 0 6px;font-size:19px}
+.rule p{margin:0 0 6px;font-size:16px}
+@media (max-width:1100px){.rules{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+  .rules{grid-template-columns:1fr}
+  .dform .textin{width:min(150px,38vw)}
+  .dsteps li{padding:10px 12px 10px 46px;font-size:16px}
+  .dsteps pre{font-size:18px}
+}
+</style>
+<script src="../../../shared/sb-core.js"></script>
+<script src="../../../shared/sb-shell.js"></script>
+<script src="../../../registry.js"></script>
+<script src="../../../shared/sb-module.js"></script>
+<script src="../../../shared/sb-tools.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="gen.js"></script>
+<script src="dec.js"></script>
+</body>
+</html>
