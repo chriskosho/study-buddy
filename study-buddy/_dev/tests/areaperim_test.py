@@ -137,8 +137,8 @@ async def main():
             for k in range(6):
                 await pg.goto(base + M + '?tool=' + tool); await pg.wait_for_selector(f'#tab-{tool} input')
                 if not await pg.locator('svg.apf').count(): continue
-                px = await pg.evaluate("(() => { const s = document.querySelector('svg.apf'); const r = s.getBoundingClientRect(), vb = s.viewBox.baseVal; return 17 * Math.min(r.width / vb.width, r.height / vb.height); })()")
-                check(px >= 11, f'{tool} labels about {px:.0f}px tall at 360')
+                px = await pg.evaluate("(() => { const s = document.querySelector('svg.apf'); const r = s.getBoundingClientRect(), vb = s.viewBox.baseVal; return 19 * Math.min(r.width / vb.width, r.height / vb.height); })()")
+                check(px >= 12, f'{tool} labels about {px:.0f}px tall at 360')
         await pg.set_viewport_size({'width': 1440, 'height': 900}); await pg.goto(base + M + '?tool=guide'); await pg.wait_for_selector('#ap-l'); await pg.wait_for_timeout(200)
         o = await overflow(pg); check(o['v'] <= 0 and o['h'] <= 0, f'guide fits 1440x900 {o}')
         for w, h in [(360, 740), (915, 412)]:

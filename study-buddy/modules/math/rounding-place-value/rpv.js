@@ -22,9 +22,9 @@
           <div class="rpic"></div><p class="rsays rs2" aria-live="polite"></p>
         </div></div>
         <div class="rules">
-          <div class="rule"><h3>Places</h3><p>In 538 there are <b>5 hundreds</b>, <b>3 tens</b>, and <b>8 ones</b>. The value of the 3 is 30. Expanded form: 500 + 30 + 8.</p></div>
+          <div class="rule"><h3>Places</h3><p>538 has <b>5 hundreds</b>, <b>3 tens</b>, and <b>8 ones</b>. The 3 is worth 30. Expanded: 500 + 30 + 8.</p></div>
           <div class="rule"><h3>Comparing</h3><p>Start with the hundreds. If they match, compare the tens, then the ones. The open side of &lt; or &gt; faces the bigger number: 436 &lt; 463.</p></div>
-          <div class="rule"><h3>Rounding</h3><p>Find the two nearest tens (or hundreds) and the halfway mark. Past halfway, round up. Before it, round down. <b>Exactly halfway rounds up</b>: 45 rounds to 50.</p></div>
+          <div class="rule"><h3>Rounding</h3><p>Past the halfway mark, round up. Before it, round down. <b>Exactly halfway rounds up</b>: 45 rounds to 50.</p></div>
           <div class="rule"><h3>Estimating</h3><p>Round each number first, then add or subtract. 348 + 215 is about 300 + 200 = 500. An estimate is close, not exact.</p></div>
           <div class="rule"><h3>Adding</h3><p>Add the ones, then the tens, then the hundreds. If a place has 10 or more, regroup: carry 1 to the next place.</p></div>
           <div class="rule"><h3>Subtracting</h3><p>If the top digit is smaller, regroup: take 1 from the next place on the left and add 10 to this place.</p></div>
@@ -69,7 +69,9 @@
   const words = answerTool('Word problems', 'Decide what to do, then work it out. Commas are optional.', G.wordsQ);
 
   /* ---- Quiz (Random 10 or One of each) and Flashcards: one list of question types serves both, so every type has a card ---- */
-  const toMC = f => () => { const x = f(); return { q: x.q, html: x.html, a: fmt(x.a), wrong: x.wrong.map(fmt), why: x.why, say: x.say }; };
+  /* typed kinds without their own wrong options (word problems) get near misses: off by 10 or 100, or one place off */
+  const near = a => { const c = [a + 10, a - 10, a + 100, a - 100, a * 10, Math.round(a / 10)].filter((v, k, arr) => v > 0 && v <= 1000 && v !== a && arr.indexOf(v) === k); return SBT.shuffle(c).slice(0, 3); };
+  const toMC = f => () => { const x = f(); return { q: x.q, html: x.html, a: fmt(x.a), wrong: (x.wrong || near(x.a)).map(fmt), why: x.why, say: x.say }; };
   const TYPES = [
     { gen: G.placeValueQ, cards: [["What is the value of a digit?", "The digit times its place. In 538, the 3 is in the tens place, so its value is 30."], ["What are the places in a 3-digit number?", "Hundreds, tens, and ones, from left to right. 538 has 5 hundreds, 3 tens, and 8 ones."]] },
     { gen: G.placeDigitQ, cards: [["What comes after 999?", "1,000, one thousand. It is 10 hundreds."]] },

@@ -53,8 +53,9 @@ async def main():
         await pg.goto(base + 'index.html#/home/math'); await pg.wait_for_selector('a.mod')
         check('Telling Time and Elapsed Time' in await pg.inner_text('body'), 'Math lists Telling Time and Elapsed Time')
 
-        async def mc_click(tool, text):
-            await pg.locator(f'#tab-{tool} .opt').filter(has_text=text).first.click()
+        async def vals(tool): return await pg.evaluate(f"[...document.querySelectorAll('#tab-{tool} .opt')].map(o => o.dataset.v)")
+        async def mc_click(tool, text):   # text is the exact value of the option (the buttons also carry a number key)
+            await pg.locator(f'#tab-{tool} .opt[data-v={__import__("json").dumps(text)}]').click()
         async def finish(tool, i):
             if i < 3: check(await pg.locator(f'#tab-{tool} .opt.right').count() == 1, f'{tool} q{i + 1}: exactly one right answer') if await pg.locator(f'#tab-{tool} .opt').count() else None
             await pg.click(f'#tab-{tool} [data-a="next"]')
@@ -82,7 +83,7 @@ async def main():
             shown = [await pg.evaluate(READ, await clocks.nth(k).element_handle()) for k in range(n)]
             if i == 0: check(n == 4 and len(set(shown)) == 4, f'pick shows four different clocks {shown}')
             check(shown.count(target) == 1, f'pick q{i + 1}: exactly one clock shows {target}') if i < 3 else None
-            await mc_click(tool, re.compile('^\\s*' + 'ABCD'[shown.index(target)] + '\\s*$')); await finish(tool, i)
+            await mc_click(tool, 'ABCD'[shown.index(target)]); await finish(tool, i)
         rec = await pg.evaluate(f"SB.toolRecord('time','{tool}')")
         check(rec and rec['best'] == 10, f'pick: 10 of 10 {rec}')
 
@@ -92,7 +93,7 @@ async def main():
             await pg.wait_for_selector(f'#tab-{tool} .opt')
             q = await pg.locator(f'#tab-{tool} .qtext').inner_text(); ev = q.split('?')[-1].strip() or q.split('\n')[-1].strip()
             win = await pg.evaluate("(t) => TIMEGEN.EVENTS.find(e => t.includes(e.t))", q)
-            opts = await pg.locator(f'#tab-{tool} .opt').all_inner_texts(); good = []
+            opts = await vals(tool); good = []
             for k, o in enumerate(opts):
                 m = re.search(T, o)
                 if m and win['lo'] <= absm(*m.groups()) <= win['hi']: good.append(k)
@@ -110,7 +111,7 @@ async def main():
             d = absm(*m.groups()[3:6]) - absm(*m.groups()[0:3]); seen.add('minutes' if 'How many minutes' in q else 'hm')
             want = f'{d} minutes' if 'How many minutes' in q else dtext(d)
             check(d > 0 and (absm(*m.groups()[0:3]) < 720) == (absm(*m.groups()[3:6]) < 720), f'elapsed q{i + 1}: same a.m./p.m. period') if i < 3 else None
-            await mc_click(tool, re.compile('^\\s*' + re.escape(want) + '\\s*$')); await finish(tool, i)
+            await mc_click(tool, want); await finish(tool, i)
         rec = await pg.evaluate(f"SB.toolRecord('time','{tool}')")
         check(rec and rec['best'] == 10, f'elapsed: 10 of 10 ({sorted(seen)}) {rec}')
         check(await pg.locator(f'#tab-{tool} svg.tmline').count() >= 0, 'elapsed ran')
@@ -137,7 +138,7 @@ async def main():
             elif (m := re.search(r'starts at ' + T + r' and lasts (.+?)\. What time does it end', q)): want = ft(absm(*m.groups()[0:3]) + dur(m.group(4))); kinds.add('end')
             elif (m := re.search(r'ends at ' + T + r' and lasts (.+?)\. What time did it start', q)): want = ft(absm(*m.groups()[0:3]) - dur(m.group(4))); kinds.add('start')
             else: check(False, f'words: unknown question {q}'); want = ''
-            await mc_click(tool, re.compile('^\\s*' + re.escape(want) + '\\s*$')); await finish(tool, i)
+            await mc_click(tool, want); await finish(tool, i)
         rec = await pg.evaluate(f"SB.toolRecord('time','{tool}')")
         check(rec and rec['best'] == 10, f'words: 10 of 10 ({sorted(kinds)}) {rec}')
 
@@ -164,19 +165,20 @@ async def main():
         check('rule or fact' in (await pg.locator('#tab-cards').inner_text()).lower(), 'has a rules and facts flashcard deck')
         await pg.goto(base + M + '?tool=quiz'); await pg.wait_for_selector('#tab-quiz .qmodes')
         labels = await pg.locator('#tab-quiz .qmodes button').all_inner_texts()
-        n_types = await pg.evaluate("document.querySelector('#tab-quiz') && 7")
         check(len(labels) == 2 and labels[1].startswith('One of each (7)'), f'Random and One of each (7) {labels}')
         await pg.click('#tab-quiz .qmodes button[data-m="full"]')
+        sawclock = 0
         for i in range(7):
-            await pg.wait_for_selector('#tab-quiz .opt'); await pg.locator('#tab-quiz .opt').first.click()
+            await pg.wait_for_selector('#tab-quiz .opt')
+            if await pg.locator('#tab-quiz svg.tmclk').count() == 1 and 'What time does the clock show' in await pg.locator('#tab-quiz .qtext').inner_text():
+                t = await pg.evaluate(READ, await pg.locator('#tab-quiz svg.tmclk').element_handle()); sawclock += 1
+                check((await vals('quiz')).count(t) == 1, f'Quiz offers the clock time {t} exactly once')
+                await mc_click('quiz', t)
+                check(await pg.locator('#tab-quiz .opt.right').count() == 1, 'Quiz: the clock time is the right option')
+            else: await pg.locator('#tab-quiz .opt').first.click()
             await pg.click('#tab-quiz [data-a="next"]')
         check(await pg.locator('#tab-quiz .result').count() == 1, 'One of each finishes after seven questions')
-        # the typed questions work as multiple choice in the Quiz: clocks are shown and one option is right
-        await pg.goto(base + M + '?tool=quiz'); await pg.wait_for_selector('#tab-quiz .qmodes'); await pg.click('#tab-quiz .qmodes button[data-m="full"]')
-        await pg.wait_for_selector('#tab-quiz .opt')
-        check(await pg.locator('#tab-quiz svg.tmclk').count() == 1, 'first Quiz question shows the clock')
-        t = await pg.evaluate(READ, await pg.locator('#tab-quiz svg.tmclk').element_handle())
-        check(await pg.locator('#tab-quiz .opt').filter(has_text=re.compile('^\\s*' + t + '\\s*$')).count() == 1, f'Quiz offers the clock time {t} exactly once')
+        check(sawclock == 1, f'One of each has one read-the-clock question ({sawclock})')
 
         # ---- layout ----
         tools = ['cards', 'read', 'pick', 'ampm', 'elapsed', 'later', 'words', 'quiz']
