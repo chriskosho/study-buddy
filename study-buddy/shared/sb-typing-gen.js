@@ -28,6 +28,7 @@
      SBTG.speedSteps(keys, ms, step)         the test in steps (default 5 seconds) with words a minute in each, for the chart
      SBTG.speedBuckets(keys, ms, step)       just the speeds of those steps
      SBTG.consistency(buckets)       how steady the speed was, 0 to 1 (1 minus the spread compared with the average)
+     SBTG.gameWords(level, n, rand)  words for the games: 'easy' short sight words, 'medium' common words, 'hard' longer words, some with capitals
      SBTG.cleanText(s, max)             pasted text made typeable: plain quotes and dashes, single spaces, keyboard characters only
 
    Speed: WPM counts 5 characters as a word. A key's speed is the time from the key before it. */
@@ -344,12 +345,25 @@
     return t;
   }
 
+
+  /* ---------- games ---------- */
+  function gamePool(level) {
+    const k = KIDS();
+    if (level === 'easy') return k.slice(0, 200).filter(w => w.length >= 2 && w.length <= 5);
+    if (level === 'hard') return k.filter(w => w.length >= 6 && w.length <= 10);
+    return k.slice(0, 1000).filter(w => w.length >= 3 && w.length <= 7);
+  }
+  function gameWords(level, n = 40, rand = Math.random) {
+    const pool = gamePool(level);
+    return noRepeat(() => { let w = pool[Math.floor(rand() * pool.length)]; if (w === 'i') w = 'I'; if (level === 'hard' && rand() < 0.3) w = w[0].toUpperCase() + w.slice(1); return w; }, n);
+  }
+
   /* a small seeded random, for repeatable tests */
   function seeded(seed) { let a = seed >>> 0 || 1; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
   const api = { ORDER, START, WINDOW, MIN_SAMPLES, READY_ACC, SLOW_MS, WORDS, fnv, blocked, pseudoWord, realPool, lessonWords, addRound, keyStat, ready, confidence, focusKey, canUnlock, roundScore, seeded,
     ROWS, rowDrill, numberDrill, capitalsDrill, punctDrill, commonWords, weakLetters, weakDrill, pickText, stars, CONTRACTIONS, HYPHENS,
-    testText, timedScore, speedSteps, speedBuckets, consistency, cleanText };
+    testText, timedScore, speedSteps, speedBuckets, consistency, cleanText, gamePool, gameWords };
   root.SBTG = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

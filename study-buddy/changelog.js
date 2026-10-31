@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-31', title: 'New module: Typing Games', items: [
+    'Typing has a fourth module, Typing Games, with three calm games. Each keeps your best score.',
+    'Word Sprint: type as many words as you can in 1 minute.',
+    'Falling Words: words fall slowly from the top. Type each one to clear it before it reaches the bottom.',
+    'Ghost Race: race a ghost that types at your best speed or a speed you pick.' ] },
   { date: '2026-10-31', title: 'New module: Speed and Accuracy Tests', items: [
     'Typing has a third module, Speed and Accuracy Tests.',
     'Speed test: 30 seconds, 1, 3, or 5 minutes, from Easy to Insane. It shows your speed, raw speed, accuracy, and how steady you were, with a chart of your speed during the test. Try the same text again to compare.',
