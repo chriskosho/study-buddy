@@ -2,7 +2,7 @@
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
   { date: '2026-10-31', title: 'Typing fits better with Larger text and on phones', items: [
-    'The typing modules now fit the screen with Larger text or OpenDyslexic turned on, with no scrolling on a desktop. The on-screen keyboard picture gets a little smaller when it needs to.',
+    'The typing modules now fit the screen with Larger text turned on, with no scrolling on a desktop. The on-screen keyboard picture gets a little smaller when it needs to. With OpenDyslexic, the typing pages use slightly smaller letters so they fit too.',
     'On a phone turned sideways, the words to type scroll into view when a typing tool opens.',
     'Typing progress is saved in backups, and comes back when a backup is loaded.' ] },
   { date: '2026-10-31', title: 'New module: Typing Games', items: [
