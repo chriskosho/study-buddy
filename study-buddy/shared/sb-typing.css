@@ -39,6 +39,7 @@ html.sb-dark{
 .sbty{position:relative;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 18px;cursor:text}
 .sbty-text{position:relative;font:600 clamp(24px,2.6vw,34px)/1.6 ui-monospace,"Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;letter-spacing:.02em;overflow:hidden;max-height:calc(3 * 1.6em);color:var(--ink2)}
 html.sb-dyslexic .sbty-text{font-family:var(--font)}
+.sbty-text.more{-webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent);mask-image:linear-gradient(to bottom,#000 72%,transparent)}
 .sbty-text .w{white-space:nowrap}
 .sbty-text .c{border-bottom:3px solid transparent;border-radius:3px}
 .sbty-text .c.sp i{font-style:normal;opacity:0}

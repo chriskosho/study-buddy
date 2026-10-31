@@ -1,10 +1,16 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-31', title: 'New module: Typing Drills', items: [
+    'Typing has a second module, Typing Drills, for practicing one thing at a time.',
+    'Rows (home, top, bottom, and number row), Common words, Capitals and punctuation, Weak keys (built from the letters you find hardest), Sentences, and Paragraphs (no Backspace, for experts).',
+    'Each round earns 1 to 3 stars: finish it, reach the accuracy goal, and also reach your target speed. For capitals, the keyboard lights up the Shift key to use.',
+    'Drills share your target speed and letter stats with Learn the Keys, so practice in one counts in the other.',
+    'Key Hunt now shows capital letters by default, like the letters on the keys.' ] },
   { date: '2026-10-31', title: 'New subject: Typing, with Learn the Keys', items: [
     'Study Buddy has a new subject, Typing. Its first module, Learn the Keys, teaches typing without looking, starting on the home row (A S D F and J K L).',
     'Lesson: type words made from the letters you have opened. A new letter opens when every open letter is fast and accurate (95% right and your target speed, 15 words a minute to start). The weakest letter is practiced most. You can change the target speed, turn off "Fix mistakes", and hide the keyboard.',
-    'Key Hunt: find the letter on a big keyboard, by pressing it or tapping it. No timer. Made for young learners.',
+    'Key Hunt: find the letter on a big keyboard, by pressing it or tapping it. Letters show as capitals, like on the keys (a switch shows small letters). No timer. Made for young learners.',
     'Keyboard map shows which finger types each key and how to sit. Key stats shows the speed and accuracy of every letter.',
     'Typing needs a keyboard. On a phone or tablet without one, the Lesson says so, and Key Hunt still works by tapping.' ] },
   { date: '2026-10-31', title: 'New modules for 3rd grade: Facts, Fractions, Rounding, Time, and Area and Perimeter', items: [

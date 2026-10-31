@@ -13,10 +13,21 @@
      SBTG.canUnlock(open, stats, target)     every open letter is ready, so the next one can open
      SBTG.roundScore(r)              { wpm, acc } for a finished round
 
+   Drills (Typing Drills module), each returns the text to type:
+     SBTG.rowDrill(row, rand)        'home' | 'top' | 'bottom' | 'number': key groups and real words from that row
+     SBTG.capitalsDrill(rand)        common words, most with a capital first letter (Shift)
+     SBTG.punctDrill(rand)           words with , . ? ! ; : ' " - ( ), contractions, and hyphenated words
+     SBTG.commonWords(rand, size)    words from the 100, 300, or 1,000 most common words for kids (SBTX.common)
+     SBTG.weakDrill(stats, open, target, rand)   words that lean on the student's three weakest letters
+     SBTG.pickText(list, n, rand)    n different items from a list (sentences, paragraphs), joined with spaces
+     SBTG.stars(r, goal)             1 star for finishing, 2 for the accuracy goal, 3 for accuracy and speed
+
    Speed: WPM counts 5 characters as a word. A key's speed is the time from the key before it. */
 (function (root) {
   'use strict';
   const W = (root.SBTW || (typeof require === 'function' ? require('./sb-typing-words.js') : null)) || { words: [], block: [] };
+  /* the practice text (common words for kids, sentences) is only loaded by pages that need it */
+  const textData = () => root.SBTX || (typeof require === 'function' ? (() => { try { return require('./sb-typing-text.js'); } catch (e) { return null; } })() : null) || {};
 
   const ORDER = 'asdfjklgheiruty onwmcbvxpqz'.replace(/ /g, '').split('');
   const START = 7;
@@ -112,6 +123,18 @@
       }
       out.push(w || pseudoWord(allowed, rand, null));
     }
+    /* the focus letter always shows up at least 3 times (or once per word in a short round): swap in words that have it */
+    if (focus) {
+      const need = Math.min(3, n), count = () => out.join('').split(focus).length - 1;
+      for (let tries = 0; count() < need && tries < 40; tries++) {
+        const spots = out.map((x, i) => i).filter(i => !out[i].includes(focus));
+        if (!spots.length) break;
+        const i = spots[Math.floor(rand() * spots.length)];
+        const c = fpool.length && rand() < 0.5 ? fpool[Math.floor(rand() * fpool.length)] : pseudoWord(allowed, rand, focus);
+        if (out.slice(Math.max(0, i - 4), i).includes(c) || out.slice(i + 1, i + 5).includes(c)) continue;
+        out[i] = c;
+      }
+    }
     return out;
   }
 
@@ -154,10 +177,115 @@
     return { wpm: min > 0 ? (r.correct / 5) / min : 0, acc: r.presses ? (r.presses - r.wrong) / r.presses : 1 };
   }
 
+
+  /* ---------- drills ---------- */
+  const ROWS = { home: 'asdfghjkl', top: 'qwertyuiop', bottom: 'zxcvbnm', number: '1234567890' };
+  const any = (a, rand) => a[Math.floor(rand() * a.length)];
+  /* a small group of keys from one row, like "fjf" or "dkls", that never spells something unkind */
+  function keyGroup(letters, rand) {
+    for (let t = 0; t < 40; t++) {
+      const n = 3 + Math.floor(rand() * 3), a = any(letters, rand), b = any(letters, rand);
+      let g = '';
+      const style = rand();
+      if (style < 0.35) for (let i = 0; i < n; i++) g += i % 2 ? b : a;   // fjfj
+      else for (let i = 0; i < n; i++) g += any(letters, rand);          // mixed
+      if (!/(.)\1\1/.test(g) && !blocked(g, true)) return g;
+    }
+    return letters.slice(0, 3);
+  }
+  function noRepeat(fn, n) {
+    const out = [];
+    for (let i = 0; i < n; i++) { let w = fn(i), t = 0; while (out.slice(-3).includes(w) && t++ < 10) w = fn(i); out.push(w); }
+    return out;
+  }
+  function rowDrill(row, rand = Math.random, n = 20) {
+    if (row === 'number') return numberDrill(rand, n);
+    const letters = ROWS[row].split(''), real = realPool(letters).filter(w => w.length >= 2);
+    const items = noRepeat(() => {
+      if (real.length >= 5 && rand() < 0.45) return real[Math.floor(Math.pow(rand(), 1.4) * real.length)];
+      let g = keyGroup(letters, rand);
+      if (row === 'home' && rand() < 0.12) g += ';';                    // the home row's pinky key
+      if (row === 'bottom' && rand() < 0.25) g += rand() < 0.6 ? ',' : '.';
+      return g;
+    }, n);
+    return items.join(' ');
+  }
+  /* numbers: short and long numbers, years, and pairs with a hyphen; every digit shows up at least once */
+  function numberDrill(rand = Math.random, n = 18) {
+    for (let t = 0; t < 20; t++) {
+      const items = noRepeat(() => {
+        const r = rand();
+        if (r < 0.3) return String(Math.floor(rand() * 90) + 10);
+        if (r < 0.55) return String(Math.floor(rand() * 900) + 100);
+        if (r < 0.7) return String(1900 + Math.floor(rand() * 130));
+        if (r < 0.85) return (Math.floor(rand() * 9) + 1) + '-' + (Math.floor(rand() * 9) + 1);
+        return String(Math.floor(rand() * 9000) + 1000);
+      }, n);
+      const text = items.join(' ');
+      if ([...'0123456789'].every(d => text.includes(d))) return text;
+    }
+    return '1234567890';
+  }
+  /* common words for kids (sight-word order); the frequency list is the fallback on pages without the practice text */
+  const KIDS = () => { const c = textData().common; return Array.isArray(c) && c.length ? c.filter(w => !blocked(w)) : WORDS.slice(0, 1000); };
+  const COMMON = () => KIDS().filter(w => w.length >= 3 && w.length <= 8);
+  function capitalsDrill(rand = Math.random, n = 16) {
+    const pool = COMMON();
+    return noRepeat(() => { const w = pool[Math.floor(Math.pow(rand(), 1.3) * pool.length)]; return rand() < 0.65 ? w[0].toUpperCase() + w.slice(1) : w; }, n).join(' ');
+  }
+  const CONTRACTIONS = ["it's", "don't", "can't", "I'm", "you're", "we're", "they're", "isn't", "let's", "that's", "what's", "here's", "didn't", "won't", "I'll", "we'll", "she's", "he's", "aren't", "wasn't"];
+  const HYPHENS = ['x-ray', 'ice-cold', 'left-handed', 'right-handed', 'T-shirt', 're-read', 'pop-up', 'high-five', 'merry-go-round', 'forty-two', 'twenty-one', 'well-known', 'sign-up', 'drop-off'];
+  function punctDrill(rand = Math.random, n = 14) {
+    const pool = COMMON();
+    return noRepeat(() => {
+      const r = rand(), w = pool[Math.floor(Math.pow(rand(), 1.3) * pool.length)];
+      if (r < 0.2) return any(CONTRACTIONS, rand);
+      if (r < 0.3) return any(HYPHENS, rand);
+      if (r < 0.37) return '"' + w + '"';
+      if (r < 0.42) return '(' + w + ')';
+      return w + any([',', ',', '.', '.', '?', '!', ';', ':'], rand);
+    }, n).join(' ');
+  }
+  function commonWords(rand = Math.random, size = 300, n = 25) {
+    const pool = KIDS().slice(0, size);
+    return noRepeat(() => pool[Math.floor(rand() * pool.length)], n).map(w => w === 'i' ? 'I' : w).join(' ');   // the word "I" is always a capital
+  }
+  /* the three weakest letters: most missed first, then slowest. Only letters typed at least 10 times count (so a letter typed
+     twice is not called weak), unless fewer than three have that many. */
+  function weakLetters(stats, open, target, k = 3) {
+    let cand = open.filter(c => keyStat(stats, c).n >= MIN_SAMPLES);
+    if (cand.length < k) cand = open.filter(c => keyStat(stats, c).n > 0);
+    const acc = c => Math.round(keyStat(stats, c).acc * 100);   // whole percents, so speed decides between near-equal accuracy
+    return cand.sort((a, b) => acc(a) - acc(b) || keyStat(stats, a).wpm - keyStat(stats, b).wpm).slice(0, k);
+  }
+  function weakDrill(stats, open, target, rand = Math.random, n = 16) {
+    const weak = weakLetters(stats, open, target);
+    if (!weak.length) return '';
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      let w = '', t = 0;
+      do { w = lessonWords({ allowed: open, focus: weak[i % weak.length], n: 1, rand })[0]; } while ((out.slice(-4).includes(w) || !w.includes(weak[i % weak.length])) && t++ < 12);
+      out.push(w);
+    }
+    return out.join(' ');
+  }
+  function pickText(list, n, rand = Math.random) {
+    const idx = [...list.keys()];
+    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    return idx.slice(0, Math.min(n, list.length)).map(i => list[i]).join(' ');
+  }
+  /* goal: { acc, wpm } */
+  function stars(r, goal) {
+    let s = 1;
+    if (r.acc >= goal.acc) { s = 2; if (r.wpm >= goal.wpm) s = 3; }
+    return s;
+  }
+
   /* a small seeded random, for repeatable tests */
   function seeded(seed) { let a = seed >>> 0 || 1; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
-  const api = { ORDER, START, WINDOW, MIN_SAMPLES, READY_ACC, SLOW_MS, WORDS, fnv, blocked, pseudoWord, realPool, lessonWords, addRound, keyStat, ready, confidence, focusKey, canUnlock, roundScore, seeded };
+  const api = { ORDER, START, WINDOW, MIN_SAMPLES, READY_ACC, SLOW_MS, WORDS, fnv, blocked, pseudoWord, realPool, lessonWords, addRound, keyStat, ready, confidence, focusKey, canUnlock, roundScore, seeded,
+    ROWS, rowDrill, numberDrill, capitalsDrill, punctDrill, commonWords, weakLetters, weakDrill, pickText, stars, CONTRACTIONS, HYPHENS };
   root.SBTG = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

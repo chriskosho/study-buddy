@@ -7,10 +7,20 @@
   const esc = SB.esc, G = window.SBTG, ORDER = G.ORDER, TOTAL = ORDER.length;
   window.SB_NO_SLASH_SEARCH = true;   // "/" is a key to type here, not the search shortcut
   const NEEDS = SBTY.needsKeyboard();
-  const pct = x => Math.round(x * 100) + '%';
+  const pct = x => Math.floor(x * 100 + 1e-9) + '%';   // rounded down, so 100% means no mistakes at all
   const wpmTxt = x => Math.round(x) + ' words a minute';
   const UP = k => k === ';' ? ';' : k.toUpperCase();
   const fingerOf = k => { const f = SBTY.finger(k); return f ? f.name : ''; };
+
+  /* Typing Drills also writes the shared fields (stats, target speed, Fix mistakes, keyboard) into this module's saved state.
+     Before changing and saving, pick up what it wrote, so a save here never erases drill practice. */
+  const SHARED = ['stats', 'target', 'wait', 'showKb'];
+  function sync(st) {
+    try { const saved = JSON.parse(localStorage.getItem(SB.moduleKey('learn-keys')) || '{}') || {}; SHARED.forEach(k => { if (saved[k] !== undefined) st[k] = saved[k]; }); } catch (e) {}
+    if (!st.stats || typeof st.stats !== 'object') st.stats = {};
+  }
+  /* a page brought back from the browser's back/forward cache reloads, so it shows the latest stats */
+  addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
 
   /* the student's typing settings and stats live in this module's saved state */
   function open(st) { return ORDER.slice(0, Math.max(G.START, Math.min(TOTAL, st.unlocked || G.START))); }
@@ -25,7 +35,7 @@
         <div class="lkbar">
           <div class="lkletters" aria-label="Letters in the course"></div>
           <div class="lkopts">
-            <label>Target speed <select id="lkTarget" title="Words a minute">${[10, 15, 20, 25, 30, 35, 40, 50].map(v => `<option value="${v}">${v} words a minute</option>`).join('')}</select></label>
+            <label>Target speed <select id="lkTarget" data-typing title="Words a minute">${[10, 15, 20, 25, 30, 35, 40, 50].map(v => `<option value="${v}">${v} words a minute</option>`).join('')}</select></label>
             <button class="iconbtn" id="lkWait" title="When it is on, a wrong key has to be fixed before you go on"></button>
             <button class="iconbtn" id="lkKb"></button>
           </div>
@@ -73,6 +83,7 @@
         kb.only('next', [typer.next()]);
       }
       function done(r) {
+        sync(st);
         G.addRound(st.stats, r.chars);
         const wpm = Math.round(r.wpm * 10) / 10, acc = Math.round(r.acc * 1000) / 1000;
         st.rounds = (st.rounds || []).concat([{ at: Date.now(), wpm, acc }]).slice(-50);
@@ -90,14 +101,15 @@
         newRound();
       }
 
-      $('#lkTarget', P).onchange = e => { st.target = Number(e.target.value); ctx.save(); paintKeys(); e.target.blur(); typer.active(); };   // blur, so the next keys type instead of changing the menu
-      $('#lkWait', P).onclick = () => { st.wait = st.wait === false; topts.wait = st.wait; ctx.save(); paintOpts(); newRound(); };
-      $('#lkKb', P).onclick = () => { st.showKb = st.showKb === false; ctx.save(); paintOpts(); };
+      $('#lkTarget', P).onchange = e => { sync(st); st.target = Number(e.target.value); ctx.save(); paintKeys(); e.target.blur(); typer.active(); };   // blur, so the next keys type instead of changing the menu
+      $('#lkWait', P).onclick = e => { sync(st); st.wait = st.wait === false; topts.wait = st.wait; ctx.save(); paintOpts(); e.currentTarget.blur(); typer.active(); };   // takes effect from the next key; the round goes on
+      $('#lkKb', P).onclick = e => { sync(st); st.showKb = st.showKb === false; ctx.save(); paintOpts(); e.currentTarget.blur(); typer.active(); };
+      lesson._refresh = () => { sync(st); topts.wait = st.wait !== false; $('#lkTarget', P).value = String(target(st)); paintOpts(); if (!typer.started()) newRound(); else paintKeys(); };
       paintOpts();
       setMsg('Rest your fingers on the home row: <b>A S D F</b> and <b>J K L ;</b>. Then start typing.');
       newRound();
     },
-    enter() { if (lesson._typer) lesson._typer.active(); }
+    enter() { if (lesson._refresh) lesson._refresh(); if (lesson._typer) lesson._typer.active(); }
   };
 
   /* ===================== Key Hunt ===================== */
@@ -111,7 +123,7 @@
   const hunt = {
     init(ctx) {
       const P = ctx.panel, st = ctx.state;
-      st.hunt = Object.assign({ set: 'home', caps: false }, st.hunt || {});
+      st.hunt = Object.assign({ set: 'home', caps: true }, st.hunt || {});   // capitals by default: they match the letters printed on the keys
       P.classList.add('hunt');
       P.innerHTML = `
         <div class="hunthead">
@@ -188,8 +200,8 @@
         $('#khAgain', box).onclick = () => { box.remove(); start(); };
         $('#khAgain', box).focus();
       }
-      P.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { st.hunt.set = b.dataset.set; ctx.save(); paintOpts(); const d = $('.huntdone', P); if (d) d.remove(); start(); });
-      $('#khCaps', P).onclick = () => { st.hunt.caps = !st.hunt.caps; ctx.save(); paintOpts(); if (!over && list.length) { const k = list[i]; $('.huntletter', P).textContent = show(k); } };
+      P.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { sync(st); st.hunt.set = b.dataset.set; ctx.save(); paintOpts(); const d = $('.huntdone', P); if (d) d.remove(); start(); });
+      $('#khCaps', P).onclick = () => { sync(st); st.hunt.caps = !st.hunt.caps; ctx.save(); paintOpts(); if (!over && list.length) { const k = list[i]; $('.huntletter', P).textContent = show(k); } };
       hunt._h = { live: () => !P.hidden && P.offsetParent !== null, type: k => press(k), back() {} };
       /* leaving the tab pauses the round; coming back carries on where it was */
       hunt._leave = () => { if (timer) { clearTimeout(timer); timer = null; hunt._resume = true; } };
@@ -262,7 +274,7 @@
         </div>`;
       const kb = SBTY.keyboard($('.kskb', P), { rows: 'letters' });
       function paint() {
-        const st = ctx.state, o = open(st), tg = target(st), f = G.focusKey(o, st.stats || {}, tg), rs = st.rounds || [], last = rs.slice(-10);
+        const st = ctx.state; sync(st); const o = open(st), tg = target(st), f = G.focusKey(o, st.stats || {}, tg), rs = st.rounds || [], last = rs.slice(-10);
         const avg = (a, k) => a.length ? a.reduce((s, x) => s + x[k], 0) / a.length : 0;
         $('.ksum', P).innerHTML = `<div><span>Letters open</span><b>${o.length} of ${TOTAL}</b></div>
           <div><span>Best round</span><b>${st.best ? wpmTxt(st.best) : '–'}</b></div>
@@ -291,7 +303,7 @@
 
   SBM.start({
     module: 'learn-keys',
-    defaults: { unlocked: G.START, stats: {}, target: 15, wait: true, showKb: true, rounds: [], best: 0, hunt: { set: 'home', caps: false } },
+    defaults: { unlocked: G.START, stats: {}, target: 15, wait: true, showKb: true, rounds: [], best: 0, hunt: { set: 'home', caps: true } },
     tools: { lesson, hunt, map, stats }
   });
 })();

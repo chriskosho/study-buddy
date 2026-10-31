@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Typing Drills · Study Buddy</title>
+<meta name="theme-color" content="#2b4162">
+<link rel="icon" href="../../../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../../shared/sb.css">
+<link rel="stylesheet" href="../../../shared/sb-typing.css">
+<style>
+.dbar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dbar .row{gap:8px}
+.dgoal{font-size:16px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;margin:0 0 10px}
+.dgoal b{font-weight:800}
+.dgoal select{border:2px solid var(--line);border-radius:10px;padding:4px 8px;background:var(--surface);font-size:15px}
+.dmsg{margin:8px 0 10px;min-height:26px}
+.dmsg .stars{font-size:26px;letter-spacing:2px;vertical-align:-3px;margin-right:6px}
+.dkb .sbkb{max-height:max(90px,calc(var(--vh,100vh) - var(--chrome) - 520px))}
+.dempty{padding:14px 0}
+@media (max-width:760px),(min-width:761px) and (max-height:520px){.dkb .sbkb{max-height:none}}
+</style>
+<script src="../../../shared/sb-core.js"></script>
+<script src="../../../shared/sb-shell.js"></script>
+<script src="../../../registry.js"></script>
+<script src="../../../shared/sb-module.js"></script>
+<script src="../../../shared/sb-typing-words.js"></script>
+<script src="../../../shared/sb-typing-text.js"></script>
+<script src="../../../shared/sb-typing-gen.js"></script>
+<script src="../../../shared/sb-typing.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="drills.js"></script>
+</body>
+</html>
