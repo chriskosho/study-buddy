@@ -7,7 +7,7 @@
      SB.shell({})                             just Home
 
    The hub calls it again on every route change, so the trail always matches the page.
-   Header: Study Buddy (home), the trail, Search, the student, Settings, Help menu.
+   Header: Study Buddy (home), a round back arrow (to the screen one step up) and the trail, Search, the student, Settings, Help menu.
    Footer: Home, Subjects, Utilities, Settings, Admin area, Help, FAQ, About, and the privacy line.
    Needs sb-core.js. Uses registry.js for names and search (loads it if the page did not). */
 (function () {
@@ -23,6 +23,7 @@
     gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.8 L10.6 2.2 L13.4 2.2 L13.7 4.8 L15.9 5.7 L18.0 4.1 L19.9 6.0 L18.3 8.1 L19.2 10.3 L21.8 10.6 L21.8 13.4 L19.2 13.7 L18.3 15.9 L19.9 18.0 L18.0 19.9 L15.9 18.3 L13.7 19.2 L13.4 21.8 L10.6 21.8 L10.3 19.2 L8.1 18.3 L6.0 19.9 L4.1 18.0 L5.7 15.9 L4.8 13.7 L2.2 13.4 L2.2 10.6 L4.8 10.3 L5.7 8.1 L4.1 6.0 L6.0 4.1 L8.1 5.7z"/><circle cx="12" cy="12" r="3"/></svg>',
     help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 1 1 3.6 2.4c-.8.4-1.1.9-1.1 1.8M12 17h.01"/></svg>',
     notes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg>',
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 5l-7 7 7 7"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg>'
   };
 
@@ -37,8 +38,11 @@
   .sbhead-in{max-width:1600px;margin:0 auto;padding:5px clamp(14px,3vw,40px);display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
   .sbbrand{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:18px;color:var(--navy-ink,var(--navy));text-decoration:none;white-space:nowrap;padding:4px 6px;border-radius:10px}
   .sbbrand svg{width:22px;height:22px}
-  .sbcrumbs{flex:1 1 auto;min-width:0}
-  .sbcrumbs ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 0;font-size:15px;font-weight:700}
+  .sbcrumbs{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:10px}
+  .sbback{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin:-2px 0;border-radius:50%;border:2px solid var(--line);background:var(--surface,var(--card));color:var(--navy-ink,var(--navy));text-decoration:none}
+  .sbback svg{width:16px;height:16px}
+  .sbback:hover{border-color:var(--teal)}
+  .sbcrumbs ol{flex:1 1 0;min-width:0;list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 0;font-size:15px;font-weight:700}
   .sbcrumbs li{display:inline-flex;align-items:center;min-width:0}
   .sbcrumbs li+li::before{content:"\\203A";margin:0 8px;color:var(--ink2);font-weight:800}
   .sbcrumbs a{color:var(--navy-ink,var(--navy));text-decoration:none;border-bottom:2px solid transparent;padding:2px 0}
@@ -176,9 +180,11 @@
   }
   function headHTML(opts) {
     const cr = crumbsFor(opts), last = cr.length - 1;
+    const par = cr.slice(0, last).reverse().find(c => c.href);   // the screen one step up; nothing on Home itself
+    const back = par ? `<a class="sbback" href="${esc(par.href)}" aria-label="Back to ${esc(par.label)}" title="Back to ${esc(par.label)}">${ICON.back}</a>` : '';
     return `<div class="sbhead-in">
       <a class="sbbrand" href="${HOME}" aria-label="Study Buddy, home">${ICON.home}<span>Study Buddy</span></a>
-      <nav class="sbcrumbs" aria-label="Breadcrumb"><ol>${cr.map((c, i) => `<li>${i === last || !c.href ? `<span aria-current="page">${esc(c.label)}</span>` : `<a href="${esc(c.href)}">${esc(c.label)}</a>`}</li>`).join('')}</ol></nav>
+      <nav class="sbcrumbs" aria-label="Breadcrumb">${back}<ol>${cr.map((c, i) => `<li>${i === last || !c.href ? `<span aria-current="page">${esc(c.label)}</span>` : `<a href="${esc(c.href)}">${esc(c.label)}</a>`}</li>`).join('')}</ol></nav>
       <div class="sbhead-r">
         <div class="sbsearch" id="sbSearch" role="search">
           <button type="button" class="sbbtn sbsearch-toggle" aria-label="Search" aria-expanded="false">${ICON.search}</button>

@@ -47,6 +47,24 @@ async def main():
             check(pg.url.endswith('#/home'), f'one click from {url.split("?")[0].split("/")[-2] if "/" in url else url} reaches Home')
         await pg.goto(base + 'modules/science/planets/index.html?tool=quiz'); await pg.click('.sbcrumbs a:has-text("Science")'); await pg.wait_for_selector('a.mod')
         check(pg.url.endswith('#/home/science'), 'the Subject crumb opens that subject')
+        # ---- the back arrow: one step up, on every kind of page, nothing on Home ----
+        for name, url, want_href, want_label in [('module tool', 'modules/science/planets/index.html?tool=quiz', '#/home/science', 'Back to Science'),
+                                                 ('Atlas', 'modules/geography/south-america/index.html?tool=find', '#/home/geography', 'Back to Geography'),
+                                                 ('calculator', 'utilities/calculator/index.html', '#/utilities', 'Back to Utilities'),
+                                                 ('hub module', 'index.html#/module/ancient-rome', '#/home/history', 'Back to History'),
+                                                 ('subject', 'index.html#/home/math', '#/home', 'Back to Home'),
+                                                 ('settings', 'index.html#/settings', '#/home', 'Back to Home')]:
+            await pg.goto(base + url); await pg.wait_for_selector('.sbback'); await pg.wait_for_timeout(150)
+            check((await pg.get_attribute('.sbback', 'href')).endswith(want_href) and await pg.get_attribute('.sbback', 'aria-label') == want_label, f'{name}: back arrow says "{want_label}" and goes there')
+            box = await pg.locator('.sbback').bounding_box(); tr = await pg.locator('.sbcrumbs ol').bounding_box()
+            check(box['x'] + box['width'] <= tr['x'] and box['width'] >= 28 and box['height'] >= 28, f'{name}: arrow sits left of the trail and is a tap target of at least 28px')
+        await pg.goto(base + 'modules/science/planets/index.html?tool=quiz'); await pg.click('.sbback'); await pg.wait_for_selector('a.mod')
+        check(pg.url.endswith('#/home/science'), 'clicking the arrow in a module opens its subject')
+        await pg.click('.sbback'); await pg.wait_for_function("location.hash === '#/home'"); await pg.wait_for_timeout(200)
+        check(pg.url.endswith('#/home') and await pg.locator('.sbback').count() == 0, 'then the arrow on the subject page goes Home, and Home has no arrow')
+        await pg.set_viewport_size({'width': 360, 'height': 740}); await pg.goto(base + 'modules/science/planets/index.html?tool=quiz'); await pg.wait_for_selector('.sbback')
+        check(await pg.evaluate('document.documentElement.scrollWidth <= innerWidth') and await pg.locator('.sbback').is_visible(), 'at 360px the arrow shows and nothing scrolls sideways')
+        await pg.set_viewport_size({'width': 1440, 'height': 900})
         # ---- footer links ----
         await pg.goto(base + 'modules/science/planets/index.html?tool=guide')
         for label, h in [('Settings', 'Settings'), ('Help', 'Help'), ('FAQ', 'FAQ'), ('About', 'About')]:
