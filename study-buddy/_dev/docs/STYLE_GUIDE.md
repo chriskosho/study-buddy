@@ -149,8 +149,12 @@ Meaning of color is never the only signal: right/wrong also use text, and select
 5. Save progress locally (see BUILD_APPROACH.md, "Persistence").
 6. Test at 1440×900 for zero overflow before delivering.
 
-## Scratch pad
-The scratch pad toolbar uses the theme tokens like every other screen. The writing paper is the one exception: it stays light (and the default ink dark) in dark mode, like real paper. No emoji; the notepad-and-pencil mark is an inline SVG.
+## Notepad
+- The notepad (called the scratch pad until November 2026) toolbar uses the theme tokens like every other screen. The writing paper is the one exception: it stays light (and the default ink and text dark) in dark mode, like real paper. No emoji; every toolbar mark is an inline SVG.
+- Three modes, always in the same place at the top left: Type, Draw, Shapes. Only the tools for the current mode show below them. Undo, Redo, Erase all, Lines and Graph sit at the right of the same row. Small buttons are icons with a tooltip and a spoken name.
+- Typed text starts in Handwriting (Patrick Hand) at 21px. With Lines on, the letters sit on the lines. Typing always spans the full width of the page.
+- Full screen on a desktop: Page is a centered letter page on a gray background, like a word processor; Pageless fills the width. Phones are always full screen.
+- Shapes and pens draw over the typing; the chosen shape has a dashed box and square handles in blue.
 
 ## Typing keyboards
 - The keyboard picture (`SBTY.keyboard`) is the same everywhere: US QWERTY, rounded keys, uppercase key labels like a real keyboard, and bumps on F and J. Finger zones use the `--fz-*` tokens (pinky, ring, middle, pointer, thumb), never literal colors, so dark mode works.

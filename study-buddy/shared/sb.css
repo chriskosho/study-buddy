@@ -387,7 +387,9 @@ html.sb-dark .diff.easy{color:#6fd39b} html.sb-dark .diff.medium{color:#f3c76a} 
 .card-toast button{background:none;border:0;border-bottom:2px solid currentColor;color:inherit;font:inherit;padding:0;cursor:pointer}
 .deckbar .undo{padding:6px 14px;font-size:14px;flex:none}
 
-/* ---------- scratch pad button (in the module's settings row; the pad itself styles itself in sb-scratchpad.js) ---------- */
+/* ---------- notepad button (in the module's settings row; the notepad styles itself in sb-scratchpad.js) ---------- */
+.notes-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px 18px;flex-wrap:wrap}
+.notes-top .lead{flex:1 1 320px;margin-top:0}
 .padbtn{display:inline-flex;align-items:center;gap:7px;font-weight:700;color:var(--navy-ink)}
 .padbtn svg{width:20px;height:20px;flex:0 0 auto}
 @media (max-width:760px){.padbtn{min-width:44px;min-height:44px;justify-content:center;padding:8px}.padbtn span{display:none}}

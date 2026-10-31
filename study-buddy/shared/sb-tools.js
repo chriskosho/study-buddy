@@ -48,8 +48,8 @@
   const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   const FLIP_MS = 520;
 
-  /* ---------------- Scratch pad button ----------------
-     Every question tool (type the answer, multiple choice, sort, order, explain) can show a "Scratch pad" button.
+  /* ---------------- Notepad button (called the Scratch pad until November 2026) ----------------
+     Every question tool (type the answer, multiple choice, sort, order, explain) can show a "Notepad" button.
      It is on for the Math subject only for now: registry.js has  scratchpad: { subjects: ['math'] }  and a module can say
      scratchpad: true or false to override. To turn it on for another subject later, add its id there. */
   const PAD_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3" width="12.5" height="18" rx="2"/><path d="M7 8h5.5M7 12h3"/><path d="M18.2 8.3l2.6 2.6-6.6 6.6-3.3.7.7-3.3z"/></svg>';
@@ -67,7 +67,7 @@
     if (!padLoading) padLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = SB.BASE + 'shared/sb-scratchpad.js'; s.onload = () => res(); s.onerror = () => { padLoading = null; rej(); }; document.head.appendChild(s); });
     return padLoading;
   }
-  /* One Scratch pad button lives in the module's settings row (next to Sound, Read aloud and Reset), so it takes no room from the question.
+  /* One Notepad button lives in the module's settings row (next to Sound, Read aloud and Reset), so it takes no room from the question.
      A tool calls addPad(ctx, getQuestionText) after it draws; the shell calls padTab(toolId) when a tool is shown, which hides the
      button on tools that have no pad (study guides, flashcards). */
   const PADS = {};
@@ -77,8 +77,8 @@
     let b = document.getElementById('sbPad');
     if (!b) {
       const host = document.querySelector('.settings'); if (!host) return;
-      b = document.createElement('button'); b.type = 'button'; b.id = 'sbPad'; b.className = 'iconbtn padbtn'; b.setAttribute('aria-label', 'Open the scratch pad'); b.innerHTML = PAD_ICON + '<span>Scratch pad</span>';
-      b.onclick = () => { const q = PADS[b._cur] ? PADS[b._cur]() : ''; loadPad().then(() => SBPad.open({ question: q, source: b._mod || '', opener: b }), () => SB.toast('The scratch pad could not load. Check the connection and try again.')); };
+      b = document.createElement('button'); b.type = 'button'; b.id = 'sbPad'; b.className = 'iconbtn padbtn'; b.setAttribute('aria-label', 'Open the notepad'); b.innerHTML = PAD_ICON + '<span>Notepad</span>';
+      b.onclick = () => { const q = PADS[b._cur] ? PADS[b._cur]() : ''; loadPad().then(() => SBPad.open({ question: q, source: b._mod || '', opener: b }), () => SB.toast('The notepad could not load. Check the connection and try again.')); };
       host.insertBefore(b, host.firstChild);
     }
     b._cur = id; b._mod = (ctx.mod || {}).title || ''; b.hidden = false;
@@ -292,7 +292,7 @@
     /* number keys 1 to 4 pick a choice (when the quiz is on screen and you are not typing somewhere) */
     const onKey = e => {
       if (!P.isConnected) return document.removeEventListener('keydown', onKey);
-      if (!P.offsetParent || e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '') || document.querySelector('.sb-ov') || (e.target && e.target.closest && e.target.closest('.sbp'))) return;   // not while working in the scratch pad
+      if (!P.offsetParent || e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName || '') || document.querySelector('.sb-ov') || (e.target && e.target.closest && e.target.closest('.sbp'))) return;   // not while working in the notepad
       const k = +e.key; if (!(k >= 1 && k <= 9)) return; const b = $$('.opt', P)[k - 1]; if (b && !b.disabled) { e.preventDefault(); b.click(); }
     };
     document.addEventListener('keydown', onKey);
@@ -389,7 +389,7 @@
   /* the questions missed in a round, folded away under the result so the screen still fits */
   function reviewHTML(ctx, missed) {
     if (!missed.length) return '';
-    return `<details class="review"><summary>See the ${missed.length === 1 ? 'one' : missed.length} to practice</summary><ul>${missed.map(m => `<li>${m.pic ? `<img src="${m.pic}" alt="Your scratch pad work" class="revpic">` : ''}<span class="revq">${esc(m.q)}</span><span class="reva">Answer: <b>${m.fr ? stackText(m.a) : esc(m.a)}</b></span>${m.audio ? ctx.sayButton(String(m.a), 'Hear the sound again', m.audio) : m.say ? ctx.sayButton(m.say + '. The answer is ' + m.a + '.', 'Hear it') : ''}</li>`).join('')}</ul></details>`;
+    return `<details class="review"><summary>See the ${missed.length === 1 ? 'one' : missed.length} to practice</summary><ul>${missed.map(m => `<li>${m.pic ? `<img src="${m.pic}" alt="Your notepad work" class="revpic">` : ''}<span class="revq">${esc(m.q)}</span><span class="reva">Answer: <b>${m.fr ? stackText(m.a) : esc(m.a)}</b></span>${m.audio ? ctx.sayButton(String(m.a), 'Hear the sound again', m.audio) : m.say ? ctx.sayButton(m.say + '. The answer is ' + m.a + '.', 'Hear it') : ''}</li>`).join('')}</ul></details>`;
   }
   function answer(ctx, opt) {
     const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', R = { list: [], i: 0, score: 0, tries: 0, hinted: false, missed: [], mode: 'random' };
@@ -428,7 +428,7 @@
         inp.disabled = true; $('form button', P).disabled = true; if (hb) hb.hidden = true; if (sk) sk.hidden = true; next.hidden = false; next.focus();
         if (item.why) steps(why, item.why, missed, fr);
         if (missed && !item.practice) {
-          let pic = null; try { pic = window.SBPad && SBPad.thumbnail ? SBPad.thumbnail() : null; } catch (e) {}   // "show my work": what was on the scratch pad
+          let pic = null; try { pic = window.SBPad && SBPad.thumbnail ? SBPad.thumbnail() : null; } catch (e) {}   // "show my work": what was on the notepad
           R.missed.push({ q: plainText(item.q), a: shown(item), say: item.say || '', pic, fr });
           if (ctx.miss) ctx.miss(plainText(item.q) + ' (answer: ' + plainText(String(shown(item))) + ')');
           if (sim) sim.hidden = false;

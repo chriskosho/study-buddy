@@ -49,7 +49,7 @@
   let fullWarned = false;
   const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { storageFull(); return false; } };
   /* a failed save used to be silent: say so once per page, so an admin can make room */
-  function storageFull() { if (fullWarned) return; fullWarned = true; setTimeout(() => { try { toast('This device is out of room, so progress is not being saved. An admin can delete old scratch pad notes or save a backup.'); } catch (e) {} }, 0); }
+  function storageFull() { if (fullWarned) return; fullWarned = true; setTimeout(() => { try { toast('This device is out of room, so progress is not being saved. An admin can delete old notepad notes or save a backup.'); } catch (e) {} }, 0); }
   const remove = k => { try { localStorage.removeItem(k); } catch (e) {} };
   const allKeys = () => { const out = []; try { for (let i = 0; i < localStorage.length; i++) out.push(localStorage.key(i)); } catch (e) {} return out; };
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
@@ -160,7 +160,7 @@
     all[moduleId] = m; d.misses = all; saveChild(id, d);
   }
   /* move everything one profile earned into another (used for Guest). Nothing is deleted unless every save worked. */
-  const NOTES_MAX = 25, NOTES_BYTES = 1200000;   // the scratch pad's own limits for notes saved to a profile
+  const NOTES_MAX = 25, NOTES_BYTES = 1200000;   // the notepad's own limits for notes saved to a profile
   function mergedNotes(fromId, toId) {
     const na = read(NS + '.notes.' + fromId, []), nb = read(NS + '.notes.' + toId, []);
     const all = (Array.isArray(nb) ? nb : []).concat(Array.isArray(na) ? na : []).sort((x, y) => (y.at || 0) - (x.at || 0));
@@ -783,13 +783,15 @@
         }
         continue;
       }
-      const nt = k.match(/^studybuddy\.v1\.notes\.([a-z0-9]+)$/i);   // scratch pad notes saved to a profile
+      const nt = k.match(/^studybuddy\.v1\.notes\.([a-z0-9]+)$/i);   // notepad notes saved to a profile
       if (nt) {
         if (!ids.has(nt[1])) { skip.add(k); continue; }
         if (!Array.isArray(j) || j.length > 60) throw new Error('This backup is damaged, so nothing was changed.');
         for (const n of j) {
-          const okItem = it => isObj(it) && ((it.k === 't' && typeof it.t === 'string' && num(it.x) && num(it.y) && num(it.s)) || (it.k === 's' && typeof it.t === 'string' && Array.isArray(it.p) && it.p.length % 3 === 0 && it.p.every(num) && num(it.w)));
-          if (!isObj(n) || typeof n.id !== 'string' || !Array.isArray(n.items) || n.items.length > 6000 || !n.items.every(okItem) || (n.w != null && !num(n.w)) || (n.h != null && !num(n.h)) || (n.at != null && !num(n.at))) throw new Error('This backup is damaged, so nothing was changed.');
+          const okItem = it => isObj(it) && ((it.k === 't' && typeof it.t === 'string' && num(it.x) && num(it.y) && num(it.s)) || (it.k === 's' && typeof it.t === 'string' && Array.isArray(it.p) && it.p.length % 3 === 0 && it.p.every(num) && num(it.w))
+            || (it.k === 'h' && typeof it.sh === 'string' && num(it.x) && num(it.y) && num(it.w) && num(it.h)));   // h: a shape (notepad, November 2026)
+          if (!isObj(n) || typeof n.id !== 'string' || !Array.isArray(n.items) || n.items.length > 6000 || !n.items.every(okItem) || (n.w != null && !num(n.w)) || (n.h != null && !num(n.h)) || (n.at != null && !num(n.at))
+            || (n.html != null && (typeof n.html !== 'string' || n.html.length > 400000))) throw new Error('This backup is damaged, so nothing was changed.');   // html: the typed text, cleaned again when it is read
         }
         continue;
       }

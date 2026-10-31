@@ -1,6 +1,13 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-31', title: 'The Scratch pad is now the Notepad', items: [
+    'The Scratch pad is now called the Notepad, and it is a real notebook. It is still beside math questions, in Utilities, and now on the Notes page with a New note button.',
+    'Type: write across the whole page with bold, italic, underline, strikethrough, colors, highlight, links, headings, bulleted and numbered lists, checklists, and alignment. Choose a font (Handwriting is first) and a size. With Lines on, the words sit on the lines.',
+    'Draw: the same pens, pencil, marker, highlighter, brush, and eraser, on top of the typing. Drawings stay beside their words when you type more above them.',
+    'Shapes: rectangles, rounded boxes, circles, triangles, stars, lines, and arrows. Drag to move or resize them, and pick a fill, outline color and width, and a shadow.',
+    'On a computer, Full screen shows a centered page like a word processor, or Pageless for the full width.',
+    'Download a note as a PDF, a Word document, plain text, or a picture.' ] },
   { date: '2026-10-31', title: 'Typing colors, Start over, and Key Hunt', items: [
     'Fixed: a letter that was missed and then typed right stayed red. Now letters typed right the first time are dark, missed letters are red, and letters fixed after a mistake are green with a red underline. Letters not typed yet stay gray.',
     'Every typing tool always waits for the right key before moving on (except Insane, which moves on and has no Backspace). The Fix mistakes switch is gone.',
