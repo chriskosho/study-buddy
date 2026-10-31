@@ -47,7 +47,7 @@ async def answer_round(pg, tab, solve, n=10):
         await pg.click(f'#tab-{tab} [data-a="next"]')
 def moves(t):
     dx = dy = 0
-    for n, w in re.findall(r'(\d+) units? (right|left|up|down)', t):
+    for n, w in re.findall(r'(\d+) (?:units?|blocks?) (right|left|up|down)', t):
         n = int(n)
         if w == 'right': dx += n
         elif w == 'left': dx -= n

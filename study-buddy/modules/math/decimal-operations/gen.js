@@ -162,7 +162,7 @@
     () => { const n = pick([3, 4, 5, 6, 8]), q = rd(2, 1, 9), tot = mul(q, D(n, 0)), nm = pick(['friends', 'cousins', 'teammates']);
       return { k: 'w-split', q: `${n} ${nm} share a $${show(tot, false)} bill equally. How much does each person pay? (in dollars)`, ans: q, why: `Divide the bill by the number of people: ${show(tot, false)} ÷ ${n} = ${show(q, false)}. Each person pays $${show(q, false)}.`, hint: 'Divide the bill by the number of people.', seeds: [D(q.n, 1), D(q.n, 3)] }; },
     () => { for (let t = 0; t < 200; t++) { const dv = pick([D(5, 1), D(25, 2), D(2, 1), D(4, 1), D(75, 2), D(8, 1), D(15, 1), D(125, 2)]), W = rnd(3, 30);
-      if ((W * P10(dv.p) * 1000) % dv.n) continue; const qn = (W * P10(dv.p) * 1000) / dv.n, q = D(qn, 3); const ans = qn % 1000 === 0 ? D(qn / 1000, 0) : (qn % 100 === 0 ? D(qn / 100, 1) : (qn % 10 === 0 ? D(qn / 10, 2) : q)); if (ans.n > 500) continue;
+      if ((W * P10(dv.p) * 1000) % dv.n) continue; const qn = (W * P10(dv.p) * 1000) / dv.n, q = D(qn, 3); if (qn % 1000) continue;   /* whole cups only, so there is one right answer */ const ans = qn % 1000 === 0 ? D(qn / 1000, 0) : (qn % 100 === 0 ? D(qn / 100, 1) : (qn % 10 === 0 ? D(qn / 10, 2) : q)); if (ans.n > 500) continue;
       const mv = moved(D(W, 0), dv);
       return { k: 'w-divd', q: `A jug holds ${W} liters of juice. How many ${show(dv)}-liter cups can be filled from it?`, ans, why: `Divide ${W} by ${show(dv)}. Move both points ${mv.k} place${mv.k === 1 ? '' : 's'} to the right: ${W} ÷ ${show(dv)} becomes ${commas(String(W * P10(mv.k)))} ÷ ${mv.divisor}, and ${commas(String(W * P10(mv.k)))} ÷ ${mv.divisor} = ${endNote(ans)}. So ${show(ans)} cups can be filled.`, hint: 'Divide the liters in the jug by the liters in one cup. Make the divisor a whole number first.', seeds: [D(ans.n, ans.p + 1), D(ans.n * 10, ans.p)] }; } throw new Error('w-divd'); },
     () => { for (let t = 0; t < 100; t++) { const a = rd(2, 10, 14), b = rd(1, 9, 13); if (!lt(b, a)) continue; const diff = sub(a, b), [n1, n2] = shuffle(['Ana', 'Ben', 'Kai', 'Zoe', 'Leo']);
@@ -233,7 +233,7 @@
       const P = Math.max(a.p, b.p), A = D(scaleTo(a, P), P), B = D(scaleTo(b, P), P);
       if (op === '−' && lt(a, b)) throw new Error('The first number must be at least as big as the second. Negative numbers come later.');
       const r = op === '+' ? add(a, b) : sub(a, b), sa = show(A, false), sb = show(B, false), sr = show(r, false), w = Math.max(sa.length, sb.length, sr.length) + 2;
-      rows.push(`Line up the decimal points, and write zeros so both numbers have ${P} decimal place${P === 1 ? '' : 's'}: ${sa} and ${sb}.`);
+      rows.push(a.p === b.p ? `Line up the decimal points: ${sa} and ${sb}.` : `Line up the decimal points, and write zeros so both numbers have ${P} decimal place${P === 1 ? '' : 's'}: ${sa} and ${sb}.`);
       rows.push({ col: [sa.padStart(w), (op + ' ' + sb).padStart(w), '-'.repeat(w), sr.padStart(w)].join('\n') });
       rows.push(`${op === '+' ? 'Add' : 'Subtract'} as if they were whole numbers: ${commas(String(A.n))} ${op} ${commas(String(B.n))} = ${commas(String(r.n))}.`);
       rows.push(`Bring the decimal point straight down: ${endNote(r)}.`);

@@ -70,7 +70,7 @@ for (const form of ['mc', 'text']) for (let i = 0; i < N; i++) {
   { const q = G.endQ(form); common('end', q, form); const d = drawn(svgOf(q)), m = q.q.match(/Start at the (\w+) \((\d+), (\d+)\)\. Go (.*)\. What are/);
     if (!m) bad('end', q, 'cannot read the question'); else {
       const at = d.pts.find(c => c.l === m[1]); if (!at || at.x !== +m[2] || at.y !== +m[3]) bad('end', q, 'start place is not where the text says');
-      let x = +m[2], y = +m[3]; for (const [, n, dir] of m[4].matchAll(/(\d+) units? (right|left|up|down)/g)) { if (dir === 'right') x += +n; if (dir === 'left') x -= +n; if (dir === 'up') y += +n; if (dir === 'down') y -= +n; }
+      let x = +m[2], y = +m[3]; for (const [, n, dir] of m[4].matchAll(/(\d+) (?:units?|blocks?) (right|left|up|down)/g)) { if (dir === 'right') x += +n; if (dir === 'left') x -= +n; if (dir === 'up') y += +n; if (dir === 'down') y -= +n; }
       if (x < 0 || y < 0 || x > 10 || y > 10) bad('end', q, 'ends off the grid'); if ((form === 'mc' ? q.a : q.show) !== txt(0, [x, y])) bad('end', q, 'wrong end, expected ' + txt(0, [x, y])); } }
   { const q = G.blocksQ(form === 'mc' ? 'mc' : 'num'); common('blocks', q, form === 'mc' ? 'mc' : 'num'); const d = drawn(svgOf(q)), m = q.q.match(/from the (\w+) \((\d+), (\d+)\) to the (\w+) \((\d+), (\d+)\)/);
     if (!m) bad('blocks', q, 'cannot read the question'); else {
@@ -105,7 +105,7 @@ for (const form of ['mc', 'text']) for (let i = 0; i < N; i++) {
     { const q = G.placeAtQ(); common('placeAt', q, 'mc'); const d = drawn(q.html), m = q.q.match(/at \((\d+), (\d+)\)/), p = d.pts.find(c => c.x === +m[1] && c.y === +m[2]);
       inGrid('placeAt', q, d); if (!p || p.l !== q.a) bad('placeAt', q, 'wrong place'); if (new Set(d.pts.map(c => c.x + ',' + c.y)).size !== d.pts.length) bad('placeAt', q, 'places overlap'); if (!q.wrong.every(w => d.pts.some(c => c.l === w))) bad('placeAt', q, 'an option is not on the map'); }
     { const q = G.movesQ(); common('moves', q, 'mc'); const d = drawn(q.html), m = q.q.match(/Start at the (\w+) \((\d+), (\d+)\)\. Go (.*)\. Which place/);
-      if (!m) bad('moves', q, 'cannot read the question'); else { let x = +m[2], y = +m[3]; for (const [, n, dir] of m[4].matchAll(/(\d+) units? (right|left|up|down)/g)) { if (dir === 'right') x += +n; if (dir === 'left') x -= +n; if (dir === 'up') y += +n; if (dir === 'down') y -= +n; }
+      if (!m) bad('moves', q, 'cannot read the question'); else { let x = +m[2], y = +m[3]; for (const [, n, dir] of m[4].matchAll(/(\d+) (?:units?|blocks?) (right|left|up|down)/g)) { if (dir === 'right') x += +n; if (dir === 'left') x -= +n; if (dir === 'up') y += +n; if (dir === 'down') y -= +n; }
         const at = d.pts.find(c => c.x === x && c.y === y), st = d.pts.find(c => c.l === m[1]); if (!st || st.x !== +m[2] || st.y !== +m[3]) bad('moves', q, 'start is not where the text says'); if (!at || at.l !== q.a) bad('moves', q, 'wrong place reached'); } }
   }
 }

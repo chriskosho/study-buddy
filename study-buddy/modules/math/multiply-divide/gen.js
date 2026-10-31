@@ -28,7 +28,7 @@
     const ps = partials(a, b);
     if (!ps.length) return `Anything times 0 is 0.`;
     const lines = ps.map(p => `${fmt(a)} × ${fmt(p.part)} = ${fmt(p.value)}`).join('; ');
-    const zeroNote = ps.some(p => p.part >= 10) ? ' (a 0 holds the ones place in each row after the first)' : '';
+    const zeroNote = ps.some(p => p.part >= 10) ? ' (a 0 for each place to the right of that digit)' : '';
     return `Multiply by each part of ${fmt(b)}: ${lines}${zeroNote}. Add the partial products: ${ps.map(p => fmt(p.value)).join(' + ')} = ${fmt(a * b)}.`;
   }
   const HINT_MUL = 'Multiply by the ones digit, then by the tens digit (put a 0 in the ones place first), and so on. Then add the rows.';

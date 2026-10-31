@@ -17,7 +17,7 @@
           <div class="rule"><h3>Zeros at the end</h3><p>A zero at the end of a decimal does not change its value: 4.70 and 4.7 are the same. That is why you can add zeros to line things up. A whole number has a decimal point after its last digit: <b>7 = 7.00</b>.</p></div>
           <div class="rule"><h3>Multiply</h3><p>Ignore the points and multiply. Count the decimal places in both numbers and add them. The product has that many. <b>0.6 × 0.04</b>: 6 × 4 = 24, 1 + 2 = 3 places, so <b>0.024</b>.</p></div>
           <div class="rule"><h3>Divide by a whole number</h3><p>Divide as usual and put the point in the answer straight above the point in the dividend. <b>7.5 ÷ 5 = 1.5</b>.</p></div>
-          <div class="rule"><h3>Divide by a decimal</h3><p>Move the point in the divisor to the right until it is a whole number, and move the point in the dividend the same number of places. <b>4.8 ÷ 0.6</b> becomes 48 ÷ 6 = <b>8</b>. Both numbers are multiplied by 10, so the answer stays the same.</p></div>
+          <div class="rule"><h3>Divide by a decimal</h3><p>Move the point in the divisor to the right until it is a whole number, and move the point in the dividend the same number of places. <b>4.8 ÷ 0.6</b> becomes 48 ÷ 6 = <b>8</b>. Both numbers are multiplied by 10 (or 100, 1,000, and so on), so the answer stays the same.</p></div>
           <div class="rule"><h3>Estimate to check</h3><p>Round each number to the nearest whole number and work it out. <b>4.87 + 3.12</b> is about 5 + 3 = 8. If your answer is far from your estimate, check where you put the decimal point.</p></div>
         </div>`;
       const show = () => {
@@ -39,7 +39,7 @@
   const add = answerTool('Add decimals', 'Line up the decimal points. Commas and zeros at the end are optional.', G.addQ);
   const subtract = answerTool('Subtract decimals', 'Line up the decimal points, adding zeros when you need them.', G.subQ);
   const multiply = answerTool('Multiply decimals', 'Ignore the points, multiply, then count the decimal places.', pickOf(G.mulWholeQ, G.mulDecQ));
-  const divide = answerTool('Divide decimals', 'Move the points so the divisor is a whole number, then divide.', pickOf(G.divWholeQ, () => G.divDecQ(), () => G.divDecQ()));
+  const divide = answerTool('Divide decimals', 'If the divisor is a decimal, move the points so it is a whole number. Then divide.', pickOf(G.divWholeQ, () => G.divDecQ(), () => G.divDecQ()));
   const estimate = quizTool('Estimate', 'Round each number first, then pick the best estimate.', G.estimateQ);
   const words = answerTool('Word problems', 'Type just the number. Money is in dollars.', G.wordsQ);
   const review = answerTool('Mixed review', 'Missing numbers, more than one step, and bigger decimals.', pickOf(G.missingQ, G.threeStepQ, G.bigQ));

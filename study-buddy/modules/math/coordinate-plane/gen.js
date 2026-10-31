@@ -109,7 +109,7 @@
     const svg = plane({ pts: seen.map((p, k) => ({ x: p[0], y: p[1], l: 'ABC'[k], cls: 'hi' })), segs: [[...A, ...B], [...B, ...C]], label: `A coordinate grid with three corners, A, B, and C, of a ${shape}` });
     const wrongs = [pair(miss[1], miss[0]), pair(miss[0] + 1, miss[1]), pair(miss[0], miss[1] + 1), pair(miss[0] - 1, miss[1]), pair(miss[0], miss[1] - 1), pair(B[0], B[1] + 1)].filter(p => !/-/.test(p) && p !== a && pairs11(p));
     return fin(form, { text, svg, show: a, wrong: pickWrong(a, wrongs), say: text,
-      why: `The sides of a ${shape} line up with the axes, so D has the same x as ${shareX} (${miss[0]}) and the same y as ${shareY} (${miss[1]}). D is ${a}.`, hint: 'Opposite sides are straight across from each other. Which corner has the same x? Which has the same y?' });
+      why: `In this problem the sides of the ${shape} line up with the axes, so D has the same x as ${shareX} (${miss[0]}) and the same y as ${shareY} (${miss[1]}). D is ${a}.`, hint: 'Opposite sides are straight across from each other. Which corner has the same x? Which has the same y?' });
   }
   function perimQ(form) {
     const r = rectSpec(), P = 2 * (r.w + r.h), shape = r.square ? 'square' : 'rectangle';
@@ -166,7 +166,7 @@
     const pts = makeMap(), t = pts[0], a = t.n;
     return { q: `Which place is at ${pair(t.x, t.y)}?`, html: mapSvg(shuffle(pts)), a, wrong: pts.slice(1).map(p => p.n), why: `Go right ${t.x}, then up ${t.y}. The ${t.n} is there.`, hint: 'Go right first (x), then up (y).', say: `Which place is at ${pair(t.x, t.y)}?` };
   }
-  const movesText = (from, dx, dy) => [dx ? `${Math.abs(dx)} unit${Math.abs(dx) === 1 ? '' : 's'} ${dx > 0 ? 'right' : 'left'}` : '', dy ? `${Math.abs(dy)} unit${Math.abs(dy) === 1 ? '' : 's'} ${dy > 0 ? 'up' : 'down'}` : ''].filter(Boolean).join(' and ');
+  const movesText = (from, dx, dy) => [dx ? `${Math.abs(dx)} block${Math.abs(dx) === 1 ? '' : 's'} ${dx > 0 ? 'right' : 'left'}` : '', dy ? `${Math.abs(dy)} block${Math.abs(dy) === 1 ? '' : 's'} ${dy > 0 ? 'up' : 'down'}` : ''].filter(Boolean).join(' and ');
   function movesQ() {   // which place do you reach?
     const pts = makeMap(), A = pts[0], B = pts[1], dx = B.x - A.x, dy = B.y - A.y;
     return { q: `Start at the ${A.n} ${pair(A.x, A.y)}. Go ${movesText(A, dx, dy)}. Which place do you reach?`, html: mapSvg(shuffle(pts)), a: B.n, wrong: pts.filter(p => p !== B).map(p => p.n),
