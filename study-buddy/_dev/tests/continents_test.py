@@ -69,7 +69,9 @@ async def run_module(b, slug, p, want):
     await pg.wait_for_selector('.fcard'); await pg.wait_for_timeout(300)
     check(await pg.locator('.deckbar .seg button').count() == 5, T('flashcards have 5 decks'))
     check(f'0 of {N}' in await pg.inner_text('.deckbar .count'), T('the first deck has every country'))
-    await pg.click('.deckbar .seg button >> nth=2'); await pg.wait_for_timeout(300)
+    await pg.click('.deckbar .seg button >> nth=2')
+    try: await pg.wait_for_selector('.front svg', timeout=5000)   # waits instead of a fixed pause: under load the card can take longer to draw
+    except Exception: pass
     check(await pg.locator('.front svg').count() == 1, T('the Flags deck shows a flag'))
     await pg.context.close()
 
