@@ -364,6 +364,68 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'decimal-operations',
+      subject: 'math',
+      title: 'Decimal Operations',
+      blurb: 'Adding, subtracting, multiplying, and dividing decimals to the hundredths, estimating, and decimal word problems.',
+      tags: ['math', 'decimals', 'multiplication', 'division'],
+      path: 'modules/math/decimal-operations/index.html',
+      storage: ['decimal-operations'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A column helper that shows every step of adding, subtracting, multiplying, or dividing two decimals.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for decimal operations, one card each.' },
+        { id: 'add', name: 'Add decimals', difficulty: 'easy', blurb: 'Line up the decimal points. Mastered at 8 of 10.' },
+        { id: 'subtract', name: 'Subtract decimals', difficulty: 'easy', blurb: 'With and without regrouping, and adding zeros. Mastered at 8 of 10.' },
+        { id: 'multiply', name: 'Multiply decimals', difficulty: 'medium', blurb: 'A decimal times a whole number, and a decimal times a decimal. Mastered at 8 of 10.' },
+        { id: 'divide', name: 'Divide decimals', difficulty: 'hard', blurb: 'A decimal by a whole number, and by a decimal. Mastered at 8 of 10.' },
+        { id: 'estimate', name: 'Estimate', difficulty: 'medium', blurb: 'Round first, then pick the best estimate. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Word problems', difficulty: 'hard', blurb: 'Money, measurements, and more. Mastered at 8 of 10.' },
+        { id: 'review', name: 'Mixed review', difficulty: 'insane', blurb: 'Missing numbers, three steps, and bigger decimals. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
+      ]
+    },
+    {
+      id: 'multiply-divide',
+      subject: 'math',
+      title: 'Multi-Digit Multiplication and Long Division',
+      blurb: 'Multiplying by 2-digit and 3-digit numbers with the standard method and the area model, and long division by 1-digit and 2-digit divisors with remainders.',
+      tags: ['math', 'multiplication', 'division'],
+      path: 'modules/math/multiply-divide/index.html',
+      storage: ['multiply-divide'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A helper that shows the partial products and every long division step for any numbers.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for multiplying and dividing big numbers, one card each.' },
+        { id: 'areamodel', name: 'Area model', difficulty: 'easy', blurb: 'Break a product into parts you can add. Mastered at 8 of 10.' },
+        { id: 'multiply', name: 'Multiply by 2-digit numbers', difficulty: 'medium', blurb: 'Like 47 \u00d7 36. Mastered at 8 of 10.' },
+        { id: 'bigmult', name: 'Bigger products', difficulty: 'hard', blurb: 'Like 428 \u00d7 36 and 1,205 \u00d7 47. Mastered at 8 of 10.' },
+        { id: 'div1', name: 'Divide by 1-digit numbers', difficulty: 'medium', blurb: 'Long division with and without remainders. Mastered at 8 of 10.' },
+        { id: 'div2', name: 'Divide by 2-digit numbers', difficulty: 'hard', blurb: 'Like 1,764 \u00f7 42. Mastered at 8 of 10.' },
+        { id: 'remainders', name: 'Remainders', difficulty: 'hard', blurb: 'What to do with the leftovers. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Word problems', difficulty: 'insane', blurb: 'Multiplication and long division in real situations. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
+      ]
+    },
+    {
+      id: 'coordinate-plane',
+      subject: 'math',
+      title: 'The Coordinate Plane',
+      blurb: 'Ordered pairs, plotting and reading points in the first quadrant, distances, shapes on the grid, and patterns.',
+      tags: ['math', 'graphing', 'geometry'],
+      path: 'modules/math/coordinate-plane/index.html',
+      storage: ['coordinate-plane'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A plane you can tap to see any point\u2019s ordered pair, or type a pair to plot it.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for the coordinate plane, one card each.' },
+        { id: 'read', name: 'Read the point', difficulty: 'easy', blurb: 'Name the ordered pair for a point on the grid. Mastered at 8 of 10.' },
+        { id: 'plot', name: 'Plot the point', difficulty: 'easy', blurb: 'Tap the grid where an ordered pair belongs. Mastered at 8 of 10.' },
+        { id: 'distance', name: 'Distances', difficulty: 'medium', blurb: 'How far apart are two points on a line of the grid? Mastered at 8 of 10.' },
+        { id: 'shapes', name: 'Shapes on the grid', difficulty: 'hard', blurb: 'Find the missing corner, and measure sides. Mastered at 8 of 10.' },
+        { id: 'patterns', name: 'Patterns', difficulty: 'hard', blurb: 'Ordered pairs from two rules, and how they relate. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Maps and word problems', difficulty: 'insane', blurb: 'Using a grid in real situations. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
+      ]
+    },
+    {
       id: 'fractions-add-sub',
       subject: 'math',
       title: 'Add and Subtract Fractions',

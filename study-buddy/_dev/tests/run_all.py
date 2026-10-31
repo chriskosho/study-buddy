@@ -48,6 +48,9 @@ for name, ok, fails, secs in results:
     if status != 'PASS': annotate('error' if status == 'FAIL' else 'warning', f'{status} {name}', fails)
 m = subprocess.run(['node', 'study-buddy/_dev/tests/math_gen_check.mjs'], cwd=ROOT, capture_output=True, text=True)
 mok = m.returncode == 0 and 'ALL PASSED' in m.stdout
+for extra in sorted(f for f in os.listdir(os.path.join(ROOT, 'study-buddy/_dev/tests')) if f.startswith('gen_check_') and f.endswith('.mjs')):   # one generator check per newer module
+    e = subprocess.run(['node', 'study-buddy/_dev/tests/' + extra], cwd=ROOT, capture_output=True, text=True)
+    if e.returncode != 0 or 'ALL PASSED' not in e.stdout: mok = False; m = e
 print(('PASS ' if mok else 'FAIL ') + 'math_gen_check' + ('' if mok else '\n' + (m.stdout + m.stderr)[-1500:]))
 if not mok: annotate('error', 'FAIL math_gen_check', (m.stdout + m.stderr).strip().splitlines()[-10:])
 bad = [r for r in report if r[1] == 'FAIL'] + ([('math_gen_check',)] if not mok else [])
