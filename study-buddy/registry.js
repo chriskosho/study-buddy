@@ -28,9 +28,25 @@ window.SB_REGISTRY = {
     { id: 'geography', name: 'Geography' },
     { id: 'history', name: 'History' },
     { id: 'roots', name: 'Greek and Latin Roots' },
+    { id: 'typing', name: 'Typing' },
     { id: 'other', name: 'Other' }
   ],
   modules: [
+    {
+      id: 'learn-keys',
+      subject: 'typing',
+      title: 'Learn the Keys',
+      blurb: 'Learn to type without looking, starting on the home row. New letters open as you get fast and accurate, and Key Hunt helps young learners find the keys.',
+      tags: ['keyboarding'],
+      path: 'modules/typing/learn-keys/index.html',
+      storage: ['learn-keys'],
+      tools: [
+        { id: 'lesson', name: 'Lesson', difficulty: 'medium', masterAt: 26, blurb: 'Type words made from the letters you have opened. A new letter opens when every open letter is at 95% and your target speed. Mastered when all 26 letters are open.' },
+        { id: 'hunt', name: 'Key Hunt', difficulty: 'easy', masterPct: 0.9, blurb: 'Find the letter on the keyboard. No timer. Mastered at 9 of 10 on the first try.' },
+        { id: 'map', name: 'Keyboard map', kind: 'study', difficulty: 'easy', blurb: 'Which finger types each key, and how to sit and rest your fingers on the home row.' },
+        { id: 'stats', name: 'Key stats', kind: 'study', difficulty: 'easy', blurb: 'Speed and accuracy for every letter, your best round, and your recent rounds.' }
+      ]
+    },
     {
       id: 'ham-technician',
       subject: 'other',
