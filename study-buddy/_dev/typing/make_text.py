@@ -1,10 +1,10 @@
-"""Writes shared/sb-typing-text.js from the reviewed practice text in _dev/typing/text/ (sentences.json, numbers.json, paragraphs.json).
+"""Writes shared/sb-typing-text.js from the reviewed practice text in _dev/typing/text/ (common.json: about 1,000 common words for kids in sight-word order; sentences.json, numbers.json, paragraphs.json).
    Usage: python3 _dev/typing/make_text.py
    Every item was written for children aged 7 to 10 and reviewed for accuracy (see ARCHITECTURE.md, Typing Drills)."""
 import os, json
 here = os.path.dirname(os.path.abspath(__file__))
 site = os.path.dirname(os.path.dirname(here))
-data = {k: json.load(open(os.path.join(here, 'text', k + '.json'), encoding='utf-8')) for k in ('sentences', 'numbers', 'paragraphs')}
+data = {k: json.load(open(os.path.join(here, 'text', k + '.json'), encoding='utf-8')) for k in ('common', 'sentences', 'numbers', 'paragraphs')}
 for k, v in data.items():
     for t in v:
         assert all(32 <= ord(c) < 127 for c in t), (k, t)

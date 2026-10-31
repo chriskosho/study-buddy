@@ -118,13 +118,13 @@ for (let n = G.START; n <= 26; n++) {
       if (row === 'number') ok([...'0123456789'].every(d => text.includes(d)), 'number drill uses every digit: ' + text);
     }
     const caps = G.capitalsDrill(rand);
-    ok(/[A-Z]/.test(caps) && words(caps).every(w => /^[A-Za-z]{3,8}$/.test(w) && G.WORDS.includes(w.toLowerCase())), 'capitals drill is real words, some capitalized: ' + caps);
+    ok(/[A-Z]/.test(caps) && words(caps).every(w => /^[A-Za-z]{3,8}$/.test(w) && X.common.includes(w.toLowerCase())), 'capitals drill is common kid words, some capitalized: ' + caps);
     const punct = G.punctDrill(rand);
     ok(/^[A-Za-z ,.?!;:'"()\-]+$/.test(punct), 'punctuation drill uses only letters and the taught marks: ' + punct);
     ok(/[,.?!;:'"()\-]/.test(punct), 'punctuation drill has punctuation');
-    words(punct).forEach(w => { const bare = w.replace(/[^A-Za-z'\-]/g, ''); ok(G.CONTRACTIONS.includes(bare) || G.HYPHENS.includes(bare) || G.WORDS.includes(bare.toLowerCase()), 'punctuation drill word is real: ' + w); });
+    words(punct).forEach(w => { const bare = w.replace(/[^A-Za-z'\-]/g, ''); ok(G.CONTRACTIONS.includes(bare) || G.HYPHENS.includes(bare) || X.common.includes(bare.toLowerCase()), 'punctuation drill word is a common kid word: ' + w); });
     for (const size of [100, 300, 1000]) {
-      const cw = words(G.commonWords(rand, size)), top = new Set(G.WORDS.slice(0, size));
+      const cw = words(G.commonWords(rand, size)).map(w => w === 'I' ? 'i' : w), top = new Set(X.common.slice(0, size));
       ok(cw.length === 25 && cw.every(w => top.has(w)), `common words come from the top ${size}`);
       ok(cw.every((w, i) => !cw.slice(Math.max(0, i - 3), i).includes(w)), 'common words do not repeat within three');
     }
@@ -157,6 +157,8 @@ for (let n = G.START; n <= 26; n++) {
 
 /* ---- practice sentences and paragraphs ---- */
 {
+  ok(X.common.length >= 900 && new Set(X.common).size === X.common.length && X.common.every(w => /^[a-z]+$/.test(w) && !G.blocked(w)), 'common kid words: unique, lowercase, none blocked');
+  ok(X.common.slice(0, 10).includes('the') && X.common.includes('a') && X.common.includes('i'), 'common kid words start with sight words and include a and I');
   const all = [...X.sentences, ...X.numbers, ...X.paragraphs];
   ok(X.sentences.length >= 200 && X.numbers.length >= 40 && X.paragraphs.length >= 30, `enough practice text (${X.sentences.length}, ${X.numbers.length}, ${X.paragraphs.length})`);
   ok(new Set(all).size === all.length, 'no repeated practice text');

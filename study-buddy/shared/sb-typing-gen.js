@@ -17,7 +17,7 @@
      SBTG.rowDrill(row, rand)        'home' | 'top' | 'bottom' | 'number': key groups and real words from that row
      SBTG.capitalsDrill(rand)        common words, most with a capital first letter (Shift)
      SBTG.punctDrill(rand)           words with , . ? ! ; : ' " - ( ), contractions, and hyphenated words
-     SBTG.commonWords(rand, size)    words from the most common 100, 300, or 1,000
+     SBTG.commonWords(rand, size)    words from the 100, 300, or 1,000 most common words for kids (SBTX.common)
      SBTG.weakDrill(stats, open, target, rand)   words that lean on the student's three weakest letters
      SBTG.pickText(list, n, rand)    n different items from a list (sentences, paragraphs), joined with spaces
      SBTG.stars(r, goal)             1 star for finishing, 2 for the accuracy goal, 3 for accuracy and speed
@@ -26,6 +26,8 @@
 (function (root) {
   'use strict';
   const W = (root.SBTW || (typeof require === 'function' ? require('./sb-typing-words.js') : null)) || { words: [], block: [] };
+  /* the practice text (common words for kids, sentences) is only loaded by pages that need it */
+  const textData = () => root.SBTX || (typeof require === 'function' ? (() => { try { return require('./sb-typing-text.js'); } catch (e) { return null; } })() : null) || {};
 
   const ORDER = 'asdfjklgheiruty onwmcbvxpqz'.replace(/ /g, '').split('');
   const START = 7;
@@ -212,7 +214,9 @@
     }
     return '1234567890';
   }
-  const COMMON = () => WORDS.slice(0, 1500).filter(w => w.length >= 3 && w.length <= 8);
+  /* common words for kids (sight-word order); the frequency list is the fallback on pages without the practice text */
+  const KIDS = () => { const c = textData().common; return Array.isArray(c) && c.length ? c.filter(w => !blocked(w)) : WORDS.slice(0, 1000); };
+  const COMMON = () => KIDS().filter(w => w.length >= 3 && w.length <= 8);
   function capitalsDrill(rand = Math.random, n = 16) {
     const pool = COMMON();
     return noRepeat(() => { const w = pool[Math.floor(Math.pow(rand(), 1.3) * pool.length)]; return rand() < 0.65 ? w[0].toUpperCase() + w.slice(1) : w; }, n).join(' ');
@@ -231,8 +235,8 @@
     }, n).join(' ');
   }
   function commonWords(rand = Math.random, size = 300, n = 25) {
-    const pool = WORDS.slice(0, size).filter(w => w.length >= 2);
-    return noRepeat(() => pool[Math.floor(rand() * pool.length)], n).join(' ');
+    const pool = KIDS().slice(0, size);
+    return noRepeat(() => pool[Math.floor(rand() * pool.length)], n).map(w => w === 'i' ? 'I' : w).join(' ');   // the word "I" is always a capital
   }
   /* the three weakest letters: most missed first, then slowest. Only letters typed at least 10 times count (so a letter typed
      twice is not called weak), unless fewer than three have that many. */
