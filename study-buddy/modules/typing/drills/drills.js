@@ -34,8 +34,9 @@
           <div class="dbar">
             ${cfg.options ? `<div class="seg" role="group" aria-label="${esc(cfg.optLabel || 'Which drill')}">${cfg.options.map(o => `<button type="button" data-o="${o.id}">${esc(o.label)}</button>`).join('')}</div>` : `<h2 style="margin:0">${esc(ctx.tool.name)}</h2>`}
             <div class="row">
-              ${insane ? '' : '<button class="iconbtn" data-x="wait" title="When it is on, a wrong key has to be fixed before you go on"></button>'}
+              ${insane || !SBTY.FIX_MISTAKES_CHOICE ? '' : '<button class="iconbtn" data-x="wait" title="When it is on, a wrong key has to be fixed before you go on"></button>'}
               <button class="iconbtn" data-x="kb"></button>
+              <button class="iconbtn" data-x="over" title="New text. Your stars and bests are kept.">Start over</button>
             </div>
           </div>
           <div class="dgoal"></div>
@@ -108,6 +109,7 @@
         P.querySelectorAll('[data-o]').forEach(b => b.onclick = () => { st.opt[cfg.id] = b.dataset.o; ctx.save(); paintOpts(); paintGoal(); msg.className = 'msg dmsg'; msg.textContent = cfg.lead || ''; newRound(); b.blur(); });
         const w = $('[data-x="wait"]', P);
         if (w) w.onclick = () => { saveShared(s => { s.wait = s.wait === false; }); topts.wait = shared().wait; paintOpts(); w.blur(); typer.active(); };   // takes effect from the next key; the round goes on
+        $('[data-x="over"]', P).onclick = e => { e.currentTarget.blur(); msg.className = 'msg dmsg'; msg.innerHTML = cfg.lead || ''; newRound(); };   // Start over: new text, nothing erased
         $('[data-x="kb"]', P).onclick = e => { saveShared(s => { s.showKb = s.showKb === false; }); paintOpts(); e.currentTarget.blur(); typer.active(); };
         paintOpts(); paintGoal();
         msg.textContent = cfg.lead || 'Start typing when you are ready.';

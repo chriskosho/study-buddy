@@ -91,7 +91,7 @@
       const P = ctx.panel, st = ctx.state;
       st.speed = Object.assign({ len: '60', level: 'medium', best: {}, history: [] }, st.speed || {});
       const S = st.speed;
-      const ui = frame(P, { left: seg('len', LENS, 'Test length') + seg('lvl', LEVELS, 'Level'), right: '<span class="pill tclock" aria-live="off" title="Time left"></span>' });
+      const ui = frame(P, { left: seg('len', LENS, 'Test length') + seg('lvl', LEVELS, 'Level'), right: '<span class="pill tclock" aria-live="off" title="Time left"></span><button class="iconbtn" type="button" data-x="over" title="New text and a fresh clock. Your bests are kept.">Start over</button>' });
       let keys = [], presses = 0, t0 = 0, timer = null, seed = 0, over = false, kb = null;
       const ms = () => Number(S.len) * 1000, insane = () => S.level === 'insane';
       const topts = {
@@ -112,7 +112,7 @@
       function tick() { const left = ms() - (performance.now() - t0); clockEl.textContent = clock(left); if (left <= 0) finish(false); }
       function paintLine() {
         const b = S.best[S.len + ':' + S.level];
-        ui.line.innerHTML = `<span>${esc(LEVELS.find(l => l.id === S.level).label)}: ${esc(LEVEL_TEXT[S.level])}. The clock starts at your first key.${insane() ? '' : ' Fix mistakes: ' + (SBTY.shared().wait ? 'on' : 'off') + '.'}</span>
+        ui.line.innerHTML = `<span>${esc(LEVELS.find(l => l.id === S.level).label)}: ${esc(LEVEL_TEXT[S.level])}. The clock starts at your first key.${insane() || !SBTY.FIX_MISTAKES_CHOICE ? '' : ' Fix mistakes: ' + (SBTY.shared().wait ? 'on' : 'off') + '.'}</span>
           <span>${b ? `Best for this test: <b>${r1(b.wpm)} words a minute</b>, ${pct(b.acc)} right` : 'No tests at this length and level yet'}</span>`;
         P.querySelectorAll('[data-len]').forEach(x => x.setAttribute('aria-pressed', x.dataset.len === S.len));
         P.querySelectorAll('[data-lvl]').forEach(x => x.setAttribute('aria-pressed', x.dataset.lvl === S.level));
@@ -166,6 +166,7 @@
       }
       P.querySelectorAll('[data-len]').forEach(x => x.onclick = () => { S.len = x.dataset.len; ctx.save(); x.blur(); start(false); });
       P.querySelectorAll('[data-lvl]').forEach(x => x.onclick = () => { S.level = x.dataset.lvl; ctx.save(); x.blur(); start(false); });
+      $('.tbar [data-x="over"]', P).onclick = e => { e.currentTarget.blur(); start(false); };   // Start over: new text, a fresh clock
       speed._leave = () => { if (typer.started() && !over) { clearInterval(timer); start(true); } };   // leaving the tab mid-test starts it over
       /* switching to another browser tab or app mid-test starts it over too: the clock would keep running while away */
       document.addEventListener('visibilitychange', () => { if (document.hidden && !P.hidden && typer.started() && !over) { clearInterval(timer); start(true); } });
@@ -182,7 +183,7 @@
       const P = ctx.panel, st = ctx.state;
       st.acc = Object.assign({ level: 'medium', best: {} }, st.acc || {});
       const A = st.acc;
-      const ui = frame(P, { left: seg('lvl', LEVELS, 'Level') });
+      const ui = frame(P, { left: seg('lvl', LEVELS, 'Level'), right: '<button class="iconbtn" type="button" data-x="over" title="New text. Your best is kept.">Start over</button>' });
       let kb = null, over = false, stoppedAt = -1;
       const insane = () => A.level === 'insane';
       const topts = {
@@ -238,6 +239,7 @@
         paintLine();
       }
       P.querySelectorAll('[data-lvl]').forEach(x => x.onclick = () => { A.level = x.dataset.lvl; ctx.save(); x.blur(); start(); });
+      $('.tbar [data-x="over"]', P).onclick = e => { e.currentTarget.blur(); start(); };   // Start over: new text
       accuracy._enter = () => { if (!typer.started() && !over) start(); typer.active(); };
       start();
     },
@@ -254,7 +256,7 @@
           <div class="terr" role="status"></div>
           <div class="row"><button class="btn" type="button" data-x="use">Practice this text</button></div></div>
         <div class="tdo" hidden><div class="ttype"></div><p class="msg tmsg" role="status" tabindex="-1"></p>
-          <div class="row"><button class="btn" type="button" data-x="again">Type it again</button><button class="btn ghost" type="button" data-x="new">Use different text</button></div></div>`;
+          <div class="row"><button class="btn" type="button" data-x="again">Start over</button><button class="btn ghost" type="button" data-x="new">Use different text</button></div></div>`;
       const ta = $('textarea', P), err = $('.terr', P), paste = $('.tpaste', P), dobox = $('.tdo', P), msg = $('.tmsg', P);
       ta.value = st.custom || '';
       const typer = SBTY.typer($('.ttype', P), {

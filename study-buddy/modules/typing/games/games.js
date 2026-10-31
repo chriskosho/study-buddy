@@ -26,7 +26,8 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden) TOOLS.forEach(t => t._hide && t._hide()); });
   const visible = P => !P.hidden && P.offsetParent !== null;
   /* letters: the word with the typed part marked */
-  const lettersHTML = (w, n, miss, bad) => [...w].map((c, i) => `<span class="${i < n ? (bad && bad.has(i) ? 'bad' : 'ok') : i === n ? 'cur' + (miss ? ' miss' : '') : 'todo'}">${esc(c)}</span>`).join('');
+  /* typed letters: ok = right the first time, fixed = missed and then typed right, bad = missed */
+  const lettersHTML = (w, n, miss, bad, fixed) => [...w].map((c, i) => `<span class="${i < n ? (bad && bad.has(i) ? 'bad' : fixed && fixed.has(i) ? 'fixed' : 'ok') : i === n ? 'cur' + (miss ? ' miss' : '') : 'todo'}">${esc(c)}</span>`).join('');
 
   /* ===================== Word Sprint ===================== */
   const SPRINT_MS = 60000;
@@ -37,12 +38,12 @@
       const S = st.sprint;
       P.innerHTML = `${NOTE}
         <div class="gbar"><div class="row">${seg('lvl', LEVELS, 'Level')}</div>
-          <div class="row"><span class="pill gpill" id="wsScore" title="Words typed">0 words</span><span class="pill gpill" id="wsClock" title="Time left">1:00</span></div></div>
+          <div class="row"><span class="pill gpill" id="wsScore" title="Words typed">0 words</span><span class="pill gpill" id="wsClock" title="Time left">1:00</span><button class="iconbtn" type="button" data-x="over" title="New words and a fresh clock. Your best is kept.">Start over</button></div></div>
         <div class="gline"></div>
         <div class="ws-stage" aria-live="off"><div class="ws-word"></div><div class="ws-next"></div></div>
         <p class="msg gmsg" role="status" tabindex="-1"></p>`;
       const wordEl = $('.ws-word', P), nextEl = $('.ws-next', P), msg = $('.gmsg', P), stage = $('.ws-stage', P);
-      let words = [], wi = 0, n = 0, miss = false, bad = new Set(), score = 0, chars = 0, t0 = 0, timer = null, over = false, playing = false;
+      let words = [], wi = 0, n = 0, miss = false, bad = new Set(), fixed = new Set(), score = 0, chars = 0, t0 = 0, timer = null, over = false, playing = false;
       const wait = () => SBTY.shared().wait;
       function paintLine() {
         const b = S.best[S.level];
@@ -51,13 +52,13 @@
       }
       function paint() {
         const w = words[wi] || '';
-        wordEl.innerHTML = lettersHTML(w, n, miss, bad);
+        wordEl.innerHTML = lettersHTML(w, n, miss, bad, fixed);
         nextEl.textContent = words.slice(wi + 1, wi + 4).join('   ');
         $('#wsScore', P).textContent = score + (score === 1 ? ' word' : ' words');
       }
       function start() {
         clearInterval(timer); timer = null; over = false; playing = false; t0 = 0;
-        words = G.gameWords(S.level, 200); wi = 0; n = 0; miss = false; bad = new Set(); score = 0; chars = 0;
+        words = G.gameWords(S.level, 200); wi = 0; n = 0; miss = false; bad = new Set(); fixed = new Set(); score = 0; chars = 0;
         stage.hidden = false; const o = $('.gover', P); if (o) o.remove();
         $('#wsClock', P).textContent = clock(SPRINT_MS);
         msg.textContent = note || 'Start typing when you are ready. No space needed between words.'; note = '';
@@ -71,12 +72,12 @@
         const w = words[wi];
         if (caseOnly(k, w[n])) { msg.textContent = CAPS_MSG(k); return; }
         if (!playing) { playing = true; t0 = performance.now(); timer = setInterval(tick, 200); msg.textContent = ''; }
-        if (k === w[n]) { n++; miss = false; chars++; msg.textContent = ''; }
+        if (k === w[n]) { if (miss) fixed.add(n); n++; miss = false; chars++; msg.textContent = ''; }
         else if (wait()) miss = true;
         else { bad.add(n); n++; miss = false; }                      // Fix mistakes off: the wrong letter is skipped and shown in red
         if (n >= w.length) {
           if (!bad.size) score++;                                  // a word with a skipped letter does not count
-          wi++; n = 0; bad = new Set();
+          wi++; n = 0; bad = new Set(); fixed = new Set();
         }
         paint();
       }
@@ -101,6 +102,7 @@
       const soft = SBTY.softKeys(stage, handler, { label: 'Type the word here' });
       P.querySelectorAll('[data-lvl]').forEach(x => x.onclick = () => { S.level = x.dataset.lvl; ctx.save(); x.blur(); start(); });
       SBTY.toView(stage);
+      $('[data-x="over"]', P).onclick = e => { e.currentTarget.blur(); start(); };   // Start over: new words, a fresh clock
       sprint._leave = () => { if (playing && !over) start(); };           // leaving the tab mid-game starts it over
       sprint._enter = () => SBTY.take(handler);
       let note = '';
@@ -122,7 +124,7 @@
       const F = st.fall;
       P.innerHTML = `${NOTE}
         <div class="gbar"><div class="row">${seg('lvl', LEVELS, 'Level')}</div>
-          <div class="row"><span class="pill" title="Words that may reach the bottom">Misses left <span class="fw-lives" aria-label="Misses left"></span></span><span class="pill gpill" id="fwScore">0 words</span></div></div>
+          <div class="row"><span class="pill" title="Words that may reach the bottom">Misses left <span class="fw-lives" aria-label="Misses left"></span></span><span class="pill gpill" id="fwScore">0 words</span><button class="iconbtn" type="button" data-x="over" title="Clear the words and start again. Your best is kept.">Start over</button></div></div>
         <div class="gline"></div>
         <div class="fw-area" aria-label="Falling words"><div class="fw-floor"></div><div class="fw-cover"></div></div>
         <p class="msg gmsg" role="status" tabindex="-1"></p>`;
@@ -232,6 +234,7 @@
       falling._soft = soft;
       P.querySelectorAll('[data-lvl]').forEach(x => x.onclick = () => { F.level = x.dataset.lvl; ctx.save(); x.blur(); reset(); });
       SBTY.toView(area);
+      $('[data-x="over"]', P).onclick = e => { e.currentTarget.blur(); reset(); };   // Start over: back to the Start screen
       falling._leave = pause;
       falling._enter = () => SBTY.take(handler);
       falling._hide = pause;
@@ -250,7 +253,7 @@
       st.ghost = Object.assign({ speed: 'best', best: 0, wins: 0 }, st.ghost || {});
       const R = st.ghost;
       P.innerHTML = `${NOTE_RACE}
-        <div class="gbar"><div class="row"><b>Pacer speed</b>${seg('gs', GHOST, 'Pacer speed in words a minute')}</div></div>
+        <div class="gbar"><div class="row"><b>Pacer speed</b>${seg('gs', GHOST, 'Pacer speed in words a minute')}</div><div class="row"><button class="iconbtn" type="button" data-x="over" title="New sentences. Your best is kept.">Start over</button></div></div>
         <div class="gline"></div>
         <div class="gr-track" aria-hidden="true">
           <span>You</span><div class="gr-bar gr-you"><i></i></div><span class="gr-yp">0%</span>
@@ -319,6 +322,7 @@
         paintLine();
       }
       P.querySelectorAll('[data-gs]').forEach(x => x.onclick = () => { R.speed = x.dataset.gs; ctx.save(); x.blur(); start(); });
+      $('[data-x="over"]', P).onclick = e => { e.currentTarget.blur(); start(); };   // Start over: new sentences
       ghost._leave = () => { if (racing) start(); };
       ghost._enter = () => typer.active();
       let note = '';

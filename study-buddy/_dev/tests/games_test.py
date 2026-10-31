@@ -75,17 +75,20 @@ async def main():
         check(not (await pg.evaluate(CHILD)).get('tools', {}).get('typing-games/sprint', {}).get('attempts'), 'games record no result (practice only)')
         await pg.click('#tab-sprint [data-x="again"]')
         check(await pg.inner_text('#wsClock') == '1:00' and '0 words' in await pg.inner_text('#wsScore'), 'Play again starts fresh')
-        # Fix mistakes off: a word with a skipped letter does not count, and the letter shows red
+        # Fix mistakes is always on, even if an old save turned it off: a wrong key waits, and the fixed letter turns green
         await pg.evaluate("(() => { const k = 'studybuddy.v1.m.k1.learn-keys', s = JSON.parse(localStorage.getItem(k) || '{}'); s.wait = false; localStorage.setItem(k, JSON.stringify(s)); })()")
-        w = await pg.evaluate(WORD)
-        await pg.keyboard.type(w[0]); await pg.keyboard.type('~'); await pg.keyboard.type(w[2:], delay=10)
-        check('0 words' in await pg.inner_text('#wsScore'), 'with Fix mistakes off, a word with a mistake does not count')
         w = await pg.evaluate(WORD)
         while len(w) < 3:                                  # a two-letter word would finish at once, so skip to a longer one
             await pg.keyboard.type(w, delay=5); w = await pg.evaluate(WORD)
         await pg.keyboard.type(w[0]); await pg.keyboard.type('~')
-        check(await pg.locator('.ws-word .bad').count() == 1, 'the skipped letter shows red')
-        await pg.evaluate("(() => { const k = 'studybuddy.v1.m.k1.learn-keys', s = JSON.parse(localStorage.getItem(k) || '{}'); s.wait = true; localStorage.setItem(k, JSON.stringify(s)); })()")
+        check(await pg.evaluate(WORD) == w and await pg.locator('.ws-word .bad, .ws-word .cur.miss, .ws-word .miss').count() >= 1, 'a wrong key waits on the letter and shows it')
+        await pg.keyboard.type(w[1])
+        check(await pg.locator('.ws-word .fixed').count() == 1, 'the fixed letter turns green with a red underline')
+        # Start over in the game card starts a fresh minute
+        await pg.click('#tab-sprint [data-x="over"]')
+        check(await pg.inner_text('#wsClock') == '1:00' and '0 words' in await pg.inner_text('#wsScore'), 'Start over begins a fresh minute')
+        w = await pg.evaluate(WORD); await pg.keyboard.type(w[0])
+        check(await pg.locator('.ws-word .ok').count() == 1, 'typing works right after Start over')
         # switching to another browser tab mid-game starts over and says why
         await pg.evaluate("Object.defineProperty(document, 'hidden', { get: () => true, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); Object.defineProperty(document, 'hidden', { get: () => false, configurable: true });")
         check('started over' in await pg.inner_text('#tab-sprint .gmsg') and '0 words' in await pg.inner_text('#wsScore'), 'leaving the browser tab mid-game starts over and says why')

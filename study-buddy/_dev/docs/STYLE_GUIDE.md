@@ -156,6 +156,9 @@ The scratch pad toolbar uses the theme tokens like every other screen. The writi
 - The keyboard picture (`SBTY.keyboard`) is the same everywhere: US QWERTY, rounded keys, uppercase key labels like a real keyboard, and bumps on F and J. Finger zones use the `--fz-*` tokens (pinky, ring, middle, pointer, thumb), never literal colors, so dark mode works.
 - Keys that are not in play are dimmed (`off`), the next key is filled navy, the focus letter has a coral outline, ready letters a green outline, and a hint gets a teal outline. Color is never the only signal: the text and messages also say it.
 - The typing text uses a monospace font (OpenDyslexic when that display option is on), shows at most three lines, and breaks lines only between words. The current letter is highlighted and underlined; a mistake turns it red with a light red background.
+- Typed letter colors (owner's rule, October 2026): not typed yet, medium gray (`--ink2`); typed right the first time, dark (`--ink`); missed, red (`--bad-ink`); missed and then typed right, green (`--good-ink`) with a red underline. Word Sprint and Falling Words use the same colors.
+- Every typing tool has a Start over button inside its card (new text, nothing erased). The Reset button at the top of the page is a different thing: it erases progress.
+- Key Hunt puts the letter to find big and centered right above the keyboard.
 - No timers or countdowns in Key Hunt, and no flashing. Sounds use the usual tones and follow the Sound setting.
 - Typing tool screens also fit 1440x900 with Larger text and OpenDyslexic on: the keyboard picture shrinks to make room (never below about 70px), and on a phone turned sideways the typing area scrolls into view when a tool opens.
 

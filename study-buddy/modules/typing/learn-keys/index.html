@@ -26,10 +26,12 @@
 .lkmsg{margin:8px 0 10px;min-height:26px}
 .lkkb .sbkb{max-height:max(150px,calc(var(--vh,100vh) - var(--chrome) - 540px))}
 /* Key Hunt */
-.hunthead{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between;margin-bottom:8px}
-.huntq{display:flex;align-items:center;gap:14px;font-size:26px;font-weight:800}
+.hunthead{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between;margin-bottom:6px}
+/* the letter to find sits front and center, right above the keyboard (owner's choice, October 2026) */
+.huntq{display:flex;align-items:center;justify-content:center;gap:14px;font-size:26px;font-weight:800;min-height:84px;margin:0 0 8px}
+.huntq:empty{display:none}
 .huntletter{display:inline-flex;align-items:center;justify-content:center;min-width:84px;height:84px;padding:0 14px;border-radius:18px;border:3px solid var(--navy-ink);background:var(--surface);font:800 58px var(--font);color:var(--navy-ink)}
-.hunt .sbkb{max-height:max(170px,calc(var(--vh,100vh) - var(--chrome) - 350px))}
+.hunt .sbkb{max-height:max(170px,calc(var(--vh,100vh) - var(--chrome) - 410px))}
 .huntdone{text-align:center;padding:10px 0}
 /* Keyboard map */
 .kmgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:20px;align-items:start}
@@ -73,7 +75,7 @@ html.sb-large #tab-map .lead{margin-bottom:6px}
   .ksum{grid-template-columns:repeat(2,minmax(0,1fr))}
   .lkletters span{width:24px;height:28px;font-size:15px}
   .huntletter{min-width:64px;height:64px;font-size:44px}
-  .huntq{font-size:22px}
+  .huntq{font-size:22px;min-height:64px}
   .lkkb .sbkb,.hunt .sbkb,.kmgrid .sbkb,.ksgrid .sbkb{max-height:none}
 }
 </style>
