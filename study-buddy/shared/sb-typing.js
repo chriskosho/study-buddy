@@ -129,7 +129,10 @@
       let h = '', inWord = false;
       [...text].forEach((c, i) => {
         if (c === ' ') { if (inWord) { h += '</span>'; inWord = false; } h += `<span class="c sp" data-i="${i}"><i>&middot;</i></span><wbr>`; }
-        else { if (!inWord) { h += '<span class="w">'; inWord = true; } h += `<span class="c" data-i="${i}">${esc(c)}</span>`; }
+        else {
+          if (!inWord) { const end = text.indexOf(' ', i), len = (end < 0 ? text.length : end) - i; h += len > 18 ? '<span class="w long">' : '<span class="w">'; inWord = true; }   // a very long word (or link) may break across lines
+          h += `<span class="c" data-i="${i}">${esc(c)}</span>`;
+        }
       });
       box.innerHTML = h + (inWord ? '</span>' : '');
       spans = [...box.querySelectorAll('.c')];

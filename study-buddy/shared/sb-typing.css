@@ -41,6 +41,7 @@ html.sb-dark{
 html.sb-dyslexic .sbty-text{font-family:var(--font)}
 .sbty-text.more{-webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent);mask-image:linear-gradient(to bottom,#000 72%,transparent)}
 .sbty-text .w{white-space:nowrap}
+.sbty-text .w.long{white-space:normal;overflow-wrap:anywhere;word-break:break-all}
 .sbty-text .c{border-bottom:3px solid transparent;border-radius:3px}
 .sbty-text .c.sp i{font-style:normal;opacity:0}
 .sbty-text .c.ok{color:var(--ink)}

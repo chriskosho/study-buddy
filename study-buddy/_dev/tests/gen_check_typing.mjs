@@ -194,10 +194,24 @@ for (let n = G.START; n <= 26; n++) {
   ok(Math.abs(sc.wpm - 108 / 5) < 1e-9 && Math.abs(sc.raw - 24) < 1e-9 && Math.abs(sc.acc - 0.9) < 1e-9, 'timed score: speed, raw speed, accuracy');
   const bk = G.speedBuckets(keys, 60000);
   ok(bk.length === 12 && Math.abs(bk.reduce((a, x) => a + x, 0) / 12 - sc.wpm) < 1e-9, 'twelve 5-second steps that average to the speed');
-  ok(G.consistency([20, 20, 20, 20, 3]) === 1 && G.consistency([10, 30, 10, 30, 0]) === 0.5 && G.consistency([0, 0, 0]) === 0, 'steadiness ignores the short last step');
+  ok(G.consistency([20, 20, 20, 20]) === 1 && G.consistency([10, 30, 10, 30]) === 0.5 && G.consistency([0, 0, 0]) === 0, 'steadiness: even is 1, uneven is less');
+  ok(G.consistency([...Array(11).fill(30), 5]) < 0.9, 'slowing down in the last full step lowers steadiness');
+  const st7 = G.speedSteps(Array.from({ length: 20 }, (x, i) => ({ t: i * 300, good: true })), 7000);
+  ok(st7.length === 2 && st7[1].full === false && G.consistency(st7) === 1, 'a short last step is left out of steadiness');
+  /* a test that ends just after a step: the tiny last step joins the one before, so no false spike */
+  const spike = Array.from({ length: 150 }, (x, i) => ({ t: i * 200, good: true })); spike.push({ t: 30000.5, good: true });
+  const sp = G.speedBuckets(spike, 30001);
+  ok(sp.length === 6 && Math.max(...sp) < 70, 'no false spike at the end: ' + sp.map(Math.round));
+  /* keys typed after time is up do not count */
+  ok(G.timedScore([...keys, { t: 60150, good: true }], 60000).wpm === sc.wpm, 'a key after the time limit does not count');
+  ok(Math.abs(G.timedScore(keys, 60000, 130).raw - 26) < 1e-9 && Math.abs(G.timedScore(keys, 60000, 130).acc - 108 / 130) < 1e-9, 'raw speed and accuracy use every key pressed');
   ok(G.speedBuckets([{ t: 1000, good: true }], 7000).length === 2, 'a test that ends early has a short last step');
   ok(G.cleanText('“Hi” — it’s café…\n\n  ok \u{1F600}') === '"Hi" - it\'s cafe... ok', 'pasted text is cleaned: ' + G.cleanText('“Hi” — it’s café…\n\n  ok \u{1F600}'));
   ok(G.cleanText('x'.repeat(5000)).length === 2000, 'pasted text is capped at 2,000 characters');
+  ok(G.cleanText('stra\u00dfe \u0153uvre \u00e6sir \u00d8re \u0142\u00f3d\u017a well\u2011known \ufb01sh line1\u2028line2\vline3') === 'strasse oeuvre aesir Ore lodz well-known fish line1 line2 line3', 'special letters, hyphens, and line breaks are cleaned: ' + G.cleanText('stra\u00dfe \u0153uvre \u00e6sir \u00d8re \u0142\u00f3d\u017a well\u2011known \ufb01sh line1\u2028line2\vline3'));
+  ok(G.cleanText('\u041f\u0440\u0438\u0432\u0435\u0442 \u3053\u3093\u306b\u3061\u306f') === '', 'text in another alphabet cleans to nothing');
+  const cut = G.cleanText(('word '.repeat(500)).trim());
+  ok(cut.length <= 2000 && cut.endsWith('word'), 'long text is cut at a space');
 }
 
 console.log(`typing: ${lessons} lessons checked, seed ${SEED}`);
