@@ -21,17 +21,17 @@
         <form class="ooform" autocomplete="off"><input class="textin" value="{ 6 + [ 18 ÷ (5 − 2) ] } × 2" aria-label="An expression to work out step by step"><button class="btn small" type="submit">Show steps</button></form>
         <div class="ooerr" role="status"></div><div class="oout" aria-live="polite"></div>
         <div class="ladder">
-          <div class="rung"><h3><span class="no">1</span>Grouping symbols</h3><p>Work inside ( ) parentheses, [ ] brackets, and { } braces first. When they are nested, start with the innermost.</p></div>
+          <div class="rung"><h3><span class="no">1</span>Grouping symbols</h3><p>Work inside ( ) parentheses, [ ] brackets, and { } braces first. When they are nested, start with the innermost. Inside each grouping symbol, use the same order: × and ÷, then + and −.</p></div>
           <div class="rung"><h3><span class="no">2</span>Multiply and divide</h3><p>Next, × and ÷. They have the same rank, so go <b>left to right</b>.</p></div>
           <div class="rung"><h3><span class="no">3</span>Add and subtract</h3><p>Last, + and −. They have the same rank too, so go <b>left to right</b>.</p></div>
         </div>
         <div class="rules">
-          <div class="rule"><h3>Not always multiply first</h3><p><b>24 ÷ 4 × 3</b>: go left to right. 24 ÷ 4 = 6, then 6 × 3 = <b>18</b>. (Doing 4 × 3 first would give 2, which is wrong.)</p></div>
-          <div class="rule"><h3>Not always add first</h3><p><b>20 − 5 + 3</b>: go left to right. 20 − 5 = 15, then 15 + 3 = <b>18</b>. (Doing 5 + 3 first would give 12, which is wrong.)</p></div>
+          <div class="rule"><h3>× and ÷ have the same rank</h3><p><b>24 ÷ 4 × 3</b>: go left to right. 24 ÷ 4 = 6, then 6 × 3 = <b>18</b>. (Doing 4 × 3 first would give 2, which is wrong.)</p></div>
+          <div class="rule"><h3>+ and − have the same rank</h3><p><b>20 − 5 + 3</b>: go left to right. 20 − 5 = 15, then 15 + 3 = <b>18</b>. (Doing 5 + 3 first would give 12, which is wrong.)</p></div>
           <div class="rule"><h3>Grouping symbols change the answer</h3><p><b>3 + 4 × 5</b> = 3 + 20 = <b>23</b>. <b>(3 + 4) × 5</b> = 7 × 5 = <b>35</b>. The parentheses make the addition happen first.</p></div>
           <div class="rule"><h3>Words to expressions</h3><p>&ldquo;Add 8 and 7, then multiply by 2&rdquo; is <b>(8 + 7) × 2</b>. You need the parentheses so the adding comes first.</p></div>
           <div class="rule"><h3>Read it without working it out</h3><p><b>3 × (18,932 + 921)</b> is 3 times as large as 18,932 + 921. You can tell from the signs, without adding.</p></div>
-          <div class="rule"><h3>Whole numbers only</h3><p>These problems always come out as whole numbers, so you never get a fraction or a number below zero along the way.</p></div>
+          <div class="rule"><h3>Whole numbers only</h3><p>These problems always come out as whole numbers, so you never get a fraction, or an answer of zero or less, along the way.</p></div>
         </div>`;
       const show = () => {
         const err = $('.ooerr', P), out = $('.oout', P);
@@ -47,7 +47,7 @@
   const answerTool = (title, lead, fn) => ({ init(ctx) { SBT.answer(ctx, { title, lead, kind: 'number', rounds: 10, build: () => many(fn) }); } });
   const quizTool = (title, lead, fn) => ({ init(ctx) { SBT.quiz(ctx, { title, lead, rounds: 10, build: () => many(fn) }); } });
   const first = quizTool('What comes first?', 'Pick the part to work out first.', G.firstQ);
-  const plain = answerTool('No grouping symbols', 'Multiply and divide first, then add and subtract. Go left to right.', G.plainQ);
+  const plain = answerTool('No grouping symbols', 'Do × and ÷ from left to right, then + and − from left to right.', G.plainQ);
   const next = quizTool('Next step', 'Do only the first step. Pick what is left.', G.nextQ);
   const parens = answerTool('Parentheses', 'Work inside the parentheses first.', G.parensQ);
   const nested = answerTool('Brackets and parentheses', 'Work inside the innermost symbols first.', G.nestedQ);
@@ -68,7 +68,7 @@
     { gen: G.writeQ, cards: [["How do you write \"Add 8 and 7, then multiply by 2\"?", "(8 + 7) × 2. The parentheses make the adding happen first."], ["How do you write \"Multiply 4 by 5, then add 3\"?", "4 × 5 + 3. You do not need parentheses, because multiplying already comes first."]] },
     { gen: G.readQ, cards: [["What does (9 + 8) × 3 say in words?", "Add 9 and 8, then multiply by 3."], ["Which words describe 15 − 4 × 2?", "Multiply 4 by 2, then subtract the product from 15."]] },
     { gen: G.interpretQ, cards: [["How does 4 × (125 + 38) compare to 125 + 38?", "It is 4 times as large. Multiplying a sum by 4 makes it 4 times as large, and you do not need to add to see that."], ["How does (125 + 38) ÷ 4 compare to 125 + 38?", "It is one fourth as large."]] },
-    { gen: G.fitQ, cards: [["How do you find where parentheses belong?", "Try each place and work it out. Only one place gives the number you want. 2 + 3 × 4 = 14, but (2 + 3) × 4 = 20."]] }
+    { gen: G.fitQ, cards: [["How do you find where parentheses belong?", "Try each place and work it out. In these problems, only one place gives the number you want. 2 + 3 × 4 = 14, but (2 + 3) × 4 = 20."]] }
   ];
   const cards = { init(ctx) { SBT.flashcards(ctx, { lead: 'Tap the card to flip it. These are the rules and facts the questions use.', build: () => SBT.shuffle(TYPES.flatMap(t => t.cards)).map(([q, a]) => ({
     front: `<div class="tag">Rule or fact</div><div class="defline">${esc(q)}</div>`, back: `<div class="tag">Answer</div><div class="defline">${esc(a)}</div>${ctx.sayButton(q + ' ' + a, 'Hear it')}`, say: q })) }); } };

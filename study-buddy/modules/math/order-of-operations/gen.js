@@ -146,14 +146,18 @@
   const chainText = ch => ch.map(s => render(s.tokens)).join(' → ');
   const GROUP_HINT = 'Grouping symbols first (innermost first), then × and ÷ left to right, then + and − left to right.';
   function whyValue(e) {
-    const first = e.chain[1] && e.chain[1].did, lead = [];
+    const lead = [];
     if (e.groups.length) lead.push('Work inside the grouping symbols first, innermost first.');
-    if (e.chain.some(s => s.did && '×÷'.includes(s.did.op)) && e.chain.some(s => s.did && '+−'.includes(s.did.op))) lead.push('× and ÷ come before + and −.');
+    const mdFirst = e.chain.some((st, i) => i > 0 && '×÷'.includes(st.did.op) && (() => { const t = e.chain[i - 1].tokens, c = t.findIndex(x => CLOSE.includes(x)); let lo = 0, hi = t.length; if (c >= 0) { let o = c - 1; while (!OPEN.includes(t[o])) o--; lo = o + 1; hi = c; } return t.slice(lo, hi).some(x => x === '+' || x === '−'); })());
+    if (mdFirst) lead.push('× and ÷ come before + and −.');
     return `${lead.join(' ')} ${chainText(e.chain)}. The answer is ${fmtN(e.value)}.`.trim();
   }
   function whyFirst(e) {
     const d = e.chain[1].did, t = e.tokens;
-    if (d.group) return `Inside the ${d.group}, ${d.a} ${d.op} ${d.b} comes first. Grouping symbols are done first, and the innermost one before the outer ones.`;
+    if (d.group) {
+      let alone = 0; for (let p = 0; p < t.length; p++) if (OPEN.includes(t[p])) { let q = p + 1; while (q < t.length && !OPEN.includes(t[q]) && !CLOSE.includes(t[q])) q++; if (CLOSE.includes(t[q])) alone++; }
+      return `Inside the ${d.group}, ${d.a} ${d.op} ${d.b} comes first. Grouping symbols are done first, and the innermost one before the outer ones.${alone > 1 ? ' Two groups sit side by side, so either could go first; we start with the one on the left.' : ''}`;
+    }
     const hasMD = flat(t).some(x => x === '×' || x === '÷'), hasAS = flat(t).some(x => x === '+' || x === '−');
     if ('×÷'.includes(d.op) && hasAS) return `× and ÷ come before + and −. Reading from the left, ${d.a} ${d.op} ${d.b} is the first × or ÷, so it comes first.`;
     return `Only ${'×÷'.includes(d.op) ? '× and ÷' : '+ and −'} are left, and they are done left to right. ${d.a} ${d.op} ${d.b} is the first one.`;
@@ -275,13 +279,14 @@
   }
   const NTH = { 2: 'half', 3: 'one third', 4: 'one fourth', 5: 'one fifth', 6: 'one sixth' };
   function interpretQ() {   // compare without working it out
-    const n = rnd(2, 6), A = rnd(100, 30000), B = rnd(100, 30000), times = Math.random() < 0.6, sum = Math.random() < 0.5;
-    const base = `${fmtN(A)} ${sum ? '+' : '−'} ${fmtN(B)}`, inner = sum ? base : `${fmtN(Math.max(A, B))} − ${fmtN(Math.min(A, B))}`;
+    let A, B; do { A = rnd(100, 30000); B = rnd(100, 30000); } while (A === B);
+    const n = rnd(2, 6), times = Math.random() < 0.6, sum = Math.random() < 0.5;
+    const inner = sum ? `${fmtN(A)} + ${fmtN(B)}` : `${fmtN(Math.max(A, B))} − ${fmtN(Math.min(A, B))}`, label = `the ${sum ? 'sum' : 'difference'} ${inner}`;
     const expr = times ? `${n} × (${inner})` : `(${inner}) ÷ ${n}`;
     const size = n === 2 ? 'half as large' : `${NTH[n]} as large`;
-    const rightText = times ? `${n} times as large as ${inner}` : `${size} as ${inner}`;
-    const wrongs = times ? [`${n} more than ${inner}`, `${size} as ${inner}`, `The same size as ${inner}`] : [`${n} times as large as ${inner}`, `${n} less than ${inner}`, `The same size as ${inner}`];
-    return { q: `Without working it out, how does ${expr} compare to ${inner}?`, qh: `Without working it out, how does <span class="ex">${SB.esc ? SB.esc(expr) : expr}</span> compare to <span class="ex">${SB.esc ? SB.esc(inner) : inner}</span>?`, a: rightText, wrong: shuffle(wrongs), why: `${times ? `Multiplying ${inner} by ${n}` : `Dividing ${inner} by ${n}`} makes ${times ? `a number ${n} times as large` : `a number ${size}`}. You can tell from the signs, without adding or subtracting at all.`, say: `Without working it out, how does ${expr} compare to ${inner}?` };
+    const rightText = times ? `${n} times as large as ${label}` : `${size} as ${label}`;
+    const wrongs = times ? [`${n} more than ${label}`, `${size} as ${label}`, `The same size as ${label}`] : [`${n} times as large as ${label}`, `${n} less than ${label}`, `The same size as ${label}`];
+    return { q: `Without working it out, how does ${expr} compare to ${label}?`, qh: `Without working it out, how does <span class="ex">${SB.esc ? SB.esc(expr) : expr}</span> compare to ${label.replace(inner, `<span class="ex">${SB.esc ? SB.esc(inner) : inner}</span>`)}?`, a: rightText, wrong: shuffle(wrongs), why: `${times ? `Multiplying ${label} by ${n}` : `Dividing ${label} by ${n}`} makes ${times ? `a number ${n} times as large` : `a number ${size}`}. You can tell from the signs, without adding or subtracting at all.`, say: `Without working it out, how does ${expr} compare to ${label}?` };
   }
 
   const ORDERGEN = { parse, render, sayTokens, chain, value, nextIndex, applyAt, make, wrap, flat, leftToRight, plainQ, parensQ, nestedQ, bracesQ, firstQ, nextQ, fitQ, writeQ, readQ, interpretQ, stepText, chainText, fmtN, GROUP_HINT, PHRASES, KINDS };
