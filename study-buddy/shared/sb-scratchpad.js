@@ -309,6 +309,7 @@
     ed.querySelectorAll('[data-b]').forEach(el => { const t = tops[el.dataset.b]; if (t != null && t <= y + .5 && (!best || t >= best.t)) best = { b: el.dataset.b, t: Math.round(t * 10) / 10 }; });
     return best;
   }
+  const shiftY = (it, d) => { const n = Object.assign({}, it); if (n.k === 's') n.p = it.p.map((v, i) => i % 3 === 1 ? Math.round((v + d) * 10) / 10 : v); else n.y = it.y + d; return n; };
   const offOf = (it, tops) => (it.a && tops && tops[it.a.b] != null) ? tops[it.a.b] - it.a.t : 0;
   function itemBounds(items, tops) {
     let mx = 0, my = 0;
@@ -436,15 +437,19 @@
     if (o.live && P) ed = P.ed; else { s = offscreen(o, o.layout); ed = s.ed; }
     try {
       const cs = getComputedStyle(ed), pl = parseFloat(cs.paddingLeft) || 0, pr = parseFloat(cs.paddingRight) || 0, pt = parseFloat(cs.paddingTop) || 0, pb = parseFloat(cs.paddingBottom) || 0;
-      const items = o.live && P ? P.items : (o.items || []), tops = blockTops(ed), sc = o.scale || 1, font = OLDFONT();
+      const items = o.live && P ? P.items : (o.items || []), tops = blockTops(ed), font = OLDFONT();
       let textH = 0; [...ed.children].forEach(c => { textH = Math.max(textH, c.offsetTop + c.offsetHeight - pt); });
       if (!ed.textContent.trim() && !ed.querySelector('li')) textH = 0;
       const bd = itemBounds(items, tops), cw = ed.clientWidth - pl - pr;
       const W = Math.max(o.inkOnly ? 0 : 320, Math.ceil(Math.max(cw, bd.w + 12) + pl + pr)), H = Math.max(o.inkOnly ? 1 : 220, Math.ceil(Math.max(textH, bd.h) + pt + Math.max(pb, 24)));
       let qlines = [], hh = 0; const tmp = document.createElement('canvas').getContext('2d');
       if (o.question) { tmp.font = '700 20px ' + font; qlines = wrapWords(tmp, o.question, W - 40); hh = qlines.length * 27 + 26; }
-      const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(W * sc)); cv.height = Math.max(1, Math.round((H + hh) * sc));
-      const g = cv.getContext('2d'); g.scale(sc, sc);
+      /* o.clip = [top, bottom]: only that band (a PDF page), so a long note never needs one giant canvas. Phones and tablets refuse a canvas
+         over about 16 million pixels, and every browser one taller than about 32,000, so the scale comes down when needed. o.measure: no picture. */
+      const y0 = o.clip ? Math.max(0, o.clip[0]) : 0, y1 = o.clip ? Math.min(H + hh, o.clip[1]) : H + hh, bandH = Math.max(1, y1 - y0);
+      const sc = o.measure ? .01 : Math.min(o.scale || 1, Math.sqrt(15e6 / (W * bandH)), 30000 / bandH, 30000 / W);
+      const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(W * sc)); cv.height = Math.max(1, Math.round(bandH * sc));
+      const g = cv.getContext('2d'); g.scale(sc, sc); g.translate(0, -y0);
       if (!o.inkOnly) { g.fillStyle = PAPER.bg; g.fillRect(0, 0, W, H + hh); }
       g.save(); g.translate(0, hh);
       if (!o.inkOnly) paperOn(g, o.live && P ? P.paper : o.paper, W, H, pl, pt, baselineOf(ed));
@@ -452,14 +457,14 @@
       const lines = o.inkOnly ? [] : drawTyped(g, ed);
       drawShapes(g, items, tops);
       const ink = document.createElement('canvas'); ink.width = cv.width; ink.height = cv.height;     // pens on their own layer, so the eraser only rubs out pen
-      const ig = ink.getContext('2d'); ig.scale(sc, sc); ig.translate(pl, pt + hh); drawInk(ig, items, tops);
+      const ig = ink.getContext('2d'); ig.scale(sc, sc); ig.translate(pl, pt + hh - y0); if (!o.measure) drawInk(ig, items, tops);
       g.restore(); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(ink, 0, 0); g.restore();
-      if (hh) {
-        g.fillStyle = PAPER.bg; g.fillRect(0, 0, W, hh); g.fillStyle = PAPER.head; g.font = '700 20px ' + font; g.textBaseline = 'top';
+      if (hh && y0 < hh) {
+        g.save(); g.fillStyle = PAPER.bg; g.fillRect(0, 0, W, hh); g.fillStyle = PAPER.head; g.font = '700 20px ' + font; g.textBaseline = 'top';
         qlines.forEach((ln, i) => g.fillText(ln, 20, 14 + i * 27));
-        g.strokeStyle = PAPER.major; g.lineWidth = 2; g.beginPath(); g.moveTo(0, hh - 1); g.lineTo(W, hh - 1); g.stroke();
+        g.strokeStyle = PAPER.major; g.lineWidth = 2; g.beginPath(); g.moveTo(0, hh - 1); g.lineTo(W, hh - 1); g.stroke(); g.restore();
       }
-      cv.lines = lines.map(l => ({ y: l.y + pt + hh, b: l.b + pt + hh })); cv.top = hh; cv.cssW = W; cv.cssH = H + hh;
+      cv.scaleUsed = sc; cv.lines = lines.map(l => ({ y: l.y + pt + hh, b: l.b + pt + hh })); cv.top = hh; cv.cssW = W; cv.cssH = H + hh;
       return cv;
     } finally { if (s) s.done(); }
   }
@@ -570,7 +575,7 @@
   .sbp-off{position:absolute!important;left:-30000px;top:0;visibility:hidden;pointer-events:none}
   .sbp-off .sbp-ed{min-height:0}
   .sbp-shapes{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
-  .sbp.shapes .sbp-shapes{pointer-events:all;cursor:crosshair}
+  .sbp.shapes .sbp-shapes{pointer-events:all;cursor:crosshair;touch-action:none}
   .sbp.shapes .sbp-shapes [data-i]{cursor:move}
   .sbp-shapes .sel{fill:none;stroke:#1f5fbf;stroke-width:1.5;stroke-dasharray:5 4;pointer-events:none}
   .sbp-shapes .hd{fill:#fff;stroke:#1f5fbf;stroke-width:2}
@@ -622,9 +627,10 @@
   const typedSomething = () => !!P && (!!P.ed.textContent.trim() || !!P.ed.querySelector('li'));
   const hasInk = items => items.some(i => i.k === 't' || i.k === 'h' || i.t !== 'erase');
   const hasContent = () => !!P && (hasInk(P.items) || typedSomething());
-  const dirty = () => !!P && hasContent() && (P.items !== P.savedItems || P.html !== P.savedHtml);
+  const metaOf = () => [P.ed.dataset.ff, P.ed.dataset.sz, P.paper].join('|');   // the whole note's font, size and paper count as changes too
+  const dirty = () => !!P && hasContent() && (P.items !== P.savedItems || P.html !== P.savedHtml || metaOf() !== P.savedMeta);
   const curState = () => ({ items: P.items, html: P.html, font: P.ed.dataset.ff, size: P.ed.dataset.sz });
-  const rememberNote = () => { resume = P && (hasContent() || P.from) ? Object.assign({ key: resumeKey(P.kid, P.source, P.question), paper: P.paper, from: P.from, savedItems: P.savedItems, savedHtml: P.savedHtml }, curState()) : null; };
+  const rememberNote = () => { resume = P && (hasContent() || P.from) ? Object.assign({ key: resumeKey(P.kid, P.source, P.question), paper: P.paper, from: P.from, savedItems: P.savedItems, savedHtml: P.savedHtml, savedMeta: P.savedMeta }, curState()) : null; };
   const isDesktop = () => !(window.matchMedia && matchMedia('(max-width:899px), (max-height:520px)').matches);   // a phone turned sideways (915x412) counts as a phone
   const prefs = () => { const v = SB.activeId() ? SB.getSetting('notepad') : null; return (v && typeof v === 'object') ? v : {}; };
   const setPref = (k, v) => { try { if (SB.activeId()) SB.setSetting('notepad', Object.assign({}, prefs(), { [k]: v })); } catch (e) {} };
@@ -715,12 +721,13 @@
     try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (e) {}
     wire();
     setQuestion(o.question || '');
+    /* the page behind is made inert first, so a box that opens next (Bring back your writing?) leaves it inert when it closes */
+    if (o.full && isDesktop()) setFull(true);
+    if (!isDesktop()) { [...document.body.children].forEach(c => { if (c !== el && !c.classList.contains('sb-ov') && !c.inert) { c.inert = true; P.inerted = (P.inerted || []).concat(c); } }); }
     if (o.note) loadNote(o.note, true, o.scope);
     else if (resume && resume.key === resumeKey(P.kid, P.source, P.question)) restoreState(resume, true);
     else { setHTML(''); offerDraft(); }
-    if (o.full && isDesktop()) setFull(true);
     fit(); refresh(); fontsReady().then(() => { if (P) { fit(); } });
-    if (!isDesktop()) { [...document.body.children].forEach(c => { if (c !== el && !c.classList.contains('sb-ov') && !c.inert) { c.inert = true; P.inerted = (P.inerted || []).concat(c); } }); }
     const on = (t, ev, fn, opt) => { t.addEventListener(ev, fn, opt); P.listeners.push(() => t.removeEventListener(ev, fn, opt)); };
     on(document, 'keydown', onKey);
     on(document, 'selectionchange', onSel);
@@ -809,8 +816,11 @@
       });
       k();
     }
-    const seen = new Set();
-    ed.querySelectorAll('p,h2,h3,ul,ol,li').forEach(b => { let id = b.getAttribute('data-b'); if (!id || seen.has(id) || !/^[a-z0-9]{1,12}$/.test(id)) { id = newId(); b.setAttribute('data-b', id); } seen.add(id); });
+    /* Enter copies a block's id onto the new block (before it, when Enter is pressed at the start). The id stays with the copy that has
+       the words, so a drawing beside those words keeps following them. */
+    const groups = {};
+    ed.querySelectorAll('p,h2,h3,ul,ol,li').forEach(b => { const id = b.getAttribute('data-b'); if (!id || !/^[a-z0-9]{1,12}$/.test(id)) { b.setAttribute('data-b', newId()); return; } (groups[id] = groups[id] || []).push(b); });
+    Object.values(groups).forEach(g => { if (g.length < 2) return; const keep = g.reduce((m, b) => b.textContent.trim().length > m.textContent.trim().length ? b : m, g[0]); g.forEach(b => { if (b !== keep) b.setAttribute('data-b', newId()); }); });
     if (!ed.firstChild) { ed.innerHTML = ''; }
     ed.classList.toggle('empty', !typedSomething());
   }
@@ -859,7 +869,7 @@
   function endTyping() { if (P) { P.typing = false; clearTimeout(P.tt); } }
   function restoreState(s, fresh) {
     P.ed.innerHTML = s.html || ''; P.ed.dataset.ff = s.font || P.ed.dataset.ff || 'hand'; P.ed.dataset.sz = s.size || 'm'; tidy(); P.html = P.ed.innerHTML; P.items = s.items || [];
-    if (fresh) { P.paper = s.paper || P.paper; P.from = s.from || null; P.savedItems = s.savedItems === undefined ? null : s.savedItems; P.savedHtml = s.savedHtml === undefined ? null : s.savedHtml; P.past = []; P.future = []; }
+    if (fresh) { P.paper = s.paper || P.paper; P.from = s.from || null; P.savedItems = s.savedItems === undefined ? null : s.savedItems; P.savedHtml = s.savedHtml === undefined ? null : s.savedHtml; P.savedMeta = s.savedMeta || null; P.past = []; P.future = []; }
     if (P.sel >= P.items.length || (P.sel >= 0 && P.items[P.sel].k !== 'h')) P.sel = -1;
     fit(); render(); refresh();
     if (s.c != null && P.mode === 'type') { P.ed.focus({ preventScroll: true }); setCaret(s.c); }
@@ -951,7 +961,16 @@
   }
   function render() {
     if (!P || !P.pad) return;
-    P.tops = blockTops(P.ed); P.ed.classList.toggle('noph', P.items.length > 0);   // no "Type here" hint over a drawing
+    const prev = P.tops || {}; P.tops = blockTops(P.ed); P.ed.classList.toggle('noph', P.items.length > 0);
+    /* a block that was joined into another (Backspace at its start) is gone: what was drawn beside it stays where it is now on screen,
+       and belongs to the block that is there now */
+    if (P.items.some(it => it.a && P.tops[it.a.b] == null)) {
+      P.items = P.items.map(it => {
+        if (!it.a || P.tops[it.a.b] != null) return it;
+        const d = prev[it.a.b] != null ? prev[it.a.b] - it.a.t : 0, n = shiftY(it, d); delete n.a;
+        const ya = n.k === 'h' ? boxOf(n).y : n.k === 's' ? n.p[1] : n.y, a = anchorAt(P.ed, P.tops, ya); if (a) n.a = a; return n;
+      });
+    }   // no "Type here" hint over a drawing
     /* the page grows to hold the drawing, with room below to keep going */
     const bd = itemBounds(P.items, P.tops), need = Math.ceil(bd.h + P.pad.t + 260);
     const cur = parseFloat(P.ed.style.minHeight) || 0; if (Math.abs(cur - need) > 40 || cur < need) P.ed.style.minHeight = Math.max(need, 0) + 'px';
@@ -1133,6 +1152,11 @@
       if (e.pointerId !== P.pid) return; P.pid = null;
       if (P.estroke) { const E = P.estroke; P.estroke = null; if (E.items !== P.items) commit(E.items); render(); return; }
       if (!P.cur) return; const s = P.cur; P.cur = null;
+      if (s.t === 'erase') {        // the rub-out belongs to the drawing it rubs out, so the two move together
+        const r = s.w / 2, under = P.items.filter(it => it.k === 's' && it.t !== 'erase' && [0, s.p.length / 3 - 1, Math.floor(s.p.length / 6)].some(k => hits(it, s.p[k * 3], s.p[k * 3 + 1], r))).pop();
+        if (under && under.a) { const d = offOf(under, P.tops); commit([...P.items, Object.assign(shiftY(s, -d), { a: under.a })]); return; }
+        if (under) { commit([...P.items, s]); return; }
+      }
       const a = anchorAt(P.ed, P.tops, s.p[1]); if (a) s.a = a;
       commit([...P.items, s]);
     };
@@ -1338,7 +1362,7 @@
       const n = cleanNote(note) || note;
       P.paper = n.paper || 'blank'; P.sel = -1;
       restoreState({ html: n.html || '', items: JSON.parse(JSON.stringify(n.items || [])), font: n.font, size: n.size, paper: P.paper, from: scope && n.id ? { scope, id: n.id } : null }, true);
-      P.savedItems = P.items; P.savedHtml = P.html;
+      P.savedItems = P.items; P.savedHtml = P.html; P.savedMeta = metaOf();
       if (n.question && !P.question) setQuestion(n.question);
       const box = $('.sbp-saved', P.el); if (!box.hidden) toggleSaved();
       refresh();
@@ -1352,7 +1376,7 @@
     return { id: uid(), at: Date.now(), v: 2, question: P.question, mod: P.source, paper: P.paper, font: P.ed.dataset.ff, size: P.ed.dataset.sz, html: sanitize(P.html), w: Math.round(w), h: Math.round(P.ed.scrollHeight), items: P.items };
   }
   const canShare = () => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File([''], 'note.png', { type: 'image/png' })] })); } catch (e) { return false; } };   // phones and tablets
-  const markSaved = () => { if (P) { P.savedItems = P.items; P.savedHtml = P.html; dropDraft(P.kid); } };
+  const markSaved = () => { if (P) { P.savedItems = P.items; P.savedHtml = P.html; P.savedMeta = metaOf(); dropDraft(P.kid); } };
   async function saveTo(kind, withQuestion) {
     if (!P) return false; const note = snapshotNote();
     if (kind === 'share') {

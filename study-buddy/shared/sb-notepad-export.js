@@ -75,17 +75,18 @@
   }
   const dataBytes = url => { const b = atob(url.slice(url.indexOf(',') + 1)), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
   async function pdf(note, o) {
-    const P = I.PAGE, sc = 2;
-    const cv = I.compose(Object.assign({}, note, { layout: 'print', scale: sc, question: o.question }));
-    const W = cv.cssW, H = cv.cssH, f = Math.min(1, P.W / W), body = P.BODY / f;      // a drawing wider than the page is shrunk to fit
-    const lines = cv.lines || [], pages = [];
+    const P = I.PAGE, sc = 2, base = Object.assign({}, note, { layout: 'print', question: o.question });
+    const m = I.compose(Object.assign({}, base, { measure: true }));      // where the lines of text are, without a picture
+    const W = m.cssW, H = m.cssH, f = Math.min(1, P.W / W), body = P.BODY / f;      // a drawing wider than the page is shrunk to fit
+    const lines = m.lines || [], pages = [];
     let y0 = 0;
     while (y0 < H - 1 && pages.length < 200) {
       let y1 = Math.min(H, y0 + body);
-      if (y1 < H) { const cut = lines.filter(l => l.y < y1 && l.b > y1).reduce((m, l) => Math.min(m, l.y), y1); if (cut > y0 + body * .5) y1 = cut; }   // never cut through a line of text
+      if (y1 < H) { const cut = lines.filter(l => l.y < y1 && l.b > y1).reduce((mm, l) => Math.min(mm, l.y), y1); if (cut > y0 + body * .5) y1 = cut; }   // never cut through a line of text
+      const band = I.compose(Object.assign({}, base, { scale: sc, clip: [y0, y1] }));   // one page at a time, so a long note never needs one giant canvas
       const pg = document.createElement('canvas'); pg.width = P.W * sc; pg.height = P.H * sc;
       const g = pg.getContext('2d'); g.fillStyle = I.PAPER.bg; g.fillRect(0, 0, pg.width, pg.height);
-      const h = y1 - y0; g.drawImage(cv, 0, Math.round(y0 * sc), Math.round(W * sc), Math.round(h * sc), Math.round((P.W - W * f) / 2 * sc), P.PADY * sc, Math.round(W * f * sc), Math.round(h * f * sc));
+      const h = y1 - y0; g.drawImage(band, 0, 0, band.width, band.height, Math.round((P.W - W * f) / 2 * sc), P.PADY * sc, Math.round(W * f * sc), Math.round(h * f * sc));
       pages.push({ jpeg: dataBytes(pg.toDataURL('image/jpeg', .9)), w: pg.width, h: pg.height });
       y0 = y1;
     }
@@ -129,7 +130,7 @@
       if (n.nodeType === 3) { const t = n.nodeValue.replace(/ /g, ' '); if (t) s += `<w:r>${rPr(f)}<w:t xml:space="preserve">${X(t)}</w:t></w:r>`; return; }
       if (n.nodeType !== 1) return;
       const t = n.tagName, g = Object.assign({}, f);
-      if (t === 'BR') { s += `<w:r>${rPr(f)}<w:br/></w:r>`; return; }
+      if (t === 'BR') { if (!n.nextSibling && /^(P|H2|H3|LI)$/.test(n.parentNode.tagName || '')) return; s += `<w:r>${rPr(f)}<w:br/></w:r>`; return; }   // the <br> that ends every blank line is not a second line
       if (t === 'UL' || t === 'OL') return;
       if (t === 'B') g.b = true; if (t === 'I') g.i = true; if (t === 'U') g.u = true; if (t === 'S') g.s = true;
       if (t === 'SPAN') {
@@ -175,7 +176,7 @@
     const pad = 16; top = Math.max(0, top - pad); left = Math.max(0, left - pad); bot = Math.min(h, bot + pad); right = Math.min(w, right + pad);
     const out = document.createElement('canvas'); out.width = right - left; out.height = bot - top;
     const og = out.getContext('2d'); og.fillStyle = I.PAPER.bg; og.fillRect(0, 0, out.width, out.height); og.drawImage(cv, left, top, out.width, out.height, 0, 0, out.width, out.height);
-    return out;
+    out.su = cv.scaleUsed || 2; return out;
   }
   async function docx(note, o) {
     const base = { font: note.font || 'hand', px: sizeOf(note.size || 'm') }, rels = [], nums = [];
@@ -189,7 +190,7 @@
       const ink = cropInk(I.compose(Object.assign({}, note, { layout: 'print', scale: 2, inkOnly: true })));
       if (ink) {
         img = await new Promise(res => ink.toBlob(b => b.arrayBuffer().then(a => res(new Uint8Array(a))), 'image/png'));
-        let w = ink.width / 2, h = ink.height / 2; const k = Math.min(1, 624 / w, 860 / h); w *= k; h *= k;
+        let w = ink.width / ink.su, h = ink.height / ink.su; const k = Math.min(1, 624 / w, 860 / h); w *= k; h *= k;
         const cx = Math.round(w * 9525), cy = Math.round(h * 9525);
         body += `<w:p><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="1" name="Drawings"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="1" name="drawings.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdImg"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
       }

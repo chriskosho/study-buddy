@@ -146,6 +146,26 @@ async def main():
         await pg.keyboard.press('Enter'); await pg.keyboard.type('A new line above'); await pg.keyboard.press('Enter'); await pg.keyboard.type('and another')
         off = await pg.evaluate("(() => { const it = SBPad.debug().items.slice(-1)[0], tops = SBPad.internals.blockTops(document.querySelector('.sbp-ed')); return tops[it.a.b] - it.a.t; })()")
         check(abs(off - 64) < 1, f'typing two lines above moves the drawing down two lines ({off}px)')
+        ANCH = "(() => { const it = SBPad.debug().items.slice(-1)[0], tops = SBPad.internals.blockTops(document.querySelector('.sbp-ed')); return [it.a.b, tops[it.a.b] - it.a.t + it.p[1]]; })()"
+        b0, y_before = await pg.evaluate(ANCH)
+        await pg.evaluate("(b) => { const ed = document.querySelector('.sbp-ed'), li = ed.querySelector('[data-b=\"' + b + '\"]'), r = document.createRange(); r.setStart(li.firstChild, 0); r.collapse(true); ed.focus(); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }", b0)
+        await pg.keyboard.press('Enter'); await pg.wait_for_timeout(60)
+        b1, y_after = await pg.evaluate(ANCH)
+        check(b1 == b0 and abs(y_after - y_before - 32) < 1, f'Enter at the start of the line the drawing is beside moves the drawing down with it ({y_before} -> {y_after})')
+        await pg.wait_for_timeout(1000)
+        b2, y_mid = await pg.evaluate(ANCH)
+        await pg.evaluate("(b) => { const ed = document.querySelector('.sbp-ed'); ed.querySelector('[data-b=\"' + b + '\"]').remove(); ed.dispatchEvent(new InputEvent('input', { bubbles: true })); }", b2)
+        await pg.wait_for_timeout(60)
+        b3, y_gone = await pg.evaluate(ANCH)
+        check(b3 != b2 and abs(y_gone - y_mid) < 1, f'when that line is joined into another, the drawing stays where it is and follows the new line ({y_mid} -> {y_gone})')
+        # a rub-out belongs to the drawing it rubs out
+        await pg.click('.sbp [data-mode="draw"]'); await pg.click('.sbp [data-tool="eraser"]'); await pg.click('.sbp [data-er="area"]')
+        last = (await st(pg))['items'][-1]; o2 = await content_origin(pg)
+        yy = await pg.evaluate("(() => { const it = SBPad.debug().items.slice(-1)[0], tops = SBPad.internals.blockTops(document.querySelector('.sbp-ed')); return tops[it.a.b] - it.a.t + it.p[1]; })()")
+        await drag(pg, o2['x'] + last['p'][0] + 20, o2['y'] + yy - 40, o2['x'] + last['p'][0] + 30, o2['y'] + yy + 2)
+        er = (await st(pg))['items'][-1]
+        check(er['t'] == 'erase' and er.get('a') == last.get('a'), f'the eraser stroke moves with the drawing it rubbed out ({er.get("a")} vs {last.get("a")})')
+        await pg.keyboard.press('Control+z'); await pg.click('.sbp [data-tool="pen"]'); await pg.click('.sbp [data-mode="type"]')
         await pg.screenshot(path='/tmp/np_anchor.png')
 
         # ---- shapes ----
@@ -159,6 +179,7 @@ async def main():
             s = await st(pg)
             check(len(s['items']) == n0 + i + 1 and s['items'][-1]['sh'] == k and s['sel'] == len(s['items']) - 1, f'drawing a {k} adds it and selects it')
         check(await pg.get_attribute('.sbp [data-sh="select"]', 'aria-pressed') == 'true', 'after drawing a shape, Select is picked again')
+        check(await pg.evaluate("getComputedStyle(document.querySelector('.sbp-shapes')).touchAction") == 'none', 'a finger drag in Shapes moves shapes instead of scrolling')
         rect_i = n0; await pg.click(f'.sbp-shapes [data-i="{rect_i}"]', force=True)
         r0 = (await st(pg))['items'][rect_i]; c = await pg.locator(f'.sbp-shapes [data-i="{rect_i}"]').bounding_box()
         await drag(pg, c['x'] + c['width'] / 2, c['y'] + c['height'] / 2, c['x'] + c['width'] / 2 + 30, c['y'] + c['height'] / 2 - 120)
@@ -212,7 +233,7 @@ async def main():
         name, data = await download(pg, 'txt')
         t = data.decode('utf-8')
         check(name.startswith('note-') and name.endswith('.txt'), f'text file name {name}')
-        for want in ('Science notes', 'Plants need sunlight, water and air.', 'Read more (https://example.com/plants)', '- roots', '1. plant the seed', '2. water it', '[x] bring a pot', '[ ] buy soil', 'the end'):
+        for want in ('Science notes', 'Plants need sunlight, water and air.', 'Read more (https://example.com/plants)', '- stem', '1. plant the seed', '2. water it', '[x] bring a pot', '[ ] buy soil', 'the end'):
             check(want in t, f'the text file has {want!r}')
         name, data = await download(pg, 'pdf')
         check(data[:8] == b'%PDF-1.4' and data.rstrip().endswith(b'%%EOF'), f'a real PDF ({name}, {len(data)} bytes)')
@@ -245,7 +266,18 @@ async def main():
         await pg.click('#notesBox [data-a="open"]'); await pg.wait_for_selector('.sbp .sbp-ed'); await pg.wait_for_timeout(200)
         s = await st(pg)
         check(s['html'] == await pg.evaluate("h => SBPad.sanitize(h)", h0) and len(s['items']) == items0 and s['paper'] == 'lines' and not s['dirty'], 'reopening brings back the text, drawings, shapes and paper, unchanged')
-        await pg.click('.sbp [data-a="close"]'); await pg.wait_for_selector('.sbp', state='detached')
+        await pg.select_option('.sbp [data-s="font"]', 'mono'); check((await st(pg))['dirty'], 'changing the whole note\'s font counts as a change to save')
+        await pg.select_option('.sbp [data-s="font"]', 'hand'); check(not (await st(pg))['dirty'], 'changing it back does not')
+        await pg.click('.sbp [data-paper="lines"]'); check((await st(pg))['dirty'], 'so does changing the paper')
+        await pg.click('.sbp [data-paper="lines"]')
+        # a long note: the PDF is drawn a page at a time (phones refuse one giant picture)
+        await pg.evaluate("(() => { const ed = document.querySelector('.sbp-ed'); ed.insertAdjacentHTML('beforeend', Array.from({ length: 260 }, (_, i) => '<p>Line ' + (i + 1) + ' of a very long note</p>').join('')); ed.dispatchEvent(new InputEvent('input', { bubbles: true })); })()")
+        await pg.wait_for_timeout(200)
+        name, data = await download(pg, 'pdf')
+        imgs = [int(x) for x in re.findall(rb'/Filter /DCTDecode /Length (\d+)', data)]
+        check(len(imgs) >= 9 and min(imgs) > 20000, f'a long note makes many full pages ({len(imgs)} pages, smallest {min(imgs) if imgs else 0} bytes)')
+        name, data = await download(pg, 'txt'); check('Line 260 of a very long note' in data.decode(), 'and the text file has the last line')
+        await pg.click('.sbp [data-a="close"]'); await pg.click('.sb-ov [data-k="discard"]'); await pg.wait_for_selector('.sbp', state='detached')
 
         # ---- unsafe text is cleaned, never run ----
         clean = await pg.evaluate("""SBPad.sanitize('<p onclick="window.__x=1">hi<script>window.__x=2<\\/script><img src=x onerror="window.__x=3"><a href="javascript:window.__x=4">j</a><a href="https://ok.example/">ok</a><span style="color:#ff0000;position:fixed">c</span><iframe src="https://x"></iframe><font color="#00ff00">g</font></p>')""")
