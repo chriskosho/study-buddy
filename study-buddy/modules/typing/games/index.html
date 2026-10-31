@@ -22,7 +22,8 @@
 .ws-stage{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:22px 18px;text-align:center;min-height:190px;display:flex;flex-direction:column;justify-content:center;gap:12px;cursor:text}
 .ws-word{font:700 clamp(40px,6vw,64px)/1.2 ui-monospace,Consolas,monospace;letter-spacing:.04em;overflow-wrap:anywhere}
 html.sb-dyslexic .ws-word,html.sb-dyslexic .fw-word{font-family:var(--font)}
-.ws-word .ok{color:var(--good-ink)}
+.ws-word .ok{color:var(--ink)}
+.ws-word .fixed{color:var(--good-ink);border-bottom:4px solid var(--bad-ink)}
 .ws-word .bad{color:var(--bad-ink);background:var(--tint-bad);border-radius:4px}
 .ws-word .cur{background:var(--hl);border-bottom:4px solid var(--navy-ink);border-radius:4px}
 .ws-word .cur.miss{background:var(--tint-bad);border-bottom-color:var(--bad-ink)}
@@ -34,8 +35,8 @@ html.sb-dyslexic .ws-next{font-family:var(--font)}
 .fw-floor{position:absolute;left:0;right:0;bottom:0;height:8px;background:var(--track)}
 .fw-word{position:absolute;top:0;font:700 26px/1.2 ui-monospace,Consolas,monospace;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:2px 10px;white-space:nowrap;will-change:transform}
 .fw-word.target{border-color:var(--navy-ink)}
-.fw-word .ok{color:var(--good-ink)}
-.fw-word .todo{color:var(--ink)}
+.fw-word .ok{color:var(--ink)}
+.fw-word .todo{color:var(--ink2)}
 .fw-cover{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--surface)}
 .fw-cover > div{text-align:center;padding:12px}
 .fw-lives{display:inline-flex;gap:4px;vertical-align:middle}

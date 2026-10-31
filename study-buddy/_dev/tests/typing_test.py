@@ -76,7 +76,10 @@ async def main():
         check(await pg.locator('#lkType .c.cur.miss').count() == 1, 'the letter shows the mistake')
         await pg.keyboard.type(t[0])
         check(await pg.evaluate(POS) == 1, 'the right key moves on')
-        check(await pg.locator('#lkType .c.bad').count() == 1, 'the fixed letter stays marked')
+        check(await pg.locator('#lkType .c.fixed').count() == 1 and await pg.locator('#lkType .c.bad').count() == 0, 'the fixed letter turns green with a red underline, not red')
+        col = await pg.evaluate("(() => { const c = document.querySelector('#lkType .c.fixed'), cs = getComputedStyle(c), r = getComputedStyle(document.documentElement); return [cs.color, cs.borderBottomColor, cs.borderBottomWidth]; })()")
+        good = await pg.evaluate("(() => { const d = document.createElement('i'); d.style.color = 'var(--good-ink)'; d.style.borderBottom = '3px solid var(--bad-ink)'; document.body.append(d); const cs = getComputedStyle(d), o = [cs.color, cs.borderBottomColor]; d.remove(); return o; })()")
+        check(col[0] == good[0] and col[1] == good[1] and col[2] != '0px', f'fixed letter colors: {col} vs {good}')
         # "/" is a key to type, not the search shortcut
         await pg.keyboard.type('/')
         check(not await pg.evaluate("document.activeElement && document.activeElement.id === 'sbQ'"), '"/" does not jump to search')
@@ -102,27 +105,37 @@ async def main():
         await pg.reload(); await pg.wait_for_selector('#lkType .sbty-text .c')
         check(await pg.locator('.lkletters span:not(.off)').count() == 8, 'open letters are kept after a reload')
 
-        # ---- Fix mistakes off: wrong keys move on, Backspace steps back ----
-        await pg.click('#lkWait')
-        check('off' in await pg.inner_text('#lkWait'), 'Fix mistakes turns off')
+        # ---- Fix mistakes is always on and its switch is hidden (owner's choice, October 2026) ----
+        check(await pg.locator('#lkWait').is_hidden(), 'the Fix mistakes switch is hidden')
+        await pg.evaluate("(() => { const k = 'studybuddy.v1.m.k1.learn-keys', s = JSON.parse(localStorage.getItem(k)); s.wait = false; localStorage.setItem(k, JSON.stringify(s)); })()")
+        await pg.reload(); await pg.wait_for_selector('#lkType .sbty-text .c')
         t = await pg.evaluate(TEXT)
         await pg.keyboard.type(t[0]); await pg.keyboard.type('z' if t[1] != 'z' else 'q')
-        check(await pg.evaluate(POS) == 2, 'a wrong key moves on when Fix mistakes is off')
-        check(await pg.locator('#lkType .c.bad').count() == 1, 'the wrong letter is marked')
+        check(await pg.evaluate(POS) == 1, 'a wrong key still waits even if an old save turned Fix mistakes off')
+        await pg.keyboard.type(t[1])
+        check(await pg.evaluate(POS) == 2 and await pg.locator('#lkType .c.fixed').count() == 1, 'and the fixed letter turns green')
         await pg.keyboard.press('Backspace')
-        check(await pg.evaluate(POS) == 1, 'Backspace steps back')
-        # a letter fixed with Backspace still counts as a mistake in the key stats
-        before = await pg.evaluate("(() => { const s = JSON.parse(localStorage.getItem('studybuddy.v1.m.k1.learn-keys')); return s.stats; })()")
+        check(await pg.evaluate(POS) == 2, 'Backspace is not needed (and does nothing) while mistakes are fixed in place')
+        # a fixed letter still counts as a mistake in the key stats
+        await pg.click('#lkOver')
+        before = (await pg.evaluate(STATE))['stats']
         t = await pg.evaluate(TEXT)
-        rest = t[1:]
-        await pg.keyboard.type(rest)
+        await pg.keyboard.type(t[0]); await pg.keyboard.type('z' if t[1] != 'z' else 'q')
+        await pg.keyboard.type(t[1:])
         await pg.wait_for_timeout(150)
         after = (await pg.evaluate(STATE))['stats']
         k2 = t[1]
         miss_b = sum(1 for x in before.get(k2, []) if not x[1]); miss_a = sum(1 for x in after.get(k2, []) if not x[1])
         check(miss_a >= min(miss_b + 1, 30) or len(after.get(k2, [])) == 30 and miss_a >= 1, f'the fixed letter "{k2}" is saved as a mistake ({miss_b} -> {miss_a})')
-        await pg.click('#lkWait')
-        check((await pg.evaluate(STATE)).get('wait') is True, 'Fix mistakes is saved')
+        # Start over: new text in the card, nothing erased
+        n_open = await pg.locator('.lkletters span:not(.off)').count()
+        t = await pg.evaluate(TEXT); await pg.keyboard.type(t[0])
+        await pg.click('#lkOver')
+        check(await pg.evaluate(POS) == 0 and await pg.evaluate(TEXT) != t, 'Start over gives new words')
+        check(await pg.locator('.lkletters span:not(.off)').count() == n_open, 'and keeps the open letters')
+        t = await pg.evaluate(TEXT); await pg.keyboard.type(t[0])
+        check(await pg.evaluate(POS) == 1, 'typing works right after Start over')
+        check(await pg.locator('#lkOver').evaluate("b => !!b.closest('section.panel')"), 'Start over is inside the tool card')
         await pg.select_option('#lkTarget', '25')
         check((await pg.evaluate(STATE)).get('target') == 25 and '25 words a minute' in await pg.inner_text('.lkfocus'), 'target speed changes and is saved')
         await pg.select_option('#lkTarget', '15')
@@ -173,6 +186,10 @@ async def main():
         await pg.click('#tabbtn-hunt'); await pg.wait_for_timeout(100)
         check(await pg.inner_text('#khRound') == '2 of 10', 'Key Hunt waits while another tab is open, then carries on')
         await pg.keyboard.press('Space'); check('Look for' not in await pg.inner_text('#tab-hunt .msg'), 'the space bar is ignored in Key Hunt')
+        # the letter to find is centered right above the keyboard
+        g = await pg.evaluate("(() => { const l = document.querySelector('.huntletter').getBoundingClientRect(), k = document.querySelector('.khkb .sbkb').getBoundingClientRect(); return {lc: l.left + l.width / 2, kc: k.left + k.width / 2, gap: k.top - l.bottom}; })()")
+        check(abs(g['lc'] - g['kc']) < 60 and 0 <= g['gap'] < 60, f'the Key Hunt letter is front and center above the keyboard: {g}')
+        await pg.click('#khOver'); check(await pg.inner_text('#khRound') == '1 of 10', 'Start over begins a new round')
         await pg.click('[data-set="top"]')
         want = (await pg.inner_text('.huntletter')).strip().lower()
         check(want in 'qwertyuiop', 'Top row asks top-row letters')

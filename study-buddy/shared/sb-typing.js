@@ -224,7 +224,8 @@
     function paint() {
       for (let i = 0; i < spans.length; i++) {
         const m = marks[i], s = spans[i];
-        s.className = 'c' + (text[i] === ' ' ? ' sp' : '') + (i < pos ? (m === 'ok' ? ' ok' : ' bad') : i === pos ? ' cur' + (missedHere ? ' miss' : '') : '') + (i === ghostAt ? ' ghost' : '');
+        /* letters typed: ok = right the first time (dark), fixed = missed and then typed right (green, red underline), bad = missed (red) */
+        s.className = 'c' + (text[i] === ' ' ? ' sp' : '') + (i < pos ? (m === 'ok' ? ' ok' : m === 'fixed' ? ' fixed' : ' bad') : i === pos ? ' cur' + (missedHere ? ' miss' : '') : '') + (i === ghostAt ? ' ghost' : '');
       }
       const cur = spans[pos]; if (cur && cur.offsetTop > box.clientHeight * 0.55 + box.scrollTop) box.scrollTop = cur.offsetTop - box.clientHeight * 0.3;
       box.classList.toggle('more', box.scrollHeight - box.scrollTop > box.clientHeight + 4);   // fades the last line when more text is below
@@ -250,7 +251,7 @@
       const want = text[pos], good = k === want;
       if (good) {
         chars.push({ ch: want, ok: !missedHere && marks[pos] !== 'bad', ms: pos === 0 ? 0 : now - prev });   // a letter fixed after Backspace still counts as a mistake
-        if (marks[pos] == null) marks[pos] = 'ok';
+        marks[pos] = marks[pos] == null ? 'ok' : 'fixed';            // a letter missed before (now or before a Backspace) is fixed, not wrong
         pos++; missedHere = false;
       } else {
         wrong++;
@@ -265,12 +266,12 @@
     /* Backspace only matters when wrong keys move on (wait is off): it steps back so the letter can be fixed */
     function back() {
       if (stopped || opts.wait !== false || opts.noBack || pos === 0) return;
-      pos--; chars.pop(); if (marks[pos] === 'ok') marks[pos] = null; paint();
+      pos--; chars.pop(); if (marks[pos] === 'ok') marks[pos] = null; else if (marks[pos] === 'fixed') marks[pos] = 'bad'; paint();
       if (opts.onKey) opts.onKey({ key: 'Backspace', pos, next: text[pos] });
     }
     function finish() {
       stopped = true;
-      const correct = marks.filter(m => m === 'ok').length;
+      const correct = marks.filter(m => m === 'ok' || m === 'fixed').length;   // speed counts every letter that ends up right; accuracy counts the misses
       const r = { chars, correct, presses, wrong, elapsed, text };
       Object.assign(r, (window.SBTG ? SBTG.roundScore(r) : { wpm: 0, acc: 0 }));
       sr.textContent = 'Done. ' + Math.round(r.wpm) + ' words a minute, ' + Math.round(r.acc * 100) + ' percent right.';
@@ -287,7 +288,7 @@
       /* Typing Race: marks where the pacer is in the text (-1 for nowhere) */
       ghost(i) { if (i !== ghostAt) { ghostAt = i; paint(); } },
       /* the round so far, for timed tests that end before the text does */
-      snapshot: () => ({ chars: chars.slice(), correct: marks.slice(0, pos).filter(m => m === 'ok').length, presses, wrong, pos, text })
+      snapshot: () => ({ chars: chars.slice(), correct: marks.slice(0, pos).filter(m => m === 'ok' || m === 'fixed').length, presses, wrong, pos, text })
     };
     const soft = softKeys(host, api, { label: 'Type the text here' });
     reset(opts.text || '');
@@ -298,12 +299,16 @@
 
   /* ---------- settings and letter stats shared by every typing module ----------
      They live in Learn the Keys' saved state (the learn-keys module key): target speed, Fix mistakes, the keyboard switch, letter stats. */
+  /* "Fix mistakes" (a wrong key has to be fixed before going on) is always on for every typing tool, and its switch is hidden
+     (the owner's choice, October 2026). The switch and its code are kept: set FIX_MISTAKES_CHOICE to true to show the switches again.
+     Insane levels keep their own rule (wrong keys move on, no Backspace). */
+  const FIX_MISTAKES_CHOICE = false;
   const LK = () => SB.moduleKey('learn-keys');
   const readLK = () => { try { return JSON.parse(localStorage.getItem(LK()) || '{}') || {}; } catch (e) { return {}; } };
-  function shared() { const s = readLK(); return { target: Number(s.target) || 15, wait: s.wait !== false, showKb: s.showKb !== false, stats: s.stats && typeof s.stats === 'object' ? s.stats : {}, unlocked: Number(s.unlocked) || (window.SBTG ? SBTG.START : 7) }; }
+  function shared() { const s = readLK(); return { target: Number(s.target) || 15, wait: FIX_MISTAKES_CHOICE ? s.wait !== false : true, showKb: s.showKb !== false, stats: s.stats && typeof s.stats === 'object' ? s.stats : {}, unlocked: Number(s.unlocked) || (window.SBTG ? SBTG.START : 7) }; }
   function saveShared(fn) { const s = readLK(); fn(s); try { localStorage.setItem(LK(), JSON.stringify(s)); } catch (e) {} }
   /* adds a finished round's letters to the shared stats */
   function addStats(chars) { if (window.SBTG) saveShared(s => { s.stats = SBTG.addRound(s.stats && typeof s.stats === 'object' ? s.stats : {}, chars.map(c => ({ ch: c.ch, ok: c.ok, ms: c.ms }))); }); }
 
-  window.SBTY = { keyboard, typer, finger, keyOf, keysFor, needsKeyboard, ZONE, take: handlerFor, shared, saveShared, addStats, fit, toView, softKeys };
+  window.SBTY = { keyboard, typer, finger, keyOf, keysFor, needsKeyboard, ZONE, take: handlerFor, shared, saveShared, addStats, fit, toView, softKeys, FIX_MISTAKES_CHOICE };
 })();

@@ -110,11 +110,18 @@ async def main():
         p0 = await pg.evaluate(POS('rows')); t = await pg.evaluate(TEXT('rows'))
         await pg.click('#tab-rows [data-x="target"]'); await pg.keyboard.press('Escape'); await pg.keyboard.type(t[p0])
         check(await pg.evaluate(POS('rows')) == p0 + 1, 'typing works after opening the speed menu and pressing Escape')
-        p0 = await pg.evaluate(POS('rows'))
-        await pg.click('#tab-rows [data-x="wait"]')
-        check((await pg.evaluate(LK)).get('wait') is False, 'Fix mistakes is shared with Learn the Keys')
-        check(await pg.evaluate(POS('rows')) == p0, 'changing Fix mistakes keeps the round going')
-        await pg.click('#tab-rows [data-x="wait"]')
+        check(await pg.locator('#tab-rows [data-x="wait"]').count() == 0, 'there is no Fix mistakes switch (always on)')
+        # a wrong key, then the right one: the letter turns green with a red underline
+        p0 = await pg.evaluate(POS('rows')); t = await pg.evaluate(TEXT('rows'))
+        await pg.keyboard.type('q' if t[p0] != 'q' else 'z'); await pg.keyboard.type(t[p0])
+        check(await pg.locator(f'#tab-rows .sbty-text .c:nth-child(n)').count() > 0 and await pg.locator('#tab-rows .c.fixed').count() == 1 and await pg.locator('#tab-rows .c.bad').count() == 0, 'a fixed letter shows as fixed, not red')
+        # Start over: new text inside the card, the best is kept
+        best0 = (await pg.evaluate(DR))['best']
+        await pg.click('#tab-rows [data-x="over"]')
+        check(await pg.evaluate(POS('rows')) == 0 and await pg.evaluate(TEXT('rows')) != t, 'Start over gives new text')
+        check((await pg.evaluate(DR))['best'] == best0, 'and keeps the best')
+        t = await pg.evaluate(TEXT('rows')); await pg.keyboard.type(t[0])
+        check(await pg.evaluate(POS('rows')) == 1, 'typing works right after Start over')
         await pg.click('#tab-rows [data-x="kb"]'); check(await pg.locator('#tab-rows .dkb').is_hidden(), 'the keyboard can be hidden')
         await pg.click('#tab-rows [data-x="kb"]'); check(await pg.locator('#tab-rows .dkb').is_visible(), 'and shown again')
 

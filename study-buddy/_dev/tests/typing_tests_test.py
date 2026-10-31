@@ -49,6 +49,11 @@ async def main():
         check(await pg.locator('[data-len="60"][aria-pressed="true"]').count() == 1 and await pg.locator('[data-lvl="medium"][aria-pressed="true"]').count() == 1, '1 minute and Medium are picked first')
         t = await pg.evaluate(TEXT('speed'))
         check(len(t) >= 600 and t[0].isupper(), f'enough sentence text for a fast typist ({len(t)} characters)')
+        # Start over (in the card): new text and a fresh clock
+        await pg.keyboard.type(t[0]); await pg.click('#tab-speed .tbar [data-x="over"]')
+        t2 = await pg.evaluate(TEXT('speed'))
+        check(t2 != t and await pg.inner_text('.tclock') == '1:00' and await pg.evaluate(POS('speed')) == 0, 'Start over gives new text and a fresh clock')
+        t = t2
         daily0 = (await pg.evaluate(CHILD)).get('daily', {}).get('n', 0)
         typed = t[:60]
         for i, c in enumerate(typed):
@@ -113,6 +118,10 @@ async def main():
         await pg.goto(base + M + '?tool=accuracy'); await pg.wait_for_selector('#tab-accuracy .sbty-text .c')
         t = await pg.evaluate(TEXT('accuracy'))
         check(len(t) >= 150 and t[0].isupper(), 'accuracy test text is a couple of sentences')
+        await pg.keyboard.type(t[0]); await pg.click('#tab-accuracy .tbar [data-x="over"]')
+        t2 = await pg.evaluate(TEXT('accuracy'))
+        check(t2 != t and await pg.evaluate(POS('accuracy')) == 0, 'Start over on the accuracy test gives new text')
+        t = t2
         for i, c in enumerate(t):
             if i == 3: await pg.keyboard.type('~')
             await pg.keyboard.type(c, delay=5)

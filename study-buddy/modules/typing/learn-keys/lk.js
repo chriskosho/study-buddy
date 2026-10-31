@@ -25,6 +25,8 @@
   /* the student's typing settings and stats live in this module's saved state */
   function open(st) { return ORDER.slice(0, Math.max(G.START, Math.min(TOTAL, st.unlocked || G.START))); }
   function target(st) { return Number(st.target) || 15; }
+  /* Fix mistakes: always on unless the switch is turned back on in sb-typing.js (FIX_MISTAKES_CHOICE) */
+  const fixOn = st => !SBTY.FIX_MISTAKES_CHOICE || st.wait !== false;
 
   /* ===================== Lesson ===================== */
   const lesson = {
@@ -36,8 +38,9 @@
           <div class="lkletters" aria-label="Letters in the course"></div>
           <div class="lkopts">
             <label>Target speed <select id="lkTarget" data-typing title="Words a minute">${[10, 15, 20, 25, 30, 35, 40, 50].map(v => `<option value="${v}">${v} words a minute</option>`).join('')}</select></label>
-            <button class="iconbtn" id="lkWait" title="When it is on, a wrong key has to be fixed before you go on"></button>
+            <button class="iconbtn" id="lkWait" title="When it is on, a wrong key has to be fixed before you go on"${SBTY.FIX_MISTAKES_CHOICE ? '' : ' hidden'}></button>
             <button class="iconbtn" id="lkKb"></button>
+            <button class="iconbtn" id="lkOver" title="New words. Your letters and stats are kept.">Start over</button>
           </div>
         </div>
         <div class="lkfocus" aria-live="polite"></div>
@@ -49,7 +52,7 @@
       const msg = $('.lkmsg', P);
       const setMsg = (t, cls = '') => { msg.className = 'msg lkmsg' + (cls ? ' ' + cls : ''); msg.innerHTML = t; };
       const topts = {
-        wait: st.wait !== false,
+        wait: fixOn(st),
         onKey: info => { kb.only('next', info.next ? [info.next] : []); if (!info.good && info.key !== 'Backspace') kb.flash(info.key, false); },
         onDone: done
       };
@@ -72,7 +75,7 @@
         return f;
       }
       function paintOpts() {
-        const w = $('#lkWait', P); w.textContent = 'Fix mistakes: ' + (st.wait !== false ? 'on' : 'off'); w.setAttribute('aria-pressed', st.wait !== false);
+        const w = $('#lkWait', P); w.textContent = 'Fix mistakes: ' + (fixOn(st) ? 'on' : 'off'); w.setAttribute('aria-pressed', fixOn(st));
         const k = $('#lkKb', P); k.textContent = 'Keyboard: ' + (st.showKb !== false ? 'on' : 'off'); k.setAttribute('aria-pressed', st.showKb !== false);
         kbHost.hidden = st.showKb === false;
       }
@@ -103,8 +106,9 @@
 
       $('#lkTarget', P).onchange = e => { sync(st); st.target = Number(e.target.value); ctx.save(); paintKeys(); e.target.blur(); typer.active(); };   // blur, so the next keys type instead of changing the menu
       $('#lkWait', P).onclick = e => { sync(st); st.wait = st.wait === false; topts.wait = st.wait; ctx.save(); paintOpts(); e.currentTarget.blur(); typer.active(); };   // takes effect from the next key; the round goes on
+      $('#lkOver', P).onclick = e => { e.currentTarget.blur(); setMsg('New words. Start typing when you are ready.'); newRound(); typer.active(); };   // Start over: new text, nothing erased
       $('#lkKb', P).onclick = e => { sync(st); st.showKb = st.showKb === false; ctx.save(); paintOpts(); e.currentTarget.blur(); typer.active(); };
-      lesson._refresh = () => { sync(st); topts.wait = st.wait !== false; $('#lkTarget', P).value = String(target(st)); paintOpts(); if (!typer.started()) newRound(); else paintKeys(); };
+      lesson._refresh = () => { sync(st); topts.wait = fixOn(st); $('#lkTarget', P).value = String(target(st)); paintOpts(); if (!typer.started()) newRound(); else paintKeys(); };
       paintOpts();
       setMsg('Rest your fingers on the home row: <b>A S D F</b> and <b>J K L ;</b>. Then start typing.');
       newRound();
@@ -127,13 +131,14 @@
       P.classList.add('hunt');
       P.innerHTML = `
         <div class="hunthead">
-          <div class="huntq" aria-live="polite"></div>
+          <div class="seg" role="group" aria-label="Which keys">${SETS.map(s => `<button type="button" data-set="${s.id}">${s.label}</button>`).join('')}</div>
           <div class="row">
-            <div class="seg" role="group" aria-label="Which keys">${SETS.map(s => `<button type="button" data-set="${s.id}">${s.label}</button>`).join('')}</div>
             <button class="iconbtn" id="khCaps" title="Show the letter as a capital, the way it looks on the keys"></button>
             <span class="pill" id="khRound"></span>
+            <button class="iconbtn" id="khOver" title="A new round of letters">Start over</button>
           </div>
         </div>
+        <div class="huntq" aria-live="polite"></div>
         <div class="khkb"></div>
         <p class="msg" role="status"></p>`;
       const msg = $('.msg', P), q = $('.huntq', P);
@@ -201,6 +206,7 @@
         $('#khAgain', box).focus();
       }
       P.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { sync(st); st.hunt.set = b.dataset.set; ctx.save(); paintOpts(); const d = $('.huntdone', P); if (d) d.remove(); start(); });
+      $('#khOver', P).onclick = e => { e.currentTarget.blur(); const d = $('.huntdone', P); if (d) d.remove(); start(); };   // Start over: a new round
       $('#khCaps', P).onclick = () => { sync(st); st.hunt.caps = !st.hunt.caps; ctx.save(); paintOpts(); if (!over && list.length) { const k = list[i]; $('.huntletter', P).textContent = show(k); } };
       hunt._h = { live: () => !P.hidden && P.offsetParent !== null, type: k => press(k), back() {} };
       /* leaving the tab pauses the round; coming back carries on where it was */

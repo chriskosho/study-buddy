@@ -57,6 +57,7 @@ html.sb-dyslexic body{font-size-adjust:0.46}
 .sbty-text .c.sp i{font-style:normal;opacity:0}
 .sbty-text .c.ok{color:var(--ink)}
 .sbty-text .c.bad{color:var(--bad-ink);background:var(--tint-bad)}
+.sbty-text .c.fixed{color:var(--good-ink);border-bottom-color:var(--bad-ink)}   /* missed, then typed right */
 .sbty-text .c.cur{color:var(--ink);background:var(--hl);border-bottom-color:var(--navy-ink)}
 .sbty-text .c.cur.sp i{opacity:.6}
 .sbty-text .c.cur.miss{background:var(--tint-bad);border-bottom-color:var(--bad-ink)}

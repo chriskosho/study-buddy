@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-31', title: 'Typing colors, Start over, and Key Hunt', items: [
+    'Fixed: a letter that was missed and then typed right stayed red. Now letters typed right the first time are dark, missed letters are red, and letters fixed after a mistake are green with a red underline. Letters not typed yet stay gray.',
+    'Every typing tool always waits for the right key before moving on (except Insane, which moves on and has no Backspace). The Fix mistakes switch is gone.',
+    'Each typing tool has a Start over button in its card for new text. Your progress is kept. The Reset button at the top still erases progress.',
+    'Key Hunt shows the letter to find big and centered, right above the keyboard.' ] },
   { date: '2026-10-31', title: 'Typing on phones, and Typing Race', items: [
     'Fixed: on many phones the keyboard did not open in the typing tools. Tap the words, or the new Show keyboard button, to type with the phone keyboard. Word Sprint and Falling Words work on phones too now.',
     'Ghost Race is now called Typing Race. You race a pacer that types at your best speed or a speed you pick.' ] },
