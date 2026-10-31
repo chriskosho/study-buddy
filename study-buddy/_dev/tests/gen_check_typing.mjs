@@ -49,7 +49,7 @@ for (let n = G.START; n <= 26; n++) {
       const text = ws.join(''), count = text.split(focus).length - 1;
       if (count < 3) thin++;
     }
-    ok(thin <= 2, `focus letter ${focus} appears 3+ times in nearly every lesson (stage ${n}), thin=${thin}`);
+    ok(thin === 0, `focus letter ${focus} appears 3+ times in every lesson (stage ${n}), thin=${thin}`);
   });
 }
 /* real words show up once enough letters are open */

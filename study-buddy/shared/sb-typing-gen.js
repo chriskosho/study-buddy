@@ -123,6 +123,18 @@
       }
       out.push(w || pseudoWord(allowed, rand, null));
     }
+    /* the focus letter always shows up at least 3 times (or once per word in a short round): swap in words that have it */
+    if (focus) {
+      const need = Math.min(3, n), count = () => out.join('').split(focus).length - 1;
+      for (let tries = 0; count() < need && tries < 40; tries++) {
+        const spots = out.map((x, i) => i).filter(i => !out[i].includes(focus));
+        if (!spots.length) break;
+        const i = spots[Math.floor(rand() * spots.length)];
+        const c = fpool.length && rand() < 0.5 ? fpool[Math.floor(rand() * fpool.length)] : pseudoWord(allowed, rand, focus);
+        if (out.slice(Math.max(0, i - 4), i).includes(c) || out.slice(i + 1, i + 5).includes(c)) continue;
+        out[i] = c;
+      }
+    }
     return out;
   }
 
