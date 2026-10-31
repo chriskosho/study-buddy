@@ -54,7 +54,7 @@ async def main():
         for i, c in enumerate(typed):
             if i in (10, 30): await pg.keyboard.type('~')
             await pg.keyboard.type(c, delay=15)
-        check(await pg.inner_text('.tclock') in ('1:00', '0:59'), 'the clock is running')
+        check((await pg.inner_text('.tclock')) in ('1:00', '0:59', '0:58', '0:57', '0:56', '0:55'), 'the clock is running')   # typing takes a second or more, longer on a busy machine
         await pg.evaluate("window.__ff += 61000"); await pg.wait_for_timeout(450)
         m = await pg.inner_text('#tab-speed .tmsg')
         check(m.startswith('Time!'), f'time is up: {m}')
@@ -71,7 +71,8 @@ async def main():
         st = await pg.evaluate(ST)
         check(st['speed']['best']['60:medium']['wpm'] == 12 and len(st['speed']['history']) == 1, 'best and history saved')
         check('12 words a minute' in await pg.inner_text('#tab-speed .tline'), 'the best shows above the test')
-        check(len((await pg.evaluate(LK)).get('stats', {}).get(t[1].lower(), [])) >= 1, 'the letters count in the shared letter stats')
+        letter = next(c for c in typed if 'a' <= c <= 'z')   # the first small letter typed (capitals are not part of the letter stats)
+        check(len((await pg.evaluate(LK)).get('stats', {}).get(letter, [])) >= 1, 'the letters count in the shared letter stats')
         # a space typed after time is up does not start a new test
         await pg.keyboard.press('Space'); await pg.wait_for_timeout(100)
         check(await pg.locator('#tab-speed .tres').is_visible(), 'a space after time is up leaves the results on screen')
@@ -123,10 +124,11 @@ async def main():
         check(rec.get('max') == 100 and 95 <= rec.get('best', 0) < 100, f'accuracy recorded as a percent: {rec}')
         await pg.click('#tab-accuracy [data-lvl="insane"]')
         t = await pg.evaluate(TEXT('accuracy'))
-        await pg.keyboard.type(t[:10], delay=5); await pg.keyboard.type('~')
+        stop = next(i for i in range(10, len(t)) if t[i].isalpha())   # stop on a letter (a missed space is not listed as a key)
+        await pg.keyboard.type(t[:stop], delay=5); await pg.keyboard.type('~')
         m = await pg.inner_text('#tab-accuracy .tmsg')
-        check('Stopped at the first mistake after 10' in m and 'Keys to practice' in m, f'Insane ends at the first mistake and names the key: {m}')
-        await pg.keyboard.type(t[10])
+        check(f'Stopped at the first mistake after {stop}' in m and 'Keys to practice' in m, f'Insane ends at the first mistake and names the key: {m}')
+        await pg.keyboard.type(t[stop])
         check('Stopped' in await pg.inner_text('#tab-accuracy .tmsg'), 'typing after the stop does nothing')
 
         # ---- Your own text ----

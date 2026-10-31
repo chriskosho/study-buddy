@@ -100,6 +100,7 @@
       const handler = { live: () => visible(P) && !over, type: k => type(k), back() {} };
       stage.addEventListener('click', () => SBTY.take(handler));
       P.querySelectorAll('[data-lvl]').forEach(x => x.onclick = () => { S.level = x.dataset.lvl; ctx.save(); x.blur(); start(); });
+      SBTY.toView(stage);
       sprint._leave = () => { if (playing && !over) start(); };           // leaving the tab mid-game starts it over
       sprint._enter = () => SBTY.take(handler);
       let note = '';
@@ -227,6 +228,7 @@
       const handler = { live: () => visible(P) && running, type: k => type(k), back };
       area.addEventListener('click', () => { if (running) SBTY.take(handler); });
       P.querySelectorAll('[data-lvl]').forEach(x => x.onclick = () => { F.level = x.dataset.lvl; ctx.save(); x.blur(); reset(); });
+      SBTY.toView(area);
       falling._leave = pause;
       falling._enter = () => SBTY.take(handler);
       falling._hide = pause;

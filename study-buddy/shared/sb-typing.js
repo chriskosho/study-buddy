@@ -8,6 +8,8 @@
          Returns { reset(text), active(), stop(), pos(), next(), started(), snapshot() } and calls onDone({ chars, correct, presses, wrong, elapsed, wpm, acc }).
      SBTY.keysFor(ch)     the keys for a character, with the other hand's Shift for capitals and symbols like ?
      SBTY.finger(k)        { hand: 'left'|'right'|'thumb', finger: 'pinky'|'ring'|'middle'|'pointer'|'thumb', name: 'left pointer finger' }
+     SBTY.toView(el)       on a phone turned sideways, scrolls a tool's typing area into view
+     SBTY.fit()            shrinks the keyboard picture so a desktop tool screen has no scroll bar (runs by itself on resize and changes)
      SBTY.needsKeyboard()  true on a phone or tablet with no mouse (the tools show a notice there)
      SBTY.shared(), SBTY.saveShared(fn), SBTY.addStats(chars)   the target speed, Fix mistakes, keyboard switch, and letter stats every typing module shares
 
@@ -72,6 +74,7 @@
     });
     if (opts.onTap) svg.addEventListener('pointerdown', e => { const g = e.target.closest('g.k'); if (g && (g.dataset.k.length === 1 || opts.tapAll)) { e.preventDefault(); opts.onTap(g.dataset.k); } });
     host.appendChild(svg);
+    fit();
     const get = k => keys[k] || keys[keyOf(k)];
     return {
       el: svg,
@@ -85,6 +88,35 @@
       heat(map) { Object.keys(keys).forEach(k => { for (let i = 0; i < 5; i++) keys[k].classList.remove('h' + i); if (map && map[k] != null) keys[k].classList.add('h' + map[k]); }); },
       keys
     };
+  }
+
+  /* ---------- fitting the screen ----------
+     Tool screens have no scroll bars on a desktop (1440x900 and up), even with Larger text and OpenDyslexic on, which make
+     the words above the keyboard taller than any fixed size can allow for. After the CSS size is applied, the keyboard picture
+     shrinks by however much the page is still too tall, but only when that removes the scroll bar and leaves the keyboard at least 70px and about a third of its size. Phones and short windows scroll instead. */
+  let fitQueued = false;
+  function fit() {
+    if (fitQueued) return; fitQueued = true;
+    requestAnimationFrame(() => {
+      fitQueued = false;
+      const kbs = [...document.querySelectorAll('svg.sbkb')].filter(x => x.getClientRects().length > 0);   // shown (an SVG has no offsetParent)
+      if (!kbs.length) return;
+      kbs.forEach(x => { x.style.maxHeight = ''; });
+      if (innerWidth <= 760 || innerHeight <= 520) return;
+      const over = document.documentElement.scrollHeight - innerHeight;
+      if (over <= 0) return;
+      const zoom = parseFloat(getComputedStyle(document.body).zoom) || 1, k = kbs[kbs.length - 1], h = k.getBoundingClientRect().height;
+      const want = h - over - 2;
+      if (want >= Math.max(70 * zoom, h * 0.35)) k.style.maxHeight = want / zoom + 'px';   // only when that removes the scroll bar and the keys stay readable
+    });
+  }
+  addEventListener('resize', fit);
+  try { new ResizeObserver(fit).observe(document.documentElement); } catch (e) {}
+
+  /* On a phone turned sideways (a short, wide window) the header fills the screen, so a typing tool scrolls its text into view when it opens */
+  function toView(el) {
+    if (!el || innerHeight > 520 || innerWidth <= innerHeight) return;
+    setTimeout(() => { try { el.scrollIntoView({ block: 'center' }); } catch (e) {} }, 60);
   }
 
   /* ---------- devices ---------- */
@@ -136,7 +168,7 @@
       });
       box.innerHTML = h + (inWord ? '</span>' : '');
       spans = [...box.querySelectorAll('.c')];
-      paint();
+      paint(); fit();
     }
     function paint() {
       for (let i = 0; i < spans.length; i++) {
@@ -224,6 +256,7 @@
     };
     reset(opts.text || '');
     handlerFor(api);
+    toView(host);
     return api;
   }
 
@@ -236,5 +269,5 @@
   /* adds a finished round's letters to the shared stats */
   function addStats(chars) { if (window.SBTG) saveShared(s => { s.stats = SBTG.addRound(s.stats && typeof s.stats === 'object' ? s.stats : {}, chars.map(c => ({ ch: c.ch, ok: c.ok, ms: c.ms }))); }); }
 
-  window.SBTY = { keyboard, typer, finger, keyOf, keysFor, needsKeyboard, ZONE, take: handlerFor, shared, saveShared, addStats };
+  window.SBTY = { keyboard, typer, finger, keyOf, keysFor, needsKeyboard, ZONE, take: handlerFor, shared, saveShared, addStats, fit, toView };
 })();

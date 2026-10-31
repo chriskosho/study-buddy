@@ -36,6 +36,14 @@
 .sr{position:absolute;display:block;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}   /* display:block: a table ignores width and height */
 .tpaste textarea{width:100%;min-height:140px;border:2px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--surface);font:16px/1.45 var(--font);resize:vertical}
 .terr{color:var(--bad-ink);font-weight:700;min-height:22px;margin:6px 0}
+/* Larger text or OpenDyslexic: tighter results so they still fit 1440x900 */
+html.sb-large .ttiles,html.sb-dyslexic .ttiles{gap:6px}
+html.sb-large .tline,html.sb-dyslexic .tline{font-size:15px;margin-bottom:4px}
+html.sb-large .ttiles div,html.sb-dyslexic .ttiles div{padding:4px 10px}
+html.sb-large .ttiles b,html.sb-dyslexic .ttiles b{font-size:21px}
+html.sb-large .ttiles small,html.sb-dyslexic .ttiles small{font-size:12px}
+html.sb-large .tbtns,html.sb-dyslexic .tbtns{margin-top:8px}
+html.sb-large .tbtns .btn,html.sb-dyslexic .tbtns .btn{padding:8px 16px;font-size:16px}
 @media (max-width:900px){.tres{grid-template-columns:1fr}}
 @media (max-width:760px),(min-width:761px) and (max-height:520px){.tkb .sbkb{max-height:none}.ttiles b{font-size:22px}}
 </style>

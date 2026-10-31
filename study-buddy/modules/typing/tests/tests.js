@@ -30,7 +30,8 @@
   }
   function draw(host, steps, ms) {
     host.innerHTML = '<h3>Words a minute during the test</h3><div class="tplot"></div><div class="ttip" hidden></div>';
-    const W = Math.max(260, Math.round(host.clientWidth - 24)), H = 170, L = 38, R = 14, T = 12, B = 26;
+    const roomy = !document.documentElement.matches('.sb-large, .sb-dyslexic');   // Larger text or OpenDyslexic: a shorter chart so the results still fit
+    const W = Math.max(260, Math.round(host.clientWidth - 24)), H = roomy ? 170 : 120, L = 38, R = 14, T = 12, B = 26;
     const max = Math.max(...steps.map(s => s.wpm), 1);
     const top = Math.max(20, Math.ceil(max / 20) * 20);                       // 20, 40, 60...: the middle line is a round number
     const x = t => L + (W - L - R) * t / ms, y = v => T + (H - T - B) * (1 - v / top);
