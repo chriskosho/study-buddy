@@ -28,9 +28,25 @@ window.SB_REGISTRY = {
     { id: 'geography', name: 'Geography' },
     { id: 'history', name: 'History' },
     { id: 'roots', name: 'Greek and Latin Roots' },
+    { id: 'typing', name: 'Typing' },
     { id: 'other', name: 'Other' }
   ],
   modules: [
+    {
+      id: 'learn-keys',
+      subject: 'typing',
+      title: 'Learn the Keys',
+      blurb: 'Learn to type without looking, starting on the home row. New letters open as you get fast and accurate, and Key Hunt helps young learners find the keys.',
+      tags: ['keyboarding'],
+      path: 'modules/typing/learn-keys/index.html',
+      storage: ['learn-keys'],
+      tools: [
+        { id: 'lesson', name: 'Lesson', difficulty: 'medium', masterAt: 26, blurb: 'Type words made from the letters you have opened. A new letter opens when every open letter is at 95% and your target speed. Mastered when all 26 letters are open.' },
+        { id: 'hunt', name: 'Key Hunt', difficulty: 'easy', masterPct: 0.9, blurb: 'Find the letter on the keyboard. No timer. Mastered at 9 of 10 on the first try.' },
+        { id: 'map', name: 'Keyboard map', kind: 'study', difficulty: 'easy', blurb: 'Which finger types each key, and how to sit and rest your fingers on the home row.' },
+        { id: 'stats', name: 'Key stats', kind: 'study', difficulty: 'easy', blurb: 'Speed and accuracy for every letter, your best round, and your recent rounds.' }
+      ]
+    },
     {
       id: 'ham-technician',
       subject: 'other',
@@ -422,6 +438,108 @@ window.SB_REGISTRY = {
         { id: 'shapes', name: 'Shapes on the grid', difficulty: 'hard', blurb: 'Find the missing corner, and measure sides. Mastered at 8 of 10.' },
         { id: 'patterns', name: 'Patterns', difficulty: 'hard', blurb: 'Ordered pairs from two rules, and how they relate. Mastered at 8 of 10.' },
         { id: 'words', name: 'Maps and word problems', difficulty: 'insane', blurb: 'Using a grid in real situations. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
+      ]
+    },
+    {
+      id: 'facts',
+      subject: 'math',
+      title: 'Multiplication and Division Facts',
+      blurb: 'The times tables from 0 to 10, division facts, missing numbers, fact families, and a speed round.',
+      tags: ['math', 'multiplication', 'division'],
+      path: 'modules/math/facts/index.html',
+      storage: ['facts'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A times table chart with arrays, and the patterns that make facts easier.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for multiplication and division facts, one card each.' },
+        { id: 'times', name: 'Multiplication facts', difficulty: 'easy', blurb: 'Like 7 \u00d7 8. Mastered at 8 of 10.' },
+        { id: 'divide', name: 'Division facts', difficulty: 'medium', blurb: 'Like 56 \u00f7 7. Mastered at 8 of 10.' },
+        { id: 'missing', name: 'Missing numbers', difficulty: 'medium', blurb: 'Like 6 \u00d7 ? = 42. Mastered at 8 of 10.' },
+        { id: 'families', name: 'Fact families', difficulty: 'hard', blurb: 'Four facts that use the same three numbers. Mastered at 8 of 10.' },
+        { id: 'speed', name: 'Speed round', difficulty: 'hard', masterAt: 20, blurb: '60 seconds to answer as many facts as you can. Mastered at 20 right.' },
+        { id: 'words', name: 'Word problems', difficulty: 'insane', blurb: 'Equal groups, arrays, and sharing. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
+      ]
+    },
+    {
+      id: 'fractions-intro',
+      subject: 'math',
+      title: 'Fractions',
+      blurb: 'Unit fractions, naming fractions, fractions on a number line, equivalent fractions, and comparing fractions with the same top or bottom number.',
+      tags: ['math', 'fractions'],
+      path: 'modules/math/fractions-intro/index.html',
+      storage: ['fractions-intro'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Fraction bars and number lines you can switch between, with the words you need.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for fractions, one card each.' },
+        { id: 'name', name: 'Name the fraction', difficulty: 'easy', blurb: 'Read a fraction from a picture. Mastered at 8 of 10.' },
+        { id: 'numberline', name: 'Number line', difficulty: 'easy', blurb: 'Place and read fractions on a number line. Mastered at 8 of 10.' },
+        { id: 'whole', name: 'Wholes and fractions', difficulty: 'medium', blurb: 'Like 4/4 = 1 and 3 = 6/2. Mastered at 8 of 10.' },
+        { id: 'equivalent', name: 'Equivalent fractions', difficulty: 'medium', blurb: 'Different names for the same amount. Mastered at 8 of 10.' },
+        { id: 'compare', name: 'Compare fractions', difficulty: 'hard', blurb: 'Same denominator or same numerator. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Word problems', difficulty: 'insane', blurb: 'Fractions of a group or a whole in real situations. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
+      ]
+    },
+    {
+      id: 'rounding-place-value',
+      subject: 'math',
+      title: 'Rounding and Place Value to 1,000',
+      blurb: 'Place value to 1,000, expanded form, comparing numbers, rounding to the nearest 10 and 100, estimating, and adding and subtracting within 1,000.',
+      tags: ['math', 'place value', 'rounding'],
+      path: 'modules/math/rounding-place-value/index.html',
+      storage: ['rounding-place-value'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A place value chart you can type into, and the rounding rules with a number line.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for place value and rounding, one card each.' },
+        { id: 'place', name: 'Place value', difficulty: 'easy', blurb: 'Digits, values, and expanded form. Mastered at 8 of 10.' },
+        { id: 'compare', name: 'Compare and order', difficulty: 'easy', blurb: 'Greater than, less than, and smallest to largest. Mastered at 8 of 10.' },
+        { id: 'round10', name: 'Round to the nearest 10', difficulty: 'medium', blurb: 'Like 47 rounds to 50. Mastered at 8 of 10.' },
+        { id: 'round100', name: 'Round to the nearest 100', difficulty: 'medium', blurb: 'Like 462 rounds to 500. Mastered at 8 of 10.' },
+        { id: 'estimate', name: 'Estimate sums and differences', difficulty: 'hard', blurb: 'Round first, then add or subtract. Mastered at 8 of 10.' },
+        { id: 'addsub', name: 'Add and subtract within 1,000', difficulty: 'hard', blurb: 'With and without regrouping. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Word problems', difficulty: 'insane', blurb: 'Rounding and estimating in real situations. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
+      ]
+    },
+    {
+      id: 'time',
+      subject: 'math',
+      title: 'Telling Time and Elapsed Time',
+      blurb: 'Reading clocks to the minute, a.m. and p.m., and finding how much time has passed or what time it will be.',
+      tags: ['math', 'time', 'measurement'],
+      path: 'modules/math/time/index.html',
+      storage: ['time'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A clock you can set by typing the time, with the rules for hours and minutes.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for telling time, one card each.' },
+        { id: 'read', name: 'Read the clock', difficulty: 'easy', blurb: 'Tell the time to the nearest minute. Mastered at 8 of 10.' },
+        { id: 'pick', name: 'Which clock?', difficulty: 'easy', blurb: 'Pick the clock that shows the time. Mastered at 8 of 10.' },
+        { id: 'ampm', name: 'A.m. or p.m.?', difficulty: 'medium', blurb: 'Pick the right part of the day. Mastered at 8 of 10.' },
+        { id: 'elapsed', name: 'Elapsed time', difficulty: 'medium', blurb: 'How many minutes pass between two times? Mastered at 8 of 10.' },
+        { id: 'later', name: 'What time will it be?', difficulty: 'hard', blurb: 'Add or subtract minutes and hours from a time. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Word problems', difficulty: 'insane', blurb: 'Schedules, start times, and end times. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
+      ]
+    },
+    {
+      id: 'area-perimeter',
+      subject: 'math',
+      title: 'Area and Perimeter',
+      blurb: 'Counting unit squares, area of rectangles, perimeter, missing sides, rectangles with the same perimeter but different areas, and shapes made of rectangles.',
+      tags: ['math', 'area', 'perimeter', 'geometry'],
+      path: 'modules/math/area-perimeter/index.html',
+      storage: ['area-perimeter'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A grid you can resize to see how area and perimeter change, with the rules.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules and facts for area and perimeter, one card each.' },
+        { id: 'count', name: 'Count the squares', difficulty: 'easy', blurb: 'Find the area by counting unit squares. Mastered at 8 of 10.' },
+        { id: 'area', name: 'Area of rectangles', difficulty: 'easy', blurb: 'Length times width. Mastered at 8 of 10.' },
+        { id: 'perimeter', name: 'Perimeter', difficulty: 'medium', blurb: 'Add the sides, and find the perimeter of rectangles. Mastered at 8 of 10.' },
+        { id: 'missing', name: 'Missing sides', difficulty: 'medium', blurb: 'Find a side from the area or perimeter. Mastered at 8 of 10.' },
+        { id: 'compare', name: 'Same perimeter, different area', difficulty: 'hard', blurb: 'Why shapes with the same fence can hold different amounts. Mastered at 8 of 10.' },
+        { id: 'composite', name: 'Shapes made of rectangles', difficulty: 'hard', blurb: 'Split the shape and add the areas. Mastered at 8 of 10.' },
+        { id: 'words', name: 'Word problems', difficulty: 'insane', blurb: 'Gardens, rooms, and fences. Mastered at 8 of 10.' },
         { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
       ]
     },

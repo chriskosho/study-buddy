@@ -151,3 +151,10 @@ Meaning of color is never the only signal: right/wrong also use text, and select
 
 ## Scratch pad
 The scratch pad toolbar uses the theme tokens like every other screen. The writing paper is the one exception: it stays light (and the default ink dark) in dark mode, like real paper. No emoji; the notepad-and-pencil mark is an inline SVG.
+
+## Typing keyboards
+- The keyboard picture (`SBTY.keyboard`) is the same everywhere: US QWERTY, rounded keys, uppercase key labels like a real keyboard, and bumps on F and J. Finger zones use the `--fz-*` tokens (pinky, ring, middle, pointer, thumb), never literal colors, so dark mode works.
+- Keys that are not in play are dimmed (`off`), the next key is filled navy, the focus letter has a coral outline, ready letters a green outline, and a hint gets a teal outline. Color is never the only signal: the text and messages also say it.
+- The typing text uses a monospace font (OpenDyslexic when that display option is on), shows at most three lines, and breaks lines only between words. The current letter is highlighted and underlined; a mistake turns it red with a light red background.
+- No timers or countdowns in Key Hunt, and no flashing. Sounds use the usual tones and follow the Sound setting.
+

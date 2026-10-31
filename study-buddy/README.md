@@ -33,7 +33,7 @@ Nothing to set up. The first visit opens straight to the subjects as **Guest**, 
 ## How it's organized
 | Term | Meaning |
 |---|---|
-| Subject | English, Math, Science, Geography, History |
+| Subject | English, Math, Science, Geography, History, Greek and Latin Roots, Typing, Other |
 | Module | A topic inside a subject, e.g. South America. One home subject, plus tags. |
 | Tags | Extra subjects or skills. A tag matching another subject lists the module under that subject's **Suggested** area. |
 | Tool | An activity inside a module, such as flashcards, a quiz, or drag and drop |

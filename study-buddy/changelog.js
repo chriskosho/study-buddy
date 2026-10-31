@@ -1,6 +1,16 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-31', title: 'New subject: Typing, with Learn the Keys', items: [
+    'Study Buddy has a new subject, Typing. Its first module, Learn the Keys, teaches typing without looking, starting on the home row (A S D F and J K L).',
+    'Lesson: type words made from the letters you have opened. A new letter opens when every open letter is fast and accurate (95% right and your target speed, 15 words a minute to start). The weakest letter is practiced most. You can change the target speed, turn off "Fix mistakes", and hide the keyboard.',
+    'Key Hunt: find the letter on a big keyboard, by pressing it or tapping it. No timer. Made for young learners.',
+    'Keyboard map shows which finger types each key and how to sit. Key stats shows the speed and accuracy of every letter.',
+    'Typing needs a keyboard. On a phone or tablet without one, the Lesson says so, and Key Hunt still works by tapping.' ] },
+  { date: '2026-10-31', title: 'New modules for 3rd grade: Facts, Fractions, Rounding, Time, and Area and Perimeter', items: [
+    'Math has five new 3rd grade modules: Multiplication and Division Facts (with a 60 second Speed round), Fractions, Rounding and Place Value to 1,000, Telling Time and Elapsed Time, and Area and Perimeter.',
+    'Each one has a study guide you can play with, Flashcards, practice tools from Easy to Insane, and a Quiz with Random 10 or One of each.',
+    'Pictures (fraction bars and number lines, clocks, grids and shapes) are drawn to match each question, and every answer comes with a plain explanation.' ] },
   { date: '2026-10-31', title: 'New modules: Decimal Operations, Multi-Digit Multiplication and Long Division, and The Coordinate Plane', items: [
     'Math has three new 5th grade modules.',
     'Decimal Operations: adding, subtracting, multiplying, and dividing decimals, estimating, and word problems with money and measurements. The study guide has a helper that shows every step for any two decimals.',

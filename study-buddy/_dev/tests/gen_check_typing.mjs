@@ -1,0 +1,108 @@
+/* Checks the typing logic (shared/sb-typing-gen.js) without a browser.
+   node _dev/tests/gen_check_typing.mjs   (SEED=<n> repeats a run) */
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+const require = createRequire(import.meta.url);
+const SITE = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const W = require(join(SITE, 'shared/sb-typing-words.js'));
+const G = require(join(SITE, 'shared/sb-typing-gen.js'));
+
+const SEED = Number(process.env.SEED) || (Date.now() % 1e9);
+const rand = G.seeded(SEED);
+let fails = 0;
+const ok = (cond, msg) => { if (!cond) { fails++; if (fails < 25) console.log('FAIL', msg); } };
+
+/* ---- the course order ---- */
+ok(G.ORDER.length === 26 && new Set(G.ORDER).size === 26 && G.ORDER.every(c => /^[a-z]$/.test(c)), 'ORDER is the 26 letters once each');
+ok(G.ORDER.slice(0, G.START).join('') === 'asdfjkl', 'the course starts on the home row');
+
+/* ---- the word list ---- */
+ok(W.words.length > 3000, 'word list has over 3000 words');
+ok(new Set(W.words).size === W.words.length, 'no repeated words');
+W.words.forEach(w => { ok(/^[a-z]{1,10}$/.test(w), 'word is lowercase letters, 10 or fewer: ' + w); ok(!G.blocked(w), 'word is not blocked: ' + w); });
+ok(W.words.filter(w => w.length === 1).every(w => w === 'a' || w === 'i'), 'only a and i are one letter');
+ok(G.blocked('kill') && G.blocked('xxkillxx', true) && !G.blocked('skill'), 'blocklist works on whole and hidden words');
+/* made-up words a reviewer found reading as unkind (October 2026) stay blocked */
+['gook', 'chink', 'slag', 'tard', 'hetard', 'whor', 'whory', 'hore', 'fuq', 'fukfany', 'kak', 'poos', 'bum', 'gregazz', 'jew', 'subjews', 'isis', 'nigi', 'curnig', 'ded', 'kild', 'kil', 'retars']
+  .forEach(w => ok(G.blocked(w, true), 'made-up word is blocked: ' + w));
+
+/* ---- lessons ---- */
+let lessons = 0;
+for (let n = G.START; n <= 26; n++) {
+  const open = G.ORDER.slice(0, n), set = new Set(open);
+  const pool = G.realPool(open);
+  ok(pool.every(w => [...w].every(c => set.has(c))), 'real pool only uses open letters, stage ' + n);
+  open.forEach(focus => {
+    let thin = 0;
+    for (let t = 0; t < 25; t++) {
+      const ws = G.lessonWords({ allowed: open, focus, rand, n: 12 }); lessons++;
+      ok(ws.length === 12, 'a lesson has 12 words');
+      ws.forEach((w, i) => {
+        ok(typeof w === 'string' && w.length >= 2 && w.length <= 10, `word length 2 to 10: "${w}"`);
+        ok([...w].every(c => set.has(c)), `only open letters (stage ${n}): "${w}"`);
+        ok(!G.blocked(w, !G.WORDS.includes(w)), `no unkind word: "${w}"`);
+        ok(!ws.slice(Math.max(0, i - 4), i).includes(w), `no repeat within four words: "${w}"`);
+        ok(!/(.)\1\1/.test(w), `no letter three times in a row: "${w}"`);
+      });
+      const text = ws.join(''), count = text.split(focus).length - 1;
+      if (count < 3) thin++;
+    }
+    ok(thin <= 2, `focus letter ${focus} appears 3+ times in nearly every lesson (stage ${n}), thin=${thin}`);
+  });
+}
+/* real words show up once enough letters are open */
+{
+  const open = G.ORDER.slice(0, 16); let real = 0, all = 0;
+  for (let t = 0; t < 200; t++) G.lessonWords({ allowed: open, focus: 'o', rand }).forEach(w => { all++; if (G.WORDS.includes(w)) real++; });
+  ok(real / all > 0.5, 'more than half the words are real at 16 letters: ' + (real / all).toFixed(2));
+}
+/* the same seed gives the same lesson */
+{
+  const a = G.lessonWords({ allowed: G.ORDER.slice(0, 11), focus: 'i', rand: G.seeded(42) }).join(' ');
+  const b = G.lessonWords({ allowed: G.ORDER.slice(0, 11), focus: 'i', rand: G.seeded(42) }).join(' ');
+  ok(a === b, 'seeded lessons repeat');
+}
+
+/* ---- per-key stats and unlocking ---- */
+{
+  const st = {};
+  const row = (ch, ok, ms) => ({ ch, ok, ms });
+  G.addRound(st, [row('a', true, 0), row(' ', true, 300), ...Array.from({ length: 12 }, () => row('a', true, 400))]);
+  let s = G.keyStat(st, 'a');
+  ok(s.n === 13 && s.acc === 1, 'samples counted, space ignored');
+  ok(Math.abs(s.wpm - 30) < 1e-9, '400 ms a key is 30 WPM: ' + s.wpm);
+  ok(G.ready(st, 'a', 25) && !G.ready(st, 'a', 35), 'ready at 25, not at 35');
+  G.addRound(st, Array.from({ length: 40 }, (x, i) => row('a', i % 10 !== 0, 300)));
+  s = G.keyStat(st, 'a');
+  ok(s.n === G.WINDOW, 'only the last 30 are kept');
+  ok(s.acc < 0.95 && !G.ready(st, 'a', 10), 'mistakes stop a key being ready: ' + s.acc);
+  G.addRound(st, [row('s', true, 5000)]);
+  ok(G.keyStat(st, 's').ms === 3000 && G.keyStat(st, 's').n === 1, 'a pause over 3 seconds counts as 3 seconds');
+  const slow = {}; G.addRound(slow, [...Array.from({ length: 9 }, () => row('d', true, 4000)), row('d', true, 600)]);
+  ok(!G.ready(slow, 'd', 15), 'slow hunt-and-peck presses do not make a letter ready: ' + G.keyStat(slow, 'd').wpm.toFixed(1));
+
+  const st2 = {}, open = G.ORDER.slice(0, G.START);
+  ok(!G.canUnlock(open, st2, 15), 'nothing opens with no practice');
+  open.forEach(k => G.addRound(st2, Array.from({ length: 12 }, () => row(k, true, 500))));   // 24 WPM
+  ok(G.canUnlock(open, st2, 15), 'opens when every letter is ready');
+  ok(!G.canUnlock(open, st2, 30), 'does not open below the target');
+  G.addRound(st2, Array.from({ length: 6 }, () => row('j', false, 0)));
+  ok(!G.canUnlock(open, st2, 15), 'one weak letter holds the next one back');
+  ok(G.focusKey(open, st2, 15) === 'j', 'the weak letter is the focus');
+  const st3 = {}; open.forEach(k => G.addRound(st3, Array.from({ length: 12 }, () => row(k, true, 500))));
+  ok(G.focusKey(G.ORDER.slice(0, 8), st3, 15) === 'g', 'a new letter is the focus');
+  ok(!G.canUnlock(G.ORDER, Object.fromEntries(G.ORDER.map(k => [k, Array.from({ length: 12 }, () => [300, 1])])), 15), 'nothing after the last letter');
+}
+
+/* ---- round scores ---- */
+{
+  const r = G.roundScore({ correct: 50, elapsed: 60000, presses: 55, wrong: 5 });
+  ok(Math.abs(r.wpm - 10) < 1e-9, '50 characters in a minute is 10 WPM');
+  ok(Math.abs(r.acc - 50 / 55) < 1e-9, 'accuracy is right presses over all presses');
+  ok(G.roundScore({ correct: 0, elapsed: 0, presses: 0, wrong: 0 }).acc === 1, 'empty round is safe');
+}
+
+console.log(`typing: ${lessons} lessons checked, seed ${SEED}`);
+if (fails) { console.log(fails + ' FAILED (SEED=' + SEED + ')'); process.exit(1); }
+console.log('ALL PASSED');

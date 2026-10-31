@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Multiplication and Division Facts · Study Buddy</title>
+<meta name="theme-color" content="#2b4162">
+<link rel="icon" href="../../../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../../shared/sb.css">
+<style>
+.fguide{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start;margin:6px 0 14px}
+.fguide>*{min-width:0}
+.ftable{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed}
+.ftable th,.ftable td{padding:0;text-align:center}
+.ftable th{font-size:14px;font-weight:800;color:var(--ink2);height:30px}
+.ftable td button{width:100%;height:34px;border:2px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:14px;font-weight:700;padding:0}
+.ftable td button:hover{border-color:var(--navy)}
+.ftable td button.row,.ftable td button.col{background:var(--tint-note)}
+.ftable td button.sel{background:var(--navy);border-color:var(--navy);color:#fff}
+.ftable th button{border:0;background:transparent;font:inherit;color:inherit;width:100%;height:30px;padding:0;border-radius:8px}
+.ftable th button:hover,.ftable th button.on{background:var(--tint-note);color:var(--ink)}
+.fdetail{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 16px}
+.fdetail h3{margin:0 0 6px;font-size:22px}
+.fdetail ul{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px;font-weight:800;font-size:18px}
+.fdetail .fnote{margin:8px 0 0;font-size:15px;color:var(--ink2)}
+.fpic{display:flex;justify-content:center;min-height:130px;align-items:center}
+.farr{display:block;width:auto;max-width:100%;height:auto}
+.fpic .farr{height:clamp(110px,20vh,170px);width:auto}
+.q .farr,.qtext .farr{height:clamp(96px,16vh,150px);width:auto;margin:8px auto 0}
+.adot{fill:var(--navy)}
+.frules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:10px}
+.frule{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 16px}
+.frule h3{margin:0 0 6px;font-size:19px}
+.frule p{margin:0 0 6px;font-size:16px}
+.fsprompt{font-size:clamp(34px,5vw,56px);font-weight:800;margin:6px 0 12px;font-variant-numeric:tabular-nums}
+.fsrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+.fsrow .textin{width:min(200px,50vw);font-size:26px}
+.fschoices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-width:640px;margin:0 0 8px}
+.fschoices .opt{font-size:24px;padding:14px 8px}
+.fsbox[hidden]{display:none}
+@media (max-width:1100px){.frules{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){.fguide{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){
+  .frules{grid-template-columns:1fr}
+  .ftable{border-spacing:2px}
+  .ftable th{font-size:11px;height:26px}
+  .ftable td button{height:26px;font-size:11px;border-width:1.5px;border-radius:6px}
+  .fdetail ul{font-size:16px}
+  .fschoices{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+<script src="../../../shared/sb-core.js"></script>
+<script src="../../../shared/sb-shell.js"></script>
+<script src="../../../registry.js"></script>
+<script src="../../../shared/sb-module.js"></script>
+<script src="../../../shared/sb-tools.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="gen.js"></script>
+<script src="facts.js"></script>
+</body>
+</html>
