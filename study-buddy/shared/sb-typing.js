@@ -1,7 +1,7 @@
 /* Study Buddy typing: the page parts every typing tool shares. Needs sb-core.js; the styles are in sb-typing.css.
 
      SBTY.keyboard(host, { rows: 'full'|'letters', zones: true, onTap(k) })
-         Draws a US QWERTY keyboard (SVG) in host. Returns { el, set(k, cls, on), only(cls, keys), dimExcept(keys), clear(cls), flash(k, good), heat(map) }.
+         Draws a US QWERTY keyboard (SVG) in host. tapAll: Shift, Enter and the other wide keys can be tapped too. Returns { el, set(k, cls, on), only(cls, keys), dimExcept(keys), clear(cls), flash(k, good), heat(map) }.
          Key ids are the characters they type ('a', ';', ' ' for the space bar). zones: color each key by the finger that presses it.
      SBTY.typer(host, { text, wait, onStart(), onKey(info), onDone(result) })
          Shows the text and takes keystrokes for it. wait: a wrong key does not move on (the default).
@@ -60,7 +60,7 @@
         x += wpx;
       });
     });
-    if (opts.onTap) svg.addEventListener('pointerdown', e => { const g = e.target.closest('g.k'); if (g && g.dataset.k.length === 1) { e.preventDefault(); opts.onTap(g.dataset.k); } });
+    if (opts.onTap) svg.addEventListener('pointerdown', e => { const g = e.target.closest('g.k'); if (g && (g.dataset.k.length === 1 || opts.tapAll)) { e.preventDefault(); opts.onTap(g.dataset.k); } });
     host.appendChild(svg);
     const get = k => keys[k] || keys[keyOf(k)];
     return {
@@ -92,6 +92,9 @@
     if (!current || !current.live()) return;
     if (e.ctrlKey || e.metaKey || e.altKey || busy(e)) return;
     if (e.key === 'Unidentified' || e.key === 'Process' || e.keyCode === 229) return;   // an on-screen keyboard: the hidden box's input event handles it
+    /* a tool can ask for the named keys too (the Keyboard map shows their finger); Tab still moves between buttons */
+    const named = { Shift: e.code === 'ShiftRight' ? 'ShiftRight' : 'ShiftLeft', Enter: 'Enter', CapsLock: 'CapsLock', Backspace: 'Backspace', Tab: 'Tab' }[e.key];
+    if (named && current.named) { if (named !== 'Tab' && named !== 'Enter') e.preventDefault(); current.named(named); return; }
     if (e.key === 'Backspace') { e.preventDefault(); current.back(); return; }
     if (e.key.length !== 1) return;                       // Shift, Tab, arrows, Escape: not typing
     e.preventDefault();                                    // stops the space bar scrolling the page or pressing a button
@@ -127,21 +130,26 @@
       const cur = spans[pos]; if (cur && cur.offsetTop > box.clientHeight * 0.55 + box.scrollTop) box.scrollTop = cur.offsetTop - box.clientHeight * 0.3;
     }
     function reset(t) {
-      text = String(t); marks = []; pos = 0; t0 = 0; tLast = 0; presses = 0; wrong = 0; elapsed = 0; chars = []; stopped = false; missedHere = false;
+      text = String(t); seen = ''; inp.value = ''; marks = []; pos = 0; t0 = 0; tLast = 0; presses = 0; wrong = 0; elapsed = 0; chars = []; stopped = false; missedHere = false;
       box.scrollTop = 0; render();
     }
     /* the gap between two keys counts at most 3 seconds, so a break in the middle does not spoil the speed */
     function tick(now) { if (tLast) elapsed += Math.min(now - tLast, 3000); tLast = now; }
     function type(k, capsOn) {
       if (stopped || pos >= text.length) return;
-      caps.hidden = !(capsOn && /[a-z]/i.test(k) && k !== text[pos]);
+      /* a capital where the small letter is wanted (Caps Lock or Shift is on) is not counted: the student is told why instead */
+      if (/^[A-Z]$/.test(k) && k.toLowerCase() === text[pos]) {
+        caps.textContent = capsOn ? 'Caps Lock is on. Press Caps Lock to turn it off.' : 'That was a capital letter. Let go of Shift.';
+        caps.hidden = false; return;
+      }
+      caps.hidden = true;
       const now = performance.now();
       if (!t0) { t0 = now; tLast = now; if (opts.onStart) opts.onStart(); }
       const prev = tLast; tick(now);
       presses++;
       const want = text[pos], good = k === want;
       if (good) {
-        chars.push({ ch: want, ok: !missedHere, ms: pos === 0 ? 0 : now - prev });
+        chars.push({ ch: want, ok: !missedHere && marks[pos] !== 'bad', ms: pos === 0 ? 0 : now - prev });   // a letter fixed after Backspace still counts as a mistake
         if (marks[pos] == null) marks[pos] = 'ok';
         pos++; missedHere = false;
       } else {
@@ -170,7 +178,19 @@
     }
 
     /* on-screen keyboards send "input" events instead of keys */
-    inp.addEventListener('input', () => { const v = inp.value; inp.value = ''; if (current !== api || !api.live()) return; [...v].forEach(ch => type(ch, false)); });
+    /* on-screen keyboards send "input" events instead of keys. Some build up a whole word in the box as you type, so only the
+       letters added since last time are typed, and a shorter box means Backspace. The box is emptied after each space. */
+    let seen = '';
+    inp.addEventListener('input', () => {
+      const v = inp.value;
+      if (current === api && api.live()) {
+        if (v.startsWith(seen)) [...v.slice(seen.length)].forEach(ch => type(ch, false));
+        else if (seen.startsWith(v)) for (let i = v.length; i < seen.length; i++) back();
+        else { let i = 0; while (i < v.length && v[i] === seen[i]) i++; for (let j = i; j < seen.length; j++) back(); [...v.slice(i)].forEach(ch => type(ch, false)); }   // a word was swapped
+      }
+      seen = v;
+      if (/\s$/.test(v) || v.length > 30) { inp.value = ''; seen = ''; }
+    });
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
     host.addEventListener('click', () => { if (needsKeyboard()) inp.focus({ preventScroll: true }); handlerFor(api); });
 

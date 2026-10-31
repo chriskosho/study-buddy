@@ -90,7 +90,7 @@
     return poolCache.get(k);
   }
 
-  /* one lesson round: n words. About half of them use the focus letter. Real words when enough fit, made-up ones otherwise.
+  /* one lesson round: n words. More than half of them use the focus letter. Real words when enough fit, made-up ones otherwise.
      The same word never shows twice within four words. */
   function lessonWords(opts) {
     const rand = opts.rand || Math.random, n = opts.n || 12, focus = opts.focus || null;
@@ -116,13 +116,13 @@
   }
 
   /* ---------- per-key stats ---------- */
-  /* chars: [{ ch, ok, ms }] from a finished round; ok = typed right the first time, ms = time since the key before it (0 if not known).
+  /* chars: [{ ch, ok, ms }] from a finished round; ok = typed right the first time, ms = time since the key before it (0 if not known, as for the first key of a round).
      Spaces are not counted: the thumb's space bar is not part of the course. */
   function addRound(stats, chars) {
     chars.forEach(c => {
       if (!/^[a-z]$/.test(c.ch)) return;
       const s = stats[c.ch] || (stats[c.ch] = []);
-      s.push([c.ok && c.ms > 0 && c.ms <= SLOW_MS ? Math.round(c.ms) : 0, c.ok ? 1 : 0]);
+      s.push([c.ok && c.ms > 0 ? Math.round(Math.min(c.ms, SLOW_MS)) : 0, c.ok ? 1 : 0]);   // a long pause counts as 3 seconds: slow, so a letter is not ready too soon
       if (s.length > WINDOW) s.splice(0, s.length - WINDOW);
     });
     return stats;

@@ -111,11 +111,36 @@ async def main():
         check(await pg.locator('#lkType .c.bad').count() == 1, 'the wrong letter is marked')
         await pg.keyboard.press('Backspace')
         check(await pg.evaluate(POS) == 1, 'Backspace steps back')
+        # a letter fixed with Backspace still counts as a mistake in the key stats
+        before = await pg.evaluate("(() => { const s = JSON.parse(localStorage.getItem('studybuddy.v1.m.k1.learn-keys')); return s.stats; })()")
+        t = await pg.evaluate(TEXT)
+        rest = t[1:]
+        await pg.keyboard.type(rest)
+        await pg.wait_for_timeout(150)
+        after = (await pg.evaluate(STATE))['stats']
+        k2 = t[1]
+        miss_b = sum(1 for x in before.get(k2, []) if not x[1]); miss_a = sum(1 for x in after.get(k2, []) if not x[1])
+        check(miss_a >= min(miss_b + 1, 30) or len(after.get(k2, [])) == 30 and miss_a >= 1, f'the fixed letter "{k2}" is saved as a mistake ({miss_b} -> {miss_a})')
         await pg.click('#lkWait')
         check((await pg.evaluate(STATE)).get('wait') is True, 'Fix mistakes is saved')
         await pg.select_option('#lkTarget', '25')
-        check((await pg.evaluate(STATE)).get('target') == 25 and '25 WPM' in await pg.inner_text('.lkfocus'), 'target speed changes and is saved')
+        check((await pg.evaluate(STATE)).get('target') == 25 and '25 words a minute' in await pg.inner_text('.lkfocus'), 'target speed changes and is saved')
         await pg.select_option('#lkTarget', '15')
+        p0 = await pg.evaluate(POS); t = await pg.evaluate(TEXT)
+        await pg.keyboard.type(t[p0])
+        check(await pg.evaluate(POS) == p0 + 1, 'typing works right after changing the target speed')
+        # a capital (Caps Lock or Shift) is not counted, and the student is told
+        t = await pg.evaluate(TEXT); p0 = await pg.evaluate(POS)
+        if t[p0] != ' ':
+            await pg.keyboard.type(t[p0].upper())
+            check(await pg.evaluate(POS) == p0 and await pg.locator('#lkType .c.cur.miss').count() == 0, 'a capital letter is not counted as a mistake')
+            check(await pg.locator('.sbty-caps').is_visible() and 'Shift' in await pg.inner_text('.sbty-caps'), 'and a message says why')
+            await pg.keyboard.type(t[p0])
+            check(await pg.locator('.sbty-caps').is_hidden(), 'the message goes away')
+        # tapping a key in the picture types it
+        p0 = await pg.evaluate(POS); t = await pg.evaluate(TEXT)
+        await pg.locator(f'.lkkb g.k[data-k="{t[p0]}"]').click()
+        check(await pg.evaluate(POS) == p0 + 1, 'tapping a key in the picture types it')
         await pg.click('#lkKb'); check(await pg.locator('.lkkb').is_hidden(), 'the keyboard can be hidden')
         await pg.click('#lkKb'); check(await pg.locator('.lkkb').is_visible(), 'and shown again')
 
@@ -142,6 +167,12 @@ async def main():
         rec = (await pg.evaluate(CHILD))['tools'].get('learn-keys/hunt', {})
         check(rec.get('best') == 9 and rec.get('max') == 10, f'Key Hunt result saved: {rec}')
         await pg.click('#khAgain'); check(await pg.locator('.huntletter').count() == 1, 'Play again starts a new round')
+        # leaving the tab right after an answer pauses the round
+        want = (await pg.inner_text('.huntletter')).strip()
+        await pg.keyboard.type(want); await pg.click('#tabbtn-map'); await pg.wait_for_timeout(900)
+        await pg.click('#tabbtn-hunt'); await pg.wait_for_timeout(100)
+        check(await pg.inner_text('#khRound') == '2 of 10', 'Key Hunt waits while another tab is open, then carries on')
+        await pg.keyboard.press('Space'); check('Look for' not in await pg.inner_text('#tab-hunt .msg'), 'the space bar is ignored in Key Hunt')
         await pg.click('[data-set="top"]')
         want = (await pg.inner_text('.huntletter')).strip()
         check(want in 'qwertyuiop', 'Top row asks top-row letters')
@@ -158,14 +189,16 @@ async def main():
         await pg.keyboard.type(';'); check('Right pinky finger' in await pg.inner_text('.kmpress'), '; is the right pinky')
         await pg.keyboard.press('Space'); check('thumb' in (await pg.inner_text('.kmpress')).lower(), 'space is a thumb')
         await pg.locator('.kmkb g.k[data-k="o"]').click(); check('Right ring finger' in await pg.inner_text('.kmpress'), 'tapping o shows the right ring finger')
+        await pg.keyboard.press('Shift'); check('Shift' in await pg.inner_text('.kmpress') and 'pinky' in await pg.inner_text('.kmpress'), 'Shift shows a pinky')
+        await pg.locator('.kmkb g.k[data-k="Enter"]').click(); check('Enter' in await pg.inner_text('.kmpress') and 'Right pinky' in await pg.inner_text('.kmpress'), 'tapping Enter shows the right pinky')
 
         # ---- Key stats ----
         await pg.goto(base + M + '?tool=stats'); await pg.wait_for_selector('.ksum')
         s = await pg.inner_text('.ksum')
-        check('8 of 26' in s and 'WPM' in s, f'stats summary: {s}')
+        check('8 of 26' in s and 'words a minute' in s, f'stats summary: {s}')
         check(await pg.locator('.kskeys > div').count() == 8, 'one box per open letter')
         check(await pg.locator('.kskb g.k.h4, .kskb g.k.h3').count() >= 6, 'fast letters are coloured')
-        await pg.click('[data-m="acc"]'); check('No mistakes' in await pg.inner_text('.kslegend'), 'accuracy view')
+        await pg.click('[data-m="acc"]'); check('Few mistakes' in await pg.inner_text('.kslegend'), 'accuracy view')
 
         # ---- layout ----
         for tool in ['lesson', 'hunt', 'map', 'stats']:
@@ -195,6 +228,9 @@ async def main():
         await mp.tap('#lkType .sbty-text')
         await mp.keyboard.insert_text(t[:3])
         check(await mp.evaluate(POS) == 3, 'the on-screen keyboard types too')
+        # a keyboard that builds up the whole word in the box: only new letters count
+        await mp.evaluate("(ch) => { const i = document.querySelector('#lkType .sbty-in'); i.value = i.value + ch; i.dispatchEvent(new Event('input')); }", t[3])
+        check(await mp.evaluate(POS) == 4, 'letters already in the box are not typed twice')
         await mp.goto(base + M + '?tool=hunt'); await mp.wait_for_selector('.huntletter')
         want = (await mp.inner_text('.huntletter')).strip()
         await mp.locator(f'.khkb g.k[data-k="{want}"]').tap()

@@ -8,7 +8,7 @@
   window.SB_NO_SLASH_SEARCH = true;   // "/" is a key to type here, not the search shortcut
   const NEEDS = SBTY.needsKeyboard();
   const pct = x => Math.round(x * 100) + '%';
-  const wpmTxt = x => Math.round(x) + ' WPM';
+  const wpmTxt = x => Math.round(x) + ' words a minute';
   const UP = k => k === ';' ? ';' : k.toUpperCase();
   const fingerOf = k => { const f = SBTY.finger(k); return f ? f.name : ''; };
 
@@ -21,11 +21,11 @@
     init(ctx) {
       const P = ctx.panel, st = ctx.state;
       P.innerHTML = `
-        ${NEEDS ? '<p class="note">Typing lessons need a keyboard. Connect one to this phone or tablet, or tap the letters below to use the on-screen keyboard.</p>' : ''}
+        ${NEEDS ? '<p class="note">Typing lessons need a keyboard. Connect one to this phone or tablet. You can also tap the words to use the on-screen keyboard, or tap the keys in the picture.</p>' : ''}
         <div class="lkbar">
           <div class="lkletters" aria-label="Letters in the course"></div>
           <div class="lkopts">
-            <label>Target speed <select id="lkTarget">${[10, 15, 20, 25, 30, 35, 40, 50].map(v => `<option value="${v}">${v} WPM</option>`).join('')}</select></label>
+            <label>Target speed <select id="lkTarget" title="Words a minute">${[10, 15, 20, 25, 30, 35, 40, 50].map(v => `<option value="${v}">${v} words a minute</option>`).join('')}</select></label>
             <button class="iconbtn" id="lkWait" title="When it is on, a wrong key has to be fixed before you go on"></button>
             <button class="iconbtn" id="lkKb"></button>
           </div>
@@ -34,7 +34,7 @@
         <div id="lkType"></div>
         <p class="msg lkmsg" role="status"></p>
         <div class="lkkb"></div>`;
-      const kbHost = $('.lkkb', P), kb = SBTY.keyboard(kbHost, { rows: 'letters', zones: true });
+      const kbHost = $('.lkkb', P), kb = SBTY.keyboard(kbHost, { rows: 'letters', zones: true, onTap: k => { typer.active(); typer.type(k); } });
       $('#lkTarget', P).value = String(target(st));
       const msg = $('.lkmsg', P);
       const setMsg = (t, cls = '') => { msg.className = 'msg lkmsg' + (cls ? ' ' + cls : ''); msg.innerHTML = t; };
@@ -56,7 +56,7 @@
         ORDER.forEach(k => { kb.set(k, 'ready', o.includes(k) && G.ready(st.stats, k, tg)); kb.set(k, 'focus', k === f); });
         const s = G.keyStat(st.stats, f), sp = Math.min(1, s.wpm / tg);
         $('.lkfocus', P).innerHTML = `<span>Focus letter <span class="fk">${esc(f)}</span></span>
-          <span>Speed <span class="lkmeter" aria-hidden="true"><i style="width:${Math.round(sp * 100)}%"></i></span> ${s.n ? Math.round(s.wpm) : 0} of ${tg} WPM</span>
+          <span>Speed <span class="lkmeter" aria-hidden="true"><i style="width:${Math.round(sp * 100)}%"></i></span> ${s.n ? Math.round(s.wpm) : 0} of ${tg} words a minute</span>
           <span>Accuracy ${s.n ? pct(s.acc) : '–'} (needs 95%)</span>
           <span>${o.length} of ${TOTAL} letters open</span>`;
         return f;
@@ -90,7 +90,7 @@
         newRound();
       }
 
-      $('#lkTarget', P).onchange = e => { st.target = Number(e.target.value); ctx.save(); paintKeys(); };
+      $('#lkTarget', P).onchange = e => { st.target = Number(e.target.value); ctx.save(); paintKeys(); e.target.blur(); typer.active(); };   // blur, so the next keys type instead of changing the menu
       $('#lkWait', P).onclick = () => { st.wait = st.wait === false; topts.wait = st.wait; ctx.save(); paintOpts(); newRound(); };
       $('#lkKb', P).onclick = () => { st.showKb = st.showKb === false; ctx.save(); paintOpts(); };
       paintOpts();
@@ -146,7 +146,7 @@
       }
       function ask() {
         const k = list[i]; firstTry = true; waiting = false;
-        const said = st.hunt.caps ? 'capital ' + k.toUpperCase() : k;
+        const said = 'the letter ' + k.toUpperCase();
         q.innerHTML = `<span>Find</span><span class="huntletter">${esc(show(k))}</span>${ctx.sayButton('Find ' + said, 'Hear the letter')}`;
         $('#khRound', P).textContent = `${i + 1} of ${ROUND}`;
         kb.clear('hint'); kb.clear('sel');
@@ -156,21 +156,22 @@
       function press(raw) {
         if (over || waiting || !list.length) return;
         const k = SBTY.keyOf(raw), want = list[i];
-        if (!/^[a-z]$/.test(k) && k !== ' ' && k !== ';') return;
+        if (!/^[a-z]$/.test(k)) return;   // only letters count; the space bar and other keys are ignored
         if (k === want) {
           kb.flash(k, true); ctx.sfx.good();
           if (firstTry) { score++; ctx.credit(); }
-          setMsg(firstTry ? 'Yes! That is ' + show(want) + '.' : 'There it is!', 'good');
+          setMsg(firstTry ? 'Yes! That is the letter ' + show(want) + '.' : 'There it is!', 'good');
           waiting = true;
-          timer = setTimeout(() => { i++; if (i >= ROUND) finish(); else ask(); }, 700);
+          timer = setTimeout(advance, 700);
         } else {
           kb.flash(k, false); ctx.sfx.bad();
           if (firstTry) ctx.miss('Find ' + want);
           firstTry = false;
           kb.set(want, 'hint', true);
-          setMsg(`That was ${k === ' ' ? 'the space bar' : show(k)}. Look for ${show(want)}: use your ${fingerOf(want)}.`, 'bad');
+          setMsg(`That was the letter ${show(k)}. Look for ${show(want)}: use your ${fingerOf(want)}.`, 'bad');
         }
       }
+      function advance() { timer = null; i++; if (i >= ROUND) finish(); else ask(); }
       function finish() {
         over = true; ctx.result(score, ROUND);
         if (score === ROUND) ctx.sfx.win();
@@ -190,10 +191,14 @@
       P.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { st.hunt.set = b.dataset.set; ctx.save(); paintOpts(); const d = $('.huntdone', P); if (d) d.remove(); start(); });
       $('#khCaps', P).onclick = () => { st.hunt.caps = !st.hunt.caps; ctx.save(); paintOpts(); if (!over && list.length) { const k = list[i]; $('.huntletter', P).textContent = show(k); } };
       hunt._h = { live: () => !P.hidden && P.offsetParent !== null, type: k => press(k), back() {} };
+      /* leaving the tab pauses the round; coming back carries on where it was */
+      hunt._leave = () => { if (timer) { clearTimeout(timer); timer = null; hunt._resume = true; } };
+      hunt._enter = () => { SBTY.take(hunt._h); if (hunt._resume) { hunt._resume = false; advance(); } };
       paintOpts(); start();
       SBTY.take(hunt._h);
     },
-    enter() { if (hunt._h) SBTY.take(hunt._h); }
+    enter() { if (hunt._enter) hunt._enter(); },
+    leave() { if (hunt._leave) hunt._leave(); }
   };
 
   /* ===================== Keyboard map ===================== */
@@ -216,6 +221,7 @@
             <h3>Getting ready to type</h3>
             <ul class="kmtips">
               <li>Sit up tall with your feet flat on the floor.</li>
+              <li>Curve your fingers a little, and keep your wrists up, not resting on the desk.</li>
               <li>Rest your left fingers on <b>A S D F</b> and your right fingers on <b>J K L ;</b>. This is the <b>home row</b>.</li>
               <li>Feel the little bumps on <b>F</b> and <b>J</b>. Your pointer fingers go there, so you can find home without looking.</li>
               <li>Press the space bar with your thumb.</li>
@@ -225,13 +231,14 @@
             </ul>
           </div>
         </div>`;
-      const kb = SBTY.keyboard($('.kmkb', P), { rows: 'full', zones: true, onTap: k => show(k) });
+      const kb = SBTY.keyboard($('.kmkb', P), { rows: 'full', zones: true, tapAll: true, onTap: k => show(k) });
+      const NAMES = { ' ': 'Space bar', ShiftLeft: 'Shift', ShiftRight: 'Shift', CapsLock: 'Caps Lock', Enter: 'Enter', Backspace: 'Backspace', Tab: 'Tab' };
       function show(raw) {
-        const k = SBTY.keyOf(raw), f = SBTY.finger(k); if (!f) return;
-        kb.only('sel', [k]);
-        $('.kmpress', P).innerHTML = `<b class="big">${k === ' ' ? 'Space' : esc(UP(k))}</b> ${esc(f.name.charAt(0).toUpperCase() + f.name.slice(1))}`;
+        const k = raw.length > 1 ? raw : SBTY.keyOf(raw), f = SBTY.finger(k); if (!f) return;
+        kb.clear('sel'); kb.set(k, 'sel', true);
+        $('.kmpress', P).innerHTML = `<b class="big">${esc(NAMES[k] || UP(k))}</b> ${esc(f.name.charAt(0).toUpperCase() + f.name.slice(1))}`;
       }
-      map._h = { live: () => !P.hidden && P.offsetParent !== null, type: k => show(k), back() {} };
+      map._h = { live: () => !P.hidden && P.offsetParent !== null, type: k => show(k), named: k => show(k), back() {} };
       SBTY.take(map._h);
     },
     enter() { if (map._h) SBTY.take(map._h); }
@@ -260,9 +267,9 @@
         $('.ksum', P).innerHTML = `<div><span>Letters open</span><b>${o.length} of ${TOTAL}</b></div>
           <div><span>Best round</span><b>${st.best ? wpmTxt(st.best) : '–'}</b></div>
           <div><span>Last ${last.length || 10} rounds</span><b>${last.length ? wpmTxt(avg(last, 'wpm')) + ', ' + pct(avg(last, 'acc')) : '–'}</b></div>
-          <div><span>Target speed</span><b>${tg} WPM</b></div>`;
+          <div><span>Target speed</span><b>${tg} words a minute</b></div>`;
         P.querySelectorAll('[data-m]').forEach(b => b.setAttribute('aria-pressed', b.dataset.m === mode));
-        $('#ksLo', P).textContent = mode === 'speed' ? 'Slow' : 'Many mistakes'; $('#ksHi', P).textContent = mode === 'speed' ? 'Fast' : 'No mistakes';
+        $('#ksLo', P).textContent = mode === 'speed' ? 'Slow' : 'Many mistakes'; $('#ksHi', P).textContent = mode === 'speed' ? 'Fast' : 'Few mistakes';
         const heat = {};
         o.forEach(k => {
           const s = G.keyStat(st.stats || {}, k); if (!s.n) return;
@@ -273,7 +280,7 @@
         kb.dimExcept(o);
         $('.kskeys', P).innerHTML = o.map(k => {
           const s = G.keyStat(st.stats || {}, k), rd = G.ready(st.stats || {}, k, tg);
-          return `<div class="${rd ? 'ready' : ''}${k === f ? ' focus' : ''}"><b>${esc(k)}</b>${rd ? 'Ready' : k === f ? 'Focus' : 'Practicing'}<br>${s.n ? Math.round(s.wpm) + ' WPM · ' + pct(s.acc) : 'Not typed yet'}</div>`;
+          return `<div class="${rd ? 'ready' : ''}${k === f ? ' focus' : ''}"><b>${esc(k)}</b>${rd ? 'Ready' : k === f ? 'Focus' : 'Practicing'}<br>${s.n ? Math.round(s.wpm) + ' a minute · ' + pct(s.acc) : 'Not typed yet'}</div>`;
         }).join('');
       }
       P.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { mode = b.dataset.m; paint(); });

@@ -23,6 +23,9 @@ ok(new Set(W.words).size === W.words.length, 'no repeated words');
 W.words.forEach(w => { ok(/^[a-z]{1,10}$/.test(w), 'word is lowercase letters, 10 or fewer: ' + w); ok(!G.blocked(w), 'word is not blocked: ' + w); });
 ok(W.words.filter(w => w.length === 1).every(w => w === 'a' || w === 'i'), 'only a and i are one letter');
 ok(G.blocked('kill') && G.blocked('xxkillxx', true) && !G.blocked('skill'), 'blocklist works on whole and hidden words');
+/* made-up words a reviewer found reading as unkind (October 2026) stay blocked */
+['gook', 'chink', 'slag', 'tard', 'hetard', 'whor', 'whory', 'hore', 'fuq', 'fukfany', 'kak', 'poos', 'bum', 'gregazz', 'jew', 'subjews', 'isis', 'nigi', 'curnig', 'ded', 'kild', 'kil', 'retars']
+  .forEach(w => ok(G.blocked(w, true), 'made-up word is blocked: ' + w));
 
 /* ---- lessons ---- */
 let lessons = 0;
@@ -75,7 +78,9 @@ for (let n = G.START; n <= 26; n++) {
   ok(s.n === G.WINDOW, 'only the last 30 are kept');
   ok(s.acc < 0.95 && !G.ready(st, 'a', 10), 'mistakes stop a key being ready: ' + s.acc);
   G.addRound(st, [row('s', true, 5000)]);
-  ok(G.keyStat(st, 's').ms === 0 && G.keyStat(st, 's').n === 1, 'a pause over 3 seconds does not count as speed');
+  ok(G.keyStat(st, 's').ms === 3000 && G.keyStat(st, 's').n === 1, 'a pause over 3 seconds counts as 3 seconds');
+  const slow = {}; G.addRound(slow, [...Array.from({ length: 9 }, () => row('d', true, 4000)), row('d', true, 600)]);
+  ok(!G.ready(slow, 'd', 15), 'slow hunt-and-peck presses do not make a letter ready: ' + G.keyStat(slow, 'd').wpm.toFixed(1));
 
   const st2 = {}, open = G.ORDER.slice(0, G.START);
   ok(!G.canUnlock(open, st2, 15), 'nothing opens with no practice');

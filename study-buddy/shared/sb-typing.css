@@ -2,12 +2,12 @@
 :root{
   --fz-p:#f3dcef; --fz-r:#dfe6fb; --fz-m:#dcf1e4; --fz-i:#fdebc8; --fz-t:#e9e5dc;
   --heat0:#f6c9c9; --heat1:#f8dfc0; --heat2:#f7efbf; --heat3:#d9eecb; --heat4:#bfe5cc;
-  --key:#fff; --key-line:#cfc5ae;
+  --key:var(--surface); --key-line:#cfc5ae;
 }
 html.sb-dark{
   --fz-p:#4a3247; --fz-r:#2f3b5c; --fz-m:#284637; --fz-i:#4d4127; --fz-t:#373b42;
   --heat0:#5e2d30; --heat1:#5a4127; --heat2:#545027; --heat3:#33502f; --heat4:#24553a;
-  --key:#2a3747; --key-line:#45596f;
+  --key:var(--surface); --key-line:#45596f;
 }
 
 /* ---------- keyboard ---------- */
