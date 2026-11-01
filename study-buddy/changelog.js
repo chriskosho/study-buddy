@@ -1,6 +1,8 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-31', title: 'Back arrow only inside modules', items: [
+    'The back arrow now shows only inside a module (or a utility such as the calculator). Moving between subjects on the home screen, and the Notes, Settings and Help pages, no longer have one.' ] },
   { date: '2026-10-31', title: 'A back arrow on every screen', items: [
     'Every screen except Home now has a round back arrow at the left of the page title. It goes up one step: from a module to its subject, from a subject to Home. The trail at the top still works as before.' ] },
   { date: '2026-10-31', title: 'The Scratch pad is now the Notepad', items: [
