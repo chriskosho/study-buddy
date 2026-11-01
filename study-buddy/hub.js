@@ -344,13 +344,13 @@
         </div>
         <div class="row">
           <button class="iconbtn" data-set="sound" aria-pressed="${st.sound}">Sound: ${st.sound ? 'on' : 'off'}</button>
-          <button class="iconbtn" data-set="readAloud" aria-pressed="${st.readAloud}" title="Reads questions out loud in tools that support it">Read aloud: ${st.readAloud ? 'on' : 'off'}</button>
+          <label class="field rdlock">Read aloud<select class="rdLock" title="Reads questions out loud in tools that support it">${[['', 'Student chooses' + (SB.readAloudLock(p.id) ? '' : ' (now ' + (st.readAloud ? 'on' : 'off') + ')')], ['on', 'Always on'], ['off', 'Always off']].map(([v, t]) => `<option value="${v}"${SB.readAloudLock(p.id) === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
           <button class="btn warn small" data-act="reset">Reset progress</button>
           <button class="btn ghost small" data-act="delete">Delete</button>
         </div>${SB.isGuest(p) && others(p).length && Object.keys(SB.child(p.id).tools).length ? `<div class="row movebox"><label class="field">Move Guest's progress to<select class="moveTo">${others(p).map(o => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label><button class="btn small" data-act="move" type="button">Move</button></div>` : ''}</div>`;
     };
     let newColor = SB.COLORS[ps.length % SB.COLORS.length].c;
-    box.innerHTML = `<h2>Students</h2><p class="lead">Names, colors, and settings for each student. Read aloud is off unless you turn it on.</p>
+    box.innerHTML = `<h2>Students</h2><p class="lead">Names, colors, and settings for each student. Read aloud is off unless it is turned on. Choose Always on or Always off to set it for a student so they cannot change it.</p>
       ${ps.map(row).join('') || '<p class="empty">No students yet.</p>'}
       <div class="kidrow"><div class="grow" style="display:flex;flex-direction:column;gap:8px">
         <label class="field">Add a student<input id="newName" maxlength="24" placeholder="Name"></label>
@@ -363,6 +363,7 @@
       nm.onchange = () => { if (nm.value.trim()) { SB.updateProfile(id, { name: nm.value }); SB.toast('Saved'); pChildren(box); } else nm.value = p.name; };
       r.querySelectorAll('.swatch').forEach(s => s.onclick = () => { SB.updateProfile(id, { color: s.dataset.c }); pChildren(box); });
       r.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { const k = b.dataset.set; SB.setSetting(k, !SB.getSetting(k, id), id); pChildren(box); });
+      const rl = r.querySelector('.rdLock'); if (rl) rl.onchange = () => { SB.setSetting('readAloudLock', rl.value, id); SB.toast(rl.value ? 'Read aloud is now always ' + rl.value + ' for ' + p.name : p.name + ' can turn Read aloud on or off'); pChildren(box); };
       r.querySelector('[data-act="reset"]').onclick = () => SB.confirm({ title: 'Reset ' + p.name + "'s progress?", text: 'This erases best scores, streaks, and module progress (like passport stamps) for ' + p.name + '. Settings stay.', ok: 'Reset progress', danger: true }, () => { SB.resetChild(id); SB.toast(p.name + "'s progress was reset"); pChildren(box); });
       const mv = r.querySelector('[data-act="move"]');
       if (mv) mv.onclick = () => { const to = SB.profile(r.querySelector('.moveTo').value); if (!to) return; const lost = SB.mergePreview(id, to.id).notesDropped;

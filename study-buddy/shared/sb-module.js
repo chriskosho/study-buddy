@@ -60,7 +60,7 @@
       const snd = SB.getSetting('sound'), rd = SB.getSetting('readAloud');
       const s = $('#sbSound'); s.textContent = 'Sound: ' + (snd ? 'on' : 'off'); s.setAttribute('aria-pressed', snd);
       const g = $('#sbTog'); if (g) { const on = cfg.toggle.get(state); g.textContent = cfg.toggle.label(on); g.title = cfg.toggle.title || ''; g.setAttribute('aria-pressed', on); }
-      const r = $('#sbRead'); if (r) { r.textContent = 'Read aloud: ' + (rd ? 'on' : 'off'); r.setAttribute('aria-pressed', rd); }
+      const r = $('#sbRead'); if (r) { r.hidden = !!SB.readAloudLock(); r.textContent = 'Read aloud: ' + (rd ? 'on' : 'off'); r.setAttribute('aria-pressed', rd); }
     };
     renderStreak(); paint();
     SB.shell({ module: mod.id });

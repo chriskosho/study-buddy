@@ -226,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     HUB.shell({ module: REGION.key });   // shared header: trail, search, child, Settings, Help
   }
   if (!CAN_SPEAK) { document.body.classList.add('no-speech'); $('#sayBtn').hidden = true; $('#voiceBtn').hidden = true; }
+  else if (ON_HUB && HUB.readAloudLock && HUB.readAloudLock()) $('#sayBtn').hidden = true;   // an admin set Read aloud for this student
   computeBoxes(); renderPassport(); renderStreak();
   $$('nav.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
   const paint = () => {
