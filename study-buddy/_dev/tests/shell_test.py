@@ -56,8 +56,8 @@ async def main():
                                                  ('settings', 'index.html#/settings', '#/home', 'Back to Home')]:
             await pg.goto(base + url); await pg.wait_for_selector('.sbback'); await pg.wait_for_timeout(150)
             check((await pg.get_attribute('.sbback', 'href')).endswith(want_href) and await pg.get_attribute('.sbback', 'aria-label') == want_label, f'{name}: back arrow says "{want_label}" and goes there')
-            box = await pg.locator('.sbback').bounding_box(); tr = await pg.locator('.sbcrumbs ol').bounding_box()
-            check(box['x'] + box['width'] <= tr['x'] and box['width'] >= 28 and box['height'] >= 28, f'{name}: arrow sits left of the trail and is a tap target of at least 28px')
+            box = await pg.locator('.sbback').bounding_box(); tt = await pg.locator('.sbback + h1').bounding_box()
+            check(await pg.locator('.sbhead .sbback').count() == 0 and box['x'] + box['width'] <= tt['x'] and abs((box['y'] + box['height'] / 2) - (tt['y'] + tt['height'] / 2)) < 12 and box['width'] >= 34 and box['height'] >= 34, f'{name}: arrow sits left of the page title (not in the trail) and is a tap target of at least 34px')
         await pg.goto(base + 'modules/science/planets/index.html?tool=quiz'); await pg.click('.sbback'); await pg.wait_for_selector('a.mod')
         check(pg.url.endswith('#/home/science'), 'clicking the arrow in a module opens its subject')
         await pg.click('.sbback'); await pg.wait_for_function("location.hash === '#/home'"); await pg.wait_for_timeout(200)
