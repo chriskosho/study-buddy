@@ -38,7 +38,7 @@
   .sbhead-in{max-width:1600px;margin:0 auto;padding:5px clamp(14px,3vw,40px);display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
   .sbbrand{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:18px;color:var(--navy-ink,var(--navy));text-decoration:none;white-space:nowrap;padding:4px 6px;border-radius:10px}
   .sbbrand svg{width:22px;height:22px}
-  .sbcrumbs{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:10px}
+  .sbcrumbs{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px}
   .sbback{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin:-2px 0;border-radius:50%;border:2px solid var(--line);background:var(--surface,var(--card));color:var(--navy-ink,var(--navy));text-decoration:none}
   .sbback svg{width:16px;height:16px}
   .sbback:hover{border-color:var(--teal)}
@@ -82,6 +82,7 @@
   .sbfoot-refresh{font:inherit;font-weight:700;color:var(--navy-ink,var(--navy));background:none;border:0;padding:3px 0;cursor:pointer}
   .sbfoot-refresh:hover{text-decoration:underline}
   .sbfoot-refresh:disabled{opacity:.6;cursor:default}
+  @media (max-width:1500px){.sbhead-in.hasback .sbbrand span{display:none}}   /* the arrow takes that room; the house icon still goes Home */
   @media (max-width:760px){
     .sbhead-in{padding:6px 12px;gap:6px 6px}
     .sbbrand span{display:none}
@@ -182,7 +183,7 @@
     const cr = crumbsFor(opts), last = cr.length - 1;
     const par = cr.slice(0, last).reverse().find(c => c.href);   // the screen one step up; nothing on Home itself
     const back = par ? `<a class="sbback" href="${esc(par.href)}" aria-label="Back to ${esc(par.label)}" title="Back to ${esc(par.label)}">${ICON.back}</a>` : '';
-    return `<div class="sbhead-in">
+    return `<div class="sbhead-in${back ? ' hasback' : ''}">
       <a class="sbbrand" href="${HOME}" aria-label="Study Buddy, home">${ICON.home}<span>Study Buddy</span></a>
       <nav class="sbcrumbs" aria-label="Breadcrumb">${back}<ol>${cr.map((c, i) => `<li>${i === last || !c.href ? `<span aria-current="page">${esc(c.label)}</span>` : `<a href="${esc(c.href)}">${esc(c.label)}</a>`}</li>`).join('')}</ol></nav>
       <div class="sbhead-r">
@@ -289,6 +290,7 @@
       fb.onclick = async () => { fb.disabled = true; const ok = await refreshLatest(t => { fm.textContent = t; }); if (!ok) fb.disabled = false; };
     }
     head.innerHTML = headHTML(opts); wire();
+    if (!head._ro && window.ResizeObserver) { head._ro = new ResizeObserver(measure); head._ro.observe(head); head._ro.observe(foot); }   /* larger text, a wrapped header, or a new trail change the height after load, so tool screens re-fit */
     measure();
     return head;
   }
