@@ -7,7 +7,7 @@
      SB.shell({})                             just Home
 
    The hub calls it again on every route change, so the trail always matches the page.
-   Header: Study Buddy (home), a round back arrow (to the screen one step up) and the trail, Search, the student, Settings, Help menu.
+   Header: Study Buddy (home), the trail, Search, the student, Settings, Help menu.
    Footer: Home, Subjects, Utilities, Settings, Admin area, Help, FAQ, About, and the privacy line.
    Needs sb-core.js. Uses registry.js for names and search (loads it if the page did not). */
 (function () {
@@ -38,11 +38,12 @@
   .sbhead-in{max-width:1600px;margin:0 auto;padding:5px clamp(14px,3vw,40px);display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
   .sbbrand{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:18px;color:var(--navy-ink,var(--navy));text-decoration:none;white-space:nowrap;padding:4px 6px;border-radius:10px}
   .sbbrand svg{width:22px;height:22px}
-  .sbcrumbs{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px}
-  .sbback{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin:-2px 0;border-radius:50%;border:2px solid var(--line);background:var(--surface,var(--card));color:var(--navy-ink,var(--navy));text-decoration:none}
-  .sbback svg{width:16px;height:16px}
+  .sbcrumbs{flex:1 1 auto;min-width:0}
+  .sbtitle{display:flex;align-items:center;gap:12px;min-width:0}
+  .sbback{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--surface,var(--card));color:var(--navy-ink,var(--navy));text-decoration:none}
+  .sbback svg{width:20px;height:20px}
   .sbback:hover{border-color:var(--teal)}
-  .sbcrumbs ol{flex:1 1 0;min-width:0;list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 0;font-size:15px;font-weight:700}
+  .sbcrumbs ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 0;font-size:15px;font-weight:700}
   .sbcrumbs li{display:inline-flex;align-items:center;min-width:0}
   .sbcrumbs li+li::before{content:"\\203A";margin:0 8px;color:var(--ink2);font-weight:800}
   .sbcrumbs a{color:var(--navy-ink,var(--navy));text-decoration:none;border-bottom:2px solid transparent;padding:2px 0}
@@ -82,7 +83,6 @@
   .sbfoot-refresh{font:inherit;font-weight:700;color:var(--navy-ink,var(--navy));background:none;border:0;padding:3px 0;cursor:pointer}
   .sbfoot-refresh:hover{text-decoration:underline}
   .sbfoot-refresh:disabled{opacity:.6;cursor:default}
-  @media (max-width:1500px){.sbhead-in.hasback .sbbrand span{display:none}}   /* the arrow takes that room; the house icon still goes Home */
   @media (max-width:760px){
     .sbhead-in{padding:6px 12px;gap:6px 6px}
     .sbbrand span{display:none}
@@ -173,6 +173,17 @@
     if (list.length === 1) list[0] = { label: 'Home' };
     return list;
   }
+  /* The back arrow sits at the left of the page title (the big heading), and goes to the screen one step up: the nearest earlier crumb with a link.
+     Nothing on Home itself. The title and arrow share a small wrapper so the heading keeps its place in the page header. */
+  function placeBack(cr) {
+    const h = document.querySelector('body h1:not(.sbhead h1)'); if (!h) return;
+    let wrap = h.parentElement && h.parentElement.classList.contains('sbtitle') ? h.parentElement : null;
+    const old = wrap && wrap.querySelector('.sbback'); if (old) old.remove();
+    const par = cr.slice(0, -1).reverse().find(c => c.href); if (!par) { if (wrap) { wrap.replaceWith(h); } return; }
+    if (!wrap) { wrap = document.createElement('div'); wrap.className = 'sbtitle'; h.replaceWith(wrap); wrap.appendChild(h); }
+    const a = document.createElement('a'); a.className = 'sbback'; a.href = par.href; a.setAttribute('aria-label', 'Back to ' + par.label); a.title = 'Back to ' + par.label; a.innerHTML = ICON.back;
+    wrap.insertBefore(a, h);
+  }
   function kidChip() {
     const kid = SB.activeProfile(); if (!kid) return '';
     if (SB.isGuest(kid)) return `<button type="button" class="sbbtn kidpill" id="sbAddName" title="Add your name to keep your progress">${SB.avatar(kid)}<b>Guest</b><span class="hint lbl">Add a name</span></button>`;
@@ -181,11 +192,9 @@
   }
   function headHTML(opts) {
     const cr = crumbsFor(opts), last = cr.length - 1;
-    const par = cr.slice(0, last).reverse().find(c => c.href);   // the screen one step up; nothing on Home itself
-    const back = par ? `<a class="sbback" href="${esc(par.href)}" aria-label="Back to ${esc(par.label)}" title="Back to ${esc(par.label)}">${ICON.back}</a>` : '';
-    return `<div class="sbhead-in${back ? ' hasback' : ''}">
+    return `<div class="sbhead-in">
       <a class="sbbrand" href="${HOME}" aria-label="Study Buddy, home">${ICON.home}<span>Study Buddy</span></a>
-      <nav class="sbcrumbs" aria-label="Breadcrumb">${back}<ol>${cr.map((c, i) => `<li>${i === last || !c.href ? `<span aria-current="page">${esc(c.label)}</span>` : `<a href="${esc(c.href)}">${esc(c.label)}</a>`}</li>`).join('')}</ol></nav>
+      <nav class="sbcrumbs" aria-label="Breadcrumb"><ol>${cr.map((c, i) => `<li>${i === last || !c.href ? `<span aria-current="page">${esc(c.label)}</span>` : `<a href="${esc(c.href)}">${esc(c.label)}</a>`}</li>`).join('')}</ol></nav>
       <div class="sbhead-r">
         <div class="sbsearch" id="sbSearch" role="search">
           <button type="button" class="sbbtn sbsearch-toggle" aria-label="Search" aria-expanded="false">${ICON.search}</button>
@@ -289,7 +298,7 @@
       const fb = foot.querySelector('#sbFootRefresh'), fm = foot.querySelector('#sbFootMsg');
       fb.onclick = async () => { fb.disabled = true; const ok = await refreshLatest(t => { fm.textContent = t; }); if (!ok) fb.disabled = false; };
     }
-    head.innerHTML = headHTML(opts); wire();
+    head.innerHTML = headHTML(opts); wire(); placeBack(crumbsFor(opts));
     if (!head._ro && window.ResizeObserver) { head._ro = new ResizeObserver(measure); head._ro.observe(head); head._ro.observe(foot); }   /* larger text, a wrapped header, or a new trail change the height after load, so tool screens re-fit */
     measure();
     return head;
