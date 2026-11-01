@@ -52,16 +52,19 @@ async def main():
                                                  ('Atlas', 'modules/geography/south-america/index.html?tool=find', '#/home/geography', 'Back to Geography'),
                                                  ('calculator', 'utilities/calculator/index.html', '#/utilities', 'Back to Utilities'),
                                                  ('hub module', 'index.html#/module/ancient-rome', '#/home/history', 'Back to History'),
-                                                 ('subject', 'index.html#/home/math', '#/home', 'Back to Home'),
-                                                 ('settings', 'index.html#/settings', '#/home', 'Back to Home')]:
+                                                 ]:
             await pg.goto(base + url); await pg.wait_for_selector('.sbback'); await pg.wait_for_timeout(150)
             check((await pg.get_attribute('.sbback', 'href')).endswith(want_href) and await pg.get_attribute('.sbback', 'aria-label') == want_label, f'{name}: back arrow says "{want_label}" and goes there')
             box = await pg.locator('.sbback').bounding_box(); tt = await pg.locator('.sbback + h1').bounding_box()
             check(await pg.locator('.sbhead .sbback').count() == 0 and box['x'] + box['width'] <= tt['x'] and abs((box['y'] + box['height'] / 2) - (tt['y'] + tt['height'] / 2)) < 12 and box['width'] >= 34 and box['height'] >= 34, f'{name}: arrow sits left of the page title (not in the trail) and is a tap target of at least 34px')
         await pg.goto(base + 'modules/science/planets/index.html?tool=quiz'); await pg.click('.sbback'); await pg.wait_for_selector('a.mod')
         check(pg.url.endswith('#/home/science'), 'clicking the arrow in a module opens its subject')
-        await pg.click('.sbback'); await pg.wait_for_function("location.hash === '#/home'"); await pg.wait_for_timeout(200)
-        check(pg.url.endswith('#/home') and await pg.locator('.sbback').count() == 0, 'then the arrow on the subject page goes Home, and Home has no arrow')
+        check(await pg.locator('.sbback').count() == 0, 'the subject page has no arrow')
+        for name, url in [('Home', 'index.html#/home'), ('subject', 'index.html#/home/math'), ('Utilities list', 'index.html#/utilities'), ('settings', 'index.html#/settings'), ('notes', 'index.html#/notes'), ('help', 'index.html#/help')]:
+            await pg.goto(base + url); await pg.wait_for_selector('h1'); await pg.wait_for_timeout(200)
+            check(await pg.locator('.sbback').count() == 0 and await pg.locator('.sbtitle').count() == 0, f'{name}: no back arrow')
+        await pg.goto(base + 'index.html#/module/ancient-rome'); await pg.wait_for_selector('.sbback'); await pg.evaluate("location.hash = '#/home/math'"); await pg.wait_for_selector('a.mod'); await pg.wait_for_timeout(200)
+        check(await pg.locator('.sbback').count() == 0, 'moving from a module to a subject list removes the arrow')
         await pg.set_viewport_size({'width': 360, 'height': 740}); await pg.goto(base + 'modules/science/planets/index.html?tool=quiz'); await pg.wait_for_selector('.sbback')
         check(await pg.evaluate('document.documentElement.scrollWidth <= innerWidth') and await pg.locator('.sbback').is_visible(), 'at 360px the arrow shows and nothing scrolls sideways')
         await pg.set_viewport_size({'width': 1440, 'height': 900})

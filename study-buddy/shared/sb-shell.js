@@ -174,12 +174,12 @@
     return list;
   }
   /* The back arrow sits at the left of the page title (the big heading), and goes to the screen one step up: the nearest earlier crumb with a link.
-     Nothing on Home itself. The title and arrow share a small wrapper so the heading keeps its place in the page header. */
-  function placeBack(cr) {
+     Only inside a module or a utility (the owner's rule): subject lists, Notes, Settings and the other hub pages have none. The title and arrow share a small wrapper so the heading keeps its place in the page header. */
+  function placeBack(cr, show) {
     const h = document.querySelector('body h1:not(.sbhead h1)'); if (!h) return;
     let wrap = h.parentElement && h.parentElement.classList.contains('sbtitle') ? h.parentElement : null;
     const old = wrap && wrap.querySelector('.sbback'); if (old) old.remove();
-    const par = cr.slice(0, -1).reverse().find(c => c.href); if (!par) { if (wrap) { wrap.replaceWith(h); } return; }
+    const par = show && cr.slice(0, -1).reverse().find(c => c.href); if (!par) { if (wrap) { wrap.replaceWith(h); } return; }
     if (!wrap) { wrap = document.createElement('div'); wrap.className = 'sbtitle'; h.replaceWith(wrap); wrap.appendChild(h); }
     const a = document.createElement('a'); a.className = 'sbback'; a.href = par.href; a.setAttribute('aria-label', 'Back to ' + par.label); a.title = 'Back to ' + par.label; a.innerHTML = ICON.back;
     wrap.insertBefore(a, h);
@@ -298,7 +298,7 @@
       const fb = foot.querySelector('#sbFootRefresh'), fm = foot.querySelector('#sbFootMsg');
       fb.onclick = async () => { fb.disabled = true; const ok = await refreshLatest(t => { fm.textContent = t; }); if (!ok) fb.disabled = false; };
     }
-    head.innerHTML = headHTML(opts); wire(); placeBack(crumbsFor(opts));
+    head.innerHTML = headHTML(opts); wire(); placeBack(crumbsFor(opts), !!(opts.module || opts.utility));   // only inside a module or a utility; subject lists, Notes and Settings have none
     if (!head._ro && window.ResizeObserver) { head._ro = new ResizeObserver(measure); head._ro.observe(head); head._ro.observe(foot); }   /* larger text, a wrapped header, or a new trail change the height after load, so tool screens re-fit */
     measure();
     return head;
