@@ -1,6 +1,9 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-10-31', title: 'Admins can set Read aloud for a student', items: [
+    'In the admin area, Students, each student now has a Read aloud choice: Student chooses, Always on, or Always off.',
+    'With Always on or Always off, the student cannot change it: the Read aloud switch is hidden in modules and Settings says an admin set it. Speaker buttons still work.' ] },
   { date: '2026-10-31', title: 'Back arrow only inside modules', items: [
     'The back arrow now shows only inside a module (or a utility such as the calculator). Moving between subjects on the home screen, and the Notes, Settings and Help pages, no longer have one.' ] },
   { date: '2026-10-31', title: 'A back arrow on every screen', items: [
