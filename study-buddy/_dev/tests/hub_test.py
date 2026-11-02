@@ -159,11 +159,11 @@ async def main():
         check(await pg.locator('.ptable >> nth=0 >> th').count() == 6, 'progress table has a column per child')
         await pg.screenshot(path=f'{OUT}/sb_parent_progress.png', full_page=True)
         await pg.click('nav.tabs a:has-text("Students")'); await pg.wait_for_selector('.kidrow')
-        await pg.select_option('.kidrow:has(input[value="Hazel"]) .rdLock', 'on'); await pg.wait_for_timeout(150)
-        hz = await pg.evaluate("(()=>{const p=SB.profiles().find(x=>x.name==='Hazel');return SB.getSetting('readAloud', p.id)})()")
-        check(hz is True, 'read aloud set to Always on for Hazel only')
-        jo = await pg.evaluate("(()=>{const p=SB.profiles().find(x=>x.name==='Joshua');return SB.getSetting('readAloud', p.id)})()")
-        check(jo is False, 'read aloud still off for Joshua')
+        await pg.click('.kidrow:has(input[value="Hazel"]) [data-avail="readAloud"]'); await pg.wait_for_timeout(150)
+        hz = await pg.evaluate("(()=>{const p=SB.profiles().find(x=>x.name==='Hazel');return SB.unavailable('readAloud', p.id)})()")
+        check(hz is True, 'Read aloud turned off for Hazel only')
+        jo = await pg.evaluate("(()=>{const p=SB.profiles().find(x=>x.name==='Joshua');return SB.unavailable('readAloud', p.id)})()")
+        check(jo is False, 'Read aloud still available for Joshua')
         await pg.screenshot(path=f'{OUT}/sb_parent_children.png', full_page=True)
 
         # backup round trip

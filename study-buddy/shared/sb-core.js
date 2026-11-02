@@ -61,7 +61,7 @@
   function saveRoot(r) { write(ROOT, r); }
   function child(id) {
     const d = Object.assign({ settings: {}, streak: 0, bestStreak: 0, daily: { d: '', n: 0, done: false }, tools: {}, last: null }, read(CHILD(id), {}));
-    d.settings = Object.assign({ sound: true, readAloud: false, readAloudLock: '', theme: 'light', font: 'standard', size: 'normal', voice: '', view: 'tiles', sort: 'subject', collapsed: [] }, d.settings);
+    d.settings = Object.assign({ sound: true, readAloud: false, readAloudLock: '', soundLock: '', theme: 'light', font: 'standard', size: 'normal', voice: '', view: 'tiles', sort: 'subject', collapsed: [] }, d.settings);
     d.streak = Number(d.streak) || 0; d.bestStreak = Number(d.bestStreak) || 0;
     if (!d.daily || typeof d.daily !== 'object') d.daily = { d: '', n: 0, done: false };
     d.daily.n = Number(d.daily.n) || 0;
@@ -126,14 +126,15 @@
   const avatar = (p, cls = '') => `<span class="av ${cls}" style="--c:${safeColor(p.color)};--ci:${colorInk(p.color)}" aria-hidden="true">${esc(initial(p.name))}</span>`;
 
   /* ---------- settings ---------- */
-  /* An admin can take Read aloud out of a student's hands: readAloudLock is '' (the student chooses), 'on' (always on) or 'off' (always off).
-     While it is locked, getSetting('readAloud') gives the locked value, setSetting('readAloud') does nothing, and the switches are hidden. */
-  function readAloudLock(id = activeId()) { const v = id ? child(id).settings.readAloudLock : ''; return v === 'on' || v === 'off' ? v : ''; }
-  function getSetting(k, id = activeId()) { if (k === 'readAloud' && id) { const l = readAloudLock(id); if (l) return l === 'on'; } return id ? child(id).settings[k] : ({ sound: true, readAloud: false, readAloudLock: '', theme: 'light', font: 'standard', size: 'normal', voice: '', view: 'tiles', sort: 'subject', collapsed: [] })[k]; }
+  /* An admin can take Read aloud or Sound away from one student: settings.readAloudLock / settings.soundLock is '' (available, the default) or 'off'.
+     While it is 'off' the setting reads as off, cannot be turned on, and every switch for it is hidden. */
+  const LOCKABLE = { readAloud: 'readAloudLock', sound: 'soundLock' };
+  function unavailable(k, id = activeId()) { return !!(id && LOCKABLE[k] && child(id).settings[LOCKABLE[k]] === 'off'); }
+  function getSetting(k, id = activeId()) { if (unavailable(k, id)) return false; return id ? child(id).settings[k] : ({ sound: true, readAloud: false, readAloudLock: '', soundLock: '', theme: 'light', font: 'standard', size: 'normal', voice: '', view: 'tiles', sort: 'subject', collapsed: [] })[k]; }
   function setSetting(k, v, id = activeId()) {
-    if (!id || (k === 'readAloud' && readAloudLock(id))) return;
+    if (!id || unavailable(k, id)) return;
     const d = child(id); d.settings[k] = v; saveChild(id, d);
-    if (id === activeId()) { if (k === 'sound' && !v) stopTones(); if ((k === 'readAloud' && !v) || (k === 'readAloudLock' && v === 'off')) stopSpeech(); }   // turning a setting off also stops what is playing
+    if (id === activeId()) { if ((k === 'sound' && !v) || (k === 'soundLock' && v === 'off')) stopTones(); if ((k === 'readAloud' && !v) || (k === 'readAloudLock' && v === 'off')) stopSpeech(); }   // turning a setting off also stops what is playing
   }
 
   /* ---------- progress ---------- */
@@ -723,7 +724,7 @@
   function displayDialog(onChange) {
     const p = activeProfile();
     dialog(`<h3>Display</h3><p>Saved for ${esc(p ? p.name : 'you')} on this device.</p>
-      ${DISPLAY_OPTS.filter(o => o[0] !== 'readAloud' || (CAN_SPEAK && !readAloudLock())).map(([k, label, vals]) => `<div class="sb-opt"><span>${label}</span><div class="sb-seg" role="group" aria-label="${label}">${vals.map(([v, t]) => `<button type="button" data-k="${k}" data-v="${v}" aria-pressed="${String(getSetting(k)) === String(v)}">${t}</button>`).join('')}</div></div>`).join('')}
+      ${DISPLAY_OPTS.filter(o => !unavailable(o[0]) && (o[0] !== 'readAloud' || CAN_SPEAK)).map(([k, label, vals]) => `<div class="sb-opt"><span>${label}</span><div class="sb-seg" role="group" aria-label="${label}">${vals.map(([v, t]) => `<button type="button" data-k="${k}" data-v="${v}" aria-pressed="${String(getSetting(k)) === String(v)}">${t}</button>`).join('')}</div></div>`).join('')}
       <div class="sb-row" style="margin-top:12px"><button class="sb-btn" data-x="done">Done</button></div>`, (box, close) => {
       box.querySelectorAll('.sb-seg button').forEach(b => b.onclick = () => {
         const k = b.dataset.k, v = b.dataset.v === 'true' ? true : b.dataset.v === 'false' ? false : b.dataset.v;
@@ -840,8 +841,8 @@
       const a = seenActive;
       if (e.key === null) return location.reload();                                              // all site data cleared in another tab
       if (e.key === ROOT) { if (activeId() !== a) location.reload(); return; }
-      if (a && e.key === CHILD(a)) { const lk = v => { try { const l = (JSON.parse(v || '{}').settings || {}).readAloudLock; return l === 'on' || l === 'off' ? l : ''; } catch (x) { return ''; } };
-        if (lk(e.oldValue) !== lk(e.newValue)) return location.reload(); }                       // an admin set Read aloud for this student in another tab: every switch and the Atlas pick it up
+      if (a && e.key === CHILD(a)) { const lk = v => { try { const st = JSON.parse(v || '{}').settings || {}; return (st.readAloudLock === 'off' ? 'r' : '') + (st.soundLock === 'off' ? 's' : ''); } catch (x) { return ''; } };
+        if (lk(e.oldValue) !== lk(e.newValue)) return location.reload(); }                       // an admin turned Read aloud or Sound off or on for this student in another tab: every switch and the Atlas pick it up
       if (e.key === EPOCH || (a && e.newValue === null && (e.key === CHILD(a) || e.key.startsWith(MODPREFIX(a))))) location.reload();   // a reset or a backup load in another tab: don't write old progress back
     });
   } catch (e) {}
@@ -851,7 +852,7 @@
     esc, today,
     root, profiles, profile, activeProfile, activeId, setActive, addProfile, isGuest, ensureGuest, nameDialog, afterProfileAdded, offerPin, updateProfile, deleteProfile, resetChild, resetAllProgress, eraseEverything, resetModule,
     avatar, colorInk, initial, child, bookmarks, isBookmarked, toggleBookmark,
-    getSetting, setSetting, readAloudLock,
+    getSetting, setSetting, unavailable,
     credit, slip, streakInfo, pillHTML, noteMiss, mergeProfile, mergePreview, importChild, dayKey, opened, result, toolRecord, isMastered, moduleProgress, difficultyRange, diffBadge, diffRangeHTML,
     moduleKey, requireProfile,
     tone, sfx, say, stopSpeech, stopAll, voicesFor, voiceId, voiceLabels, pickVoice, applyVoice, sayButton, toast, applyDisplay, displayDialog, swipeCard, cardToast,

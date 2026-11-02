@@ -21,13 +21,13 @@
     document.title = 'Settings · Study Buddy';
     const many = SB.profiles().length > 1;
     const speech = SB.CAN_SPEAK ? `<div class="setgroup"><h3>Reading aloud</h3>
-        ${SB.readAloudLock() ? `<div class="setrow"><span>Read aloud</span><span class="hint" id="readLocked"><b>${SB.readAloudLock() === 'on' ? 'Always on' : 'Always off'}</b>. An admin set this.</span></div>` : seg('readAloud', 'Read aloud', [[false, 'Off'], [true, 'On']])}
+        ${SB.unavailable('readAloud') ? `<div class="setrow"><span>Read aloud</span><span class="hint" id="readLocked"><b>Off</b>. An admin turned this off.</span></div>` : seg('readAloud', 'Read aloud', [[false, 'Off'], [true, 'On']])}
         <div class="setrow"><label for="voiceSel">Voice</label>
           <span class="voicectl"><select id="voiceSel" aria-describedby="voiceHint"></select><button type="button" class="btn ghost small" id="voicePrev">Preview</button></span></div>
         <p class="hint" id="voiceHint">${HINT}</p><p class="hint" id="voiceNow" role="status" aria-live="polite"></p></div>` : '';
     app.innerHTML = top('Settings', 'for ' + esc(kid.name)) + `<section class="panel setpanel">
       <p class="lead">Saved for ${esc(kid.name)} on this device. ${many ? `Not ${esc(kid.name)}? <a href="#/">Switch student</a>.` : ''}</p>
-      ${OPTS.map(g => `<div class="setgroup"><h3>${g.group}</h3>${g.items.map(i => seg(...i)).join('')}</div>`).join('')}
+      ${OPTS.map(g => `<div class="setgroup"><h3>${g.group}</h3>${g.group === 'Sound' && SB.unavailable('sound') ? `<div class="setrow"><span>Sound effects</span><span class="hint" id="soundLocked"><b>Off</b>. An admin turned this off.</span></div>` : g.items.map(i => seg(...i)).join('')}</div>`).join('')}
       ${speech}
       <div class="setgroup"><h3>Updates</h3>
         <div class="setrow"><span>Show the newest version of Study Buddy</span><button type="button" class="btn ghost small" id="refreshLatest">Refresh for the latest</button></div>
@@ -106,7 +106,7 @@
         <li><b>Explain it</b>: write your answer in your own words. It checks for the main ideas and complete sentences.</li></ul>`)}
       ${sec('Streak, daily goal, and mastered', `<p>The <b>Streak</b> counts right answers in a row. <b>Today</b> counts toward the daily goal. A tool is <b>Mastered</b> when the best score reaches the goal shown in its description.</p>`)}
       ${sec('Sound and reading aloud', `<ul><li>The speaker button reads a word or sentence. <b>Press it again while it is playing to stop.</b> Escape also stops all sound.</li>
-        <li><b>Read aloud</b> reads questions automatically. It is off until you turn it on in <a href="#/settings">Settings</a>. An admin can also set it to Always on or Always off for a student in the admin area, and then the student cannot change it.</li>
+        <li><b>Read aloud</b> reads questions automatically. It is off until you turn it on in <a href="#/settings">Settings</a>. An admin can turn Read aloud (or Sound) off for a student in the admin area, and then that student does not see the switch.</li>
         <li>If the voice is hard to listen to, choose another in Settings under Voice.</li></ul>`)}
       ${sec('Using the keyboard', `<ul><li><b>Tab</b> moves between buttons. <b>Enter</b> or <b>Space</b> presses one.</li>
         <li>On the South America maps, Tab moves between countries and Enter picks one.</li>
