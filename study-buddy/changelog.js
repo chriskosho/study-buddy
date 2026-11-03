@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-03', title: 'New module: A Bird, came down the Walk', items: [
+    'English has a new module for memorizing Emily Dickinson\'s poem "A Bird, came down the Walk -", one stanza at a time.',
+    'Seven tools: Read and listen, Flashcards, First letters, Fill the blanks, Put the lines in order, Type it from memory, and Say the whole poem. The first three are practice only; the other four give credit.',
+    'Type it from memory and Say the whole poem accept small spelling slips, ignore capital letters and dashes, and a hint means that stanza does not count.' ] },
   { date: '2026-11-02', title: 'Study Buddy now updates itself', items: [
     'When a new version is ready, Study Buddy gets it by itself, with nothing to press. It checks when you open it, when you come back to it, and every half hour.',
     'It switches to the new version at a safe moment: right away on the home pages, and on a quiz or other tool only when you leave the app, so a round is never cut short. A message then says Study Buddy was updated to the latest version and that it updates itself.',
