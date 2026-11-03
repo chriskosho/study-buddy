@@ -294,6 +294,24 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'bird-walk',
+      subject: 'english',
+      title: 'A Bird, came down the Walk',
+      blurb: 'Memorize the Emily Dickinson poem, one stanza at a time.',
+      tags: ['english', 'poetry'],
+      path: 'modules/english/bird-walk/index.html',
+      storage: ['bird-walk'],
+      tools: [
+        { id: 'read', name: 'Read and listen', kind: 'study', difficulty: 'easy', blurb: 'The whole poem, a stanza at a time, with each stanza read aloud.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'What line comes next, and the last word of each line. Practice only.' },
+        { id: 'letters', name: 'First letters', kind: 'study', difficulty: 'easy', blurb: 'Only the first letters show. Say the line, then tap to check. Practice only.' },
+        { id: 'blanks', name: 'Fill the blanks', difficulty: 'easy', blurb: 'Tap the missing words back into a stanza. Mastered at 80% on the first check.' },
+        { id: 'order', name: 'Put the lines in order', difficulty: 'medium', blurb: 'Put the lines of a stanza, or the stanzas themselves, in order.' },
+        { id: 'type', name: 'Type it from memory', difficulty: 'hard', masterAt: 13, blurb: 'The first line is shown. Type the rest of each stanza. Mastered at 13 of 15 lines.' },
+        { id: 'recite', name: 'Say the whole poem', difficulty: 'insane', masterAt: 18, blurb: 'Type all five stanzas with nothing shown. Mastered at 18 of 20 lines.' }
+      ]
+    },
+    {
       id: 'ancient-rome',
       subject: 'history',
       title: 'Ancient Rome',
