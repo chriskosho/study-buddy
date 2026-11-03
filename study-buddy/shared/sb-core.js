@@ -860,14 +860,16 @@
         const busy = () => !!document.querySelector('.sb-ov') || /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '') || !!(document.activeElement && document.activeElement.isContentEditable) || !!(window.SBPad && SBPad.isOpen && SBPad.isOpen());
         const go = () => { if (!reloading && !busy()) { reloading = true; location.reload(); } };   // never with a box open, someone typing, or a notepad open
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') go(); });
+        if (inTool) pendingReload = true;   // this page still runs the old files, so it does not announce the update until it has reloaded
         if (!inTool) { const t = setInterval(() => { if (reloading) return clearInterval(t); go(); }, 1500); go(); }
       }
     }
   } catch (e) {}
 
   /* After an update, say so once: Study Buddy was updated, and it updates itself. */
-  let noteTries = 0;
+  let noteTries = 0, pendingReload = false;
   function showUpdated() {
+    if (pendingReload) return;
     let to = '', seen = '';
     try { to = localStorage.getItem('sb-update-to') || ''; seen = localStorage.getItem('sb-update-seen') || ''; } catch (e) { return; }
     if (!to || to === seen) return;
