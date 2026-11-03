@@ -212,6 +212,7 @@
      with no internet never leaves the device without a working copy. say(text) reports progress. Used by the footer and Settings. */
   async function refreshLatest(say) {
     say = say || function () {};
+    try { localStorage.setItem('sb-manual-refresh', String(Date.now())); } catch (e) {}   // so open pages do not treat the new worker as a surprise update
     say('Getting the newest files...');
     let sw = null;
     try { const res = await fetch(BASE + 'sw.js', { cache: 'reload' }); if (res.ok) sw = await res.text(); } catch (e) {}

@@ -833,8 +833,58 @@
   /* ---------- offline support (only works on a real web address, not a double-clicked file) ---------- */
   try {
     const webAddress = location.protocol === 'https:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-    if ('serviceWorker' in navigator && webAddress) window.addEventListener('load', () => navigator.serviceWorker.register(BASE + 'sw.js').catch(() => {}));
+    if ('serviceWorker' in navigator && webAddress) {
+      const sw = navigator.serviceWorker;
+      let had = !!sw.controller;                                   // a page that already had a worker is being updated; the very first install is not an update
+      window.addEventListener('load', () => sw.register(BASE + 'sw.js').then(reg => {
+        const check = () => { try { reg.update().catch(() => {}); } catch (e) {} };
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });   // coming back to the app
+        setInterval(check, 30 * 60 * 1000);                          // and every half hour while it stays open
+      }).catch(() => {}));
+      sw.addEventListener('controllerchange', () => {
+        if (!had) { had = true; return; }
+        try { if (Date.now() - Number(localStorage.getItem('sb-manual-refresh') || 0) < 60000) return; } catch (e) {}   // "Get latest version" was just pressed (here or in another tab): that is not a surprise update
+        let got = false;
+        const done = v => { if (got) return; got = true; sw.removeEventListener('message', onMsg); try { localStorage.setItem('sb-update-to', String(v || Date.now())); } catch (e) {} applyUpdate(); };
+        const onMsg = e => { if (e.data && e.data.version) done(e.data.version); };
+        sw.addEventListener('message', onMsg);
+        try { sw.controller && sw.controller.postMessage('version'); } catch (e) {}
+        setTimeout(() => done(0), 1500);
+      });
+      /* The new files are already saved. Reload to use them when nothing would be lost: on the hub pages when no box is open and nobody
+         is typing. A tool page (a quiz round, the notepad) is left alone until the app goes into the background; any new page that
+         opens meanwhile already loads the new files. */
+      let reloading = false;
+      function applyUpdate() {
+        const inTool = /\/(modules|utilities)\//.test(location.pathname);
+        const busy = () => !!document.querySelector('.sb-ov') || /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '') || !!(document.activeElement && document.activeElement.isContentEditable) || !!(window.SBPad && SBPad.isOpen && SBPad.isOpen());
+        const go = () => { if (!reloading && !busy()) { reloading = true; location.reload(); } };   // never with a box open, someone typing, or a notepad open
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') go(); });
+        if (inTool) pendingReload = true;   // this page still runs the old files, so it does not announce the update until it has reloaded
+        if (!inTool) { const t = setInterval(() => { if (reloading) return clearInterval(t); go(); }, 1500); go(); }
+      }
+    }
   } catch (e) {}
+
+  /* After an update, say so once: Study Buddy was updated, and it updates itself. */
+  let noteTries = 0, pendingReload = false;
+  function showUpdated() {
+    if (pendingReload) return;
+    let to = '', seen = '';
+    try { to = localStorage.getItem('sb-update-to') || ''; seen = localStorage.getItem('sb-update-seen') || ''; } catch (e) { return; }
+    if (!to || to === seen) return;
+    const a = document.activeElement, typing = !!a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable);
+    if (document.visibilityState !== 'visible') return;                              // a background tab leaves the message for the one in front (see the listener below)
+    if (document.querySelector('.sb-ov') || typing) { if (++noteTries < 15) setTimeout(showUpdated, 2000); return; }   // not on top of another box, and never while someone is typing
+    try { localStorage.setItem('sb-update-seen', to); } catch (e) {}
+    dialog(`<h3>Study Buddy is up to date</h3><p>Study Buddy was updated to the latest version. It updates itself whenever a new version is available, so there is nothing you need to do.</p>
+      <div class="sb-row" style="margin-top:12px"><button class="sb-btn ghost" data-x="log">See what is new</button><button class="sb-btn" data-x="ok">OK</button></div>`, (box, close) => {
+      box.querySelector('[data-x="ok"]').onclick = close;
+      box.querySelector('[data-x="log"]').onclick = () => { close(); location.href = BASE + 'index.html#/changelog'; };
+    });
+  }
+  window.addEventListener('load', () => setTimeout(showUpdated, 800));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(showUpdated, 300); });
 
   try { applyDisplay(); } catch (e) {}
   try {
