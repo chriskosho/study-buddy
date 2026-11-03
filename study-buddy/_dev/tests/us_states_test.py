@@ -95,7 +95,7 @@ async def main():
         check(await pg.locator('.deckbar .seg button').count() == 8, 'flashcards have 8 decks (map shapes plus 7 topics)')
         check('0 of 50' in await pg.inner_text('.deckbar .count'), 'every deck has all 50 states')
         await pg.click('.deckbar .seg button >> nth=2'); await pg.wait_for_timeout(300)
-        check(await pg.locator('.front svg').count() == 1, 'the Flags deck shows a flag')
+        check(await pg.locator('.front svg:not(svg svg)').count() == 1, 'the Flags deck shows a flag')
         await pg.click('[data-a="knew"]'); await pg.wait_for_timeout(900)
         check('1 of 50' in await pg.inner_text('.deckbar .count'), 'I knew it moves through the deck')
         st = await state(pg); check(not st.get('best') and not st.get('streak'), 'flashcards give no credit')
@@ -171,7 +171,7 @@ async def main():
         check(len(tt) == 7, f'type topics {tt}')
         await pg.click('.us-topics button[data-t="capitals"]'); await pg.wait_for_selector('.us-body input')
         async def cur_state():
-            q = await pg.inner_text('.us-body .qtext'); return await pg.evaluate("q => STATES.find(s => q.includes(s.name)).capital", q)
+            q = await pg.inner_text('.us-body .qtext'); return await pg.evaluate("q => STATES.filter(s => q.includes(s.name)).sort((a, b) => b.name.length - a.name.length)[0].capital", q)
         cap = await cur_state(); await type_q(pg, cap.lower())
         check('Correct' in await pg.inner_text('.err'), f'capital typed in lower case is accepted ({cap})')
         await pg.click('[data-a="next"]'); cap = await cur_state()
@@ -183,10 +183,10 @@ async def main():
         await pg.click('[data-a="next"]'); await pg.wait_for_selector('.us-body input'); await pg.click('[data-a="skip"]')
         check('Marked for review' in await pg.inner_text('.err') and await pg.is_visible('[data-a="next"]'), 'Type: Skip shows the answer and lets you move on')
         await pg.click('.us-topics button[data-t="years"]'); await pg.wait_for_selector('.us-body input')
-        y = await pg.evaluate("q => STATES.find(s => q.includes(s.name)).admitted", await pg.inner_text('.us-body .qtext'))
+        y = await pg.evaluate("q => STATES.filter(s => q.includes(s.name)).sort((a, b) => b.name.length - a.name.length)[0].admitted", await pg.inner_text('.us-body .qtext'))   # the longest name wins, so West Virginia is not read as Virginia
         await type_q(pg, str(y)); check('Correct' in await pg.inner_text('.err'), f'a year is accepted ({y})')
         await pg.click('.us-topics button[data-t="order"]'); await pg.wait_for_selector('.us-body input')
-        o = await pg.evaluate("q => STATES.find(s => q.includes(s.name)).order", await pg.inner_text('.us-body .qtext'))
+        o = await pg.evaluate("q => STATES.filter(s => q.includes(s.name)).sort((a, b) => b.name.length - a.name.length)[0].order", await pg.inner_text('.us-body .qtext'))
         await type_q(pg, str(o)); check('Correct' in await pg.inner_text('.err'), f'an order number is accepted ({o})')
         await pg.click('.us-topics button[data-t="flags"]'); await pg.wait_for_selector('.us-body input')
         try: await pg.wait_for_selector('.us-body .us-qflag svg', timeout=3000)   # the flag is drawn a moment after the question
