@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-02', title: 'Study Buddy now updates itself', items: [
+    'When a new version is ready, Study Buddy gets it by itself, with nothing to press. It checks when you open it, when you come back to it, and every half hour.',
+    'It switches to the new version at a safe moment: right away on the home pages, and on a quiz or other tool only when you leave the app, so a round is never cut short. A message then says Study Buddy was updated to the latest version and that it updates itself.',
+    '"Get latest version" in the footer is still there if you ever want to do it by hand.' ] },
   { date: '2026-11-02', title: 'Admins can turn Sound and Read aloud off for a student', items: [
     'In the admin area, Students, each student now has a Sound toggle and a Read aloud toggle, both on by default. Turn one off to remove it for that student: they will not see the switch and it stays off.',
     'Turning Read aloud off also removes every speaker button for that student, in modules and the Explorer\'s Atlas, and Settings drops the voice picker. Turning Sound off removes the Sound switches only.',

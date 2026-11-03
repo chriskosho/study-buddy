@@ -31,7 +31,7 @@
       ${speech}
       <div class="setgroup"><h3>Updates</h3>
         <div class="setrow"><span>Show the newest version of Study Buddy</span><button type="button" class="btn ghost small" id="refreshLatest">Refresh for the latest</button></div>
-        <p class="hint" id="refreshHint" role="status" aria-live="polite">Use this if a new tool or change is not showing up yet. It reloads the site's files. Names, progress, and settings are not touched.</p>
+        <p class="hint" id="refreshHint" role="status" aria-live="polite">Study Buddy updates itself when a new version is available. Use this only if a new tool or change is still not showing up. It reloads the site's files. Names, progress, and settings are not touched.</p>
         <p class="hint" id="versionLine">Checking the version...</p></div>
       <div class="setgroup"><h3>Admins</h3>
         <div class="setrow"><span>Progress, students, backup, and the admin PIN</span><a class="btn ghost small" href="#/admin">Open the admin area</a></div>
