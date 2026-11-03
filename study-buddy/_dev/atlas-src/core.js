@@ -53,13 +53,13 @@ function stopSpeech() {
   speakTok++; clearTimeout(speakTimer); $$('.spk.playing').forEach(b => b.classList.remove('playing'));
 }
 function speak(id, force) {            // force = speak even if "Say names" is off (used by speaker buttons)
-  if (!CAN_SPEAK || (!force && !state.say)) return;
+  if (!CAN_SPEAK || (ON_HUB && HUB.unavailable && HUB.unavailable('readAloud')) || (!force && !state.say)) return;
   const c = COUNTRY_BY_ID[id], local = state.voice === 'local';
   speakText(local ? c.local : c.name, local ? c.lang : 'en-US', id);
 }
 /* Chrome can drop a new utterance that follows cancel() straight away, so speech starts a moment after the cancel */
 function speakText(text, lang = 'en-US', id = null) {
-  if (!CAN_SPEAK) return;
+  if (!CAN_SPEAK || (ON_HUB && HUB.unavailable && HUB.unavailable('readAloud'))) return;
   try {
     stopSpeech(); const tok = speakTok;
     const done = () => { if (tok === speakTok) { clearTimeout(speakTimer); $$('.spk.playing').forEach(b => b.classList.remove('playing')); } };

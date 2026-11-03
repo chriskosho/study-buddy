@@ -3,7 +3,8 @@
 window.SB_CHANGELOG = [
   { date: '2026-11-02', title: 'Admins can turn Sound and Read aloud off for a student', items: [
     'In the admin area, Students, each student now has a Sound toggle and a Read aloud toggle, both on by default. Turn one off to remove it for that student: they will not see the switch and it stays off.',
-    'This replaces the three-way Read aloud choice added on October 31. Speaker buttons still work.' ] },
+    'Turning Read aloud off also removes every speaker button for that student, in modules and the Explorer\'s Atlas, and Settings drops the voice picker. Turning Sound off removes the Sound switches only.',
+    'This replaces the three-way Read aloud choice added on October 31.' ] },
   { date: '2026-10-31', title: 'Back arrow only inside modules', items: [
     'The back arrow now shows only inside a module (or a utility such as the calculator). Moving between subjects on the home screen, and the Notes, Settings and Help pages, no longer have one.' ] },
   { date: '2026-10-31', title: 'A back arrow on every screen', items: [

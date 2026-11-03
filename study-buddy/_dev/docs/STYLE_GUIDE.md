@@ -113,7 +113,7 @@ Meaning of color is never the only signal: right/wrong also use text, and select
 - Spoken names use the browser `speechSynthesis` at rate 0.85. "English" voice says the English name; "Local" voice uses each country's own spelling and language (es-ES, pt-BR, nl-NL, en-US).
 - Quiz questions are **not** read aloud (explicit decision).
 - Pressing a speaker button that is playing stops the sound (this applies to every sound), and Escape stops all sound. The voice is a per-child setting (Settings page); Automatic picks the most natural voice on the device.
-- Controls: *Sound* toggles tones, *Say names* toggles automatic name speaking in activities. Speaker buttons always work, even if Say names is off.
+- Controls: *Sound* toggles tones, *Say names* toggles automatic name speaking in activities. Speaker buttons always work, even if Say names is off, unless an admin turned Read aloud off for the student (then none show).
 
 ## 8. Layout rules
 

@@ -344,13 +344,13 @@
         </div>
         <div class="row">
           <button class="iconbtn" data-avail="sound" aria-pressed="${!SB.unavailable('sound', p.id)}" title="On: the student can use sound. Off: sound is removed and stays off for this student.">Sound: ${SB.unavailable('sound', p.id) ? 'off' : 'on'}</button>
-          <button class="iconbtn" data-avail="readAloud" aria-pressed="${!SB.unavailable('readAloud', p.id)}" title="On: the student can use Read aloud. Off: Read aloud is removed and stays off for this student.">Read aloud: ${SB.unavailable('readAloud', p.id) ? 'off' : 'on'}</button>
+          <button class="iconbtn" data-avail="readAloud" aria-pressed="${!SB.unavailable('readAloud', p.id)}" title="On: the student can use Read aloud and the speaker buttons. Off: Read aloud and every speaker button are removed for this student.">Read aloud: ${SB.unavailable('readAloud', p.id) ? 'off' : 'on'}</button>
           <button class="btn warn small" data-act="reset">Reset progress</button>
           <button class="btn ghost small" data-act="delete">Delete</button>
         </div>${SB.isGuest(p) && others(p).length && Object.keys(SB.child(p.id).tools).length ? `<div class="row movebox"><label class="field">Move Guest's progress to<select class="moveTo">${others(p).map(o => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label><button class="btn small" data-act="move" type="button">Move</button></div>` : ''}</div>`;
     };
     let newColor = SB.COLORS[ps.length % SB.COLORS.length].c;
-    box.innerHTML = `<h2>Students</h2><p class="lead">Names, colors, and what each student can use. Sound and Read aloud are on for every student. Turn one off here to remove it for that student: they will not see the switch and it stays off.</p>
+    box.innerHTML = `<h2>Students</h2><p class="lead">Names, colors, and what each student can use. Sound and Read aloud are on for every student. Turn one off here to remove it for that student: they will not see the switch and it stays off. Turning Read aloud off also removes the speaker buttons.</p>
       ${ps.map(row).join('') || '<p class="empty">No students yet.</p>'}
       <div class="kidrow"><div class="grow" style="display:flex;flex-direction:column;gap:8px">
         <label class="field">Add a student<input id="newName" maxlength="24" placeholder="Name"></label>

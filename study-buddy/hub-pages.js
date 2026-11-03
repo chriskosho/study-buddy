@@ -16,15 +16,15 @@
   ];
   const seg = (k, label, vals) => `<div class="setrow"><span id="lbl-${k}">${label}</span><div class="seg" role="group" aria-labelledby="lbl-${k}">${vals.map(([v, t]) => `<button type="button" data-k="${k}" data-v="${v}" aria-pressed="${String(SB.getSetting(k)) === String(v)}">${t}</button>`).join('')}</div></div>`;
 
-  const HINT = 'Read aloud reads questions out loud. The speaker buttons always work. "Automatic" picks the most natural voice this device has. Voices come from your device or browser, so a phone and a laptop can sound different.';
+  const HINT = 'Read aloud reads questions out loud. The speaker buttons work even when Read aloud is off. "Automatic" picks the most natural voice this device has. Voices come from your device or browser, so a phone and a laptop can sound different.';
   function settings(app, kid) {
     document.title = 'Settings · Study Buddy';
     const many = SB.profiles().length > 1;
     const speech = SB.CAN_SPEAK ? `<div class="setgroup"><h3>Reading aloud</h3>
-        ${SB.unavailable('readAloud') ? `<div class="setrow"><span>Read aloud</span><span class="hint" id="readLocked"><b>Off</b>. An admin turned this off.</span></div>` : seg('readAloud', 'Read aloud', [[false, 'Off'], [true, 'On']])}
+        ${SB.unavailable('readAloud') ? `<div class="setrow"><span>Read aloud</span><span class="hint" id="readLocked"><b>Off</b>. An admin turned this off, so there are no speaker buttons either.</span></div></div>` : `${seg('readAloud', 'Read aloud', [[false, 'Off'], [true, 'On']])}
         <div class="setrow"><label for="voiceSel">Voice</label>
           <span class="voicectl"><select id="voiceSel" aria-describedby="voiceHint"></select><button type="button" class="btn ghost small" id="voicePrev">Preview</button></span></div>
-        <p class="hint" id="voiceHint">${HINT}</p><p class="hint" id="voiceNow" role="status" aria-live="polite"></p></div>` : '';
+        <p class="hint" id="voiceHint">${HINT}</p><p class="hint" id="voiceNow" role="status" aria-live="polite"></p></div>`}` : '';
     app.innerHTML = top('Settings', 'for ' + esc(kid.name)) + `<section class="panel setpanel">
       <p class="lead">Saved for ${esc(kid.name)} on this device. ${many ? `Not ${esc(kid.name)}? <a href="#/">Switch student</a>.` : ''}</p>
       ${OPTS.map(g => `<div class="setgroup"><h3>${g.group}</h3>${g.group === 'Sound' && SB.unavailable('sound') ? `<div class="setrow"><span>Sound effects</span><span class="hint" id="soundLocked"><b>Off</b>. An admin turned this off.</span></div>` : g.items.map(i => seg(...i)).join('')}</div>`).join('')}
@@ -105,8 +105,8 @@
         <li><b>Quiz</b>, <b>Sort it</b>, <b>Put in order</b>, <b>Fill it in</b>, and the Atlas games are checked tools. They give credit, streaks, and mastery.</li>
         <li><b>Explain it</b>: write your answer in your own words. It checks for the main ideas and complete sentences.</li></ul>`)}
       ${sec('Streak, daily goal, and mastered', `<p>The <b>Streak</b> counts right answers in a row. <b>Today</b> counts toward the daily goal. A tool is <b>Mastered</b> when the best score reaches the goal shown in its description.</p>`)}
-      ${sec('Sound and reading aloud', `<ul><li>The speaker button reads a word or sentence. <b>Press it again while it is playing to stop.</b> Escape also stops all sound.</li>
-        <li><b>Read aloud</b> reads questions automatically. It is off until you turn it on in <a href="#/settings">Settings</a>. An admin can turn Read aloud (or Sound) off for a student in the admin area, and then that student does not see the switch.</li>
+      ${sec('Sound and reading aloud', `<ul><li>The speaker button reads a word or sentence (an admin can remove these for a student by turning Read aloud off in the admin area). <b>Press it again while it is playing to stop.</b> Escape also stops all sound.</li>
+        <li><b>Read aloud</b> reads questions automatically. It is off until you turn it on in <a href="#/settings">Settings</a>. An admin can turn Read aloud (or Sound) off for a student in the admin area. Then that student has no switch, and with Read aloud off there are no speaker buttons either.</li>
         <li>If the voice is hard to listen to, choose another in Settings under Voice.</li></ul>`)}
       ${sec('Using the keyboard', `<ul><li><b>Tab</b> moves between buttons. <b>Enter</b> or <b>Space</b> presses one.</li>
         <li>On the South America maps, Tab moves between countries and Enter picks one.</li>
