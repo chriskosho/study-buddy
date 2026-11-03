@@ -78,7 +78,7 @@ async def main():
         check(await pg.locator('.deckbar .seg button').count() == 5, 'flashcards have 5 decks (map shapes, 3 topics, every quiz question)')
         check('0 of 46' in await pg.inner_text('.deckbar .count'), 'the first deck has all 46 countries')
         await pg.click('.deckbar .seg button >> nth=2'); await pg.wait_for_timeout(300)
-        check(await pg.locator('.front svg').count() == 1, 'the Flags deck shows a flag')
+        check(await pg.locator('.front svg:not(svg svg)').count() == 1, 'the Flags deck shows a flag')
         st = await state(pg); check(not st.get('best') and not st.get('streak'), 'flashcards give no credit')
         await pg.context.close()
 

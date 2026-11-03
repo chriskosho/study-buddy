@@ -72,7 +72,7 @@ async def run_module(b, slug, p, want):
     await pg.click('.deckbar .seg button >> nth=2')
     try: await pg.wait_for_selector('.front svg', timeout=5000)   # waits instead of a fixed pause: under load the card can take longer to draw
     except Exception: pass
-    check(await pg.locator('.front svg').count() == 1, T('the Flags deck shows a flag'))
+    check(await pg.locator('.front svg:not(svg svg)').count() == 1, T('the Flags deck shows a flag'))
     await pg.context.close()
 
     pg = await page('quiz')
