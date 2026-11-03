@@ -11,7 +11,7 @@ The site lives in `study-buddy/`. Read these before changing anything:
 - Build only the modules the owner asks for. Empty subjects stay empty.
 - Words: Study Buddy → Subjects → Modules → Tools. A module has one home subject plus tags. Difficulty is Easy, Medium, Hard, or Insane. Never grade levels.
 - The same look for every student, at every age. No emoji, no mascots.
-- Read aloud is a per-student setting, off by default. When it is on, modules read their questions aloud. Explorer's Atlas never reads quiz questions aloud. Speaker buttons always work.
+- Read aloud is a per-student setting, off by default. When it is on, modules read their questions aloud. Explorer's Atlas never reads quiz questions aloud. Speaker buttons always work, unless an admin turned Read aloud off for that student: then that student has no speaker buttons and nothing is read aloud.
 - Flashcards are practice only: no credit, streak, or mastery. Credit comes only from checked tools.
 - Statements in a study guide that historians dispute keep the teacher's wording, with a "Historians say" note that links a Wikipedia article as its source.
 - Keep the Explorer's Atlas tools Study map, Drag names, Find it, and Listen and tap as they are unless asked. (The owner approved keyboard access for the map activities, Say names following Read aloud, and, in October 2026, Find it outlining and naming the places that took more than one try.) Flashcards show the whole continent. Like US States, flashcards read the card's question aloud when Read aloud is on (owner's choice, October 2026); otherwise sound plays only from the speaker button.

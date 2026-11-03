@@ -143,6 +143,7 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:10px;flex-
 .spk svg{width:20px;height:20px}
 .face .spk{position:absolute;top:10px;right:10px}
 .no-speech .spk{display:none}
+html.sb-noread .spk,html.sb-noread #voiceBtn{display:none!important}   /* an admin turned Read aloud off for this student */
 /* zoom controls */
 .zoombar{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
 .zoombar button{width:36px;height:36px;border-radius:10px;border:2px solid var(--navy);background:#fff;color:var(--navy);font-size:20px;font-weight:800;line-height:1;padding:0}
@@ -689,13 +690,13 @@ function stopSpeech() {
   speakTok++; clearTimeout(speakTimer); $$('.spk.playing').forEach(b => b.classList.remove('playing'));
 }
 function speak(id, force) {            // force = speak even if "Say names" is off (used by speaker buttons)
-  if (!CAN_SPEAK || (!force && !state.say)) return;
+  if (!CAN_SPEAK || (ON_HUB && HUB.unavailable && HUB.unavailable('readAloud')) || (!force && !state.say)) return;
   const c = COUNTRY_BY_ID[id], local = state.voice === 'local';
   speakText(local ? c.local : c.name, local ? c.lang : 'en-US', id);
 }
 /* Chrome can drop a new utterance that follows cancel() straight away, so speech starts a moment after the cancel */
 function speakText(text, lang = 'en-US', id = null) {
-  if (!CAN_SPEAK) return;
+  if (!CAN_SPEAK || (ON_HUB && HUB.unavailable && HUB.unavailable('readAloud'))) return;
   try {
     stopSpeech(); const tok = speakTok;
     const done = () => { if (tok === speakTok) { clearTimeout(speakTimer); $$('.spk.playing').forEach(b => b.classList.remove('playing')); } };

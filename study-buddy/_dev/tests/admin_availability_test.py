@@ -1,7 +1,7 @@
 """Admin availability test (Playwright + Chromium): on the admin area's Students page, Sound and Read aloud are on/off
 toggles for each student. On (the default) means the student can use it. Off removes it for that student: the
-switches are hidden (module row, Display dialog, Settings, Atlas), it stays off, the student cannot turn it on, and
-speaker buttons still work. Turning it on again brings the switches back.
+switches are hidden (module row, Display dialog, Settings, Atlas), it stays off, and the student cannot turn it on. With
+Read aloud off there are also no speaker buttons and nothing can be spoken, even when forced. Turning it on again brings the switches back.
 Run:  python3 study-buddy/_dev/tests/admin_availability_test.py"""
 import asyncio, http.server, threading, functools, os, sys
 from playwright.async_api import async_playwright
@@ -42,19 +42,23 @@ async def main():
         check(await pg.evaluate("SB.getSetting('readAloud','k1')") is False, 'Joshua cannot turn Read aloud on while it is off')
         await pg.goto(base + 'modules/science/planets/index.html?tool=guide'); await pg.wait_for_selector('#sbSound')
         check(not await pg.locator('#sbRead').is_visible() and await pg.locator('#sbSound').is_visible(), 'module row hides Read aloud but still shows Sound')
-        n0 = await pg.evaluate('window.__spoken.length'); spk = pg.locator('#tab-guide .spk').first
-        if await spk.count():
-            await spk.click(); await pg.wait_for_timeout(200)
-            check(await pg.evaluate('window.__spoken.length') > n0, 'speaker buttons still speak')
+        check(await pg.locator('#tab-guide .spk:visible').count() == 0, 'no speaker buttons in a study guide')
+        n0 = await pg.evaluate('window.__spoken.length'); await pg.evaluate("SB.say('hello', {force: true})"); await pg.wait_for_timeout(200)
+        check(await pg.evaluate('window.__spoken.length') == n0, 'nothing can be spoken, even when forced')
+        await pg.goto(base + 'index.html#/module/planets'); await pg.wait_for_selector('.tname')
+        check(await pg.locator('.tname .spk:visible, [data-sb-say]:visible').count() == 0, 'no speaker buttons on the module page cards either')
         await pg.goto(base + 'index.html#/settings'); await pg.wait_for_selector('.setpanel')
-        check(await pg.locator('.seg button[data-k="readAloud"]').count() == 0 and 'An admin turned this off' in await pg.locator('#readLocked').inner_text() and await pg.locator('.seg button[data-k="sound"]').count() == 2, 'Settings explains Read aloud is off and still has Sound')
+        check(await pg.locator('.seg button[data-k="readAloud"]').count() == 0 and 'An admin turned this off' in await pg.locator('#readLocked').inner_text() and await pg.locator('.seg button[data-k="sound"]').count() == 2 and await pg.locator('#voiceSel').count() == 0, 'Settings explains Read aloud is off, drops the voice picker, and still has Sound')
         await pg.goto(base + 'modules/geography/south-america/index.html?tool=study'); await pg.wait_for_selector('#soundBtn')
-        check(not await pg.locator('#sayBtn').is_visible() and await pg.locator('#soundBtn').is_visible(), 'Atlas hides Say names but keeps Sound')
+        check(not await pg.locator('#sayBtn').is_visible() and await pg.locator('#soundBtn').is_visible() and await pg.locator('.spk:visible, #voiceBtn:visible').count() == 0, 'Atlas hides Say names and its speaker and voice buttons but keeps Sound')
 
         # ---- Hazel: Sound off ----
         await pg.evaluate("SB.setActive('k2')")
         await pg.goto(base + 'modules/science/planets/index.html?tool=quiz'); await pg.wait_for_selector('#sbRead')
         check(not await pg.locator('#sbSound').is_visible() and await pg.locator('#sbRead').is_visible(), 'Hazel has no Sound switch but keeps Read aloud')
+        await pg.goto(base + 'index.html#/module/planets'); await pg.wait_for_selector('.tname')
+        n1 = await pg.evaluate('window.__spoken.length'); await pg.evaluate("SB.say('hello', {force: true})"); await pg.wait_for_timeout(200)
+        check(await pg.locator('.tname .spk').count() > 0 and await pg.evaluate('window.__spoken.length') > n1, 'with Read aloud on, speaker buttons show and speaking works')
         await pg.evaluate("SB.setSetting('sound', true)")
         check(await pg.evaluate("SB.getSetting('sound')") is False, 'Hazel cannot turn Sound on')
         await pg.goto(base + 'index.html#/settings'); await pg.wait_for_selector('.setpanel')

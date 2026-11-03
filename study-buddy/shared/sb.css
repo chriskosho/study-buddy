@@ -20,6 +20,7 @@ html{-webkit-text-size-adjust:100%}
 html.sb-dyslexic{--font:'OpenDyslexic',"Trebuchet MS",system-ui,sans-serif}
 html.sb-dyslexic body{letter-spacing:.01em}
 html.sb-large body{zoom:1.15}
+html.sb-noread .spk,html.sb-noread [data-sb-say]{display:none!important}   /* an admin turned Read aloud off for this student: no speaker buttons */
 html.sb-dark{
   --paper:#121a23; --card:#1a2430; --surface:#212d3b; --ink:#e9eef3; --ink2:#a9b5c2; --line:#34465c;
   --sea:#1d3a48; --navy:#3f5f92; --navy-ink:#a9c4f0; --teal:#23a898; --coral:#f07a55; --good:#43b874; --bad:#ef6b6b;

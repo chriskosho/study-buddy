@@ -366,9 +366,9 @@
   let sayTok = 0, sayTimer = null;
   let clip = null;
   function stopSpeech() { try { speechSynthesis.cancel(); } catch (e) {} try { if (clip) { clip.onended = clip.onerror = null; clip.pause(); clip = null; } } catch (e) {} sayTok++; clearTimeout(sayTimer); document.querySelectorAll('[data-sb-say].playing').forEach(b => b.classList.remove('playing')); }
-  /* force: speak even when Read aloud is off (speaker buttons use this) */
+  /* force: speak even when the student's Read aloud is off (speaker buttons use this). An admin turning Read aloud off for a student stops all of it, speaker buttons too. */
   function say(text, opts = {}) {
-    if (!CAN_SPEAK || !text || (!opts.force && !getSetting('readAloud'))) return;
+    if (!CAN_SPEAK || !text || unavailable('readAloud') || (!opts.force && !getSetting('readAloud'))) return;
     try {
       const busy = speechSynthesis.speaking || speechSynthesis.pending;
       stopSpeech(); const tok = sayTok;
@@ -384,6 +384,7 @@
   }
   /* play a recorded sound file; if it will not play, say the fallback text with the device voice instead */
   function playClip(url, fallback, opts = {}) {
+    if (unavailable('readAloud')) return;
     stopSpeech(); const tok = sayTok; const btn = opts.button;
     const fb = () => { if (tok === sayTok) { if (btn) btn.classList.remove('playing'); say(fallback, { force: true, button: btn, lang: opts.lang }); } };
     try {
@@ -396,7 +397,7 @@
   }
   /* stop everything that is making sound: speech and tones */
   function stopAll() { stopSpeech(); stopTones(); try { window.__sbStopHook && window.__sbStopHook(); } catch (e) {} }
-  const sayButton = (text, label = 'Hear it', lang = '', audio = '') => (CAN_SPEAK || audio) ? `<button type="button" class="spk" data-sb-say="${esc(text)}" data-lang="${esc(lang)}"${audio ? ` data-sb-audio="${esc(audio)}"` : ''} aria-label="${esc(label)}" title="${esc(label)}">${SPK_ICON}</button>` : '';
+  const sayButton = (text, label = 'Hear it', lang = '', audio = '') => (CAN_SPEAK || audio) && !unavailable('readAloud') ? `<button type="button" class="spk" data-sb-say="${esc(text)}" data-lang="${esc(lang)}"${audio ? ` data-sb-audio="${esc(audio)}"` : ''} aria-label="${esc(label)}" title="${esc(label)}">${SPK_ICON}</button>` : '';
   document.addEventListener('click', e => {
     const b = e.target.closest && e.target.closest('[data-sb-say]');
     if (b && b.classList.contains('playing')) { e.stopPropagation(); stopAll(); return; }   // pressing the speaker while it plays stops it
@@ -711,6 +712,7 @@
     h.classList.toggle('sb-dark', dark);
     h.classList.toggle('sb-dyslexic', getSetting('font') === 'dyslexic');
     h.classList.toggle('sb-large', getSetting('size') === 'large');
+    h.classList.toggle('sb-noread', unavailable('readAloud'));   // an admin turned Read aloud off: every speaker button goes (see sb.css)
     const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#121a23' : '#2b4162');
   }
   try { darkMQ && darkMQ.addEventListener && darkMQ.addEventListener('change', applyDisplay); } catch (e) {}
