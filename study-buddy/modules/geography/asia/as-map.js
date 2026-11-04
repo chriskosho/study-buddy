@@ -155,32 +155,41 @@
       P.innerHTML = `<h2>Listen and tap</h2><p class="lead">Listen to the country name, then tap it on the map. Each round has ${N} countries.</p>
         <div class="scorebar"><div class="stat"><b id="lScore">0/${N}</b><span>Right</span></div><div class="stat"><b id="lRound">1</b><span>Round</span></div></div>
         <div class="mapgrid">${mapBox('mapListen', 'Map of Asia')}<div><div class="prompt" id="lPrompt">Press play</div>
-          <div class="row"><button class="btn" id="lPlay" type="button">Play the name</button><button class="btn ghost" id="lSkip" type="button">Skip</button></div><p class="msg" id="lMsg"></p></div></div>`;
-      const L = listenState = { svg: $('#mapListen', P), order: [], i: 0, score: 0, tries: 0, done: false, locked: false, t: null };
+          <div class="row"><button class="btn" id="lPlay" type="button">Play the name</button><button class="btn ghost" id="lSkip" type="button">Skip</button><button class="btn ghost" id="lBack" type="button">Back</button><button class="btn ghost" id="lRestart" type="button">Start over</button></div><p class="msg" id="lMsg"></p></div></div>`;
+      const L = listenState = { svg: $('#mapListen', P), order: [], i: 0, score: 0, tries: 0, max: 0, tb: {}, done: false, locked: false, t: null };   // tb: wrong taps on each name not yet answered
+      /* the round is saved after every tap (owner's request, November 2026); Back is a practice try, Start over asks first */
+      const save = () => { if (!L.done && ctx.round) ctx.round.save({ v: 1, n: N, order: L.order, i: L.i, score: L.score, tb: L.tb, max: L.max }); };
       makeZoom(L.svg);
-            function newRound() {
-        L.order = pickN(COUNTRIES.map(s => s.id), N); L.i = 0; L.score = 0; L.tries = 0; L.done = false; L.locked = false;
+            function newRound(r) {
+        if (r) { L.order = r.order; L.i = r.i; L.score = r.score || 0; L.tb = r.tb || {}; L.max = r.max || 0; }
+        else { L.tb = {}; L.order = pickN(COUNTRIES.map(s => s.id), N); L.i = 0; L.score = 0; L.tries = 0; L.max = 0; }
+        L.done = false; L.locked = false;
         buildMap(L.svg); Object.entries(L.svg._paths).forEach(([id, p]) => p.addEventListener('click', () => tap(id)));
         show();
       }
       function show(quiet) {
         L.locked = false; L.t = null;
         $('#lScore', P).textContent = L.score + '/' + N; $('#lRound', P).textContent = Math.min(L.i + 1, N);
-        if (L.i >= N) { L.done = true; ctx.result(L.score, N); $('#lPrompt', P).textContent = 'All done!'; $('#lMsg', P).className = 'msg good'; $('#lMsg', P).textContent = `You got ${L.score} of ${N} on the first try.`; $('#lPlay', P).textContent = 'Play again'; ctx.sfx.win(); return; }
-        $('#lPrompt', P).textContent = 'Which country did you hear?'; $('#lPlay', P).textContent = 'Play the name again'; L.tries = 0;
+        if (L.i >= N) { L.done = true; if (ctx.round) ctx.round.clear(); ctx.result(L.score, N); $('#lPrompt', P).textContent = 'All done!'; $('#lMsg', P).className = 'msg good'; $('#lMsg', P).textContent = `You got ${L.score} of ${N} on the first try.`; $('#lPlay', P).textContent = 'Play again'; ctx.sfx.win(); return; }
+        $('#lPrompt', P).textContent = 'Which country did you hear?'; $('#lPlay', P).textContent = 'Play the name again'; L.tries = L.i < L.max ? 0 : L.tb[L.order[L.i]] || 0;   // wrong taps stay counted, even after Back or leaving
+        if (L.i < L.max) { $('#lMsg', P).className = 'msg'; $('#lMsg', P).textContent = 'Practice try: your first answer counts.'; }
+        $('#lBack', P).disabled = L.i === 0; save();
         window.__asMap.cur = L.order[L.i]; if (!quiet) speakName(L.order[L.i]);
       }
       function tap(id) {
         if (L.done || L.locked || !clickOK(L.svg)) return;
         const want = L.order[L.i], p = L.svg._paths[id], msg = $('#lMsg', P);
-        if (id === want) { if (L.tries === 0) L.score++; ctx.credit(); ctx.sfx.good(); flash(p, 'flash-good'); msg.className = 'msg good'; msg.textContent = 'Yes! ' + BYID[id].name + '.'; L.i++; L.locked = true; L.t = setTimeout(show, 900); }
-        else { L.tries++; ctx.slip(); ctx.sfx.bad(); flash(p, 'flash-bad'); msg.className = 'msg bad'; msg.textContent = 'That is ' + BYID[id].name + '. Listen again and try another.'; }
+        if (id === want) { if (L.i >= L.max) { if (L.tries === 0) L.score++; ctx.credit(); } ctx.sfx.good(); flash(p, 'flash-good'); msg.className = 'msg good'; msg.textContent = 'Yes! ' + BYID[id].name + '.'; L.i++; L.max = Math.max(L.max, L.i); L.locked = true; save(); L.t = setTimeout(show, 900); }
+        else { L.tries++; if (L.i >= L.max) { ctx.slip(); L.tb[want] = L.tries; } save(); ctx.sfx.bad(); flash(p, 'flash-bad'); msg.className = 'msg bad'; msg.textContent = 'That is ' + BYID[id].name + '. Listen again and try another.'; }
       }
       $('#lPlay', P).onclick = () => { if (L.done) { newRound(); $('#lMsg', P).textContent = ''; } else speakName(L.order[L.i]); };
-      $('#lSkip', P).onclick = () => { if (L.done || L.locked) return; L.order.push(L.order.splice(L.i, 1)[0]); show(); };
+      $('#lBack', P).onclick = () => { if (L.done || L.locked || L.i === 0) return; $('#lMsg', P).textContent = ''; L.i--; show(); };
+      $('#lRestart', P).onclick = () => { const go = () => { $('#lMsg', P).textContent = ''; newRound(); }; if (L.done || L.max === 0) return go(); SB.confirm({ title: 'Start over?', text: 'This clears your answers in this round and starts a new one.', ok: 'Start over' }, go); };
+      $('#lSkip', P).onclick = () => { if (L.done || L.locked) return; if (L.i < L.max) { L.i++; $('#lMsg', P).textContent = ''; return show(); } L.order.push(L.order.splice(L.i, 1)[0]); show(); };
       L.show = show;
       if (!('speechSynthesis' in window)) { $('#lPrompt', P).textContent = 'This browser cannot speak. Try Chrome, Edge, or Safari.'; return; }
-      newRound();
+      const saved = ctx.round && ctx.round.load();
+      newRound(saved && saved.v === 1 && saved.n === N && Array.isArray(saved.order) && saved.order.length === N && saved.i >= 0 && saved.i <= N ? saved : null);   // i = N: the last answer was in, so the round finishes now
     },
     // leaving mid-pause: finish the pending step now (quietly) so coming back is never stuck and the last result is recorded
     leave() { if (listenState && listenState.t) { clearTimeout(listenState.t); listenState.show(true); } }
@@ -239,8 +248,10 @@
         <div class="scorebar"><div class="stat"><b id="dPlaced">0/${N}</b><span>Placed</span></div><div class="stat"><b id="dMiss">0</b><span>Misses</span></div>
           <div class="seg" id="dragMode" role="group" aria-label="Map style"><button type="button" data-m="grey" aria-pressed="true" title="Everything starts colored. Placed countries turn grey.">Grey out when placed</button><button type="button" data-m="reveal" aria-pressed="false" title="Everything starts blank. Placed countries get color and a thick border.">Blank, then color</button><button type="button" data-m="stay" aria-pressed="false" title="Colors stay as they are.">Keep colors</button></div></div>
         <div class="mapgrid">${mapBox('mapDrag', 'Map of Asia')}<div><div class="tray as-tray" id="tray"></div><p class="msg" id="dMsg"></p>
-          <div class="row"><button class="btn ghost" id="dHint" type="button">Hint</button><button class="btn warn" id="dReset" type="button">Start over</button></div></div></div>`;
-      const DR = { svg: $('#mapDrag', P), placed: new Set(), miss: 0, sel: null, mode: 'grey' };
+          <div class="row"><button class="btn ghost" id="dHint" type="button">Hint</button><button class="btn ghost" id="dUndo" type="button" disabled>Undo</button><button class="btn warn" id="dReset" type="button">Start over</button></div></div></div>`;
+      const DR = { svg: $('#mapDrag', P), placed: new Set(), miss: 0, sel: null, mode: 'grey', hist: [], credited: new Set(), tray: [], done: false };
+      /* the board is saved after every move (owner's request, November 2026); Undo takes the last name back off the map */
+      const save = () => { if (!DR.done && ctx.round) ctx.round.save({ v: 1, n: N, mode: DR.mode, tray: DR.tray, placed: DR.hist, miss: DR.miss, credited: [...DR.credited] }); };
       const msgEl = $('#dMsg', P), setMsg = (t, c = '') => { msgEl.className = 'msg ' + c; msgEl.textContent = t; };
       function paint(id, placed) {
         const p = DR.svg._paths[id], col = colorOf(id);
@@ -248,22 +259,25 @@
         p.classList.toggle('placed-grey', placed && DR.mode === 'grey'); p.classList.toggle('placed', placed && DR.mode !== 'grey');
         if (placed && DR.mode !== 'grey') DR.svg.insertBefore(p, DR.svg._labels);
       }
-      const score = () => { $('#dPlaced', P).textContent = DR.placed.size + '/' + N; $('#dMiss', P).textContent = DR.miss; };
-      function reset() {
-        buildMap(DR.svg); DR.placed = new Set(); DR.miss = 0; DR.sel = null;
+      const score = () => { $('#dPlaced', P).textContent = DR.placed.size + '/' + N; $('#dMiss', P).textContent = DR.miss; $('#dUndo', P).disabled = !DR.hist.length || DR.done; };
+      function reset(r) {
+        buildMap(DR.svg); DR.placed = new Set(); DR.miss = r ? r.miss || 0 : 0; DR.sel = null; DR.hist = []; DR.credited = new Set(r ? r.credited || [] : []); DR.done = false;
         COUNTRIES.forEach(s => paint(s.id, false));
         Object.entries(DR.svg._paths).forEach(([id, p]) => {
           p.addEventListener('click', () => { if (DR.sel && clickOK(DR.svg)) tryDrop(DR.sel, id); });
           p.addEventListener('pointerenter', () => { if (DR.sel) p.classList.add('hover'); }); p.addEventListener('pointerleave', () => p.classList.remove('hover'));
         });
         const tray = $('#tray', P); tray.innerHTML = '';
-        shuffle(COUNTRIES.slice()).forEach(s => {
+        const byId = Object.fromEntries(COUNTRIES.map(s => [s.id, s]));
+        DR.tray = r ? r.tray : shuffle(COUNTRIES.slice()).map(s => s.id);
+        DR.tray.map(id => byId[id]).forEach(s => {
           const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = s.name; b.dataset.id = s.id;
           b.addEventListener('pointerdown', e => pointerDown(e, b));
           b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(s.id); } });
           tray.appendChild(b);
         });
-        score(); setMsg('Pick a name to begin.');
+        (r ? r.placed : []).forEach(id => { if (!byId[id] || DR.placed.has(id)) return; DR.placed.add(id); DR.hist.push(id); const c = $(`#tray .chip[data-id=\"${id}\"]`, P); if (c) c.remove(); paint(id, true); addLabel(DR.svg, id); });
+        score(); setMsg(r ? 'Pick a name to keep going.' : 'Pick a name to begin.'); save();
       }
       function select(id, quiet) {
         DR.sel = DR.sel === id ? null : id;
@@ -291,23 +305,33 @@
         if (DR.placed.has(target)) { setMsg(BYID[target].name + ' is already placed.'); return; }
         const chip = $(`#tray .chip[data-id="${id}"]`, P), path = DR.svg._paths[target];
         if (id === target) {
-          DR.placed.add(id); chip.remove(); DR.sel = null; paint(id, true); addLabel(DR.svg, id); openAWhile(DR.svg, id); ctx.credit(); ctx.sfx.good(); flash(path, 'flash-good');
+          DR.placed.add(id); DR.hist.push(id); chip.remove(); DR.sel = null; paint(id, true); addLabel(DR.svg, id); openAWhile(DR.svg, id); if (!DR.credited.has(id)) { DR.credited.add(id); ctx.credit(); } ctx.sfx.good(); flash(path, 'flash-good');
           setMsg('Yes! That is ' + BYID[id].name + '.', 'good'); score();
+          if (DR.placed.size === N) { DR.done = true; if (ctx.round) ctx.round.clear(); score(); } else save();
           if (DR.placed.size === N) { ctx.result(Math.max(0, N - DR.miss), N); ctx.sfx.win(); setMsg(DR.miss === 0 ? `Perfect! All ${N} countries with no misses!` : `Done! All ${N} placed with ${DR.miss} miss${DR.miss === 1 ? '' : 'es'}.`, 'good'); }
         } else {
-          DR.miss++; ctx.slip(); ctx.sfx.bad(); score(); chip.classList.remove('shake'); void chip.offsetWidth; chip.classList.add('shake'); flash(path, 'flash-bad');
+          if (!DR.credited.has(id)) { DR.miss++; ctx.slip(); } ctx.sfx.bad(); score(); save();   // a retry after Undo costs nothing chip.classList.remove('shake'); void chip.offsetWidth; chip.classList.add('shake'); flash(path, 'flash-bad');
           setMsg('Not quite. That one is ' + BYID[target].name + '. Try again.', 'bad');
         }
       }
       makeZoom(DR.svg);
-      $('#dReset', P).onclick = reset;
+      $('#dReset', P).onclick = () => { if (DR.done || (!DR.hist.length && !DR.miss)) return reset(); SB.confirm({ title: 'Start over?', text: 'This takes every name off the map and starts again.', ok: 'Start over' }, () => reset()); };
+      $('#dUndo', P).onclick = () => {                 // the last name placed goes back to the names (its credit stays; placing it again gives none)
+        if (DR.done) return; const id = DR.hist.pop(); if (!id) return; DR.placed.delete(id); DR.sel = null;
+        DR.svg._labels.querySelectorAll(`[data-id="${id}"]`).forEach(x => x.remove()); paint(id, false); if (typeof relabel === 'function') relabel(DR.svg);
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = BYID[id].name; b.dataset.id = id;
+        b.addEventListener('pointerdown', e => pointerDown(e, b)); b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(id); } });
+        $('#tray', P).prepend(b); score(); save(); setMsg(BYID[id].name + ' is back with the names. Place it again.');
+      };
       $('#dHint', P).onclick = () => {
         const id = DR.sel || ($('#tray .chip', P) && $('#tray .chip', P).dataset.id); if (!id) return;
         const p = DR.svg._paths[id]; p.classList.add('target'); setTimeout(() => p.classList.remove('target'), 1800);
-        DR.miss++; score(); setMsg('Hint: ' + BYID[id].name + ' is outlined in orange.');
+        if (!DR.credited.has(id)) DR.miss++; score(); save(); setMsg('Hint: ' + BYID[id].name + ' is outlined in orange.');
       };
-      $$('#dragMode button', P).forEach(b => b.onclick = () => { DR.mode = b.dataset.m; $$('#dragMode button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); reset(); });
-      reset();
+      $$('#dragMode button', P).forEach(b => b.onclick = () => { const go = () => { DR.mode = b.dataset.m; $$('#dragMode button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); reset(); }; if (DR.mode === b.dataset.m) return; if (DR.done || (!DR.hist.length && !DR.miss)) return go(); SB.confirm({ title: 'Start over?', text: 'Changing the map style starts the names again.', ok: 'Start over' }, go); });
+      const saved = ctx.round && ctx.round.load(), ok = saved && saved.v === 1 && saved.n === N && Array.isArray(saved.tray) && saved.tray.length === N && Array.isArray(saved.placed) && saved.placed.length < N;
+      if (ok && saved.mode) { DR.mode = saved.mode; $$('#dragMode button', P).forEach(x => x.setAttribute('aria-pressed', x.dataset.m === DR.mode)); }
+      reset(ok ? saved : null);
     }
   };
 

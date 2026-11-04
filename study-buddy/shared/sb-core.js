@@ -118,7 +118,9 @@
     Object.keys(d.tools).forEach(k => { if (k.startsWith(moduleId + '/')) delete d.tools[k]; });
     if (d.last && d.last.module === moduleId) d.last = null;
     saveChild(id, d);
-    (storageKeys || []).forEach(k => remove(MODPREFIX(id) + k)); bumpEpoch();
+    (storageKeys || []).forEach(k => remove(MODPREFIX(id) + k));
+    allKeys().filter(k => k && k.startsWith(MODPREFIX(id) + 'round.' + moduleId + '.')).forEach(remove);   // the rounds in progress (see SBM ctx.round)
+    bumpEpoch();
   }
   const colorInk = c => (COLORS.find(x => x.c === c) || { ink: '#fff' }).ink;
   const initial = name => (String(name).trim()[0] || '?').toUpperCase();

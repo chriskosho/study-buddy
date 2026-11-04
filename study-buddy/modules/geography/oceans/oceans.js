@@ -26,7 +26,7 @@
     function go(t) {
       ctx.state.topic = ctx.state.topic || {}; ctx.state.topic[key] = t; ctx.save();
       $$('.oce-topics button', P).forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t));
-      body.innerHTML = ''; run(sub, t);
+      body.innerHTML = ''; run(ctx.round ? Object.create(sub, { round: { value: ctx.round.sub(t) } }) : sub, t);   // each topic keeps its own round in progress
     }
     $$('.oce-topics button', P).forEach(b => b.onclick = () => go(b.dataset.t));
     const saved = ctx.state.topic && ctx.state.topic[key];

@@ -100,7 +100,8 @@
   ];
   const compare = {
     init(ctx) {
-      const P = ctx.panel, C = { list: [], i: 0, score: 0, answered: false };
+      const P = ctx.panel, C = { list: [], i: 0, score: 0, answered: false, rec: [] }, K = SBT.saved(ctx, 'compare');
+      const save = () => K.save({ list: C.list.map(x => ({ m: MEASURES.indexOf(x.m), a: x.a.id, b: x.b.id })), i: C.i, score: C.score, rec: C.rec });   // every answer is kept (November 2026)
       function makeRound() {
         const out = [], seen = new Set();
         while (out.length < 10) {
@@ -112,71 +113,83 @@
         }
         return out;
       }
-      function start() { C.list = makeRound(); C.i = 0; C.score = 0; show(); }
+      function start() { C.list = makeRound(); C.i = 0; C.score = 0; C.rec = []; save(); show(); }
       function show() {
         if (C.i >= C.list.length) {
-          ctx.result(C.score, C.list.length); ctx.sfx.win();
+          K.clear(); ctx.result(C.score, C.list.length); ctx.sfx.win();
           P.innerHTML = `<h2>Which is more?</h2><div class="result">${starsHTML(C.score, C.list.length)}<p class="prompt">${C.score} out of ${C.list.length}</p><p class="lead">${C.score >= 8 ? 'You really know your planets!' : 'Look at the planet cards in the study guide, then try again.'}</p><button class="btn" data-a="again">Play again</button></div>`;
           $('[data-a="again"]', P).onclick = start; return;
         }
-        const { m, a, b } = C.list[C.i], win = a[m.key] > b[m.key] ? a : b; C.answered = false;
+        const { m, a, b } = C.list[C.i], win = a[m.key] > b[m.key] ? a : b, first = C.rec[C.i]; C.answered = false;
         P.innerHTML = `<h2>Which is more?</h2><p class="lead">Think about what you know, then pick one.</p>
-          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${C.i / C.list.length * 100}%"></i></div><span class="hint">Question ${C.i + 1} of ${C.list.length} &middot; Score ${C.score}</span></div>
+          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${C.i / C.list.length * 100}%"></i></div><span class="hint">Question ${C.i + 1} of ${C.list.length} &middot; Score ${C.score}</span>${SBT.roundBtns(C.i > 0)}</div>
           <div class="row qrow"><p class="qtext">${m.q}</p>${ctx.sayButton(m.q + ' ' + a.name + ' or ' + b.name, 'Hear the question')}</div>
           <div class="versus">${[a, b].map(p => `<button class="vbtn" data-id="${p.id}">${disc(p, 80)}<span>${p.name}</span><small></small></button>`).join('')}</div>
-          <p class="explain"></p><div class="row center"><button class="btn" data-a="next" hidden>${C.i === C.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
+          <p class="explain">${first ? SBT.practiceNote(first.ok) : ''}</p><div class="row center"><button class="btn" data-a="next"${first ? '' : ' hidden'}>${C.i === C.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
         $$('.vbtn', P).forEach(btn => btn.onclick = () => {
           if (C.answered) return; C.answered = true;
           const ok = btn.dataset.id === win.id;
           $$('.vbtn', P).forEach(x => { x.disabled = true; const p = BY[x.dataset.id]; x.querySelector('small').textContent = m.say(p).split(': ')[1]; if (p === win) x.classList.add('right'); });
-          if (ok) { C.score++; ctx.credit(); ctx.sfx.good(); } else { btn.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); }
+          if (!ok) btn.classList.add('wrong');
+          if (first) ok ? ctx.sfx.good() : ctx.sfx.bad();                                   // a practice try (after Back): no credit, no score
+          else { C.rec[C.i] = { ok }; if (ok) { C.score++; ctx.credit(); ctx.sfx.good(); } else { ctx.slip(); ctx.sfx.bad(); } save(); }
           let why = `${m.say(a)}. ${m.say(b)}.`;
           if (m.key === 'spinH' && [a.id, b.id].sort().join() === 'mercury,venus') why += ' Venus spins the slowest of all the planets.';
           if (m.key === 'temp' && (a.id === 'venus' || b.id === 'venus') && (a.id === 'mercury' || b.id === 'mercury')) why += ' Venus is hotter even though Mercury is closer, because Venus’s thick air traps heat.';
           $('.explain', P).innerHTML = (ok ? '<b style="color:var(--good)">Correct!</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + esc(why);
           const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
         });
-        $('[data-a="next"]', P).onclick = () => { C.i++; show(); };
+        $('[data-a="next"]', P).onclick = () => { C.i++; save(); show(); };
+        $('[data-a="back"]', P).onclick = () => { if (C.i > 0) { C.i--; save(); show(); } };
+        $('[data-a="restart"]', P).onclick = () => SBT.askRestart(start, C.rec.some(Boolean));
         ctx.say(m.q + ' ' + a.name + ' or ' + b.name + '?');
       }
-      start();
+      const s = K.load(), un = x => ({ m: MEASURES[x.m], a: BY[x.a], b: BY[x.b] });
+      if (s && Array.isArray(s.list) && s.list.length && s.i >= 0 && s.i < s.list.length && s.list.every(x => MEASURES[x.m] && BY[x.a] && BY[x.b])) { Object.assign(C, { list: s.list.map(un), i: s.i, score: s.score || 0, rec: s.rec || [] }); show(); } else start();
     }
   };
 
   /* ===================== Which planet am I? ===================== */
   const riddle = {
     init(ctx) {
-      const P = ctx.panel, R = { list: [], i: 0, score: 0, clue: 0, done: false };
-      function start() { R.list = shuffle(PLANETS); R.i = 0; R.score = 0; show(); }
+      const P = ctx.panel, R = { list: [], i: 0, score: 0, clue: 0, done: false, rec: [], cur: null }, K = SBT.saved(ctx, 'riddle');
+      const save = () => K.save({ list: R.list.map(p => p.id), i: R.i, score: R.score, rec: R.rec, cur: R.cur });   // every guess is kept (November 2026)
+      function start() { R.list = shuffle(PLANETS); R.i = 0; R.score = 0; R.rec = []; R.cur = null; save(); show(); }
       function show() {
         if (R.i >= R.list.length) {
-          ctx.result(R.score, R.list.length); ctx.sfx.win();
+          K.clear(); ctx.result(R.score, R.list.length); ctx.sfx.win();
           P.innerHTML = `<h2>Which planet am I?</h2><div class="result">${starsHTML(R.score, R.list.length)}<p class="prompt">${R.score} out of ${R.list.length} on the first clue</p><p class="lead">${R.score >= 7 ? 'Insane! You are a planet expert.' : 'The first clues are the hardest. Try again to beat your score.'}</p><button class="btn" data-a="again">Play again</button></div>`;
           $('[data-a="again"]', P).onclick = start; return;
         }
-        const p = R.list[R.i]; R.clue = 0; R.done = false;
+        const p = R.list[R.i], first = R.rec[R.i], c = !first && R.cur && R.cur.i === R.i ? R.cur : null; R.clue = 0; R.done = false;
         P.innerHTML = `<h2>Which planet am I?</h2><p class="lead">Guess from the first clue to score. A wrong guess shows the next clue.</p>
-          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Planet ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span></div>
+          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Planet ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span>${SBT.roundBtns(R.i > 0)}</div>
           <ol class="clues"></ol>
           <div class="pick">${PLANETS.map(x => `<button class="pbtn" data-id="${x.id}">${disc(x, 42)}<span class="pname">${x.name}</span></button>`).join('')}</div>
-          <p class="msg"></p><div class="row"><button class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next planet'}</button></div>`;
+          <p class="msg">${first ? SBT.practiceNote(first.ok) : ''}</p><div class="row"><button class="btn" data-a="next"${first ? '' : ' hidden'}>${R.i === R.list.length - 1 ? 'See results' : 'Next planet'}</button></div>`;
         const clues = $('.clues', P), msg = $('.msg', P), next = $('[data-a="next"]', P);
         const addClue = () => { const li = document.createElement('li'); li.innerHTML = `${esc(p.clues[R.clue])} ${ctx.sayButton(p.clues[R.clue], 'Hear the clue')}`; clues.appendChild(li); ctx.say(p.clues[R.clue]); };
         addClue();
+        if (c) (c.wrong || []).forEach(id => { const b = $(`.pick .pbtn[data-id="${id}"]`, P); if (b) { b.classList.add('wrong'); b.disabled = true; } if (R.clue < p.clues.length - 1) { R.clue++; addClue(); } });   // the guesses made before leaving
+        const wrongs = c ? (c.wrong || []).slice() : [];
         $$('.pick .pbtn', P).forEach(b => b.onclick = () => {
           if (R.done) return;
           if (b.dataset.id === p.id) {
-            R.done = true; if (R.clue === 0) R.score++; ctx.credit(); ctx.sfx.good(); b.classList.add('right');
+            R.done = true; if (!first) { if (R.clue === 0) R.score++; ctx.credit(); R.rec[R.i] = { ok: R.clue === 0 }; R.cur = null; save(); } ctx.sfx.good(); b.classList.add('right');
             setMsg(msg, `Yes! I am ${p.name}.` + (R.clue === 0 ? ' First clue!' : ''), 'good'); next.hidden = false; next.focus();
           } else {
-            ctx.slip(); ctx.sfx.bad(); b.classList.add('wrong'); b.disabled = true;
+            if (!first) { ctx.slip(); wrongs.push(b.dataset.id); R.cur = { i: R.i, wrong: wrongs }; } ctx.sfx.bad(); b.classList.add('wrong'); b.disabled = true;
+            if (!first) save();
             if (R.clue < p.clues.length - 1) { R.clue++; addClue(); setMsg(msg, `Not ${BY[b.dataset.id].name}. Here is another clue.`, 'bad'); }
-            else { R.done = true; $(`.pick .pbtn[data-id="${p.id}"]`, P).classList.add('right'); setMsg(msg, `I am ${p.name}.`, 'bad'); next.hidden = false; }
+            else { R.done = true; if (!first) { R.rec[R.i] = { ok: false }; R.cur = null; save(); } $(`.pick .pbtn[data-id="${p.id}"]`, P).classList.add('right'); setMsg(msg, `I am ${p.name}.`, 'bad'); next.hidden = false; }
           }
         });
-        next.onclick = () => { R.i++; show(); };
+        next.onclick = () => { R.i++; save(); show(); };
+        $('[data-a="back"]', P).onclick = () => { if (R.i > 0) { R.i--; save(); show(); } };
+        $('[data-a="restart"]', P).onclick = () => SBT.askRestart(start, R.rec.some(Boolean));
       }
-      start();
+      const s = K.load();
+      if (s && Array.isArray(s.list) && s.list.length && s.list.every(id => BY[id]) && s.i >= 0 && s.i < s.list.length) { Object.assign(R, { list: s.list.map(id => BY[id]), i: s.i, score: s.score || 0, rec: s.rec || [], cur: s.cur || null }); show(); } else start();
     }
   };
 

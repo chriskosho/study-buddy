@@ -42,7 +42,7 @@
     const go = i => {
       $$('.cpmodes button', P).forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.i === i)));
       const old = $('.cpsub', P), sub = document.createElement('div'); sub.className = 'cpsub'; old.replaceWith(sub);
-      const c = Object.create(ctx); Object.defineProperty(c, 'panel', { value: sub });
+      const c = Object.create(ctx); Object.defineProperty(c, 'panel', { value: sub }); if (ctx.round) Object.defineProperty(c, 'round', { value: ctx.round.sub('m' + i) });
       modes[i].run(c);
     };
     $$('.cpmodes button', P).forEach(b => b.onclick = () => go(+b.dataset.i));
@@ -80,42 +80,47 @@
 
   /* ===================== Tap the grid ===================== */
   function plotTool(ctx, cfg) {
-    const P = ctx.panel, R = { list: [], i: 0, score: 0 };
-    function start() { R.list = cfg.targets(); R.i = 0; R.score = 0; show(); }
+    const P = ctx.panel, R = { list: [], i: 0, score: 0, rec: [], cur: null }, K = SBT.saved(ctx, 'plot|' + cfg.title);
+    const save = () => K.save({ list: R.list, i: R.i, score: R.score, rec: R.rec, cur: R.cur });   // every answer is kept (November 2026)
+    function start() { R.list = cfg.targets(); R.i = 0; R.score = 0; R.rec = []; R.cur = null; save(); show(); }
     function show() {
       if (R.i >= R.list.length) {
-        ctx.result(R.score, R.list.length, 'random'); ctx.sfx.win();
+        K.clear(); ctx.result(R.score, R.list.length, 'random'); ctx.sfx.win();
         P.innerHTML = `<h2>${esc(cfg.title)}</h2><div class="result">${SBT.starsHTML(R.score, R.list.length)}<p class="prompt">${R.score} out of ${R.list.length}</p><p class="lead">${R.score / R.list.length >= 0.8 ? 'Excellent work!' : 'Good practice. Read the explanations, then try another round.'}</p><div class="row center"><button class="btn" data-a="again">Play again</button></div></div>`;
         $('[data-a="again"]', P).onclick = start; return;
       }
-      const it = R.list[R.i], last = R.i === R.list.length - 1; let tries = 0, done = false;
+      const it = R.list[R.i], last = R.i === R.list.length - 1, first = R.rec[R.i]; let tries = !first && R.cur && R.cur.i === R.i ? R.cur.tries || 0 : 0, done = false;
       P.innerHTML = `<h2>${esc(cfg.title)}</h2><p class="lead">${esc(cfg.lead)}</p>
-        <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Question ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span></div>
+        <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Question ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span>${SBT.roundBtns(R.i > 0)}</div>
         <div class="row qrow"><p class="qtext">${esc(it.text)}</p>${ctx.sayButton(it.say)}</div>
         ${G.plane({ max: it.max, pts: it.pts, label: 'A coordinate grid' })}
-        <p class="cpread" aria-live="polite">Tap the grid to place your point.</p><div class="err" role="alert"></div><p class="explain why"></p>
+        <p class="cpread" aria-live="polite">Tap the grid to place your point.</p><div class="err" role="alert">${first ? SBT.practiceNote(first.ok) : tries ? 'Not quite. Try again.' : ''}</div><p class="explain why"></p>
         <div class="row center"><button type="button" class="btn" data-a="check" disabled>Check</button><button type="button" class="btn ghost" data-a="hint">Hint</button><button type="button" class="btn" data-a="next" hidden>${last ? 'See results' : 'Next'}</button></div>`;
       const read = $('.cpread', P), err = $('.err', P), why = $('.why', P), chk = $('[data-a="check"]', P), nx = $('[data-a="next"]', P), hb = $('[data-a="hint"]', P);
       const finish = () => { done = true; api.locked = true; chk.hidden = true; hb.hidden = true; nx.hidden = false; nx.focus(); why.textContent = it.why; };
       const check = () => {
         const m = api.marker; if (!m || done) return;
         if (m.x === it.x && m.y === it.y) {
-          if (tries === 0) R.score++;
-          ctx.credit(); ctx.sfx.good(); api.markClass('good'); err.style.color = 'var(--good-ink)'; err.textContent = `Correct! ${pair(it.x, it.y)}.`; finish();
+          if (!first) { if (tries === 0) R.score++; ctx.credit(); R.rec[R.i] = { ok: tries === 0 }; R.cur = null; save(); }   // a practice try (after Back) gives no credit
+          ctx.sfx.good(); api.markClass('good'); err.style.color = 'var(--good-ink)'; err.textContent = `Correct! ${pair(it.x, it.y)}.`; finish();
         } else {
-          tries++; ctx.slip(); ctx.sfx.bad(); err.style.color = '';
-          if (tries >= 2) { api.reveal(it.x, it.y); err.textContent = `The point ${pair(it.x, it.y)} is the green one.`; if (ctx.miss) ctx.miss(it.text + ' (answer: ' + pair(it.x, it.y) + ')'); finish(); }
+          tries++; if (!first) { ctx.slip(); R.cur = { i: R.i, tries }; if (tries >= 2) { R.rec[R.i] = { ok: false }; R.cur = null; } save(); } ctx.sfx.bad(); err.style.color = '';
+          if (tries >= 2) { api.reveal(it.x, it.y); err.textContent = `The point ${pair(it.x, it.y)} is the green one.`; if (!first && ctx.miss) ctx.miss(it.text + ' (answer: ' + pair(it.x, it.y) + ')'); finish(); }
           else err.textContent = m.x === it.x ? 'Your x is right. Check y: how far up?' : m.y === it.y ? 'Your y is right. Check x: how far right?' : m.x === it.y && m.y === it.x ? 'You swapped x and y. Go right first, then up.' : 'Not quite. Try again.';
         }
       };
       const api = interactive($('svg.cpl', P), 'Coordinate grid. Arrow keys move the cursor. The space bar places your point. Enter checks it.', {
         onPlace: (x, y) => { chk.disabled = false; err.textContent = ''; read.textContent = `Your point: ${pair(x, y)}`; },
         onMove: (x, y) => { read.textContent = `Cursor at ${pair(x, y)}. Press the space bar to place your point.`; }, onEnter: check });
-      chk.onclick = check; nx.onclick = () => { R.i++; show(); };
+      chk.onclick = check; nx.onclick = () => { R.i++; save(); show(); };
+      if (first) nx.hidden = false;
+      $('[data-a="back"]', P).onclick = () => { if (R.i > 0) { R.i--; save(); show(); } };
+      $('[data-a="restart"]', P).onclick = () => SBT.askRestart(start, R.rec.some(Boolean));
       hb.onclick = () => { err.style.color = 'var(--ink2)'; err.textContent = it.hint; };
       ctx.say(it.say);
     }
-    start();
+    const s = K.load();
+    if (s && Array.isArray(s.list) && s.list.length && s.i >= 0 && s.i < s.list.length) { Object.assign(R, { list: s.list, i: s.i, score: s.score || 0, rec: s.rec || [], cur: s.cur || null }); show(); } else start();
   }
 
   /* ===================== Tools built on the shared builders ===================== */

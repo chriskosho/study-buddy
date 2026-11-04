@@ -157,6 +157,7 @@ body.sbm section.panel>h2+.lead+*{margin-top:14px}
 .sortTray{min-height:62px}
 .roundbar{display:flex;align-items:center;gap:12px;margin:12px 0}
 .roundbar .hint{white-space:nowrap}
+.rbtns{display:flex;gap:6px;margin-left:auto;flex:none}.rbtns .btn.small{padding:1px 11px;font-size:13.5px;line-height:1.25;border-radius:9px;min-height:0;border-width:1.5px}.rbtns .btn:disabled{opacity:.45}
 .qrow{justify-content:center;flex-wrap:nowrap;gap:12px;margin-bottom:6px}
 .qrow .qtext{margin:0}
 
@@ -380,6 +381,7 @@ a:focus-visible{border-radius:6px}
 html.sb-dark .diff.easy{color:#6fd39b} html.sb-dark .diff.medium{color:#f3c76a} html.sb-dark .diff.hard{color:#f39a7e}
 /* the round counter ("Question 1 of 10 · Score 0") may wrap on a narrow phone with large dyslexic text, instead of pushing the page sideways */
 @media (max-width:760px){.roundbar{flex-wrap:wrap;gap:4px 12px}.roundbar .bar{flex:1 1 100%}.roundbar .hint{white-space:normal}}
+@media (max-width:760px){.rbtns{margin-left:auto}.rbtns .btn.small{min-height:36px;padding:4px 12px}}
 
 /* ---------- flashcard confirmation toast (over the card) and Undo ---------- */
 .cardzone{position:relative}
