@@ -86,7 +86,8 @@ async def main():
         await pg.click('#tab-cards .seg button:has-text("Shuffled")'); await pg.wait_for_timeout(300)
         check(await pg.locator('#tab-cards .secsel').input_value() == 'T1A', 'switching to Shuffled keeps the section')
         await pg.click('#tab-cards .seg button:has-text("In order")'); await pg.wait_for_timeout(200)
-        for _ in range(11):
+        for _ in range(11):   # the In order deck picks up where it was left (1 card was already done), so go until it is complete
+            if 'deck complete' in (await pg.inner_text('#tab-cards .front')).lower(): break
             await pg.click('#tab-cards [data-a="knew"]'); await pg.wait_for_timeout(120)
         check('deck complete' in (await pg.inner_text('#tab-cards .front')).lower() and 'arrows' in await pg.inner_text('#tab-cards .front'), 'finishing a section says so and points to the arrows')
         check(await pg.evaluate("SB.streakInfo().daily") == before, 'flashcards give no credit')
