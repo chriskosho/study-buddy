@@ -525,6 +525,26 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'tables-15',
+      subject: 'math',
+      title: 'Multiplication Tables to 15',
+      blurb: 'The times tables from 11 to 15: break a big number into 10 and the rest, then division, missing numbers, and a speed round.',
+      tags: ['math', 'multiplication', 'division'],
+      path: 'modules/math/tables-15/index.html',
+      storage: ['tables-15'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A times table chart from 1 to 15, and how to break a big number into 10 and the rest.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The rules for tables 11 to 15, one card each. Practice only.' },
+        { id: 'times', name: 'Multiplication facts', difficulty: 'medium', blurb: 'Like 13 \u00d7 7. Mastered at 8 of 10.' },
+        { id: 'apart', name: 'Break it apart', difficulty: 'medium', blurb: 'Like 13 \u00d7 7 = 70 + ?. Fill in the missing step. Mastered at 8 of 10.' },
+        { id: 'divide', name: 'Division facts', difficulty: 'hard', blurb: 'Like 156 \u00f7 12. Mastered at 8 of 10.' },
+        { id: 'missing', name: 'Missing numbers', difficulty: 'hard', blurb: 'Like 14 \u00d7 ? = 98. Mastered at 8 of 10.' },
+        { id: 'speed', name: 'Speed round', difficulty: 'hard', masterAt: 15, blurb: '60 seconds to answer as many facts as you can. Mastered at 15 right.' },
+        { id: 'words', name: 'Word problems', difficulty: 'insane', blurb: 'Equal groups, rows, and sharing with bigger numbers. Mastered at 8 of 10.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'hard', full: true, blurb: 'Random 10, or One of each: one problem of every kind in this module. Mastered at 80% on One of each.' }
+      ]
+    },
+    {
       id: 'fractions-intro',
       subject: 'math',
       title: 'Fractions',

@@ -1,6 +1,9 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-03', title: 'New module: Multiplication Tables to 15', items: [
+    'Math has a new module for the times tables from 11 to 15. It teaches one idea: break the big number into 10 and the rest, so 13 × 7 is 70 + 21.',
+    'Study guide with a 15 by 15 chart, Flashcards, Multiplication facts, Break it apart, Division facts, Missing numbers, Word problems, a 60-second Speed round, and a Quiz.' ] },
   { date: '2026-11-03', title: 'New module: A Bird, came down the Walk', items: [
     'English has a new module for memorizing Emily Dickinson\'s poem "A Bird, came down the Walk -", one stanza at a time.',
     'Seven tools: Read and listen, Flashcards, First letters, Fill the blanks, Put the lines in order, Type it from memory, and Say the whole poem. The first three are practice only; the other four give credit.',

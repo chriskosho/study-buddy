@@ -464,3 +464,10 @@ The owner renamed the Scratch pad to **Notepad** and asked for a real notebook: 
 - Tools: Read and listen, Flashcards (next line, last word; by stanza), First letters (practice only), Fill the blanks (3 levels), Put the lines in order (shared `SBT.order`, with a stanza set, a stanza-order set and a six-line set), Type it from memory (first line given, 5 stanzas shuffled, 15 lines), Say the whole poem (nothing given, 20 lines, mastered at 18).
 - Typing is judged line by line: capitals, punctuation and dashes are ignored, and up to 2 letters off still counts (the right spelling is shown). A Hint shows first letters and takes that stanza out of the score.
 - To add another poem later, make a new folder like this one; the tools take their text from `data.js` only.
+
+## 45. Multiplication Tables to 15 (November 2026)
+- Module `tables-15` (Math, `modules/math/tables-15/`): facts 2 to 15 times 2 to 15 and the matching division facts, built like Multiplication and Division Facts (section on `modules/math/facts`) but with its own `gen.js` (`T15GEN`). About 8 in 10 problems have a factor over 10.
+- The one method taught is breaking the big number into 10 and the rest (`strategy()`; a reasoning method, not a trick). The study guide chart is 15 by 15 and shows the 10 + rest split for the tapped fact (`splitHTML`).
+- Tools: Study guide, Flashcards (rule cards), Multiplication facts, Break it apart (fill in one step of the split), Division facts, Missing numbers, Word problems, Speed round (60 seconds, type or tap, mastered at 15), Quiz (Random 10 or One of each).
+- `gen_check_tables15.mjs` re-solves 20,000 problems of each kind from their text (run automatically by `run_all.py`); `tables15_test.py` plays every tool and checks layout.
+
