@@ -108,22 +108,28 @@
   };
   const listen = {
     init(ctx) {
-      const P = ctx.panel, R = { list: [], i: 0, score: 0, tries: 0 };
-      function start() { R.list = shuffle(PLACES).slice(0, 10); R.i = 0; R.score = 0; show(); }
+      const P = ctx.panel, R = { list: [], i: 0, score: 0, tries: 0, rec: [], tb: {}, t: null }, K = SBT.saved(ctx, 'listen');
+      const save = () => K.save({ list: R.list.map(p => p.id), i: R.i, score: R.score, rec: R.rec, tb: R.tb });   // every tap is kept (November 2026)
+      function start() { clearTimeout(R.t); R.list = shuffle(PLACES).slice(0, 10); R.i = 0; R.score = 0; R.rec = []; R.tb = {}; save(); show(); }
       function show() {
-        if (R.i >= R.list.length) { ctx.result(R.score, R.list.length); ctx.sfx.win(); P.innerHTML = `<h2>Listen and tap</h2><div class="result">${starsHTML(R.score, R.list.length)}<p class="prompt">${R.score} out of ${R.list.length}</p><p class="lead">${R.score >= 8 ? 'Excellent! You know the map.' : 'Good practice. Look at the Study map, then try again.'}</p><button class="btn" data-a="again">Play again</button></div>`; $('[data-a="again"]', P).onclick = start; return; }
-        const p = R.list[R.i]; R.tries = 0;
-        P.innerHTML = `<h2>Listen and tap</h2><div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Question ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span></div>
-          <div class="row qrow"><p class="qtext">Tap <b>${esc(p.name)}</b></p>${ctx.sayButton('Tap ' + p.name, 'Hear it again')}</div><div class="mwrap game">${mapSVG({ labels: false })}</div><p class="msg" role="status"></p>`;
+        if (R.i >= R.list.length) { K.clear(); ctx.result(R.score, R.list.length); ctx.sfx.win(); P.innerHTML = `<h2>Listen and tap</h2><div class="result">${starsHTML(R.score, R.list.length)}<p class="prompt">${R.score} out of ${R.list.length}</p><p class="lead">${R.score >= 8 ? 'Excellent! You know the map.' : 'Good practice. Look at the Study map, then try again.'}</p><button class="btn" data-a="again">Play again</button></div>`; $('[data-a="again"]', P).onclick = start; return; }
+        const p = R.list[R.i], first = R.rec[R.i]; R.tries = first ? 0 : R.tb[R.i] || 0;   // wrong taps stay counted, even after Back or leaving
+        P.innerHTML = `<h2>Listen and tap</h2><div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Question ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span>${SBT.roundBtns(R.i > 0)}</div>
+          <div class="row qrow"><p class="qtext">Tap <b>${esc(p.name)}</b></p>${ctx.sayButton('Tap ' + p.name, 'Hear it again')}</div><div class="mwrap game">${mapSVG({ labels: false })}</div><p class="msg" role="status">${first ? SBT.practiceNote(first.ok) : ''}</p>${first ? `<div class="row center"><button class="btn" data-a="next">${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>` : ''}`;
         const svg = $('.pmap', P), msg = $('.msg', P);
         $$('.pt', svg).forEach(g => g.onclick = () => {
           if (svg.classList.contains('done')) return;
-          if (g.dataset.id === p.id) { if (R.tries === 0) R.score++; ctx.credit(); ctx.sfx.good(); g.classList.add('right'); svg.classList.add('done'); msg.textContent = 'Yes! ' + p.name + '. ' + p.d.replace(/^Added: /, ''); setTimeout(() => { R.i++; show(); }, 1500); }
-          else { R.tries++; ctx.slip(); ctx.sfx.bad(); g.classList.add('wrong'); msg.textContent = R.tries >= 2 ? 'That is ' + PLACES.find(x => x.id === g.dataset.id).name + '. Look for the glowing dot.' : 'Not that one. Try again.'; if (R.tries >= 2) { $(`.pt[data-id="${p.id}"]`, svg).classList.add('hint'); } }
+          if (g.dataset.id === p.id) { if (!first) { if (R.tries === 0) R.score++; ctx.credit(); R.rec[R.i] = { ok: R.tries === 0 }; save(); } ctx.sfx.good(); g.classList.add('right'); svg.classList.add('done'); msg.textContent = 'Yes! ' + p.name + '. ' + p.d.replace(/^Added: /, ''); R.t = setTimeout(() => { R.i++; save(); show(); }, 1500); }
+          else { R.tries++; if (!first) { ctx.slip(); R.tb[R.i] = R.tries; save(); } ctx.sfx.bad(); g.classList.add('wrong'); msg.textContent = R.tries >= 2 ? 'That is ' + PLACES.find(x => x.id === g.dataset.id).name + '. Look for the glowing dot.' : 'Not that one. Try again.'; if (R.tries >= 2) { $(`.pt[data-id="${p.id}"]`, svg).classList.add('hint'); } }
         });
+        const nb = $('[data-a="next"]', P); if (nb) nb.onclick = () => { clearTimeout(R.t); R.i++; save(); show(); };
+        $('[data-a="back"]', P).onclick = () => { clearTimeout(R.t); if (R.i > 0) { R.i--; save(); show(); } };
+        $('[data-a="restart"]', P).onclick = () => SBT.askRestart(start, R.rec.some(Boolean));
+        if (R.tries >= 2) $(`.pt[data-id="${p.id}"]`, svg).classList.add('hint');
         ctx.say('Tap ' + p.name);
       }
-      start();
+      const s = K.load(), byId = id => PLACES.find(x => x.id === id);
+      if (s && Array.isArray(s.list) && s.list.length && s.list.every(byId) && s.i >= 0 && s.i < s.list.length) { Object.assign(R, { list: s.list.map(byId), i: s.i, score: s.score || 0, rec: s.rec || [], tb: s.tb || {} }); show(); } else start();
     }
   };
   const find = {

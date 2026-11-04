@@ -94,47 +94,51 @@
   const ROUND = 10;
   const blanks = {
     init(ctx) {
-      const P = ctx.panel, B = { list: [], i: 0, score: 0, tries: 0, hinted: false };
-      function start() { B.list = shuffle(BLANKS).slice(0, ROUND); B.i = 0; B.score = 0; show(); }
+      const P = ctx.panel, B = { list: [], i: 0, score: 0, tries: 0, hinted: false, rec: [], tb: {} }, K = SBT.saved(ctx, 'blanks');
+      const save = () => K.save({ list: B.list, i: B.i, score: B.score, rec: B.rec, tb: B.tb });   // every answer is kept (November 2026)
+      function start() { B.list = shuffle(BLANKS).slice(0, ROUND); B.i = 0; B.score = 0; B.rec = []; B.tb = {}; save(); show(); }
       function show() {
         if (B.i >= B.list.length) {
-          ctx.result(B.score, B.list.length); ctx.sfx.win();
+          K.clear(); ctx.result(B.score, B.list.length); ctx.sfx.win();
           P.innerHTML = `<h2>Fill it in</h2><div class="result">${starsHTML(B.score, B.list.length)}<p class="prompt">${B.score} out of ${B.list.length}</p><p class="lead">${B.score >= 8 ? 'Excellent! You know your facts.' : 'Good practice. Try the flashcards, then come back.'}</p><button class="btn" data-a="again">Play again</button></div>`;
           $('[data-a="again"]', P).onclick = start; return;
         }
-        const item = B.list[B.i], main = item.a[0]; B.tries = 0; B.hinted = false;
+        const item = B.list[B.i], main = item.a[0], first = B.rec[B.i], c = first ? null : B.tb[B.i]; B.tries = c ? c.tries || 0 : 0; B.hinted = c ? !!c.hinted : false;   // wrong tries and a hint stay counted, even after Back or leaving
         const shown = esc(item.s).replace('___', '<span class="blank">______</span>');
         P.innerHTML = `<h2>Fill it in</h2><p class="lead">Type the missing word.</p>
-          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${B.i / B.list.length * 100}%"></i></div><span class="hint">Question ${B.i + 1} of ${B.list.length} &middot; Score ${B.score}</span></div>
+          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${B.i / B.list.length * 100}%"></i></div><span class="hint">Question ${B.i + 1} of ${B.list.length} &middot; Score ${B.score}</span>${SBT.roundBtns(B.i > 0)}</div>
           <div class="row qrow"><p class="qtext fill">${shown}</p>${ctx.sayButton(item.s.replace('___', 'blank'), 'Hear it')}</div>
           <form class="spellrow" autocomplete="off"><input aria-label="Missing word" placeholder="Type the word" autocapitalize="off" spellcheck="false"><button class="btn" type="submit">Check</button></form>
-          <div class="err" role="alert"></div>
-          <div class="row center"><button type="button" class="btn ghost" data-a="hint">Hint</button><button type="button" class="btn" data-a="next" hidden>${B.i === B.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
+          <div class="err" role="alert">${first ? SBT.practiceNote(first.ok) : B.hinted ? esc('Starts with "' + main[0] + '" and has ' + main.length + ' characters.') : B.tries ? 'Not quite. Try again.' : ''}</div>
+          <div class="row center"><button type="button" class="btn ghost" data-a="hint">Hint</button><button type="button" class="btn" data-a="next"${first ? '' : ' hidden'}>${B.i === B.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
         const inp = $('input', P), err = $('.err', P), next = $('[data-a="next"]', P), hintBtn = $('[data-a="hint"]', P);
         inp.focus();
         const done = () => { inp.disabled = true; $('form button', P).disabled = true; hintBtn.hidden = true; next.hidden = false; next.focus(); };
         inp.oninput = () => { inp.classList.remove('bad'); err.textContent = ''; };
-        hintBtn.onclick = () => { B.hinted = true; err.style.color = 'var(--ink2)'; err.textContent = 'Starts with "' + main[0] + '" and has ' + main.length + ' characters.'; inp.focus(); };
+        hintBtn.onclick = () => { B.hinted = true; if (!first) { B.tb[B.i] = { tries: B.tries, hinted: true }; save(); } err.style.color = 'var(--ink2)'; err.textContent = 'Starts with "' + main[0] + '" and has ' + main.length + ' characters.'; inp.focus(); };
         $('form', P).onsubmit = e => {
           e.preventDefault();
           const v = inp.value.trim();
           if (!v) { inp.classList.add('bad'); err.style.color = ''; err.textContent = 'Type an answer first.'; return; }
           const n = norm(v), exact = item.a.some(a => norm(a) === n), close = !exact && item.a.some(a => norm(a).length >= 5 && !/\d/.test(a) && dist(norm(a), n) <= 1);   // no spelling slack for dates and numbers: 758 BC is not 753 BC
           if (exact || close) {
-            if (!B.hinted && B.tries === 0) B.score++;
-            ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good-ink)';
+            if (!first) { const pt = !B.hinted && B.tries === 0; if (pt) B.score++; ctx.credit(); B.rec[B.i] = { ok: pt }; save(); }   // a practice try (after Back) gives no credit
+            ctx.sfx.good(); err.style.color = 'var(--good-ink)';
             err.textContent = (close ? 'Close enough! It is spelled ' + main + '.' : 'Correct!') + (B.hinted ? ' (Hint used, so no point.)' : '');
             ctx.say(item.s.replace('___', main)); done();
           } else {
-            B.tries++; ctx.slip(); ctx.sfx.bad(); inp.classList.add('bad'); err.style.color = '';
+            B.tries++; if (!first) { ctx.slip(); B.tb[B.i] = { tries: B.tries, hinted: B.hinted }; if (B.tries >= 2) B.rec[B.i] = { ok: false }; save(); } ctx.sfx.bad(); inp.classList.add('bad'); err.style.color = '';
             if (B.tries >= 2) { err.textContent = 'The answer is ' + main + '.'; done(); }
             else err.textContent = 'Not quite. Try again.';
           }
         };
-        next.onclick = () => { B.i++; show(); };
+        next.onclick = () => { B.i++; save(); show(); };
+        $('[data-a="back"]', P).onclick = () => { if (B.i > 0) { B.i--; save(); show(); } };
+        $('[data-a="restart"]', P).onclick = () => SBT.askRestart(start, B.rec.some(Boolean));
         ctx.say(item.s.replace('___', 'blank'));
       }
-      start();
+      const s = K.load();
+      if (s && Array.isArray(s.list) && s.list.length && s.i >= 0 && s.i < s.list.length) { Object.assign(B, { list: s.list, i: s.i, score: s.score || 0, rec: s.rec || [], tb: s.tb || {} }); show(); } else start();
     }
   };
 

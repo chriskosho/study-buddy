@@ -126,7 +126,7 @@
           <div class="row hnav">
             <button class="btn ghost" data-a="quit">${E.quit ? 'Really stop the exam?' : 'Stop exam'}</button>
             <span class="grow"></span>
-            ${now ? '' : `<button class="btn ghost" data-a="back"${E.i === 0 ? ' disabled' : ''}>Back</button>`}
+            <button class="btn ghost" data-a="back"${E.i === 0 ? ' disabled' : ''}>Back</button>
             <button class="btn" data-a="next"${now && !locked ? ' hidden' : ''}>${last ? (now ? 'See results' : 'Finish exam') : 'Next question'}</button>
           </div>${grid}`;
         $$('.hopt', P).forEach(b => b.onclick = () => choose(+b.dataset.i));
@@ -248,7 +248,7 @@
         const gid = sel.value; st.quizGroup = gid; ctx.save();
         const pool = gid === 'all' ? Q : Q.filter(q => q.g === gid);
         body.innerHTML = '';
-        SBT.quiz(sub, { title: 'Quiz', lead: 'Pick the best answer. Practice only: the Mock exam is the scored test.', rounds: 10, fullLabel: 'Full', full: gid === 'all' ? null : () => pool.map(quizItem), build: () => SBT.shuffle(pool).slice(0, 10).map(quizItem) });
+        SBT.quiz(ctx.round ? Object.create(sub, { round: { value: ctx.round.sub(gid) } }) : sub, { title: 'Quiz', lead: 'Pick the best answer. Practice only: the Mock exam is the scored test.', rounds: 10, fullLabel: 'Full', full: gid === 'all' ? null : () => pool.map(quizItem), build: () => SBT.shuffle(pool).slice(0, 10).map(quizItem) });
       }
       sel.value = GROUPS.some(g => g.id === st.quizGroup) ? st.quizGroup : 'all';
       sel.onchange = go; go();

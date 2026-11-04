@@ -1,6 +1,12 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-03', title: 'Every answer is saved, with Back and Start over', items: [
+    'Leaving a tool, going to another module, or closing Study Buddy no longer loses a round. Come back and you pick up on the same question, with the same score.',
+    'Quizzes, typed answers, Explain it, Fill it in, Spot it, Label the sentence, the poem tools, the planet games, Plot the point, and Listen and tap now have a Back button. Going back lets you try a question again for practice: your first answer is the one that counts.',
+    'Sort it, Put in order, and Drag names have an Undo button. Taking a placed one back and placing it again gives no extra credit.',
+    'Every tool has Start over, which asks first once you have answered something. Flashcards also pick up where you left off.',
+    'Not changed: the 60-second rounds (Find it, Speed round, typing tests and games) and the Explorer\'s Atlas. The admin Reset still erases everything for a module, including rounds in progress.' ] },
   { date: '2026-11-03', title: 'New module: Multiplication Tables to 15', items: [
     'Math has a new module for the times tables from 11 to 15. It teaches one idea: break the big number into 10 and the rest, so 13 × 7 is 70 + 21.',
     'Study guide with a 15 by 15 chart, Flashcards, Multiplication facts, Break it apart, Division facts, Missing numbers, Word problems, a 60-second Speed round, and a Quiz.' ] },

@@ -112,7 +112,7 @@
       $$('.rl-levels button', P).forEach(b => b.setAttribute('aria-pressed', b.dataset.l === lv));
       const ids = POOL(lv).map(r => r.id), m = ids.filter(mastered).length;
       noteEl.textContent = lv === 'insane' ? 'Words built from two roots. You show what the root means to work out the word.' : `Roots mastered at this level: ${m} of ${ids.length}.`;
-      body.innerHTML = ''; run(sub, lv);
+      body.innerHTML = ''; run(ctx.round ? Object.create(sub, { round: { value: ctx.round.sub(lv) } }) : sub, lv);   // each level keeps its own round in progress
     }
     $$('.rl-levels button', P).forEach(b => b.onclick = () => go(b.dataset.l));
     go(LEVELS.some(l => l.id === S().level[key]) ? S().level[key] : 'easy');

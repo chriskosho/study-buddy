@@ -78,6 +78,7 @@
         <div class="row"><button class="btn" data-a="check" disabled>Check</button><button class="btn ghost" data-a="again" hidden>Try again</button><button class="btn ghost" data-a="new">New round</button><span class="hear"></span></div>`;
       const linesEl = $('.lines', P), chipsEl = $('.chips', P), msg = $('.msg', P), check = $('[data-a="check"]', P), again = $('[data-a="again"]', P);
       let level = 'few', B;
+      const K = SBT.saved(ctx, 'blanks'), save = () => K.save({ level, menu: $('#bstz', P).value, B: { si: B.si, bl: B.bl.map(b => ({ li: b.li, ti: b.ti, core: b.core, chip: b.chip ? b.chip.id : null })), chips: B.chips, checked: B.checked, scored: B.scored } });   // kept after every tap (November 2026)
       function pick(si) {
         const bl = [];
         S[si].forEach((l, li) => {
@@ -95,7 +96,7 @@
         const bl = pick(si);
         B = { si, bl, chips: shuffle(bl.map((b, k) => ({ id: k, core: b.core, used: false }))), sel: null, checked: false, scored: false };
         $('.hear', P).innerHTML = ctx.sayButton(stanzaSpeech(si), 'Hear stanza ' + (si + 1));
-        again.hidden = true; setMsg(msg, 'Stanza ' + (si + 1) + '.'); render();
+        again.hidden = true; setMsg(msg, 'Stanza ' + (si + 1) + '.'); render(); save();
       }
       function render(marks) {
         linesEl.innerHTML = S[B.si].map((l, li) => `<div class="ln">${l.split(' ').map((t, ti) => {
@@ -106,11 +107,11 @@
         }).join(' ')}</div>`).join('');
         chipsEl.innerHTML = B.chips.map(c => `<button type="button" class="chip${c.used ? ' used' : ''}" data-c="${c.id}" ${c.used || B.checked ? 'disabled' : ''}>${esc(c.core)}</button>`).join('');
         check.disabled = B.checked || !B.bl.every(b => b.chip);
-        $$('.blank', linesEl).forEach(el => el.onclick = () => { if (B.checked) return; const k = +el.dataset.b, b = B.bl[k]; if (b.chip) { b.chip.used = false; b.chip = null; } B.sel = k; render(); });
+        $$('.blank', linesEl).forEach(el => el.onclick = () => { if (B.checked) return; const k = +el.dataset.b, b = B.bl[k]; if (b.chip) { b.chip.used = false; b.chip = null; } B.sel = k; render(); save(); });
         $$('.chip', chipsEl).forEach(el => el.onclick = () => {
           const c = B.chips.find(x => x.id === +el.dataset.c); if (!c || c.used) return;
           let k = B.sel !== null && !B.bl[B.sel].chip ? B.sel : B.bl.findIndex(b => !b.chip); if (k < 0) return;
-          B.bl[k].chip = c; c.used = true; B.sel = B.bl.findIndex(b => !b.chip); if (B.sel < 0) B.sel = null; render();
+          B.bl[k].chip = c; c.used = true; B.sel = B.bl.findIndex(b => !b.chip); if (B.sel < 0) B.sel = null; render(); save();
           const nx = $('.chip:not(.used):not(:disabled)', chipsEl) || check; nx.focus();
         });
       }
@@ -118,14 +119,23 @@
         const marks = B.bl.map(b => b.chip.core.toLowerCase() === b.core.toLowerCase()), right = marks.filter(Boolean).length;
         B.checked = true;
         if (!B.scored) { B.scored = true; ctx.result(right, B.bl.length); if (right === B.bl.length) { ctx.credit(); ctx.sfx.win(); } else { ctx.slip(); ctx.sfx.bad(); } }
-        render(marks); again.hidden = false;
+        render(marks); again.hidden = false; save();
         setMsg(msg, right === B.bl.length ? 'Every word is right!' : right + ' of ' + B.bl.length + ' are right. The right words are in red. Your score counts your first check.', right === B.bl.length ? 'good' : 'bad');
       };
-      again.onclick = () => { B.bl.forEach(b => b.chip = null); B.chips.forEach(c => c.used = false); B.sel = null; B.checked = false; again.hidden = true; setMsg(msg, 'Practice again. This try does not change your score.'); render(); };
-      $('[data-a="new"]', P).onclick = newRound;
-      $('#bstz', P).onchange = newRound;
-      $$('.seg button', P).forEach(b => b.onclick = () => { level = b.dataset.l; $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); newRound(); });
-      newRound();
+      again.onclick = () => { B.bl.forEach(b => b.chip = null); B.chips.forEach(c => c.used = false); B.sel = null; B.checked = false; again.hidden = true; setMsg(msg, 'Practice again. This try does not change your score.'); render(); save(); };
+      $('[data-a="new"]', P).onclick = () => SBT.askRestart(newRound, !B.scored && B.bl.some(b => b.chip));
+      let menu = 'r'; const busy = () => !B.scored && B.bl.some(b => b.chip);
+      $('#bstz', P).onchange = e => { const v = e.target.value; SBT.askRestart(() => { menu = v; e.target.value = v; newRound(); }, busy()); if (busy()) e.target.value = menu; };
+      $$('.seg button', P).forEach(b => b.onclick = () => { if (level === b.dataset.l) return; SBT.askRestart(() => { level = b.dataset.l; $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); newRound(); }, busy()); });
+      const sv = K.load();
+      if (sv && sv.B && S[sv.B.si] && Array.isArray(sv.B.bl) && Array.isArray(sv.B.chips) && LEVELS.some(l => l.id === sv.level)) {
+        level = sv.level; if (sv.menu && $(`#bstz option[value="${sv.menu}"]`, P)) $('#bstz', P).value = menu = sv.menu; $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x.dataset.l === level));
+        const chips = sv.B.chips.map(c => ({ id: c.id, core: c.core, used: !!c.used }));
+        B = { si: sv.B.si, chips, bl: sv.B.bl.map(b => ({ li: b.li, ti: b.ti, core: b.core, chip: b.chip == null ? null : chips.find(c => c.id === b.chip) || null })), sel: null, checked: false, scored: !!sv.B.scored };
+        $('.hear', P).innerHTML = ctx.sayButton(stanzaSpeech(B.si), 'Hear stanza ' + (B.si + 1));
+        again.hidden = !B.scored; setMsg(msg, 'Stanza ' + (B.si + 1) + '.' + (B.scored ? ' Practice again. This try does not change your score.' : '')); render();
+        if (sv.B.checked) check.click();
+      } else newRound();
     }
   };
 
@@ -178,25 +188,28 @@
   function typer(ctx, mode) {
     const P = ctx.panel, recite = mode === 'recite';
     let T;
-    function start() { T = { order: recite ? [0, 1, 2, 3, 4] : shuffle([0, 1, 2, 3, 4]), i: 0, right: 0, total: 0, hinted: false, checked: false }; show(); }
+    const K = SBT.saved(ctx, mode), save = () => K.save({ T: { order: T.order, i: T.i, right: T.right, total: T.total, rec: T.rec, drafts: T.drafts, hint: T.hint } });   // every stanza and every line typed is kept (November 2026)
+    function start() { T = { order: recite ? [0, 1, 2, 3, 4] : shuffle([0, 1, 2, 3, 4]), i: 0, right: 0, total: 0, hinted: false, checked: false, rec: [], drafts: [], hint: [] }; save(); show(); }
     function show() {
       if (T.i >= S.length) return finish();
-      const si = T.order[T.i], st = S[si], first = recite ? 0 : 1;
-      T.hinted = false; T.checked = false;
+      const si = T.order[T.i], st = S[si], first = recite ? 0 : 1, done1 = T.rec[T.i];
+      T.hinted = !done1 && !!T.hint[T.i]; T.checked = false;
       P.innerHTML = `<h2>${recite ? 'Say the whole poem' : 'Type it from memory'}</h2>
         <p class="lead">${recite ? 'Type each stanza of the poem, one line at a time. Nothing is shown but the stanza number.' : 'The first line of a stanza is shown. Type the other three lines.'} Capital letters and dashes do not matter.</p>
         <p class="prog">${recite ? 'Stanza ' + (si + 1) + ' of 5' : 'Stanza ' + (T.i + 1) + ' of 5 in this round (it is stanza ' + (si + 1) + ' of the poem)'}</p>
         ${recite ? '' : `<div class="given row">${esc(st[0])} ${ctx.sayButton(speak(st[0]), 'Hear the first line')}</div>`}
         <div class="tin">${st.slice(first).map((l, k) => `<div class="li"><input type="text" data-k="${k + first}" aria-label="Line ${k + first + 1} of stanza ${si + 1}" autocomplete="off" autocapitalize="sentences" spellcheck="false"><span class="hl2" hidden></span><span class="ans" hidden></span></div>`).join('')}</div>
-        <p class="msg"></p>
-        <div class="row"><button class="btn" data-a="check">Check</button><button class="btn ghost" data-a="hint">Hint</button><button class="btn" data-a="next" hidden>${T.i === S.length - 1 ? 'See my score' : 'Next stanza'}</button></div>`;
+        <p class="msg">${done1 ? SBT.practiceNote(done1.right === done1.n && !done1.hinted) : ''}</p>
+        <div class="row"><button class="btn" data-a="check">Check</button><button class="btn ghost" data-a="hint">Hint</button><button class="btn" data-a="next"${done1 ? '' : ' hidden'}>${T.i === S.length - 1 ? 'See my score' : 'Next stanza'}</button><span class="grow"></span>${SBT.roundBtns(T.i > 0)}</div>`;
       const inputs = $$('.tin input', P), msg = $('.msg', P), check = $('[data-a="check"]', P), nextB = $('[data-a="next"]', P), hintB = $('[data-a="hint"]', P);
+      const dr = T.drafts[T.i] || []; inputs.forEach((inp, n) => { if (!done1 && dr[n]) inp.value = dr[n]; inp.oninput = () => { if (done1) return; (T.drafts[T.i] = T.drafts[T.i] || [])[n] = inp.value; clearTimeout(T.tm); T.tm = setTimeout(save, 400); }; });
       inputs.forEach((inp, n) => inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); if (T.checked) return; n < inputs.length - 1 ? inputs[n + 1].focus() : check.click(); } });
       hintB.onclick = () => {
-        T.hinted = true; hintB.disabled = true;
+        T.hinted = true; hintB.disabled = true; if (!done1) { T.hint[T.i] = true; save(); }
         $$('.tin .li', P).forEach(li => { const h = $('.hl2', li); h.hidden = false; h.textContent = lettersOf(st[+$('input', li).dataset.k]); });
-        setMsg(msg, 'A hint was used, so this stanza does not count toward your score.');
+        if (!done1) setMsg(msg, 'A hint was used, so this stanza does not count toward your score.');
       };
+      if (T.hinted) hintB.click();
       check.onclick = () => {
         if (T.checked) return; T.checked = true;
         let right = 0;
@@ -209,23 +222,29 @@
           if (ok) right++;
         });
         const all = right === inputs.length;
-        if (!T.hinted) { T.right += right; }
-        T.total += inputs.length;
-        if (all && !T.hinted) { ctx.credit(); ctx.sfx.win(); } else { ctx.slip(); ctx.sfx.bad(); }
+        if (done1) { all ? ctx.sfx.good() : ctx.sfx.bad(); }                         // a practice try (after Back): no credit, no score
+        else {
+          if (!T.hinted) { T.right += right; }
+          T.total += inputs.length; T.rec[T.i] = { right, n: inputs.length, hinted: T.hinted }; save();
+          if (all && !T.hinted) { ctx.credit(); ctx.sfx.win(); } else { ctx.slip(); ctx.sfx.bad(); }
+        }
         setMsg(msg, all ? (T.hinted ? 'Every line is right, but the hint means it does not count.' : 'Every line is right!') : right + ' of ' + inputs.length + ' lines are right. The right lines are in red.', all ? 'good' : 'bad');
         check.hidden = true; hintB.hidden = true; nextB.hidden = false; nextB.focus();
       };
-      nextB.onclick = () => { T.i++; show(); };
+      nextB.onclick = () => { clearTimeout(T.tm); T.i++; save(); show(); };
+      $('[data-a="back"]', P).onclick = () => { clearTimeout(T.tm); if (T.i > 0) { T.i--; save(); show(); } };
+      $('[data-a="restart"]', P).onclick = () => SBT.askRestart(() => { clearTimeout(T.tm); start(); }, T.rec.some(Boolean) || T.drafts.some(d => d && d.some(Boolean)));
       inputs[0].focus();
     }
     function finish() {
-      ctx.result(T.right, T.total);
+      K.clear(); ctx.result(T.right, T.total);
       P.innerHTML = `<h2>${recite ? 'Say the whole poem' : 'Type it from memory'}</h2>${starsHTML(T.right, T.total)}
         <p class="lead"><b>${T.right} of ${T.total}</b> lines right on the first try, without a hint.</p>
         <div class="row"><button class="btn" data-a="again">Play again</button></div>`;
       $('[data-a="again"]', P).onclick = start;
     }
-    start();
+    const sv = K.load();
+    if (sv && sv.T && Array.isArray(sv.T.order) && sv.T.order.length === 5 && sv.T.i >= 0 && sv.T.i < 5) { T = Object.assign({ hinted: false, checked: false, rec: [], drafts: [], hint: [] }, sv.T); show(); } else start();
   }
   const type = { init(ctx) { typer(ctx, 'type'); } };
   const recite = { init(ctx) { typer(ctx, 'recite'); } };

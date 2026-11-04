@@ -95,12 +95,18 @@
     const P = ctx.panel, modes = opt.modes || [{ id: 'all', label: 'All' }];
     const SEC = opt.sections, noun = (SEC && SEC.noun) || 'section';
     const FC = { mode: modes[0].id, sec: SEC ? (SEC.start || SEC.list[0].id) : null, queue: [], cur: null, missed: new Set(), total: 0, flipped: false, busy: false, hist: [] };
+    const K = keep(ctx), SIG = sigOf('cards', opt, modes.map(m => m.id).join(',') + '|' + (SEC ? SEC.list.map(e => e.id).join(',') : ''));
+    const keyOf = c => hashStr(c.front + '|' + c.back);
+    /* one deck in progress for each card type and section, kept as the hashes of the cards left; switching back picks it up again */
+    let decks = {};
+    const dkey = () => FC.mode + '|' + (FC.sec || '');
+    const saveDeck = () => { if (FC.queue.length) decks[dkey()] = { q: FC.queue.map(keyOf), m: [...FC.missed].map(keyOf), total: FC.total }; else delete decks[dkey()]; K.save({ v: RV, sig: SIG, mode: FC.mode, sec: FC.sec, decks }); };
     const secMenu = () => { if (!SEC) return ''; const groups = []; SEC.list.forEach(e => { const g = e.group || ''; let o = groups.find(x => x.g === g); if (!o) groups.push(o = { g, items: [] }); o.items.push(e); });
       const optHtml = e => `<option value="${esc(e.id)}"${e.id === FC.sec ? ' selected' : ''}>${esc(e.label)}</option>`;
       return `<div class="secnav"><button class="btn ghost" data-a="prevsec" aria-label="Previous ${noun}">&lsaquo;</button><select class="secsel" aria-label="Jump to a ${noun}">${groups.map(o => o.g ? `<optgroup label="${esc(o.g)}">${o.items.map(optHtml).join('')}</optgroup>` : o.items.map(optHtml).join('')).join('')}</select><button class="btn ghost" data-a="nextsec" aria-label="Next ${noun}">&rsaquo;</button></div>`; };
     P.innerHTML = `<h2>${esc(opt.title || 'Flashcards')}</h2><p class="lead">${esc(opt.lead || 'Tap the card to flip it. Be honest: did you know it? Cards you miss come back again.')}<span class="swipe-tip"> Swipe right if you knew it, left if you are still learning.</span></p>
       <div class="deckbar">${secMenu()}${modes.length > 1 ? `<div class="seg" role="group" aria-label="Card type">${modes.map((m, i) => `<button data-m="${esc(m.id)}" aria-pressed="${i === 0}">${esc(m.label)}</button>`).join('')}</div>` : ''}
-        <div class="bar" aria-hidden="true"><i></i></div><span class="hint count"></span><button class="btn ghost undo" data-a="undo" disabled>Undo</button></div>
+        <div class="bar" aria-hidden="true"><i></i></div><span class="hint count"></span><button class="btn ghost undo" data-a="undo" disabled>Undo</button><button class="btn ghost undo" data-a="restartdeck">Start over</button></div>
       <div class="cardzone"><div class="cardstage"><div class="fcard" role="button" tabindex="0" aria-describedby="sbFlipTip"><span class="sr-only" id="sbFlipTip">Press to flip the card.</span><div class="face front" aria-live="polite"></div><div class="face back" aria-hidden="true" aria-live="polite"></div></div></div></div>
       <div class="row center cardbtns"><button class="btn warn" data-a="again">Still learning</button><button class="btn ghost" data-a="skip">Skip</button><button class="btn good" data-a="knew">I knew it</button></div>`;
     const card = $('.fcard', P), F = $('.front', P), B = $('.back', P);
@@ -109,24 +115,32 @@
     const secIdx = () => SEC.list.findIndex(e => e.id === FC.sec);
     const secStep = d => { for (let i = secIdx() + d; i >= 0 && i < SEC.list.length; i += d) if (!SEC.list[i].noStep) return i; return -1; };   // entries with noStep (like "All") are in the menu but skipped by the arrows
     function syncSec() { if (!SEC) return; $('.secsel', P).value = FC.sec; $('[data-a="prevsec"]', P).disabled = secStep(-1) < 0; $('[data-a="nextsec"]', P).disabled = secStep(1) < 0; }
-    function build() { FC.missed = new Set(); FC.busy = false; FC.hist = []; FC.queue = opt.build(FC.mode, FC.sec); FC.total = FC.queue.length; syncSec(); if (SEC && opt.onSection) opt.onSection(FC.sec); next(); }
+    const deckBusy = () => !!FC.cur && (FC.total - FC.queue.length > 0 || FC.missed.size > 0 || FC.hist.length > 0);
+    const askDeck = (go, text, cancel) => deckBusy() ? SB.confirm({ title: 'Start over?', text: text || 'This starts the deck again.', ok: 'Start over' }, go, cancel) : go();
+    function build(fresh) {
+      FC.busy = false; FC.hist = [];
+      const d = !fresh && decks[dkey()], deck = opt.build(FC.mode, FC.sec), byKey = d ? new Map(deck.map(c => [keyOf(c), c])) : null;
+      if (d && Array.isArray(d.q) && d.q.length && d.q.every(k => byKey.has(k))) { FC.queue = d.q.map(k => byKey.get(k)); FC.missed = new Set((d.m || []).map(k => byKey.get(k)).filter(Boolean)); FC.total = Math.max(d.total || 0, FC.queue.length); }
+      else { FC.missed = new Set(); FC.queue = deck; FC.total = FC.queue.length; }   // a deck made fresh each time (random cards) just starts again
+      syncSec(); if (SEC && opt.onSection) opt.onSection(FC.sec); next();
+    }
     function next() {
       SB.stopSpeech(); flip(false);
       if (!FC.queue.length) {
         const nm = FC.missed.size;
         F.innerHTML = `<div class="tag">Deck complete</div><div class="big">Great work!</div><div class="small">You went through all ${FC.total} cards.${SEC ? ' Use the arrows to open the next ' + noun + ', or go again.' : ''}</div>
           <div class="row center deckagain"><button type="button" class="btn ghost small" data-a="again-all">Go again</button>${nm ? `<button type="button" class="btn small" data-a="again-missed">Just the ${nm === 1 ? 'one' : nm} I missed</button>` : ''}</div>`;
-        B.innerHTML = ''; FC.cur = null; ctx.sfx.win(); bar();
+        B.innerHTML = ''; FC.cur = null; ctx.sfx.win(); bar(); saveDeck();
         const hadFocus = document.activeElement === card;
         card.removeAttribute('role'); card.tabIndex = -1; card.removeAttribute('aria-describedby');   // the finished card holds real buttons, so it is no longer one big button itself
         if (hadFocus) $('[data-a="again-all"]', F).focus();
-        $('[data-a="again-all"]', F).onclick = e => { e.stopPropagation(); build(); };
+        $('[data-a="again-all"]', F).onclick = e => { e.stopPropagation(); build(true); };
         const am = $('[data-a="again-missed"]', F); if (am) am.onclick = e => { e.stopPropagation(); const cards = [...FC.missed]; FC.missed = new Set(); FC.hist = []; FC.queue = shuffle(cards); FC.total = FC.queue.length; next(); };
         return;
       }
       const c = FC.cur = FC.queue[0];
       card.setAttribute('role', 'button'); card.tabIndex = 0; card.setAttribute('aria-describedby', 'sbFlipTip');
-      F.innerHTML = c.front; B.innerHTML = c.back; if (c.say) ctx.say(c.say); bar();
+      F.innerHTML = c.front; B.innerHTML = c.back; if (c.say) ctx.say(c.say); bar(); saveDeck();
     }
     const afterUnflip = fn => { if (FC.busy) return; if (!FC.flipped) return fn(); FC.busy = true; flip(false); setTimeout(() => { FC.busy = false; fn(); }, FLIP_MS); };
     const doFlip = () => { if (!FC.cur || FC.busy) return; flip(!FC.flipped); SB.stopSpeech(); };
@@ -135,26 +149,35 @@
     const zone = $('.cardzone', P);
     const snap = () => { FC.hist.push({ q: FC.queue.slice(), m: new Set(FC.missed) }); if (FC.hist.length > 300) FC.hist.shift(); };
     const undo = () => { if (FC.busy || !FC.hist.length) return; afterUnflip(() => { const h = FC.hist.pop(); FC.queue = h.q; FC.missed = h.m; next(); SB.cardToast(zone, 'Undone'); }); };
-    $('[data-a="knew"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { snap(); FC.queue.shift(); ctx.sfx.good(); next(); SB.cardToast(zone, 'Knew it', undo); }); };
-    $('[data-a="again"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { snap(); const c = FC.queue.shift(); FC.missed.add(c); FC.queue.splice(Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)), 0, c); ctx.sfx.bad(); next(); SB.cardToast(zone, 'Still learning', undo); }); };
-    $('[data-a="skip"]', P).onclick = () => { if (!FC.cur) return build(); afterUnflip(() => { snap(); FC.queue.push(FC.queue.shift()); next(); SB.cardToast(zone, 'Skipped', undo); }); };
+    $('[data-a="knew"]', P).onclick = () => { if (!FC.cur) return build(true); afterUnflip(() => { snap(); FC.queue.shift(); ctx.sfx.good(); next(); SB.cardToast(zone, 'Knew it', undo); }); };
+    $('[data-a="again"]', P).onclick = () => { if (!FC.cur) return build(true); afterUnflip(() => { snap(); const c = FC.queue.shift(); FC.missed.add(c); FC.queue.splice(Math.min(FC.queue.length, 3 + Math.floor(Math.random() * 3)), 0, c); ctx.sfx.bad(); next(); SB.cardToast(zone, 'Still learning', undo); }); };
+    $('[data-a="skip"]', P).onclick = () => { if (!FC.cur) return build(true); afterUnflip(() => { snap(); FC.queue.push(FC.queue.shift()); next(); SB.cardToast(zone, 'Skipped', undo); }); };
     $('[data-a="undo"]', P).onclick = undo;
     const onKey = e => { if (!card.isConnected) return document.removeEventListener('keydown', onKey); if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !/^(INPUT|SELECT|TEXTAREA)$/.test((e.target || {}).tagName || '') && P.offsetParent) { e.preventDefault(); undo(); } };
     document.addEventListener('keydown', onKey);
     if (SEC) {
-      const go = i => { if (FC.busy || i < 0) return; FC.sec = SEC.list[i].id; build(); };
+      const go = i => { if (FC.busy || i < 0) return; FC.sec = SEC.list[i].id; build(); };   // each section keeps its own deck in progress
       $('.secsel', P).onchange = e => { FC.sec = e.target.value; build(); };
       $('[data-a="prevsec"]', P).onclick = () => go(secStep(-1));
       $('[data-a="nextsec"]', P).onclick = () => go(secStep(1));
     }
     SB.swipeCard($('.cardstage', P), card, { onRight: () => $('[data-a="knew"]', P).click(), onLeft: () => $('[data-a="again"]', P).click() });
-    $$('.seg button', P).forEach(b => b.onclick = () => { FC.mode = b.dataset.m; $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); build(); });
+    $$('.seg button', P).forEach(b => b.onclick = () => { if (FC.mode === b.dataset.m) return; FC.mode = b.dataset.m; $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); build(); });   // each card type keeps its own deck
+    $('[data-a="restartdeck"]', P).onclick = () => { if (FC.busy) return; askDeck(() => afterUnflip(() => build(true)), 'This puts every card back in the deck.'); };
+    /* pick up where it was left: the same card type and section, and the deck in progress for each */
+    const sv = K.load();
+    if (sv && sv.v === RV && sv.sig === SIG && sv.decks && typeof sv.decks === 'object') {
+      decks = sv.decks;
+      if (modes.some(m => m.id === sv.mode)) { FC.mode = sv.mode; $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x.dataset.m === FC.mode)); }
+      if (SEC && SEC.list.some(e => e.id === sv.sec)) FC.sec = sv.sec;
+    }
     build();
   }
 
   /* ---------------- Sort it ---------------- */
   function sort(ctx, opt) {
-    const P = ctx.panel, sets = opt.sets, S = { set: sets[0], sel: null, miss: 0, placed: 0, total: 0 };
+    const P = ctx.panel, sets = opt.sets, K = keep(ctx), SIG = sigOf('sort', opt, sets.map(s => s.id).join(','));
+    const S = { set: sets[0], sel: null, items: [], miss: 0, credited: [], hist: [], done: false };
     P.classList.add('sbt-sort');
     const right = opt.right || ((it, b) => 'Yes! That goes with ' + b.name + '.');
     const wrong = opt.wrong || (() => 'Not quite. Try another group.');
@@ -163,11 +186,14 @@
         ${sets.length > 1 ? `<div class="seg" role="group" aria-label="What to sort">${sets.map((s, i) => `<button data-s="${esc(s.id)}" aria-pressed="${i === 0}">${esc(s.label)}</button>`).join('')}</div>` : ''}</div>
       <div class="tray sortTray"></div><p class="msg">Pick one to begin.</p>
       <div class="buckets"></div>
-      <div class="row" style="margin-top:14px"><button class="btn warn" data-a="restart">Start over</button></div>`;
-    const msg = $('.msg', P), tray = $('.sortTray', P), bucketsEl = $('.buckets', P);
+      <div class="row" style="margin-top:14px"><button class="btn ghost" data-a="undo" disabled>Undo</button><button class="btn warn" data-a="restart">Start over</button></div>`;
+    const msg = $('.msg', P), tray = $('.sortTray', P), bucketsEl = $('.buckets', P), undoB = $('[data-a="undo"]', P);
     addPad(ctx, () => plainText(opt.title || 'Sort it') + '. ' + plainText(opt.lead || 'Drag each one into its group.'));
     const bucketOf = id => S.set.buckets.find(b => b.id === id);
-    const score = () => { $('.placed', P).textContent = S.placed + '/' + S.total; $('.miss', P).textContent = S.miss; };
+    const placed = () => S.items.filter(it => it.at).length;
+    const save = () => { if (!S.done) K.save({ v: RV, sig: SIG, set: S.set.id, items: S.items, miss: S.miss, credited: S.credited, hist: S.hist }); };
+    const score = () => { $('.placed', P).textContent = placed() + '/' + S.items.length; $('.miss', P).textContent = S.miss; undoB.disabled = !S.hist.length || S.done; };
+    const syncSeg = () => $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x.dataset.s === S.set.id));
     function select(chip) {
       S.sel = S.sel === chip ? null : chip;
       $$('.chip', tray).forEach(c => { c.classList.toggle('sel', c === S.sel); c.setAttribute('aria-pressed', String(c === S.sel)); });
@@ -176,19 +202,18 @@
     }
     function tryPlace(chip, bid) {
       if (!chip) return;
-      const item = chip._item, b = bucketOf(bid);
+      const k = +chip.dataset.k, item = S.items[k], b = bucketOf(bid);
       if (item.b === bid) {
-        const got = $(`.bucket[data-b="${bid}"] .got`, P), s = document.createElement('span');
-        if (b.style) s.style.cssText = b.style;
-        s.textContent = item.text; got.appendChild(s);
-        chip.remove(); S.sel = null; $$('.chip', tray).forEach(c => { c.classList.remove('sel'); c.setAttribute('aria-pressed', 'false'); }); $$('.bucket', P).forEach(x => x.classList.remove('ready'));
-        S.placed++; ctx.credit(); ctx.sfx.good(); setMsg(msg, right(item, b), 'good'); score();
-        if (S.placed === S.total) {
-          ctx.result(Math.max(0, S.total - S.miss), S.total); ctx.sfx.win();
-          setMsg(msg, S.miss === 0 ? 'Perfect! All ' + S.total + ' sorted with no misses.' : 'Done! All ' + S.total + ' sorted with ' + S.miss + ' miss' + (S.miss === 1 ? '' : 'es') + '.', 'good');
-        }
+        item.at = bid; S.hist.push(k); S.sel = null;
+        if (!S.credited.includes(k)) { S.credited.push(k); ctx.credit(); }       // putting a sorted one back and sorting it again gives no extra credit
+        ctx.sfx.good(); setMsg(msg, right(item, b), 'good');
+        draw();
+        if (placed() === S.items.length && !S.done) {
+          S.done = true; K.clear(); ctx.result(Math.max(0, S.items.length - S.miss), S.items.length); ctx.sfx.win();
+          score(); setMsg(msg, S.miss === 0 ? 'Perfect! All ' + S.items.length + ' sorted with no misses.' : 'Done! All ' + S.items.length + ' sorted with ' + S.miss + ' miss' + (S.miss === 1 ? '' : 'es') + '.', 'good');
+        } else save();
       } else {
-        S.miss++; ctx.slip(); ctx.sfx.bad(); score();
+        if (!S.credited.includes(k)) { S.miss++; ctx.slip(); } ctx.sfx.bad(); score(); save();   // a retry after Undo costs nothing
         chip.classList.remove('shake'); void chip.offsetWidth; chip.classList.add('shake');
         setMsg(msg, wrong(item, b), 'bad');
       }
@@ -210,39 +235,78 @@
       };
       chip.addEventListener('pointermove', mv); chip.addEventListener('pointerup', up); chip.addEventListener('pointercancel', up);
     }
-    function round() {
-      const set = S.set; S.sel = null; S.miss = 0; S.placed = 0; tray.innerHTML = '';
+    function buckets() {
+      const set = S.set;
       bucketsEl.style.gridTemplateColumns = `repeat(${set.buckets.length},minmax(0,1fr))`;
       bucketsEl.innerHTML = set.buckets.map(b => `<div class="bucket" data-b="${esc(b.id)}" role="button" tabindex="0" aria-label="${esc(b.name)} group">${b.html || `<span class="bname">${esc(b.name)}</span>`}<div class="got"></div></div>`).join('');
       $$('.bucket', P).forEach(bk => {
         bk.addEventListener('click', () => { if (S.sel) tryPlace(S.sel, bk.dataset.b); });
         bk.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && S.sel) { e.preventDefault(); tryPlace(S.sel, bk.dataset.b); } });
       });
-      const pool = set.make ? set.make() : set.items;   // make(): a fresh set of items every time it starts
-      const items = shuffle(set.buckets.flatMap(b => { const mine = shuffle(pool.filter(it => it.b === b.id)); return set.perBucket ? mine.slice(0, set.perBucket) : mine; }));
-      S.total = items.length;
-      items.forEach(it => {
-        const c = document.createElement('button'); c.className = 'chip'; c.type = 'button'; c.textContent = it.text; c._item = it; c.dataset.b = it.b;
+    }
+    /* draw the tray and the groups from S.items (each item: text, b, at = the group it was sorted into) */
+    function draw() {
+      $$('.bucket .got', P).forEach(g => g.innerHTML = '');
+      S.hist.forEach(k => { const it = S.items[k]; if (!it.at) return; const got = $(`.bucket[data-b="${CSS.escape(it.at)}"] .got`, P); if (!got || got.querySelector(`[data-k="${k}"]`)) return; const b = bucketOf(it.at), s = document.createElement('span'); if (b && b.style) s.style.cssText = b.style; s.textContent = it.text; s.dataset.k = k; got.appendChild(s); });
+      S.items.forEach((it, k) => { if (!it.at || $(`.bucket .got [data-k="${k}"]`, P)) return; const got = $(`.bucket[data-b="${CSS.escape(it.at)}"] .got`, P); if (!got) return; const s = document.createElement('span'); s.textContent = it.text; s.dataset.k = k; got.appendChild(s); });
+      tray.innerHTML = '';
+      S.items.forEach((it, k) => {
+        if (it.at) return;
+        const c = document.createElement('button'); c.className = 'chip'; c.type = 'button'; c.textContent = it.text; c.dataset.b = it.b; c.dataset.k = k;
         c.addEventListener('pointerdown', e => pointerDown(e, c));
         c.setAttribute('aria-pressed', 'false');
         c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(c); } });
         c.addEventListener('click', e => { if (e.detail === 0 && e.pointerType !== 'mouse') select(c); });   // screen readers and switch access send only a click (detail 0); pointer taps are handled above
         tray.appendChild(c);
       });
-      setMsg(msg, 'Pick one to begin.'); score();
+      $$('.bucket', P).forEach(x => x.classList.remove('ready'));
+      score();
     }
-    $$('.seg button', P).forEach(b => b.onclick = () => { S.set = sets.find(s => s.id === b.dataset.s); $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); round(); });
-    $('[data-a="restart"]', P).onclick = round;
-    round();
+    function round() {
+      const set = S.set; S.sel = null; S.miss = 0; S.credited = []; S.hist = []; S.done = false;
+      const pool = set.make ? set.make() : set.items;   // make(): a fresh set of items every time it starts
+      S.items = shuffle(set.buckets.flatMap(b => { const mine = shuffle(pool.filter(it => it.b === b.id)); return set.perBucket ? mine.slice(0, set.perBucket) : mine; })).map(it => ({ text: it.text, b: it.b, at: null }));
+      buckets(); draw(); setMsg(msg, 'Pick one to begin.'); save();
+    }
+    undoB.onclick = () => {                                       // put the last sorted one back in the tray (its credit stays; sorting it again gives none)
+      if (!S.hist.length || S.done) return; const k = S.hist.pop(); S.items[k].at = null; S.sel = null;
+      draw(); save(); setMsg(msg, '"' + S.items[k].text + '" is back in the pile. Sort it again.');
+    };
+    const any = () => !S.done && (S.hist.length > 0 || S.miss > 0);
+    $$('.seg button', P).forEach(b => b.onclick = () => { const ns = sets.find(s => s.id === b.dataset.s); if (ns === S.set) return; askRestart(() => { S.set = ns; syncSeg(); round(); }, any()); });
+    $('[data-a="restart"]', P).onclick = () => askRestart(round, any());
+    const s = K.load(), ss = s && s.v === RV && s.sig === SIG && sets.find(x => x.id === s.set);
+    if (ss && Array.isArray(s.items) && s.items.length && s.items.some(it => !it.at)) {
+      S.set = ss; S.items = s.items; S.miss = s.miss || 0; S.credited = s.credited || []; S.hist = s.hist || []; syncSeg(); buckets(); draw(); setMsg(msg, 'Pick one to keep going.');
+    } else round();
   }
+
+  /* ---------------- Saved rounds, Back and Start over (owner's request, November 2026) ----------------
+     Every question tool keeps its round in ctx.round (sb-module.js), saved after each answer, so switching tools, leaving the module, or the
+     app reloading never loses an answer. A finished round is cleared, so the next visit starts a new one.
+     Back goes to the previous question as a practice try: the first answer's point (or miss) stays, and the retry gives no credit.
+     Start over (asks first once something is answered) clears the round and starts a new one. */
+  const RV = 1;
+  const keep = ctx => ctx.round && ctx.round.save ? ctx.round : { load() { return null; }, save() {}, clear() {} };
+  const sigOf = (kind, opt, extra) => kind + '|' + (opt.title || '') + '|' + (extra == null ? '' : extra) + (opt.key ? '|' + opt.key : '');   // opt.key: anything else that changes the questions (a module switch)
+  const roundBtns = canBack => `<span class="rbtns"><button type="button" class="btn ghost small" data-a="back"${canBack ? '' : ' disabled'}>Back</button><button type="button" class="btn ghost small" data-a="restart">Start over</button></span>`;
+  function askRestart(go, any) {
+    if (!any) return go();
+    SB.confirm({ title: 'Start over?', text: 'This clears your answers in this round and starts a new one. Rounds you already finished keep their scores.', ok: 'Start over' }, go);
+  }
+  const practiceNote = ok => `<b>Practice try.</b> Your first answer (${ok ? 'right' : 'not right'}) is the one that counts. Try it again, or go on.`;
+  const hashStr = s => { let h = 5381; s = String(s); for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + s.length.toString(36); };
 
   /* ---------------- Multiple-choice quiz ---------------- */
   function quiz(ctx, opt) {
-    const P = ctx.panel, n = opt.rounds || 10, Q = { qs: [], i: 0, score: 0, answered: false, missed: [], mode: 'random' };
+    const P = ctx.panel, n = opt.rounds || 10, K = keep(ctx), SIG = sigOf('quiz', opt, n);
+    const Q = { qs: [], i: 0, rec: [], ord: [], mode: 'random', done: false };
+    const score = () => Q.rec.filter(r => r && r.ok).length;
+    const save = () => { if (!Q.done) K.save({ v: RV, sig: SIG, mode: Q.mode, qs: Q.qs, i: Q.i, rec: Q.rec, ord: Q.ord }); };
     /* opt.full() returns every question; when it is given, the quiz has a Random sample / Full switch (Full counts for mastery) */
     function start() {
       Q.qs = Q.mode === 'full' && opt.full ? shuffle(opt.full()) : (opt.keepOrder ? opt.build() : shuffle(opt.build())).slice(0, n);
-      Q.i = 0; Q.score = 0; Q.missed = []; show();
+      Q.i = 0; Q.rec = []; Q.ord = []; Q.done = false; save(); show();
     }
     const head = t => headWith(t, modeBar());
     function modeBar() {
@@ -251,42 +315,55 @@
       return `<div class="seg qmodes" role="group" aria-label="Quiz version"><button type="button" data-m="random" aria-pressed="${Q.mode === 'random'}">Random ${n}</button><button type="button" data-m="full" aria-pressed="${Q.mode === 'full'}">${esc(opt.fullLabel || 'Full')} (${nf})</button></div>`;
     }
     function wireModes() {
-      $$('.qmodes button', P).forEach(b => b.onclick = () => { if (Q.mode === b.dataset.m) return; Q.mode = b.dataset.m; start(); });
+      $$('.qmodes button', P).forEach(b => b.onclick = () => { if (Q.mode === b.dataset.m) return; const m = b.dataset.m; askRestart(() => { Q.mode = m; start(); }, !Q.done && Q.rec.some(Boolean)); });
     }
     function show() {
       if (Q.i >= Q.qs.length) {
-        ctx.result(Q.score, Q.qs.length, Q.mode); ctx.sfx.win();
-        P.innerHTML = `${head(opt.title || 'Quiz')}<div class="result">${starsHTML(Q.score, Q.qs.length)}<p class="prompt">${Q.score} out of ${Q.qs.length}</p><p class="lead">${Q.score / Q.qs.length >= 0.9 ? 'Amazing! You really know this.' : Q.score / Q.qs.length >= 0.7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'}</p>${reviewHTML(ctx, Q.missed)}<button class="btn" data-a="again">Play again</button></div>`;
+        const sc = score();
+        if (!Q.done) { Q.done = true; K.clear(); ctx.result(sc, Q.qs.length, Q.mode); ctx.sfx.win(); }
+        const missed = Q.rec.map((r, k) => r && !r.ok ? Q.qs[k] : null).filter(Boolean).map(q => ({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q), audio: q.audio || '' }));
+        P.innerHTML = `${head(opt.title || 'Quiz')}<div class="result">${starsHTML(sc, Q.qs.length)}<p class="prompt">${sc} out of ${Q.qs.length}</p><p class="lead">${sc / Q.qs.length >= 0.9 ? 'Amazing! You really know this.' : sc / Q.qs.length >= 0.7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the flashcards, then come back.'}</p>${reviewHTML(ctx, missed)}<button class="btn" data-a="again">Play again</button></div>`;
         wireModes(); $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
-      const q = Q.qs[Q.i], opts = shuffle([q.a, ...shuffle(q.wrong).slice(0, 3)]); Q.answered = false;
+      const q = Q.qs[Q.i], first = Q.rec[Q.i];
+      if (!Q.ord[Q.i]) { Q.ord[Q.i] = shuffle([q.a, ...shuffle(q.wrong).slice(0, 3)]); save(); }
+      const opts = Q.ord[Q.i]; let answered = false;
       P.innerHTML = `${head(opt.title || 'Quiz')}<p class="lead">${esc(opt.lead || 'Pick the best answer.')}</p>
-        <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span class="hint">Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${Q.score}</span></div>
+        <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span class="hint">Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${score()}</span>${roundBtns(Q.i > 0)}</div>
         <div class="qwrap"><div class="row qrow"><p class="qtext">${q.qh || esc(q.q)}</p>${ctx.sayButton(q.say || q.q, q.audio ? 'Hear the sound' : 'Hear the question', q.audio || '')}</div>${q.html || ''}
         <div class="opts">${opts.map((o, k) => `<button class="opt" data-v="${esc(o)}"><span class="optkey" aria-hidden="true">${k + 1}</span>${esc(o)}</button>`).join('')}</div>
-        <p class="explain" aria-live="polite"></p><div class="row center">${opt.skip ? '<button class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button class="btn" data-a="next" hidden>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
+        <p class="explain" aria-live="polite">${first ? practiceNote(first.ok) : ''}</p><div class="row center">${opt.skip && !first ? '<button class="btn ghost" data-a="skip">Skip, review later</button>' : ''}<button class="btn" data-a="next"${first ? '' : ' hidden'}>${Q.i === Q.qs.length - 1 ? 'See results' : 'Next question'}</button></div></div>`;
       wireModes();
       addPad(ctx, () => q.qh ? plainText(q.qh) : q.q);
       { const f = $('.opt', P); if (f && P.offsetParent && P.contains(document.activeElement) === false && (document.activeElement === document.body || !document.activeElement || P.dataset.sbFocus)) f.focus({ preventScroll: true }); P.dataset.sbFocus = '1'; }   // keyboard users stay in the quiz
       $$('.opt', P).forEach(b => b.onclick = () => {
-        if (Q.answered) return; Q.answered = true;
+        if (answered) return; answered = true;
         const skb = $('[data-a="skip"]', P); if (skb) skb.hidden = true;
         const ok = b.dataset.v === q.a;
         $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
-        if (ok) { Q.score++; ctx.credit(); ctx.sfx.good(); } else { b.classList.add('wrong'); ctx.slip(); ctx.sfx.bad(); Q.missed.push({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q), audio: q.audio || '' }); if (ctx.miss) ctx.miss(plainText(String(q.q)) + ' (answer: ' + plainText(String(q.a)) + ')'); }
-        if (opt.onAnswer) opt.onAnswer(q, ok);
-        $('.explain', P).innerHTML = (ok ? '<b style="color:var(--good-ink)">Correct!</b> ' : '<b style="color:var(--bad-ink)">Not quite.</b> ') + esc(q.why || ('The answer is: ' + q.a + '.'));
+        if (!ok) b.classList.add('wrong');
+        if (first) { ok ? ctx.sfx.good() : ctx.sfx.bad(); }                       // a practice try: no point, no credit, no streak change
+        else {
+          Q.rec[Q.i] = { ok, v: b.dataset.v }; save();
+          if (ok) { ctx.credit(); ctx.sfx.good(); } else { ctx.slip(); ctx.sfx.bad(); if (ctx.miss) ctx.miss(plainText(String(q.q)) + ' (answer: ' + plainText(String(q.a)) + ')'); }
+          if (opt.onAnswer) opt.onAnswer(q, ok);
+          $('.roundbar .hint', P).innerHTML = `Question ${Q.i + 1} of ${Q.qs.length} &middot; Score ${score()}`;
+        }
+        $('.explain', P).innerHTML = (ok ? '<b style="color:var(--good-ink)">Correct!</b> ' : '<b style="color:var(--bad-ink)">Not quite.</b> ') + esc(q.why || ('The answer is: ' + q.a + '.')) + (first ? ' <span class="hint">(Practice: your first answer counts.)</span>' : '');
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
       });
       const sk = $('[data-a="skip"]', P);
       if (sk) sk.onclick = () => {                              // not sure? show the answer, mark it for review, and move on (no point, no streak change)
-        if (Q.answered) return; Q.answered = true; sk.hidden = true;
+        if (answered) return; answered = true; sk.hidden = true;
         $$('.opt', P).forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add('right'); });
-        if (opt.onAnswer) opt.onAnswer(q, false); Q.missed.push({ q: q.q, a: q.a, say: q.audio ? '' : (q.say || q.q), audio: q.audio || '' });
+        Q.rec[Q.i] = { ok: false, skip: true }; save();
+        if (opt.onAnswer) opt.onAnswer(q, false);
         $('.explain', P).innerHTML = '<b>Marked for review.</b> ' + esc(q.why || ('The answer is: ' + q.a + '.'));
         const nx = $('[data-a="next"]', P); nx.hidden = false; nx.focus();
       };
-      $('[data-a="next"]', P).onclick = () => { Q.i++; show(); };
+      $('[data-a="next"]', P).onclick = () => { Q.i++; save(); show(); };
+      $('[data-a="back"]', P).onclick = () => { if (Q.i > 0) { Q.i--; save(); show(); } };
+      $('[data-a="restart"]', P).onclick = () => askRestart(start, Q.rec.some(Boolean));
       if (!q.audio) ctx.say(q.say || q.q);
     }
     /* number keys 1 to 4 pick a choice (when the quiz is on screen and you are not typing somewhere) */
@@ -296,7 +373,10 @@
       const k = +e.key; if (!(k >= 1 && k <= 9)) return; const b = $$('.opt', P)[k - 1]; if (b && !b.disabled) { e.preventDefault(); b.click(); }
     };
     document.addEventListener('keydown', onKey);
-    start();
+    const s = K.load();
+    if (s && s.v === RV && s.sig === SIG && Array.isArray(s.qs) && s.qs.length && s.i >= 0 && s.i < s.qs.length && (s.mode !== 'full' || opt.full)) {
+      Object.assign(Q, { qs: s.qs, i: s.i, rec: Array.isArray(s.rec) ? s.rec : [], ord: Array.isArray(s.ord) ? s.ord : [], mode: s.mode || 'random', done: false }); show();
+    } else start();
   }
 
   /* a tool heading; when the tool has a Full version the Random / Full switch sits on the same row, so the page stays short */
@@ -392,55 +472,69 @@
     return `<details class="review"><summary>See the ${missed.length === 1 ? 'one' : missed.length} to practice</summary><ul>${missed.map(m => `<li>${m.pic ? `<img src="${m.pic}" alt="Your notepad work" class="revpic">` : ''}<span class="revq">${esc(m.q)}</span><span class="reva">Answer: <b>${m.fr ? stackText(m.a) : esc(m.a)}</b></span>${m.audio ? ctx.sayButton(String(m.a), 'Hear the sound again', m.audio) : m.say ? ctx.sayButton(m.say + '. The answer is ' + m.a + '.', 'Hear it') : ''}</li>`).join('')}</ul></details>`;
   }
   function answer(ctx, opt) {
-    const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', R = { list: [], i: 0, score: 0, tries: 0, hinted: false, missed: [], mode: 'random' };
+    const P = ctx.panel, n = opt.rounds || 10, kind = opt.kind || 'text', K = keep(ctx), SIG = sigOf('answer', opt, n + '|' + kind);
+    const R = { list: [], i: 0, rec: [], tb: {}, tries: 0, hinted: false, mode: 'random', done: false };   // tb: wrong tries and hints for each question, by number
+    const pics = {};                                             // notepad pictures for the review list (kept for this visit only)
     /* opt.full() returns every question (for math, one of each type): adds a Random / Full switch; Full counts for mastery */
     const modeBar = () => opt.full ? `<div class="seg qmodes" role="group" aria-label="Quiz version"><button type="button" data-m="random" aria-pressed="${R.mode === 'random'}">Random ${n}</button><button type="button" data-m="full" aria-pressed="${R.mode === 'full'}">${esc(opt.fullLabel || 'Full')} (${opt.full().length})</button></div>` : '';
     const head = t => headWith(t, modeBar());
-    const wireModes = () => $$('.qmodes button', P).forEach(b => b.onclick = () => { if (R.mode === b.dataset.m) return; R.mode = b.dataset.m; start(); });
+    const anyDone = () => R.rec.some((r, k) => r && !(R.list[k] || {}).practice);
+    const wireModes = () => $$('.qmodes button', P).forEach(b => b.onclick = () => { if (R.mode === b.dataset.m) return; const m = b.dataset.m; askRestart(() => { R.mode = m; start(); }, !R.done && anyDone()); });
     const real = () => R.list.filter(x => !x.practice), numNow = () => R.list.slice(0, R.i + 1).filter(x => !x.practice).length;   // practice questions (Try a similar one) do not count
+    const score = () => R.rec.filter((r, k) => r && r.pt && !(R.list[k] || {}).practice).length;
     const check = (item, v) => judge(item, v, kind, opt);
     const shown = item => item.show || (kind === 'fraction' ? String(item.a) : kind === 'number' ? Number(item.a).toLocaleString('en-US', { maximumFractionDigits: 10 }) : [].concat(item.a)[0]);
-    function start() { R.list = R.mode === 'full' && opt.full ? shuffle(opt.full()) : opt.build().slice(0, n); R.i = 0; R.score = 0; R.missed = []; show(); }
+    const save = () => { if (!R.done) K.save({ v: RV, sig: SIG, mode: R.mode, list: R.list, i: R.i, rec: R.rec, tb: R.tb }); };
+    function start() { R.list = R.mode === 'full' && opt.full ? shuffle(opt.full()) : opt.build().slice(0, n); R.i = 0; R.rec = []; R.tb = {}; R.done = false; R.tries = 0; R.hinted = false; save(); show(); }
     function show() {
       if (R.i >= R.list.length) {
-        const total = real().length;
-        ctx.result(R.score, total, R.mode); ctx.sfx.win();
-        P.innerHTML = `${head(opt.title || 'Type the answer')}<div class="result">${starsHTML(R.score, total)}<p class="prompt">${R.score} out of ${total}</p><p class="lead">${R.score / total >= 0.8 ? 'Excellent work!' : 'Good practice. Read the explanations, then try another round.'}</p>${reviewHTML(ctx, R.missed)}<button class="btn" data-a="again">Play again</button></div>`;
+        const total = real().length, sc = score();
+        if (!R.done) { R.done = true; K.clear(); ctx.result(sc, total, R.mode); ctx.sfx.win(); }
+        const missed = R.list.map((item, k) => { const r = R.rec[k]; return r && r.missed && !item.practice ? { q: plainText(item.q), a: shown(item), say: item.say || '', pic: pics[k] || null, fr: kind === 'fraction' } : null; }).filter(Boolean);
+        P.innerHTML = `${head(opt.title || 'Type the answer')}<div class="result">${starsHTML(sc, total)}<p class="prompt">${sc} out of ${total}</p><p class="lead">${sc / total >= 0.8 ? 'Excellent work!' : 'Good practice. Read the explanations, then try another round.'}</p>${reviewHTML(ctx, missed)}<button class="btn" data-a="again">Play again</button></div>`;
         wireModes(); $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
-      const item = R.list[R.i]; R.tries = 0; R.hinted = false; const tot = real().length;
+      const item = R.list[R.i], first = R.rec[R.i], retry = !!first, free = item.practice || retry, tot = real().length;
+      const tb = !retry && R.tb[R.i]; R.tries = tb ? tb.tries || 0 : 0; R.hinted = tb ? !!tb.hinted : false;   // a wrong try or a hint is remembered, even after Back or leaving
       P.innerHTML = `${head(opt.title || 'Type the answer')}<p class="lead">${esc(opt.lead || 'Type your answer, then press Check.')}</p>
-        <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">${item.practice ? 'Practice: a similar one, no score' : `Question ${numNow()} of ${tot} &middot; Score ${R.score}`}</span></div>
+        <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">${item.practice ? 'Practice: a similar one, no score' : `Question ${numNow()} of ${tot} &middot; Score ${score()}`}</span>${roundBtns(R.i > 0)}</div>
         <div class="row qrow"><p class="qtext">${item.q}</p>${item.say ? ctx.sayButton(item.say, 'Hear it') : ''}</div>
         <form class="spellrow" autocomplete="off"><span class="spellbox">${kind === 'fraction' ? fracBox('Your answer') : `<input aria-label="Your answer" placeholder="Answer" ${kind === 'number' ? 'inputmode="decimal"' : 'autocapitalize="off" autocorrect="off"'} spellcheck="false">`}<button class="btn" type="submit">Check</button></span></form>
         <div class="err" role="alert"></div><p class="explain why"></p>
-        <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}${kind !== 'text' && !item.practice ? '<button type="button" class="btn ghost" data-a="similar" hidden>Try a similar one</button>' : ''}<button type="button" class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
+        <div class="row center">${item.hint ? '<button type="button" class="btn ghost" data-a="hint">Hint</button>' : ''}${opt.skip && !free ? '<button type="button" class="btn ghost" data-a="skip">Skip, review later</button>' : ''}${kind !== 'text' && !item.practice && !retry ? '<button type="button" class="btn ghost" data-a="similar" hidden>Try a similar one</button>' : ''}<button type="button" class="btn" data-a="next"${retry ? '' : ' hidden'}>${R.i === R.list.length - 1 ? 'See results' : 'Next'}</button></div>`;
       wireModes();
       addPad(ctx, () => plainText(item.q));
       const fb = kind === 'fraction' ? $('.fbox', P) : null; if (fb) wireFrac(P);
       const inp = fb ? { get value() { return fb.value; }, set value(x) { fb.value = x; }, classList: fb.classList, focus() { $(item.form === 'mixed' ? '.fx-w' : '.fx-n', fb).focus(); }, set disabled(x) { $$('input', fb).forEach(i => { i.disabled = x; }); }, set oninput(f) { fb.addEventListener('input', f); } } : $('input', P);
       const setErr = t => { if (fr) err.innerHTML = stackText(t); else err.textContent = t; }, fr = kind === 'fraction';
       const err = $('.err', P), why = $('.why', P), next = $('[data-a="next"]', P), hb = $('[data-a="hint"]', P);
+      if (retry && !item.practice) { err.style.color = 'var(--ink2)'; err.innerHTML = practiceNote(!!first.pt); }
+      else if (R.hinted && item.hint) { err.style.color = 'var(--ink2)'; setErr(item.hint); }
+      else if (R.tries > 0) setErr('Not quite. Try again.');
       inp.focus();
       const sk = $('[data-a="skip"]', P);
       const sim = $('[data-a="similar"]', P);
       const done = (pt, missed) => {
         inp.disabled = true; $('form button', P).disabled = true; if (hb) hb.hidden = true; if (sk) sk.hidden = true; next.hidden = false; next.focus();
         if (item.why) steps(why, item.why, missed, fr);
-        if (missed && !item.practice) {
-          let pic = null; try { pic = window.SBPad && SBPad.thumbnail ? SBPad.thumbnail() : null; } catch (e) {}   // "show my work": what was on the notepad
-          R.missed.push({ q: plainText(item.q), a: shown(item), say: item.say || '', pic, fr });
-          if (ctx.miss) ctx.miss(plainText(item.q) + ' (answer: ' + plainText(String(shown(item))) + ')');
-          if (sim) sim.hidden = false;
-        }
-        if (opt.onAnswer && !item.practice) opt.onAnswer(item, !!pt);
+        if (!free) {
+          R.rec[R.i] = { pt: !!pt, missed: !!missed };
+          if (missed) {
+            try { pics[R.i] = window.SBPad && SBPad.thumbnail ? SBPad.thumbnail() : null; } catch (e) {}   // "show my work": what was on the notepad
+            if (ctx.miss) ctx.miss(plainText(item.q) + ' (answer: ' + plainText(String(shown(item))) + ')');
+            if (sim) sim.hidden = false;
+          }
+          save();
+          if (opt.onAnswer) opt.onAnswer(item, !!pt);
+          $('.roundbar .hint', P).innerHTML = `Question ${numNow()} of ${tot} &middot; Score ${score()}`;
+        } else if (item.practice && !first) { R.rec[R.i] = { p: 1 }; save(); }
       };
       if (sim) sim.onclick = () => {                            // a fresh problem of the same kind, for practice (no score, no credit)
         const fresh = opt.build().find(x => plainText(x.q) !== plainText(item.q)); if (!fresh) return;
-        R.list.splice(R.i + 1, 0, Object.assign({}, fresh, { practice: true })); R.i++; show();
+        R.list.splice(R.i + 1, 0, Object.assign({}, fresh, { practice: true })); R.rec.splice(R.i + 1, 0, null); const t2 = {}; Object.keys(R.tb).forEach(k => { t2[+k > R.i ? +k + 1 : k] = R.tb[k]; }); R.tb = t2; R.i++; save(); show();
       };
       inp.oninput = () => { inp.classList.remove('bad'); setErr(''); };
-      if (hb) hb.onclick = () => { R.hinted = true; err.style.color = 'var(--ink2)'; setErr(item.hint); inp.focus(); };
+      if (hb) hb.onclick = () => { R.hinted = true; if (!free) { R.tb[R.i] = { tries: R.tries, hinted: true }; save(); } err.style.color = 'var(--ink2)'; setErr(item.hint); inp.focus(); };
       $('form', P).onsubmit = e => {
         e.preventDefault();
         const v = inp.value.trim();
@@ -453,12 +547,12 @@
         if (nudge) { inp.classList.add('bad'); err.style.color = ''; setErr(nudge); return; }
         if (r === 'case') { inp.classList.add('bad'); err.style.color = ''; setErr('Almost! Check the capital and small letters, then try again.'); return; }
         if (r === 'ok' || r === 'close') {
-          const pt = !R.hinted && R.tries === 0 && !item.practice; if (pt) R.score++;
-          if (!item.practice) ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good-ink)';
-          setErr((r === 'close' ? 'Close enough! It is spelled ' + shown(item) + '.' : 'Correct! ' + shown(item) + '.') + unitNote + (R.hinted ? ' (Hint used, so no point.)' : ''));
+          const pt = !R.hinted && R.tries === 0 && !free;
+          if (!free) ctx.credit(); ctx.sfx.good(); err.style.color = 'var(--good-ink)';
+          setErr((r === 'close' ? 'Close enough! It is spelled ' + shown(item) + '.' : 'Correct! ' + shown(item) + '.') + unitNote + (R.hinted && !free ? ' (Hint used, so no point.)' : '') + (retry && !item.practice ? ' (Practice: your first answer counts.)' : ''));
           done(pt, !pt && (R.hinted || R.tries > 0));
         } else {
-          R.tries++; if (!item.practice) ctx.slip(); ctx.sfx.bad(); inp.classList.add('bad'); err.style.color = '';
+          R.tries++; if (!free) { ctx.slip(); R.tb[R.i] = { tries: R.tries, hinted: R.hinted }; save(); } ctx.sfx.bad(); inp.classList.add('bad'); err.style.color = '';
           if (R.tries >= 2) { setErr('The answer is ' + shown(item) + '.'); done(false, true); }
           else setErr('Not quite. Try again.');
         }
@@ -466,28 +560,37 @@
       if (sk) sk.onclick = () => {                              // not sure? show the answer, mark it for review, and move on (no point, no streak change)
         err.style.color = 'var(--ink2)'; setErr('Marked for review. The answer is ' + shown(item) + '.'); done(false, true);
       };
-      next.onclick = () => { R.i++; show(); };
+      next.onclick = () => { R.i++; save(); show(); };
+      $('[data-a="back"]', P).onclick = () => { if (R.i > 0) { R.i--; save(); show(); } };
+      $('[data-a="restart"]', P).onclick = () => askRestart(start, anyDone());
       if (item.say) ctx.say(item.say);
     }
-    start();
+    const s = K.load();
+    if (s && s.v === RV && s.sig === SIG && Array.isArray(s.list) && s.list.length && s.i >= 0 && s.i < s.list.length && (s.mode !== 'full' || opt.full)) {
+      Object.assign(R, { list: s.list, i: s.i, rec: Array.isArray(s.rec) ? s.rec : [], tb: s.tb && typeof s.tb === 'object' ? s.tb : {}, mode: s.mode || 'random', done: false }); show();
+    } else start();
   }
 
   /* ---------------- Put in order ---------------- */
   function order(ctx, opt) {
-    const P = ctx.panel, sets = opt.sets, O = { set: sets[0], items: [], checked: false };
+    const P = ctx.panel, sets = opt.sets, K = keep(ctx), SIG = sigOf('order', opt, sets.map(s => s.id).join(','));
+    const O = { set: sets[0], items: [], answer: [], checked: false, hist: [] };
     P.innerHTML = `<h2>${esc(opt.title || 'Put in order')}</h2><p class="lead">${esc(opt.lead || 'Drag the cards into the right order, or use the arrows. Then press Check.')}</p>
       ${sets.length > 1 ? `<div class="seg" role="group" aria-label="What to order">${sets.map((s, i) => `<button data-s="${esc(s.id)}" aria-pressed="${i === 0}">${esc(s.label)}</button>`).join('')}</div>` : ''}
       <ol class="olist"></ol><p class="msg"></p>
-      <div class="row"><button class="btn" data-a="check">Check order</button><button class="btn ghost" data-a="new">New order</button></div>`;
-    const list = $('.olist', P), msg = $('.msg', P);
+      <div class="row"><button class="btn" data-a="check">Check order</button><button class="btn ghost" data-a="undo" disabled>Undo</button><button class="btn ghost" data-a="new">Start over</button></div>`;
+    const list = $('.olist', P), msg = $('.msg', P), undoB = $('[data-a="undo"]', P);
     addPad(ctx, () => plainText(opt.title || 'Put in order') + '. ' + plainText(opt.lead || 'Put the cards in the right order.'));
+    const save = () => K.save({ v: RV, sig: SIG, set: O.set.id, items: O.items, answer: O.answer, checked: O.checked });
+    const snap = () => { O.hist.push(O.items.slice()); if (O.hist.length > 200) O.hist.shift(); undoB.disabled = false; };
+    const syncSeg = () => $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x.dataset.s === O.set.id));
     function round() {
-      const s = O.set, pool = s.pick ? s.items.map((it, k) => ({ ...it, k })).filter((_, k, a) => true) : s.items.map((it, k) => ({ ...it, k }));
+      const s = O.set, pool = s.items.map((it, k) => ({ ...it, k }));
       let chosen = pool;
       if (s.pick && pool.length > s.pick) { const idx = shuffle(pool.map((_, k) => k)).slice(0, s.pick).sort((a, b) => a - b); chosen = idx.map(k => pool[k]); }
       let sh; do { sh = shuffle(chosen); } while (sh.length > 1 && sh.every((x, i) => x === chosen[i]));
-      O.items = sh; O.answer = chosen.map(x => x.k); O.checked = false; render(); setMsg(msg, s.hint || '');
-      $('[data-a="check"]', P).textContent = 'Check order';
+      O.items = sh; O.answer = chosen.map(x => x.k); O.checked = false; O.perfect = false; O.hist = []; undoB.disabled = true; render(); setMsg(msg, s.hint || '');
+      $('[data-a="check"]', P).textContent = 'Check order'; save();
     }
     function render(marks) {
       list.innerHTML = O.items.map((it, i) => `<li class="oitem${marks ? (marks[i] ? ' right' : ' wrong') : ''}" data-i="${i}">
@@ -498,10 +601,10 @@
         li.addEventListener('pointerdown', e => drag(e, li));
       });
     }
-    function move(a, b) { if (b < 0 || b >= O.items.length) return; const [x] = O.items.splice(a, 1); O.items.splice(b, 0, x); render(); const dir = b > a ? '1' : '-1'; let btn = $(`.oitem[data-i="${b}"] [data-mv="${dir}"]`, list); if (!btn || btn.disabled) btn = $(`.oitem[data-i="${b}"] [data-mv]:not(:disabled)`, list); if (btn) btn.focus(); }
+    function move(a, b) { if (b < 0 || b >= O.items.length) return; snap(); const [x] = O.items.splice(a, 1); O.items.splice(b, 0, x); render(); save(); const dir = b > a ? '1' : '-1'; let btn = $(`.oitem[data-i="${b}"] [data-mv="${dir}"]`, list); if (!btn || btn.disabled) btn = $(`.oitem[data-i="${b}"] [data-mv]:not(:disabled)`, list); if (btn) btn.focus(); }
     function drag(e, li) {
       if (e.target.closest('button') || (e.button !== undefined && e.button > 0)) return;
-      const sy = e.clientY; let moved = false, from = +li.dataset.i;
+      const sy = e.clientY; let moved = false, from = +li.dataset.i, before = O.items.slice();
       try { li.setPointerCapture(e.pointerId); } catch (er) {}
       const mv = ev => {
         if (!moved && Math.abs(ev.clientY - sy) > 6) { moved = true; li.classList.add('dragging'); }
@@ -511,20 +614,29 @@
         if (to === -1) to = others.length;
         if (to !== from) { const [x] = O.items.splice(from, 1); O.items.splice(to, 0, x); from = to; const ref = others[to] || null; list.insertBefore(li, ref); }
       };
-      const up = () => { li.removeEventListener('pointermove', mv); li.removeEventListener('pointerup', up); li.removeEventListener('pointercancel', up); li.classList.remove('dragging'); if (moved) render(); };
+      const up = () => {
+        li.removeEventListener('pointermove', mv); li.removeEventListener('pointerup', up); li.removeEventListener('pointercancel', up); li.classList.remove('dragging');
+        if (moved) { if (before.some((x, i) => x !== O.items[i])) { O.hist.push(before); undoB.disabled = false; } render(); save(); }
+      };
       li.addEventListener('pointermove', mv); li.addEventListener('pointerup', up); li.addEventListener('pointercancel', up);
     }
     $('[data-a="check"]', P).onclick = () => {
       const marks = O.items.map((it, i) => it.k === O.answer[i]), right = marks.filter(Boolean).length;
-      if (!O.checked) { O.checked = true; ctx.result(right, O.items.length); if (right === O.items.length) { ctx.credit(); ctx.sfx.win(); } else { ctx.slip(); ctx.sfx.bad(); } }
-      render(marks);
+      if (!O.checked) { O.checked = true; save(); ctx.result(right, O.items.length); if (right === O.items.length) { ctx.credit(); ctx.sfx.win(); } else { ctx.slip(); ctx.sfx.bad(); } }
+      render(marks); O.perfect = right === O.items.length; if (O.perfect) K.clear();
       if (right === O.items.length) setMsg(msg, 'Perfect order!', 'good');
       else setMsg(msg, right + ' of ' + O.items.length + ' are in the right place. Move the red ones, then check again. Your score counts your first check.', 'bad');
       $('[data-a="check"]', P).textContent = 'Check again';
     };
-    $('[data-a="new"]', P).onclick = round;
-    $$('.seg button', P).forEach(b => b.onclick = () => { O.set = sets.find(s => s.id === b.dataset.s); $$('.seg button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); round(); });
-    round();
+    undoB.onclick = () => { if (!O.hist.length) return; O.items = O.hist.pop(); undoB.disabled = !O.hist.length; render(); save(); };
+    const moved = () => (O.hist.length > 0 || O.checked) && !O.perfect;   // nothing to lose once the order is perfect
+    $('[data-a="new"]', P).onclick = () => askRestart(round, moved());
+    $$('.seg button', P).forEach(b => b.onclick = () => { const ns = sets.find(s => s.id === b.dataset.s); if (ns === O.set) return; askRestart(() => { O.set = ns; syncSeg(); round(); }, moved()); });
+    const s = K.load(), ss = s && s.v === RV && s.sig === SIG && sets.find(x => x.id === s.set);
+    if (ss && Array.isArray(s.items) && s.items.length && Array.isArray(s.answer)) {
+      O.set = ss; O.items = s.items; O.answer = s.answer; O.checked = !!s.checked; syncSeg(); render(); setMsg(msg, ss.hint || '');
+      if (O.checked) $('[data-a="check"]', P).textContent = 'Check again';
+    } else round();
   }
 
   /* ---------------- Explain it (written answers) ---------------- */
@@ -548,29 +660,38 @@
     return { ideas, complete, perfect: complete && ideas.every(i => i.ok) };
   }
   function explain(ctx, opt) {
-    const P = ctx.panel, X = { list: [], i: 0, score: 0, checked: false }, items = opt.items, n = opt.rounds || items.length;
-    function start() { X.list = (opt.keepFirst ? [items[0], ...shuffle(items.slice(1))] : shuffle(items)).slice(0, n); X.i = 0; X.score = 0; show(); }
+    const P = ctx.panel, items = opt.items, n = opt.rounds || items.length, K = keep(ctx), SIG = sigOf('explain', opt, n + '|' + items.length);
+    const X = { list: [], i: 0, rec: [], drafts: [], done: false };
+    const score = () => X.rec.filter(r => r && r.perfect).length;
+    const save = () => { if (!X.done) K.save({ v: RV, sig: SIG, list: X.list, i: X.i, rec: X.rec, drafts: X.drafts }); };
+    function start() { X.list = (opt.keepFirst ? [items[0], ...shuffle(items.slice(1))] : shuffle(items)).slice(0, n); X.i = 0; X.rec = []; X.drafts = []; X.done = false; save(); show(); }
     function show() {
       if (X.i >= X.list.length) {
-        ctx.result(X.score, X.list.length); ctx.sfx.win();
-        P.innerHTML = `<h2>${esc(opt.title || 'Explain it')}</h2><div class="result">${starsHTML(X.score, X.list.length)}<p class="prompt">${X.score} out of ${X.list.length} complete</p><p class="lead">${X.score / X.list.length >= 0.8 ? 'Insane work. You can explain it all in your own words.' : 'Explaining is the hardest part. Read the model answers, then try again.'}</p><button class="btn" data-a="again">Play again</button></div>`;
+        const sc = score();
+        if (!X.done) { X.done = true; K.clear(); ctx.result(sc, X.list.length); ctx.sfx.win(); }
+        P.innerHTML = `<h2>${esc(opt.title || 'Explain it')}</h2><div class="result">${starsHTML(sc, X.list.length)}<p class="prompt">${sc} out of ${X.list.length} complete</p><p class="lead">${sc / X.list.length >= 0.8 ? 'Insane work. You can explain it all in your own words.' : 'Explaining is the hardest part. Read the model answers, then try again.'}</p><button class="btn" data-a="again">Play again</button></div>`;
         $('[data-a="again"]', P).onclick = start; const ag = $('[data-a="again"]', P); if (P.dataset.sbFocus) ag.focus({ preventScroll: true }); return;
       }
-      const ex = X.list[X.i]; X.checked = false;
+      const ex = X.list[X.i], first = X.rec[X.i];
       P.innerHTML = `<h2>${esc(opt.title || 'Explain it')}</h2><p class="lead">${esc(opt.lead || 'Answer in complete sentences, then check your answer.')}</p>
-        <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${X.i / X.list.length * 100}%"></i></div><span class="hint">Question ${X.i + 1} of ${X.list.length} &middot; Complete ${X.score}</span></div>
+        <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${X.i / X.list.length * 100}%"></i></div><span class="hint">Question ${X.i + 1} of ${X.list.length} &middot; Complete ${score()}</span>${roundBtns(X.i > 0)}</div>
         <div class="xgrid"><div>
           <div class="row qrow left"><p class="qline">${esc(ex.q)}</p>${ctx.sayButton(ex.q, 'Hear the question')}</div>
           <textarea class="answer" rows="5" aria-label="Your answer" placeholder="Write your answer here."></textarea>
-          <div class="row"><button class="btn" data-a="check">Check my answer</button><button class="btn" data-a="next" hidden>${X.i === X.list.length - 1 ? 'See results' : 'Next question'}</button></div>
-        </div><div class="feedback" hidden></div></div>`;
+          <div class="row"><button class="btn" data-a="check">${first ? 'Check again' : 'Check my answer'}</button><button class="btn" data-a="next"${first ? '' : ' hidden'}>${X.i === X.list.length - 1 ? 'See results' : 'Next question'}</button></div>
+        </div><div class="feedback"${first ? '' : ' hidden'}>${first ? `<p class="msg">${practiceNote(first.perfect)}</p>` : ''}</div></div>`;
       addPad(ctx, () => ex.q);
       const ta = $('.answer', P), fb = $('.feedback', P), check = $('[data-a="check"]', P), next = $('[data-a="next"]', P);
+      ta.value = X.drafts[X.i] || '';
+      let tmr = null;
+      ta.oninput = () => { X.drafts[X.i] = ta.value; clearTimeout(tmr); tmr = setTimeout(save, 400); };   // the answer being written is kept too
       ta.focus();
       check.onclick = () => {
         if (ta.value.trim().split(/\s+/).length < 3) { fb.hidden = false; fb.innerHTML = '<p class="msg bad">Write a little more first.</p>'; return; }
         const g = gradeExplain(ta.value, ex);
-        if (!X.checked) { X.checked = true; if (g.perfect) { X.score++; ctx.credit(); ctx.sfx.good(); } else { ctx.slip(); ctx.sfx.bad(); } }
+        X.drafts[X.i] = ta.value;
+        if (!X.rec[X.i]) { X.rec[X.i] = { perfect: g.perfect }; if (g.perfect) { ctx.credit(); ctx.sfx.good(); } else { ctx.slip(); ctx.sfx.bad(); } $('.roundbar .hint', P).innerHTML = `Question ${X.i + 1} of ${X.list.length} &middot; Complete ${score()}`; }
+        save();
         fb.hidden = false;
         fb.innerHTML = `<div class="eyebrow">Did your answer include</div>
           <ul class="checks">${g.ideas.map(i => `<li class="${i.ok ? 'ok' : 'no'}">${i.ok ? CHECK : CROSS}<span>${esc(i.label)}</span></li>`).join('')}
@@ -579,15 +700,22 @@
           <div class="model"><div class="eyebrow">${ex.teacher ? 'Answer from the study guide' : 'A good answer'}</div><p>${esc(ex.model)}</p>${ctx.sayButton(ex.model, 'Hear the answer')}</div>`;
         check.textContent = 'Check again'; next.hidden = false;
       };
-      next.onclick = () => { X.i++; show(); };
+      next.onclick = () => { clearTimeout(tmr); X.i++; save(); show(); };
+      $('[data-a="back"]', P).onclick = () => { clearTimeout(tmr); if (X.i > 0) { X.i--; save(); show(); } };
+      $('[data-a="restart"]', P).onclick = () => askRestart(start, X.rec.some(Boolean) || X.drafts.some(d => d && d.trim()));
       ctx.say(ex.q);
     }
-    start();
+    const s = K.load();
+    if (s && s.v === RV && s.sig === SIG && Array.isArray(s.list) && s.list.length && s.i >= 0 && s.i < s.list.length) {
+      Object.assign(X, { list: s.list, i: s.i, rec: Array.isArray(s.rec) ? s.rec : [], drafts: Array.isArray(s.drafts) ? s.drafts : [], done: false }); show();
+    } else start();
   }
 
   /* n different questions for a round (the same problem should not come up twice): many(makeOne, 10) */
   /* 3/4 x 8 and 8 x 3/4 are the same question for this purpose (a sum or product with only that one operation) */
   const twinKey = q => { const c = String(q.chk || ''); if (!c) return ''; for (const op of ['*', '+']) { const parts = c.split(op); if (parts.length > 1 && !/[-:*+]/.test(parts.join(''))) return op + parts.map(x => x.trim()).sort().join(op) + '|' + (q.form || '') + '|' + (q.a || ''); } return ''; };
   const many = (fn, n = 10) => { const out = [], seen = new Set(); for (let i = 0; out.length < n && i < 400; i++) { const q = fn(), k = (q.q || '') + '|' + (q.html || '') + '|' + (q.qh || ''), t = twinKey(q); if (!seen.has(k) && !(t && seen.has(t))) { seen.add(k); if (t) seen.add(t); out.push(q); } } return out; };
-  window.SBT = { fracBox, wireFrac, stackText, loadPad, padTab, judge, stripUnit, many, flashcards, quizCards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
+  /* for a module's own tools: the same saved round, Back and Start over pieces the shared tools use */
+  const saved = (ctx, sig) => { const K = keep(ctx); return { load() { const o = K.load(); return o && o.v === RV && o.sig === sig ? o : null; }, save(o) { K.save(Object.assign({ v: RV, sig }, o)); }, clear() { K.clear(); } }; };
+  window.SBT = { saved, roundBtns, askRestart, practiceNote, fracBox, wireFrac, stackText, loadPad, padTab, judge, stripUnit, many, flashcards, quizCards, sort, quiz, answer, order, explain, gradeExplain, shuffle, starsHTML, setMsg };
 })();

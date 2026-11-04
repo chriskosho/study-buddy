@@ -109,7 +109,8 @@
   const SPOT_PARTS = ['n', 'v', 'adj', 'adv', 'pron'], SPOT_ROUNDS = 10;
   const spot = {
     init(ctx) {
-      const P = ctx.panel, R = { list: [], i: 0, score: 0, tries: 0, done: false };
+      const P = ctx.panel, R = { list: [], i: 0, score: 0, tries: 0, done: false, rec: [], tb: {} }, K = SBT.saved(ctx, 'spot');
+      const save = () => K.save({ list: R.list, i: R.i, score: R.score, rec: R.rec, tb: R.tb });   // every answer is kept (November 2026)
       const makeRound = () => {
         const used = new Set(), list = []; let targets = [];
         while (list.length < SPOT_ROUNDS) {
@@ -121,41 +122,44 @@
         }
         return list;
       };
-      function start() { R.list = makeRound(); R.i = 0; R.score = 0; show(); }
+      function start() { R.list = makeRound(); R.i = 0; R.score = 0; R.rec = []; R.tb = {}; save(); show(); }
       function show() {
         if (R.i >= R.list.length) {
-          ctx.result(R.score, R.list.length); ctx.sfx.win();
+          K.clear(); ctx.result(R.score, R.list.length); ctx.sfx.win();
           P.innerHTML = `<h2>Spot it</h2><div class="result">${starsHTML(R.score, R.list.length)}<p class="prompt">${R.score} out of ${R.list.length}</p><p class="lead">${R.score >= 9 ? 'Amazing spotting!' : R.score >= 7 ? 'Great job. A little more practice and you will have it.' : 'Good start. Try the study guide, then come back.'}</p><button class="btn" data-a="again">Play again</button></div>`;
           $('[data-a="again"]', P).onclick = start; return;
         }
-        const { si, want } = R.list[R.i], toks = SENTS[si], name = lower(want); R.tries = 0; R.done = false;
+        const { si, want } = R.list[R.i], toks = SENTS[si], name = lower(want); const first = R.rec[R.i]; R.tries = first ? 0 : R.tb[R.i] || 0; R.done = false;   // wrong taps stay counted, even after Back or leaving
         const promptText = 'Tap ' + aAn(name) + ' ' + name + '.';
         P.innerHTML = `<h2>Spot it</h2><p class="lead">Read the sentence. Tap a word that does the job asked.</p>
-          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Sentence ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span></div>
+          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${R.i / R.list.length * 100}%"></i></div><span class="hint">Sentence ${R.i + 1} of ${R.list.length} &middot; Score ${R.score}</span>${SBT.roundBtns(R.i > 0)}</div>
           <div class="row"><p class="prompt" style="margin:0">Tap ${aAn(name)} <em>${name}</em>.</p>${ctx.sayButton(promptText + ' ' + plain(toks), 'Hear the question')}</div>
           <div class="words">${toks.map((t, i) => t.punct ? `<span class="punct">${esc(t.w)}</span>` : `<button class="wtok" data-i="${i}"><span class="w">${esc(t.w)}</span></button>`).join('')}</div>
-          <p class="msg"></p><div class="row"><button class="btn" data-a="next" hidden>${R.i === R.list.length - 1 ? 'See results' : 'Next sentence'}</button></div>`;
+          <p class="msg">${first ? SBT.practiceNote(first.ok) : ''}</p><div class="row"><button class="btn" data-a="next"${first ? '' : ' hidden'}>${R.i === R.list.length - 1 ? 'See results' : 'Next sentence'}</button></div>`;
         const msg = $('.msg', P), nextBtn = $('[data-a="next"]', P);
         const finish = () => { R.done = true; $$('.wtok', P).forEach(b => b.disabled = true); nextBtn.hidden = false; nextBtn.focus(); };
         $$('.wtok', P).forEach(b => b.onclick = () => {
           if (R.done) return;
           const i = +b.dataset.i, t = toks[i];
           if (t.part === want) {
-            if (R.tries === 0) R.score++;
-            ctx.credit(); ctx.sfx.good(); b.classList.add('right');
+            if (!first) { if (R.tries === 0) R.score++; ctx.credit(); R.rec[R.i] = { ok: R.tries === 0 }; save(); }   // a practice try (after Back) gives no credit
+            ctx.sfx.good(); b.classList.add('right');
             setMsg(msg, 'Yes! ' + (t.tag === 'art' ? cap(wordAsShown(t, i)) + ' is an article, a kind of adjective.' : cap(wordAsShown(t, i)) + ' is ' + aAn(name) + ' ' + name + '.'), 'good'); finish();
           } else {
-            R.tries++; ctx.slip(); ctx.sfx.bad(); b.classList.add('wrong'); b.disabled = true;
+            R.tries++; if (!first) { ctx.slip(); R.tb[R.i] = R.tries; if (R.tries >= 2) R.rec[R.i] = { ok: false }; save(); } ctx.sfx.bad(); b.classList.add('wrong'); b.disabled = true;
             if (R.tries >= 2) {
               toks.forEach((x, j) => { if (!x.punct && x.part === want) $(`.wtok[data-i="${j}"]`, P).classList.add('show'); });
               setMsg(msg, reason(t, i) + ' The dashed box shows ' + aAn(name) + ' ' + name + '.', 'bad'); finish();
             } else setMsg(msg, 'Not quite. ' + reason(t, i) + ' Find ' + aAn(name) + ' ' + name + '.', 'bad');
           }
         });
-        nextBtn.onclick = () => { R.i++; show(); };
+        nextBtn.onclick = () => { R.i++; save(); show(); };
+        $('[data-a="back"]', P).onclick = () => { if (R.i > 0) { R.i--; save(); show(); } };
+        $('[data-a="restart"]', P).onclick = () => SBT.askRestart(start, R.rec.some(Boolean));
         ctx.say(promptText + ' ' + plain(toks));
       }
-      start();
+      const s = K.load();
+      if (s && Array.isArray(s.list) && s.list.length && s.i >= 0 && s.i < s.list.length) { Object.assign(R, { list: s.list, i: s.i, score: s.score || 0, rec: s.rec || [], tb: s.tb || {} }); show(); } else start();
     }
   };
 
@@ -203,23 +207,26 @@
   const LABEL_ROUNDS = 5;
   const label = {
     init(ctx) {
-      const P = ctx.panel, L = { list: [], i: 0, score: 0, cur: null };
-      function start() { L.list = shuffle(TRICKY).slice(0, LABEL_ROUNDS); L.i = 0; L.score = 0; show(); }
+      const P = ctx.panel, L = { list: [], i: 0, score: 0, cur: null, rec: [], picks: null }, K = SBT.saved(ctx, 'label');
+      const save = () => K.save({ list: L.list, i: L.i, score: L.score, rec: L.rec, picks: L.picks });   // every label is kept (November 2026)
+      function start() { L.list = shuffle(TRICKY).slice(0, LABEL_ROUNDS); L.i = 0; L.score = 0; L.rec = []; L.picks = null; save(); show(); }
       function show() {
         if (L.i >= L.list.length) {
-          ctx.result(L.score, L.list.length); ctx.sfx.win();
+          K.clear(); ctx.result(L.score, L.list.length); ctx.sfx.win();
           P.innerHTML = `<h2>Label the sentence</h2><div class="result">${starsHTML(L.score, L.list.length)}<p class="prompt">${L.score} out of ${L.list.length} perfect</p><p class="lead">${L.score >= 4 ? 'Insane work. You really know your parts of speech.' : 'These are the hardest ones. Try the speed round, then come back.'}</p><button class="btn" data-a="again">Play again</button></div>`;
           $('[data-a="again"]', P).onclick = start; return;
         }
-        const item = L.list[L.i], toks = parse(item.s), pick = [];
+        const item = L.list[L.i], toks = parse(item.s), first = L.rec[L.i], pick = !first && L.picks && L.picks.i === L.i ? L.picks.p : [];
         P.innerHTML = `<h2>Label the sentence</h2><p class="lead">Pick a part of speech, then tap every word it fits. The underlined word may be doing a surprising job.</p>
-          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${L.i / L.list.length * 100}%"></i></div><span class="hint">Sentence ${L.i + 1} of ${L.list.length} &middot; Perfect ${L.score}</span>${ctx.sayButton(plain(toks), 'Hear the sentence')}</div>
+          <div class="roundbar"><div class="bar" aria-hidden="true"><i style="width:${L.i / L.list.length * 100}%"></i></div><span class="hint">Sentence ${L.i + 1} of ${L.list.length} &middot; Perfect ${L.score}</span>${SBT.roundBtns(L.i > 0)}${ctx.sayButton(plain(toks), 'Hear the sentence')}</div>
           <div class="words">${toks.map((t, i) => t.punct ? `<span class="punct">${esc(t.w)}</span>` : `<button class="wtok${t.star ? ' star' : ''}" data-i="${i}"><span class="w">${esc(t.w)}</span><span class="lab">&nbsp;</span></button>`).join('')}</div>
           <div class="palette" role="group" aria-label="Parts of speech">${ORDER.map(id => `<button data-p="${id}" aria-pressed="${L.cur === id}" class="ppill" style="${pv(id)}">${PART[id].name}</button>`).join('')}</div>
-          <p class="msg">${L.cur ? '' : 'Pick a part of speech to start.'}</p><p class="why" hidden></p>
-          <div class="row"><button class="btn" data-a="check" disabled>Check</button><button class="btn" data-a="next" hidden>${L.i === L.list.length - 1 ? 'See results' : 'Next sentence'}</button></div>`;
+          <p class="msg">${first ? SBT.practiceNote(first.ok) : L.cur ? '' : 'Pick a part of speech to start.'}</p><p class="why" hidden></p>
+          <div class="row"><button class="btn" data-a="check" disabled>Check</button><button class="btn" data-a="next"${first ? '' : ' hidden'}>${L.i === L.list.length - 1 ? 'See results' : 'Next sentence'}</button></div>`;
         const msg = $('.msg', P), check = $('[data-a="check"]', P), nextBtn = $('[data-a="next"]', P);
         const words = toks.map((t, i) => i).filter(i => !toks[i].punct);
+        const paintLab = i => { const lab = $(`.wtok[data-i="${i}"] .lab`, P); if (!lab) return; if (pick[i]) { lab.textContent = PART[pick[i]].name; lab.className = 'lab set'; lab.style.cssText = pv(pick[i]); } else { lab.innerHTML = '&nbsp;'; lab.className = 'lab'; lab.style.cssText = ''; } };
+        words.forEach(paintLab); check.disabled = !words.every(j => pick[j]);   // labels picked before leaving come back
         $$('.palette button', P).forEach(b => b.onclick = () => { L.cur = b.dataset.p; $$('.palette button', P).forEach(x => x.setAttribute('aria-pressed', x === b)); setMsg(msg, 'Now tap each ' + lower(L.cur) + '.'); });
         $$('.wtok', P).forEach(b => b.onclick = () => {
           if (!L.cur) { setMsg(msg, 'Pick a part of speech first.', 'bad'); return; }
@@ -228,6 +235,7 @@
           if (pick[i]) { lab.textContent = PART[pick[i]].name; lab.className = 'lab set'; lab.style.cssText = pv(pick[i]); }
           else { lab.innerHTML = '&nbsp;'; lab.className = 'lab'; lab.style.cssText = ''; }
           check.disabled = !words.every(j => pick[j]);
+          if (!first) { L.picks = { i: L.i, p: pick }; save(); }
         });
         check.onclick = () => {
           let wrong = 0;
@@ -236,15 +244,19 @@
             b.disabled = true; b.classList.add(ok ? 'right' : 'wrong');
             if (!ok) { wrong++; const f = document.createElement('span'); f.className = 'fix'; f.textContent = PART[toks[i].part].name; b.appendChild(f); }
           });
-          if (!wrong) { L.score++; ctx.credit(); ctx.sfx.good(); setMsg(msg, 'Every word is right!', 'good'); }
-          else { ctx.slip(); ctx.sfx.bad(); setMsg(msg, wrong + (wrong === 1 ? ' word needs' : ' words need') + ' a different label. The right answer is in red under ' + (wrong === 1 ? 'it' : 'each one') + '.', 'bad'); }
+          if (!first) { L.rec[L.i] = { ok: !wrong }; L.picks = null; if (!wrong) { L.score++; ctx.credit(); } else ctx.slip(); save(); }   // a practice try (after Back) gives no credit
+          if (!wrong) { ctx.sfx.good(); setMsg(msg, 'Every word is right!', 'good'); }
+          else { ctx.sfx.bad(); setMsg(msg, wrong + (wrong === 1 ? ' word needs' : ' words need') + ' a different label. The right answer is in red under ' + (wrong === 1 ? 'it' : 'each one') + '.', 'bad'); }
           const why = $('.why', P); why.textContent = item.why; why.hidden = false;
           check.hidden = true; nextBtn.hidden = false; nextBtn.focus();
         };
-        nextBtn.onclick = () => { L.i++; show(); };
+        nextBtn.onclick = () => { L.i++; save(); show(); };
+        $('[data-a="back"]', P).onclick = () => { if (L.i > 0) { L.i--; save(); show(); } };
+        $('[data-a="restart"]', P).onclick = () => SBT.askRestart(start, L.rec.some(Boolean));
         ctx.say(plain(toks));
       }
-      start();
+      const s = K.load();
+      if (s && Array.isArray(s.list) && s.list.length && s.i >= 0 && s.i < s.list.length) { Object.assign(L, { list: s.list, i: s.i, score: s.score || 0, rec: s.rec || [], picks: s.picks || null }); show(); } else start();
     }
   };
 

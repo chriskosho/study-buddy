@@ -16,7 +16,10 @@
      });
 
    ctx (one per tool) gives: panel, tool, mod, kid, state, save(), credit(), slip(), result(score, max),
-   say(text) (only when the student's Read aloud is on), sayButton(text, label), sfx, toast(msg), esc. */
+   say(text) (only when the student's Read aloud is on), sayButton(text, label), sfx, toast(msg), esc,
+   and round: { load(), save(obj), clear() }, the tool's round in progress, saved per student under
+   studybuddy.v1.m.<child>.round.<module>.<tool> so leaving the tool, the module or the app never loses an answer (November 2026).
+   The shared tools in sb-tools.js use it; Reset clears it. */
 (function () {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
@@ -75,8 +78,18 @@
       if (window.SBPad && SBPad.isOpen()) SBPad.guard(go); else go();
     };
 
+    function roundFor(t, part) {
+      const k = SB.moduleKey('round.' + mod.id + '.' + t.id + (cfg.toggle ? '.t' + (cfg.toggle.get(state) ? 1 : 0) : '') + (part ? '.' + part : ''));   // the module switch (Black Beauty's Highlighted / All) keeps a round for each side
+      return {
+        sub: name => roundFor(t, (part ? part + '.' : '') + String(name).replace(/[^\w-]/g, '_')),   // one saved round per topic or level inside a tool
+        load() { try { const o = JSON.parse(localStorage.getItem(k) || 'null'); return o && typeof o === 'object' ? o : null; } catch (e) { return null; } },
+        save(o) { try { const s = JSON.stringify(o); if (s.length > 300000) return false; localStorage.setItem(k, s); return true; } catch (e) { return false; } },   // too big or storage full: the round just is not kept
+        clear() { try { localStorage.removeItem(k); } catch (e) {} }
+      };
+    }
     function ctxFor(t) {
       return {
+        round: roundFor(t),
         panel: $('#tab-' + t.id), tool: t, mod, kid, esc,
         get state() { return state; }, save,
         credit() {

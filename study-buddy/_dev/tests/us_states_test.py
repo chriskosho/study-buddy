@@ -309,7 +309,7 @@ async def main():
         check(await pg.inner_text('#dPlaced') == '2/50', 'Drag: dragging a name onto its state places it')
         for sid in await pg.evaluate("[...document.querySelectorAll('#tray .chip')].map(c=>c.dataset.id)"):
             await pg.evaluate("(id)=>{document.querySelector(`#tray .chip[data-id=${id}]`).dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,clientX:0,clientY:0,pointerId:1}))}", sid) if False else None
-        await pg.click('#dragMode button[data-m="reveal"]'); check(await pg.inner_text('#dPlaced') == '0/50', 'Drag: changing the map style starts over')
+        await pg.click('#dragMode button[data-m="reveal"]'); check(await pg.locator('.sb-dlg:has-text("Start over?")').count() == 1, 'Drag: changing the map style asks first'); await pg.click('.sb-dlg [data-x="yes"]'); check(await pg.inner_text('#dPlaced') == '0/50', 'Drag: changing the map style starts over')
         # flashcards: shapes deck
         pg = await page('cards'); await pg.wait_for_timeout(100)
         check(await pg.locator('.us-mini').count() >= 1 or await pg.evaluate("!!document.querySelector('#tab-cards svg.mini')"), 'Flashcards: Map shapes deck shows a map')

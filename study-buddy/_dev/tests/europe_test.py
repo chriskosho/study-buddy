@@ -229,7 +229,7 @@ async def main():
         check(await pg.inner_text('#dPlaced') == '1/46', 'Drag: tap a name, tap its country places it')
         await pg.click('#tray .chip[data-id="sm"]'); await tap(pg, '#mapDrag .cpath[data-id="sm"]')
         check(await pg.inner_text('#dPlaced') == '2/46', 'Drag: a tiny country (San Marino) can be placed')
-        await pg.click('#dragMode button[data-m="reveal"]'); check(await pg.inner_text('#dPlaced') == '0/46', 'Drag: changing the map style starts over')
+        await pg.click('#dragMode button[data-m="reveal"]'); check(await pg.locator('.sb-dlg:has-text("Start over?")').count() == 1, 'Drag: changing the map style asks first'); await pg.click('.sb-dlg [data-x="yes"]'); check(await pg.inner_text('#dPlaced') == '0/46', 'Drag: changing the map style starts over')
         pg = await page('cards'); await pg.wait_for_timeout(100)
         check(await pg.evaluate("!!document.querySelector('#tab-cards svg.mini')"), 'Flashcards: Map shapes deck shows a map')
         check(not errors, f'no page errors {errors[:3]}')
