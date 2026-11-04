@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Multiplication Tables to 15 · Study Buddy</title>
+<meta name="theme-color" content="#2b4162">
+<link rel="icon" href="../../../icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../../shared/sb.css">
+<style>
+.fguide{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start;margin:6px 0 10px}
+.fguide>*{min-width:0}
+.ftable{border-collapse:separate;border-spacing:2px;width:100%;table-layout:fixed}
+.ftable th,.ftable td{padding:0;text-align:center}
+.ftable th{font-size:13px;font-weight:800;color:var(--ink2);height:26px}
+.ftable td button{width:100%;height:27px;border:2px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);font-size:12.5px;font-weight:700;padding:0}
+.ftable td button:hover{border-color:var(--navy)}
+.ftable td button.row,.ftable td button.col{background:var(--tint-note)}
+.ftable td button.teen{border-color:var(--teal)}
+.ftable td button.sel{background:var(--navy);border-color:var(--navy);color:#fff}
+.ftable th button{border:0;background:transparent;font:inherit;color:inherit;width:100%;height:26px;padding:0;border-radius:7px}
+.ftable th button:hover,.ftable th button.on{background:var(--tint-note);color:var(--ink)}
+.fdetail{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:12px 16px}
+.fdetail h3{margin:0 0 6px;font-size:22px}
+.fdetail ul{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px;font-weight:800;font-size:17px}
+.fdetail .fnote{margin:8px 0 0;font-size:15px;color:var(--ink2)}
+.split{display:flex;gap:4px;margin:8px 0 2px;font-weight:800}
+.split>div{border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.split b{font-size:14px}.split span{font-size:22px}
+.sp10{background:var(--tint-note);border:2px solid var(--navy)}
+.spr{background:var(--tint-good);border:2px solid var(--good)}
+.ftips{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:10px 16px;margin-top:10px;font-size:15px}
+.ftips h3{margin:0 0 4px;font-size:17px}
+.ftips p{margin:2px 0}
+.fsprompt{font-size:clamp(34px,5vw,56px);font-weight:800;margin:6px 0 12px;font-variant-numeric:tabular-nums}
+.fsrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+.fsrow .textin{width:min(200px,50vw);font-size:26px}
+.fschoices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-width:640px;margin:0 0 8px}
+.fschoices .opt{font-size:24px;padding:14px 8px}
+.fsbox[hidden]{display:none}
+@media (max-width:900px){.fguide{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){
+  .ftable{border-spacing:1px}
+  .ftable th{font-size:10px;height:22px}
+  .ftable td button{height:22px;font-size:9.5px;border-width:1px;border-radius:4px}
+  .ftable th button{height:22px}
+  .fdetail ul{font-size:16px}
+  .fschoices{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+<script src="../../../shared/sb-core.js"></script>
+<script src="../../../shared/sb-shell.js"></script>
+<script src="../../../registry.js"></script>
+<script src="../../../shared/sb-module.js"></script>
+<script src="../../../shared/sb-tools.js"></script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="gen.js"></script>
+<script src="tables15.js"></script>
+</body>
+</html>
