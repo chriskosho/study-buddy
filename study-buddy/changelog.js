@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-04', title: 'New: Textbooks, to follow along with a book', items: [
+    'There is a new Textbooks tab on the home screen. It lines up a book with the tools that practice it, so a student can work through the book in order.',
+    'The first book is Dimensions Math 5. Chapter 4, Addition and Subtraction of Fractions, shows its nine lessons with the skill names from the IXL plan and the Study Buddy tools for each. A lesson shows Done once every tool for it is mastered, and Up next jumps to the first lesson that is not done.',
+    'Chapters 5 to 8 link to their modules. Chapters with no module yet say "Not in Study Buddy yet". More chapters get matched to lessons as they are added.',
+    'Utilities and Textbooks now show as the only selected tab when you are on them (All used to look selected too).' ] },
   { date: '2026-11-03', title: 'Every answer is saved, with Back and Start over', items: [
     'Leaving a tool, going to another module, or closing Study Buddy no longer loses a round. Come back and you pick up on the same question, with the same score.',
     'Quizzes, typed answers, Explain it, Fill it in, Spot it, Label the sentence, the poem tools, the planet games, Plot the point, and Listen and tap now have a Back button. Going back lets you try a question again for practice: your first answer is the one that counts.',

@@ -9,7 +9,7 @@ The site lives in `study-buddy/`. Read these before changing anything:
 
 ## Standing rules from the owner
 - Build only the modules the owner asks for. Empty subjects stay empty.
-- Words: Study Buddy → Subjects → Modules → Tools. A module has one home subject plus tags. Difficulty is Easy, Medium, Hard, or Insane. Never grade levels.
+- Words: Study Buddy → Subjects → Modules → Tools. Textbooks (`books.js`) are a second way in: a map from a book's chapters and lessons to modules and tools, with no content of its own. A module has one home subject plus tags. Difficulty is Easy, Medium, Hard, or Insane. Never grade levels.
 - The same look for every student, at every age. No emoji, no mascots.
 - Read aloud is a per-student setting, off by default. When it is on, modules read their questions aloud. Explorer's Atlas never reads quiz questions aloud. Speaker buttons always work, unless an admin turned Read aloud off for that student: then that student has no speaker buttons and nothing is read aloud.
 - Flashcards are practice only: no credit, streak, or mastery. Credit comes only from checked tools.

@@ -128,7 +128,7 @@
     app.querySelectorAll('.whocard').forEach(b => b.onclick = () => { SB.setActive(b.dataset.id); location.hash = '#/home'; });
   }
 
-  function viewHome(filter) {
+  function viewHome(filter, arg) {
     const kid = SB.activeProfile();
     document.title = 'Study Buddy';
     const saved = savedLive();
@@ -136,11 +136,18 @@
     const subj = filter === 'saved' && saved.length ? 'saved' : REG.subjects.find(s => s.id === filter) ? filter : filter === 'all' ? 'all' : saved.length ? 'saved' : 'all';
     const count = id => LIVE.filter(m => m.subject === id).length;
     const tabs = `<nav class="tabs" aria-label="Subjects">
-      <a href="#/home/all" aria-selected="${subj === 'all'}">All<span class="n">${LIVE.length}</span></a>
+      <a href="#/home/all" aria-selected="${subj === 'all' && filter !== 'utilities' && filter !== 'textbooks'}">All<span class="n">${LIVE.length}</span></a>
       ${saved.length ? `<a href="#/home/saved" aria-selected="${subj === 'saved'}" class="stab">Saved<span class="n">${saved.length}</span></a>` : ''}
       ${REG.subjects.map(s => `<a href="#/home/${s.id}" aria-selected="${subj === s.id}">${esc(s.name)}<span class="n">${count(s.id)}</span></a>`).join('')}
+      ${(window.BOOKS || []).length ? `<a href="#/textbooks" aria-selected="${filter === 'textbooks'}" class="ttab">Textbooks</a>` : ''}
       ${(REG.utilities || []).length ? `<a href="#/utilities" aria-selected="${filter === 'utilities'}" class="utab">Utilities</a>` : ''}
     </nav>`;
+
+    if (filter === 'textbooks') {   // a book's lessons lined up with the tools that practice them (books.js, textbooks.js)
+      app.innerHTML = header('Textbooks', kid) + `<div class="bar2">${tabs}</div><section class="panel" id="tbArea"></section>`;
+      window.HUBTB.draw(document.getElementById('tbArea'), arg);
+      return;
+    }
 
     if (filter === 'utilities') {
       const u = REG.utilities || [];
@@ -454,6 +461,10 @@
     else if (INFO[view] && (kid || (view !== 'settings' && view !== 'notes'))) { window.HUBPAGES[view](app, kid); crumbs = [{ label: INFO[view] }]; }
     else if (view === 'home' && kid) { viewHome(arg); const s = REG.subjects.find(x => x.id === arg); crumbs = s ? [{ label: s.name }] : []; }
     else if (view === 'utilities' && kid) { viewHome('utilities'); crumbs = [{ label: 'Utilities' }]; }
+    else if (view === 'textbooks' && kid && (window.BOOKS || []).length) {
+      const bk = (window.BOOKS || []).find(b => b.id === arg); viewHome('textbooks', arg);
+      crumbs = bk ? [{ label: 'Textbooks', href: '#/textbooks' }, { label: bk.title }] : [{ label: 'Textbooks' }];
+    }
     else if (view === 'module' && kid) { viewModule(arg); if (modById(arg)) shellOpts = { module: arg }; }
     else if (!many && kid) viewHome();
     else { viewWho(); crumbs = [{ label: "Who's studying?" }]; }
