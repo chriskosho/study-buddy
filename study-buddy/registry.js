@@ -350,6 +350,24 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'caesar-pompey',
+      subject: 'history',
+      title: 'Julius Caesar and Pompey',
+      blurb: 'Class notes on how Caesar rose to power, the Gallic Wars, crossing the Rubicon, the civil war against Pompey, and Cleopatra.',
+      tags: ['history', 'rome'],
+      path: 'modules/history/caesar-pompey/index.html',
+      storage: ['caesar-pompey'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'Your two pages of notes, with the summaries and short Historians say notes.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The notes, who or what each one is, the summaries, and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'easy', full: true, blurb: '10 multiple-choice questions from the notes. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort facts into Caesar, Pompey, and Cleopatra. Mastered at 80%.' },
+        { id: 'order', name: 'Put in order', difficulty: 'medium', blurb: 'Put the steps from the summaries in order. Mastered at 80% in place on the first check.' },
+        { id: 'blanks', name: 'Fill it in', difficulty: 'hard', blurb: 'Type the missing word from a sentence in the notes. Two tries and a hint. Mastered at 8 of 10.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 2, blurb: 'Write the summaries in complete sentences. Mastered at 2 of 3.' }
+      ]
+    },
+    {
       id: 'weather',
       subject: 'science',
       title: 'Weather',

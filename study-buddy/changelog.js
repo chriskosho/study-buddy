@@ -1,6 +1,9 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-04', title: 'New module: Julius Caesar and Pompey', items: [
+    'History has a new module made from your two pages of class notes: how Caesar rose to power, the Gallic Wars, crossing the Rubicon, the civil war against Pompey, and Cleopatra.',
+    'Study guide with both pages and their summaries, Flashcards, Quiz, Sort it (who is it about?), Put in order, Fill it in, and Explain it. Short Historians say notes link to Wikipedia.' ] },
   { date: '2026-11-04', title: 'New: Textbooks, to follow along with a book', items: [
     'There is a new Textbooks tab on the home screen. It lines up a book with the tools that practice it, so a student can work through the book in order.',
     'The first book is Dimensions Math 5. Chapter 4, Addition and Subtraction of Fractions, shows its nine lessons with the skill names from the IXL plan and the Study Buddy tools for each. A lesson shows Done once every tool for it is mastered, and Up next jumps to the first lesson that is not done.',
