@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-06', title: 'New module: Mere Christianity, Book 1', items: [
+    'A study guide for Book 1 of C. S. Lewis, Right and Wrong as a Clue to the Meaning of the Universe, for a teen or adult reader. It is under Other.',
+    'Study guide for the five chapters (summary, main ideas, key terms), Think it through (questions to talk over, not scored), Flashcards, Quiz, Sort it (which chapter?), Put in order, and Explain it. Everything is written in Study Buddy\'s own words, with no passages copied from the book.',
+    'Books 2 to 4 can be added later.' ] },
   { date: '2026-11-04', title: 'New module: Julius Caesar and Pompey', items: [
     'History has a new module made from your two pages of class notes: how Caesar rose to power, the Gallic Wars, crossing the Rubicon, the civil war against Pompey, and Cleopatra.',
     'Study guide with both pages and their summaries, Flashcards, Quiz, Sort it (who is it about?), Put in order, Fill it in, and Explain it. Short Historians say notes link to Wikipedia.' ] },
