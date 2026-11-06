@@ -368,6 +368,24 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'mere-christianity',
+      subject: 'other',
+      title: 'Mere Christianity, Book 1',
+      blurb: 'A study guide to C. S. Lewis\u2019s Book 1, Right and Wrong as a Clue to the Meaning of the Universe: chapter summaries, key terms, and questions to think through.',
+      tags: ['reading', 'faith'],
+      path: 'modules/other/mere-christianity/index.html',
+      storage: ['mere-christianity'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'A summary, the main ideas, and key terms for each of the five chapters.' },
+        { id: 'think', name: 'Think it through', kind: 'study', difficulty: 'medium', blurb: 'Questions to talk over or write about, with a starting point for each. Not scored.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Key terms, what each term means, the chapters, and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions on Lewis\u2019s argument. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'hard', blurb: 'Sort ideas into the chapter they come from. Mastered at 80%.' },
+        { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'Put the chapters, then the steps of the argument, in order. Mastered at 80% in place on the first check.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 3, blurb: 'Explain Lewis\u2019s ideas in your own words. Mastered at 3 of 4.' }
+      ]
+    },
+    {
       id: 'weather',
       subject: 'science',
       title: 'Weather',

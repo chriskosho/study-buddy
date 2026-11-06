@@ -1,0 +1,48 @@
+/* Mere Christianity, Book 1: styles only this module needs (the same look as the history modules). */
+.gtabs{margin-bottom:14px;flex-wrap:wrap}
+.gbody h3{margin:0 0 8px}
+.gbody h4{margin:14px 0 6px}
+.ideas{margin:0;padding-left:22px;display:grid;gap:5px;font-size:17px}
+.qs{margin:0;padding-left:22px;display:grid;gap:12px;font-size:17px}
+.qs .q{margin:0}
+.ttable{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:2px solid var(--line);border-radius:16px;overflow:hidden;font-size:17px}
+.ttable th,.ttable td{padding:9px 14px;text-align:left;vertical-align:top;border-bottom:1.5px solid var(--line)}
+.ttable tr:last-child th,.ttable tr:last-child td{border-bottom:0}
+.ttable tbody th{font-weight:800;width:28%}
+.ttable td.s{width:1%;padding:5px 10px}
+.ttable .spk{width:36px;height:36px}
+.ttable .spk svg{width:19px;height:19px}
+.start{margin-top:4px;font-size:15px;line-height:1.4}
+.start summary{display:inline-block;cursor:pointer;font-weight:800;font-size:13px;color:var(--navy-ink);border:1.5px solid var(--line);border-radius:999px;padding:1px 10px;background:var(--paper)}
+.start[open] summary{border-color:var(--note-line);background:var(--tint-note)}
+.start span{display:block;margin-top:5px;padding:6px 10px;border-left:4px solid var(--note-line);background:var(--tint-note);border-radius:8px;color:var(--ink)}
+@media (min-width:900px){
+  .gcols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:0 24px;align-items:start}
+  .gcols h4{margin-top:0}
+  .gterm{grid-column:1/-1}
+  .gterm h4{margin-top:2px}
+  .gsum .model{margin:0}
+  .gcols .gidea h4{margin-bottom:4px}
+  .gcols .ttable th,.gcols .ttable td{padding:6px 14px}
+  .gbody h3{margin-bottom:4px}
+  .gsum .model{padding:10px 16px;position:relative}
+  .gsum .model .eyebrow{min-height:26px}
+  .gsum .model .spk{position:absolute;top:6px;right:10px;width:34px;height:34px}
+  .gsum .model .spk svg{width:18px;height:18px}
+  .gsum .model p{font-size:15.5px;line-height:1.4;margin:4px 0}
+  .gcols .ttable{font-size:15.5px}
+  .gcols .ideas{font-size:15.5px;gap:3px}
+}
+.sortTray{gap:8px}
+.sortTray .chip{font-size:15px;line-height:1.3;padding:7px 12px;font-weight:700;border-radius:12px;text-align:left;box-shadow:0 2px 0 var(--navy)}
+.bucket{min-height:90px}
+@media (max-width:760px){
+  .gtabs{display:flex;flex-wrap:nowrap;overflow-x:auto;border:0;background:none;gap:6px;margin:0 -14px 12px;padding:2px 14px 4px;scrollbar-width:none}
+  .gtabs::-webkit-scrollbar{display:none}
+  .gtabs button{flex:0 0 auto;white-space:nowrap;border:2px solid var(--line);border-radius:999px;background:var(--surface)}
+  .gtabs button[aria-pressed="true"]{border-color:var(--teal)}
+  .ttable{font-size:15px}
+  .ttable th,.ttable td{padding:7px 9px}
+  .ttable tbody th{width:32%}
+  .ideas,.qs{font-size:16px}
+}
