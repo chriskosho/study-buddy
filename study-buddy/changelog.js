@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-09', title: 'New: 5th Grade Science, Unit 4 (Force and Motion)', items: [
+    'Science has eight new modules that follow the Unit 4 book in order: Forces, Gravity and Friction, Other Forces, Patterns of Motion, Simple Machines, Compound Machines, Scientific Inquiry and Engineering, and the Unit 4 Practice Test. Newton and His Laws was already there.',
+    'Each lesson has a Study guide in the book\'s wording (with its tables and vocabulary), Flashcards, a Quiz, Sort it, Explain it, and Put in order where it fits. The labs are a tab in the study guide that points to the Lab Manual.',
+    'The Textbooks tab has a new book, 5th Grade Science, Unit 4: Force and Motion, so a student can work through the lessons in order and see Up next. Lessons are Done once the Quiz, Sort it, and Explain it are mastered.',
+    'The Practice Test module has the 25 questions from the book\'s Unit 4 Practice Test. The practice questions beyond the book\'s own wording are new.' ] },
   { date: '2026-11-06', title: 'New module: Mere Christianity, Book 1', items: [
     'A study guide for Book 1 of C. S. Lewis, Right and Wrong as a Clue to the Meaning of the Universe, for a teen or adult reader. It is under Other.',
     'Study guide for the five chapters (summary, main ideas, key terms), Think it through (questions to talk over, not scored), Flashcards, Quiz, Sort it (which chapter?), Put in order, and Explain it. Everything is written in Study Buddy\'s own words, with no passages copied from the book.',

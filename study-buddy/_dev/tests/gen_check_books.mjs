@@ -25,7 +25,7 @@ for (const b of BOOKS || []) {
     if (!m) { bad(at + ': no module "' + ch.module + '"'); continue; }
     if (m.archived) bad(at + ': module "' + ch.module + '" is archived');
     if (!ch.title) bad(at + ': needs a title');
-    else if (!m.blurb.includes('chapter ' + ch.n)) bad(at + ': the module blurb does not say chapter ' + ch.n);
+    else if (!ch.label && !m.blurb.toLowerCase().includes((b.chapterLabel || 'chapter').toLowerCase() + ' ' + ch.n)) bad(at + ': the module blurb does not say ' + (b.chapterLabel || 'chapter').toLowerCase() + ' ' + ch.n);
     if (!ch.lessons) continue;
     const t = id => m.tools.find(x => x.id === id);
     if (ch.guide && (!t(ch.guide) || t(ch.guide).kind !== 'study')) bad(at + ': guide "' + ch.guide + '" is not a study tool of ' + m.id);

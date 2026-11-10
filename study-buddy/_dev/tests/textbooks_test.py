@@ -39,10 +39,10 @@ async def main():
         tab = pg.locator('nav.tabs a:has-text("Textbooks")')
         check(await tab.count() == 1, 'the home tabs have a Textbooks tab')
         await tab.click(); await pg.wait_for_selector('#tbArea .mod')
-        check('Textbooks' in await pg.locator('h1').inner_text() and await pg.locator('#tbArea .mod').count() == 1, 'the Textbooks page lists the book')
-        check('Dimensions Math 5' in await pg.locator('#tbArea .mod h3').inner_text(), 'the book keeps the title as printed')
+        check('Textbooks' in await pg.locator('h1').inner_text() and await pg.locator('#tbArea .mod').count() == 2, 'the Textbooks page lists both books')
+        check('Dimensions Math 5' in await pg.locator('#tbArea .mod h3').first.inner_text(), 'the book keeps the title as printed')
         check(await pg.locator('nav.tabs a[aria-selected="true"]').inner_text() == 'Textbooks', 'the Textbooks tab shows as selected')
-        await pg.locator('#tbArea .mod').click(); await pg.wait_for_selector('.tb-chaps')
+        await pg.locator('#tbArea .mod').first.click(); await pg.wait_for_selector('.tb-chaps')
         check(pg.url.endswith('#/textbooks/dimensions-5'), 'the book opens at its own address')
         crumbs = await pg.locator('.sbcrumbs').inner_text()
         check('Textbooks' in crumbs and 'Dimensions Math 5' in crumbs, 'the trail shows Textbooks, then the book')
@@ -119,6 +119,25 @@ async def main():
         check(await ph.locator('details.tb-chap').get_attribute('open') is not None, 'and opens again')
         check(await over(ph) <= 0, 'still no sideways scroll at 360 wide')
         await mp.close()
+
+        # ---- the Science Unit 4 book: sections, lesson labels, study tools never block "done" ----
+        await pg.goto(BASE + '#/help'); await pg.evaluate("id => SB.setActive(id)", 'k2')
+        await pg.evaluate("""(() => { const d = SB.child('k2'); const now = Date.now();
+          d.tools['forces/quiz'] = { attempts: 1, visits: 1, best: 9, max: 10, fullBest: 9, fullMax: 10, last: now };
+          d.tools['forces/sort'] = { attempts: 1, visits: 1, best: 9, max: 10, last: now };
+          d.tools['forces/explain'] = { attempts: 1, visits: 1, best: 2, max: 3, last: now };
+          localStorage.setItem('studybuddy.v1.child.k2', JSON.stringify(d)); })()""")
+        await pg.goto(BASE + '#/textbooks/science-5-unit-4'); await pg.wait_for_selector('.tb-chaps')
+        check(await pg.locator('details.tb-chap').count() == 9, 'Unit 4 shows 8 lessons and the Practice Test')
+        check(await pg.locator('.tb-part').count() == 4, 'Unit 4 has Section One, Two, Three and the Unit Test headings')
+        nums = await pg.locator('.tb-head .tb-num').all_inner_texts()
+        check(nums[0] == 'Lesson 1' and nums[4] == 'Lesson 5' and nums[8] == 'Test', 'chapters are labelled Lesson N, and the last is Test: ' + str(nums))
+        check('1 of 2 lessons done' not in await pg.locator('details.tb-chap').first.inner_text() and 'All done' in await pg.locator('details.tb-chap').first.inner_text(), 'Lesson 1 shows All done once its practice tools are mastered')
+        nxt = await pg.locator('#tbNext').inner_text()
+        check('Lesson 2' in nxt and 'Step 1' in nxt, 'Up next points to Lesson 2, Step 1: ' + nxt.replace('\n', ' '))
+        await pg.locator('details.tb-chap').nth(4).locator('summary').click()
+        check(await pg.locator('details.tb-chap').nth(4).locator('a:has-text("Study guide")').count() == 1, 'a Unit 4 chapter opens the study guide')
+        check(await over(pg) <= 0, 'no sideways scroll on the Unit 4 book')
 
         # ---- an unknown book goes back to the list ----
         await pg.goto(BASE + '#/textbooks/nope'); await pg.wait_for_selector('#tbArea .mod')

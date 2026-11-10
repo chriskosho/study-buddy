@@ -15,8 +15,8 @@
     const m = modById(ch.module);
     const tools = (ls.tools || []).map(id => m && m.tools.find(t => t.id === id)).filter(Boolean);
     const rows = tools.map(t => ({ t, mastered: SB.isMastered(t, SB.toolRecord(m.id, t.id)), started: !!SB.toolRecord(m.id, t.id) }));
-    const left = rows.find(r => !r.mastered);
-    return { m, rows, done: rows.length > 0 && !left, started: rows.some(r => r.started), next: left ? left.t : null };
+    const left = rows.find(r => !r.mastered && r.t.kind !== 'study');   // study tools are shown but never need mastering
+    return { m, rows, done: rows.some(r => r.t.kind !== 'study') && !left, started: rows.some(r => r.started), next: left ? left.t : null };
   }
   const mapped = ch => !!(ch.module && ch.lessons && ch.lessons.length && modById(ch.module));
   /* the first lesson (in book order) that is not done yet */
@@ -33,14 +33,15 @@
     return { done, total };
   }
 
-  function chapterHTML(ch, openN) {
-    const label = 'Chapter ' + ch.n;
+  function chapterHTML(ch, openN, book) {
+    const label = ch.label || (book.chapterLabel || 'Chapter') + ' ' + ch.n;
+    const part = ch.part ? `<h4 class="tb-part">${esc(ch.part)}</h4>` : '';
     if (!ch.module || !modById(ch.module)) {
-      return `<div class="tb-chap tb-off"><div class="tb-head"><span class="tb-num">${esc(label)}</span><span class="tb-title">${esc(ch.title || '')}</span><span class="tb-status">Not in Study Buddy yet</span></div></div>`;
+      return part + `<div class="tb-chap tb-off"><div class="tb-head"><span class="tb-num">${esc(label)}</span><span class="tb-title">${esc(ch.title || '')}</span><span class="tb-status">Not in Study Buddy yet</span></div></div>`;
     }
     const m = modById(ch.module);
     if (!mapped(ch)) {
-      return `<div class="tb-chap"><div class="tb-head"><span class="tb-num">${esc(label)}</span><span class="tb-title">${esc(ch.title)}</span>
+      return part + `<div class="tb-chap"><div class="tb-head"><span class="tb-num">${esc(label)}</span><span class="tb-title">${esc(ch.title)}</span>
         <span class="tb-status">Lessons not matched to the book yet</span><a class="btn ghost small" href="${esc(m.path)}">Open the module</a></div></div>`;
     }
     const n = ch.lessons.filter(ls => lessonState(ch, ls).done).length;
@@ -49,12 +50,12 @@
       const s = lessonState(ch, ls);
       const status = s.done ? `<span class="done">${CHECK}Done</span>` : s.started ? '<span class="tb-mid">In progress</span>' : '';
       return `<li class="tb-lesson${s.done ? ' is-done' : ''}" id="tb-${ch.n}-${ls.n}">
-        <div class="tb-lhead"><span class="tb-lnum">Lesson ${ls.n}</span><h4>${esc(ls.title)}</h4>${status}</div>
+        <div class="tb-lhead"><span class="tb-lnum">${esc(book.lessonLabel || 'Lesson')} ${ls.n}</span><h4>${esc(ls.title)}</h4>${status}</div>
         ${ls.skills && ls.skills.length ? `<ul class="tb-skills">${ls.skills.map(k => `<li>${esc(k)}</li>`).join('')}</ul>` : ''}
         <div class="tb-tools" role="group" aria-label="Tools for ${esc(ls.title)}">${s.rows.map(r => `<a class="btn small${r.mastered ? ' ghost' : ''}" href="${esc(toolURL(s.m, r.t))}"${r.mastered ? ' aria-label="' + esc(r.t.name) + ', mastered"' : ''}>${r.mastered ? CHECK : ''}${esc(r.t.name)}</a>`).join('')}</div>
       </li>`;
     }).join('');
-    return `<details class="tb-chap"${ch.n === openN ? ' open' : ''}><summary class="tb-head"><span class="tb-num">${esc(label)}</span><span class="tb-title">${esc(ch.title)}</span>
+    return part + `<details class="tb-chap"${ch.n === openN ? ' open' : ''}><summary class="tb-head"><span class="tb-num">${esc(label)}</span><span class="tb-title">${esc(ch.title)}</span>
         <span class="tb-status">${n === ch.lessons.length ? `<span class="done">${CHECK}All done</span>` : esc(n + ' of ' + plural(ch.lessons.length, 'lesson') + ' done')}</span></summary>
       <div class="tb-body"><div class="tb-top">${guide ? `<a class="btn small" href="${esc(toolURL(m, guide))}">${esc(guide.name)}</a>` : ''}<a class="btn ghost small" href="${esc(m.path)}">Open the module</a></div>
       <ol class="tb-lessons">${lessons}</ol></div></details>`;
@@ -75,9 +76,9 @@
     box.innerHTML = `<div class="tb-bookhead"><div class="grow"><h3 style="margin:0">${esc(book.title)}</h3><p class="lead" style="margin:2px 0 0">${esc(book.blurb)}</p></div>
         ${book.link ? `<a class="btn ghost small" href="${esc(book.link.url)}" target="_blank" rel="noopener">${esc(book.link.label)}</a>` : ''}</div>
       <div class="prog row" style="margin:10px 0 14px"><div class="bar" aria-hidden="true"><i style="width:${c.total ? c.done / c.total * 100 : 0}%"></i></div><span class="hint">${c.done} of ${plural(c.total, 'lesson')} done in the chapters matched so far</span></div>
-      ${nx ? `<div class="continue" id="tbNext"><div class="grow"><div class="eyebrow">Up next</div><b>Chapter ${nx.ch.n}, Lesson ${nx.ls.n}: ${esc(nx.ls.title)}</b> <span class="hint">${esc(nx.s.next.name)}</span></div><a class="btn small" href="${esc(toolURL(nx.s.m, nx.s.next))}">Open</a></div>`
+      ${nx ? `<div class="continue" id="tbNext"><div class="grow"><div class="eyebrow">Up next</div><b>${esc(nx.ch.label || (book.chapterLabel || 'Chapter') + ' ' + nx.ch.n)}, ${esc(book.lessonLabel || 'Lesson')} ${nx.ls.n}: ${esc(nx.ls.title)}</b> <span class="hint">${esc(nx.s.next.name)}</span></div><a class="btn small" href="${esc(toolURL(nx.s.m, nx.s.next))}">Open</a></div>`
         : c.total ? '<p class="empty" id="tbNext">Every matched lesson is done.</p>' : ''}
-      <div class="tb-chaps">${book.chapters.map(ch => chapterHTML(ch, openN)).join('')}</div>
+      <div class="tb-chaps">${book.chapters.map(ch => chapterHTML(ch, openN, book)).join('')}</div>
       <div class="row" style="margin-top:14px"><a class="btn ghost small" href="#/textbooks">All textbooks</a></div>`;
   }
 

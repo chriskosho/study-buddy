@@ -240,6 +240,7 @@ summary.tb-head{cursor:pointer;list-style:none}
 summary.tb-head::-webkit-details-marker{display:none}
 summary.tb-head::after{content:"";width:10px;height:10px;margin-left:auto;border-right:3px solid var(--ink2);border-bottom:3px solid var(--ink2);transform:rotate(45deg);transition:transform .15s;flex:none}
 details[open]>summary.tb-head::after{transform:rotate(-135deg)}
+.tb-part{margin:14px 0 4px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
 .tb-num{font-weight:800;color:var(--teal-ink);white-space:nowrap}
 .tb-title{font-weight:800;font-size:18px;flex:1;min-width:140px}
 .tb-status{color:var(--ink2);font-size:14px;font-weight:700}
