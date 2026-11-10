@@ -48,7 +48,7 @@ const TEST_FACTS = [
   ['Pattern', 'A pattern is a repeated arrangement of things.'],
   ['Elliptical orbits', 'Gravity causes the elliptical orbits of planets around the sun.'],
   ['How birds fly', 'Birds fly by flapping their wings in a rhythmic pattern, which creates lift by pushing against the air.'],
-  ['A penny and a brick', 'If a penny and a brick were dropped at the same time in the air, the brick would fall faster than the penny.'],
+  ['A penny and a brick', 'If a penny and a brick were dropped at the same time in the air, the brick would fall faster than the penny. (Without air, they would land together.)'],
   ['Patterns in nature', 'The moon orbiting around Earth, tides moving in and out, and a flag flapping back and forth in the wind are patterns of motion in nature.'],
   ['Made by people', 'A yo-yo moving up and down and the gears in a watch moving are not patterns of motion in nature.'],
   ['Why laws and not theories', 'Newton’s laws are called laws and not theories because the laws have always been observed to be true and have been proven by many other scientists.']

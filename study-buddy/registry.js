@@ -423,6 +423,136 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'forces',
+      subject: 'science',
+      title: 'Forces',
+      blurb: 'Lesson 1: what a force is, what forces do, measuring forces, balanced and unbalanced forces, and the energy of motion.',
+      tags: ['science', 'physics', 'forces'],
+      path: 'modules/science/forces/index.html',
+      storage: ['forces'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The lesson in your book\'s words, the vocabulary, and the Balancing Forces lab review.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the review and Quiz 1. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'hard', blurb: 'Balanced or unbalanced, and what the force did. Mastered at 80%.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 2, blurb: 'Answer in complete sentences. Mastered at 2 of 3.' }
+      ]
+    },
+    {
+      id: 'gravity-friction',
+      subject: 'science',
+      title: 'Gravity and Friction',
+      blurb: 'Lesson 2: gravity, weight and mass, height and newtons, and what changes friction: area, texture, and mass.',
+      tags: ['science', 'physics', 'forces'],
+      path: 'modules/science/gravity-friction/index.html',
+      storage: ['gravity-friction'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The lesson in your book\'s words, the weight table, and the vocabulary.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the review and Quiz 1. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'hard', blurb: 'Gravity or friction, and more friction or less friction. Mastered at 80%.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 2, blurb: 'Answer in complete sentences. Mastered at 2 of 3.' }
+      ]
+    },
+    {
+      id: 'other-forces',
+      subject: 'science',
+      title: 'Other Forces',
+      blurb: 'Lesson 3: electric force, magnetic force, poles, magnetic fields, and what magnets attract.',
+      tags: ['science', 'physics', 'forces', 'magnets'],
+      path: 'modules/science/other-forces/index.html',
+      storage: ['other-forces'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The lesson in your book\'s words, the vocabulary, and the Magnetism lab review.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the review and Quiz 1. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'hard', blurb: 'Attract or repel, and is it attracted to a magnet. Mastered at 80%.' },
+        { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'The balloon and your hair, step by step. Mastered at 80%.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 2, blurb: 'Answer in complete sentences. Mastered at 2 of 3.' }
+      ]
+    },
+    {
+      id: 'patterns-of-motion',
+      subject: 'science',
+      title: 'Patterns of Motion',
+      blurb: 'Lesson 4: patterns in nature, machines, and everyday objects, and cause and effect in force and motion.',
+      tags: ['science', 'physics', 'motion'],
+      path: 'modules/science/patterns-of-motion/index.html',
+      storage: ['patterns-of-motion'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The lesson in your book\'s words, Tables 4.1 and 4.2, and the vocabulary.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the review and Quiz 2. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'hard', blurb: 'Nature, machines, or everyday objects, and cause or effect. Mastered at 80%.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 2, blurb: 'Answer in complete sentences. Mastered at 2 of 3.' }
+      ]
+    },
+    {
+      id: 'simple-machines',
+      subject: 'science',
+      title: 'Simple Machines',
+      blurb: 'Lesson 6: work, and the six simple machines: inclined plane, wedge, screw, lever, wheel and axle, pulley.',
+      tags: ['science', 'physics', 'machines'],
+      path: 'modules/science/simple-machines/index.html',
+      storage: ['simple-machines'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The lesson in your book\'s words and the vocabulary.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the review. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'hard', blurb: 'Which simple machine is it, and is work being done. Mastered at 80%.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 2, blurb: 'Answer in complete sentences. Mastered at 2 of 3.' }
+      ]
+    },
+    {
+      id: 'compound-machines',
+      subject: 'science',
+      title: 'Compound Machines',
+      blurb: 'Lesson 7: compound machines, structure and function, Table 7.1, and efficiency.',
+      tags: ['science', 'physics', 'machines'],
+      path: 'modules/science/compound-machines/index.html',
+      storage: ['compound-machines'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The lesson in your book\'s words, Table 7.1, the vocabulary, and the Build a Catapult lab review.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the review. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'hard', blurb: 'Simple or compound, and which simple machine is the part. Mastered at 80%.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 2, blurb: 'Answer in complete sentences. Mastered at 2 of 3.' }
+      ]
+    },
+    {
+      id: 'inquiry-engineering',
+      subject: 'science',
+      title: 'Scientific Inquiry and Engineering',
+      blurb: 'Lesson 8: the six steps of scientific inquiry, the seven steps of the engineering design process, and the bike helmet example.',
+      tags: ['science', 'engineering', 'inquiry'],
+      path: 'modules/science/inquiry-engineering/index.html',
+      storage: ['inquiry-engineering'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The lesson in your book\'s words and the vocabulary.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the review and Quiz 3. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'hard', blurb: 'Scientists or engineers, and which process a step belongs to. Mastered at 80%.' },
+        { id: 'order', name: 'Put in order', difficulty: 'hard', blurb: 'The steps of scientific inquiry and of the engineering design process. Mastered at 80%.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 2, blurb: 'Answer in complete sentences. Mastered at 2 of 3.' }
+      ]
+    },
+    {
+      id: 'unit4-practice-test',
+      subject: 'science',
+      title: 'Unit 4 Practice Test',
+      blurb: 'The 25 questions from the Unit 4 Practice Test, with the vocabulary for the whole unit.',
+      tags: ['science', 'physics', 'test'],
+      path: 'modules/science/unit4-practice-test/index.html',
+      storage: ['unit4-practice-test'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'How to study for the Unit Test, and the unit vocabulary.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Vocabulary and every Practice Test question. Practice only.' },
+        { id: 'quiz', name: 'Practice Test', difficulty: 'medium', full: true, blurb: '10 multiple-choice questions from the Practice Test. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'hard', blurb: 'Simple machines, Newton\'s laws, and magnets. Mastered at 80%.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 2, blurb: 'Answer in complete sentences. Mastered at 2 of 3.' }
+      ]
+    },
+    {
       id: 'handwriting',
       subject: 'english',
       title: 'Handwriting',

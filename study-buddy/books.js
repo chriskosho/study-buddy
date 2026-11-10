@@ -43,5 +43,67 @@ window.BOOKS = [
       { n: 8, title: 'Volume of Solid Figures', module: 'volume' },
       { n: 9 }, { n: 10 }, { n: 11 }, { n: 12 }, { n: 13 }, { n: 14 }, { n: 15 }
     ]
+  },
+  {
+    id: 'science-5-unit-4',
+    title: '5th Grade Science, Unit 4: Force and Motion',
+    blurb: 'Follow the book in order, lesson by lesson. Open the study guide first, then practice it, then explain it. The labs are in the study guides; do them in your Lab Manual.',
+    chapterLabel: 'Lesson', lessonLabel: 'Step',
+    chapters: [
+      { part: 'Section One', n: 1, title: 'Forces', module: 'forces', guide: 'guide',
+        lessons: [
+          { n: 1, title: 'Practice it', tools: ['quiz', 'sort'] },
+          { n: 2, title: 'Explain it', tools: ['explain'] }
+        ]
+      },
+      { n: 2, title: 'Gravity and Friction', module: 'gravity-friction', guide: 'guide',
+        lessons: [
+          { n: 1, title: 'Practice it', tools: ['quiz', 'sort'] },
+          { n: 2, title: 'Explain it', tools: ['explain'] }
+        ]
+      },
+      { n: 3, title: 'Other Forces', module: 'other-forces', guide: 'guide',
+        lessons: [
+          { n: 1, title: 'Practice it', tools: ['quiz', 'sort', 'order'] },
+          { n: 2, title: 'Explain it', tools: ['explain'] }
+        ]
+      },
+      { part: 'Section Two', n: 4, title: 'Patterns of Motion', module: 'patterns-of-motion', guide: 'guide',
+        lessons: [
+          { n: 1, title: 'Practice it', tools: ['quiz', 'sort'] },
+          { n: 2, title: 'Explain it', tools: ['explain'] }
+        ]
+      },
+      { n: 5, title: 'Newton and His Laws', module: 'newton-laws', guide: 'guide',
+        lessons: [
+          { n: 1, title: 'Practice it', tools: ['quiz', 'sort', 'type'] },
+          { n: 2, title: 'Explain it', tools: ['explain'] }
+        ]
+      },
+      { part: 'Section Three', n: 6, title: 'Simple Machines', module: 'simple-machines', guide: 'guide',
+        lessons: [
+          { n: 1, title: 'Practice it', tools: ['quiz', 'sort'] },
+          { n: 2, title: 'Explain it', tools: ['explain'] }
+        ]
+      },
+      { n: 7, title: 'Compound Machines', module: 'compound-machines', guide: 'guide',
+        lessons: [
+          { n: 1, title: 'Practice it', tools: ['quiz', 'sort'] },
+          { n: 2, title: 'Explain it', tools: ['explain'] }
+        ]
+      },
+      { n: 8, title: 'Scientific Inquiry and Engineering', module: 'inquiry-engineering', guide: 'guide',
+        lessons: [
+          { n: 1, title: 'Practice it', tools: ['quiz', 'sort', 'order'] },
+          { n: 2, title: 'Explain it', tools: ['explain'] }
+        ]
+      },
+      { part: 'Unit Test', label: 'Test', n: 9, title: 'Practice Test', module: 'unit4-practice-test', guide: 'guide',
+        lessons: [
+          { n: 1, title: 'Take the Practice Test', tools: ['quiz', 'sort'] },
+          { n: 2, title: 'Explain it', tools: ['explain'] }
+        ]
+      }
+    ]
   }
 ];
