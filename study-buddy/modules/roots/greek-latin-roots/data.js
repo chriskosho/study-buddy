@@ -1,4 +1,7 @@
 /* Greek and Latin Roots: content.
+   Set 1 is the first 18 roots. Set 2 is Roots Study Sheet #17-24 (8 roots, from two photographed pages of the student's own sheet).
+   For Set 2 the root names, meanings, and the 16 derivatives with their definitions are the sheet's wording (DERIVS); the kid-friendly
+   notes (use) and example sentences were written for this module and need the same separate accuracy review.
    The 18 roots and their meanings are the owner's list (spellings as given). The English words, notes, and the
    two-root words were written for this module and need a separate accuracy review (see ARCHITECTURE.md section 10).
    level: easy (animals), medium (birds, plus malus, omnis, ex, eu), hard (amphi, ambi, archos, kyklos, circum).
@@ -64,14 +67,48 @@ const ROOTS = [
     eg: 'The water cycle goes round and round.', stems: ['cycle', 'cycling', 'cyclone'] },
   { id: 'circum', noTypo: true, root: 'circum', lang: 'Latin', meaning: 'around', level: 'hard', group: 'around', accept: ['around', 'round'],
     words: ['circumference', 'circumnavigate', 'circumstance'], use: 'The circumference is the distance around a circle. To circumnavigate is to sail all the way around something, like the world. A circumstance is a fact that "stands around" an event.',
-    eg: 'We measured the circumference of the tree trunk.', stems: ['circumference', 'circumnavigat', 'circumstance'] }
+    eg: 'We measured the circumference of the tree trunk.', stems: ['circumference', 'circumnavigat', 'circumstance'] },
+
+  /* Set 2: Roots Study Sheet #17-24 (the sheet's numbers 17 to 24 are in the comments). level s2a = page 1, s2b = page 2. */
+  { id: 'nomen', set: 2, no: 17, noTypo: true, root: 'nomen', also: 'nominis', lang: 'Latin', meaning: 'name', level: 's2a', accept: ['name', 'names'],
+    words: ['nominate', 'denominator'], use: 'To nominate someone is to suggest their name for an office, like class president. The denominator is the bottom number of a fraction. It names the kind of parts the whole is split into.',
+    eg: 'She was nominated for class president.', stems: ['nominat', 'denominator'] },
+  { id: 'pro', set: 2, no: 18, noTypo: true, root: 'pro', lang: 'Latin', meaning: 'for, before, forward, in place of', level: 's2a', accept: ['for', 'before', 'forward', 'in place of', 'in place'], either: true,
+    words: ['prologue', 'pronoun'], use: 'A prologue is the words before the beginning of a book or play. A pronoun stands in place of a noun, like "she" for "Maria." Careful: pro and prae can both mean "before," but only pro also means "for," "forward," or "in place of."',
+    eg: 'The prologue came before chapter one.', stems: ['prologue', 'pronoun'] },
+  { id: 'prae', set: 2, no: 19, noTypo: true, root: 'prae', lang: 'Latin', meaning: 'before, in front of', level: 's2a', accept: ['before', 'in front of', 'in front'], either: true,
+    words: ['preamble', 'predict'], use: 'A preamble is the part that goes before the main part, like the opening words of the Constitution. To predict is to say beforehand what will happen. Careful: prae and pro can both mean "before," but prae is the one that means "in front of."',
+    eg: 'Dark clouds helped me predict the storm.', stems: ['preamble', 'predict'] },
+  { id: 'ad', set: 2, no: 20, noTypo: true, root: 'ad', lang: 'Latin', meaning: 'to, toward, near, next to', level: 's2a', accept: ['to', 'toward', 'towards', 'near', 'next to'], either: true,
+    words: ['admire', 'adjective'], use: 'To admire is to look at something with wonder and amazement. An adjective is a word "thrown at" a noun, toward it, to tell more about it.',
+    eg: 'I admire the way she plays the violin.', stems: ['admir', 'adjective'] },
+  { id: 'jacio', set: 2, no: 21, noTypo: true, root: 'jacio', also: 'jactum', lang: 'Latin', meaning: 'throw', level: 's2b', accept: ['throw', 'throws', 'to throw'],
+    words: ['object', 'reject'], use: 'To object is to throw an idea against someone else\'s. To reject is to throw something back.',
+    eg: 'The goalie rejected the shot and sent it back.', stems: ['object', 'reject'] },
+  { id: 'pono', set: 2, no: 22, noTypo: true, root: 'pono', also: 'positum', lang: 'Latin', meaning: 'lay, put, place', level: 's2b', accept: ['lay', 'put', 'place', 'lay put place', 'put or place'], either: true,
+    words: ['position', 'component'], use: 'A position is where something is placed. A component is a part that is put together with other parts to make something.',
+    eg: 'Each component of the radio was put into its position.', stems: ['position', 'component'] },
+  { id: 'cum', set: 2, no: 23, noTypo: true, root: 'cum', lang: 'Latin', meaning: 'with, together', level: 's2b', accept: ['with', 'together', 'with together', 'together with'], either: true,
+    words: ['collaborate', 'community'], use: 'To collaborate is to work with someone. A community is a group that builds together. At the start of a word, cum often changes to col- or com-.',
+    eg: 'We collaborated on the science project.', stems: ['collaborat', 'communit'] },
+  { id: 'figo', set: 2, no: 24, noTypo: true, root: 'figo', also: 'fixum', lang: 'Latin', meaning: 'fix, fasten, attach', level: 's2b', accept: ['fix', 'fasten', 'attach', 'fix fasten attach'], either: true,
+    words: ['prefix', 'suffix'], use: 'A prefix is fastened to the beginning of a word, and a suffix is fastened to the end of a word.',
+    eg: 'The prefix un- is fixed to the front of the word.', stems: ['prefix', 'suffix'] }
 ];
 
 const LEVELS = [
   { id: 'easy', label: 'Easy', sub: 'Animals' },
   { id: 'medium', label: 'Medium', sub: 'Birds and more' },
   { id: 'hard', label: 'Hard', sub: 'Both and around' },
-  { id: 'insane', label: 'Insane', sub: 'Two-root words' }
+  { id: 'insane', label: 'Insane', sub: 'Two-root words' },
+  /* Set 2 (Roots Study Sheet #17-24): two pages of roots, then the sheet's words and blanks */
+  { id: 's2a', set: 2, label: 'Sheet 17 to 20', sub: 'nomen, pro, prae, ad' },
+  { id: 's2b', set: 2, label: 'Sheet 21 to 24', sub: 'jacio, pono, cum, figo' },
+  { id: 's2w', set: 2, words: true, label: 'Sheet words', sub: 'Fill in the blanks' }
+];
+const SETS = [
+  { id: 1, label: 'Set 1', sub: 'The first 18 roots' },
+  { id: 2, label: 'Set 2', sub: 'Study Sheet #17 to 24' }
 ];
 
 /* Insane: words built from two roots. The first part is one of the 18 roots. The other part is NOT on the memorize list,
@@ -100,11 +137,37 @@ const TWO = [
   { w: 'circumference', root: 'circum', other: ['ferre', 'to carry'], def: 'the distance around a circle', blank: 'the distance ___ a circle', ans: ['around', 'round'] }
 ];
 
+/* Set 2 derivatives, in the sheet's wording. def is the sheet's definition with its blanks filled in (the printed words).
+   NOT PRINTED ON THE SHEET, taken from the student's handwriting, so confirm with the teacher: the meanings of nomen, prae, jacio, cum, the root names pro, ad, pono/positum, figo/fixum, and the blank answers "establish" (position) and "builds" (community); the other answers there are accepted too.
+   blanks lists each blank the sheet leaves open in the definition, in order; each one is the list of answers accepted, and the first is the
+   printed word. word is true when the sheet also leaves the derivative itself blank. */
+const DERIVS = [
+  { w: 'nominate', root: 'nomen', def: 'suggest someone\'s name for office', word: true, blanks: [] },
+  { w: 'denominator', root: 'nomen', def: 'part of a fraction below the line', blanks: [['part'], ['fraction']] },
+  { w: 'prologue', root: 'pro', def: 'words before beginning a book or play', blanks: [['book', 'play'], ['play', 'book']] },
+  { w: 'pronoun', root: 'pro', def: 'words that stand or replace nouns', word: true, blanks: [] },
+  { w: 'preamble', root: 'prae', def: 'that which goes before', word: true, blanks: [] },
+  { w: 'predict', root: 'prae', def: 'say beforehand, foretell', blanks: [['beforehand']] },
+  { w: 'admire', root: 'ad', def: 'look at with wonder and amazement', blanks: [['wonder', 'amazement'], ['amazement', 'wonder']] },
+  { w: 'adjective', root: 'ad', def: 'a word \u201cthrown at\u201d a noun to modify it', word: true, blanks: [] },
+  { w: 'object', root: 'jacio', def: 'throw against', blanks: [['throw']] },
+  { w: 'reject', root: 'jacio', def: 'throw back', word: true, blanks: [] },
+  { w: 'position', root: 'pono', def: 'establish place', blanks: [['establish', 'put', 'set', 'lay', 'locate']] },
+  { w: 'component', root: 'pono', def: 'put together', word: true, blanks: [] },
+  { w: 'collaborate', root: 'cum', def: 'work with', word: true, blanks: [] },
+  { w: 'community', root: 'cum', def: 'group which builds together', blanks: [['builds', 'lives', 'works', 'build', 'live', 'work']] },
+  { w: 'prefix', root: 'figo', def: 'letters or syllables added to the beginning of a word', blanks: [['letters', 'syllables'], ['syllables', 'letters']] },
+  { w: 'suffix', root: 'figo', def: 'letters or syllable added to the end of a word', word: true, blanks: [['end']] }
+];
+
 /* Sort it: groups by meaning, and Greek or Latin. */
 const SORTS = [
   { id: 'animals', label: 'Animals', buckets: [['horse', 'Horse roots'], ['bird', 'Bird roots'], ['animal', 'Other animal roots']],
     items: [['equus', 'horse'], ['caballus', 'horse'], ['hippos', 'horse'], ['ornis', 'bird'], ['avis', 'bird'], ['porcus', 'animal'], ['canis', 'animal'], ['leon', 'animal'], ['feles', 'animal']] },
   { id: 'meanings', label: 'Good, bad, around', buckets: [['good', 'Good or bad roots'], ['around', 'Both, around, or circle roots']],
     items: [['eu', 'good'], ['malus', 'good'], ['amphi', 'around'], ['ambi', 'around'], ['circum', 'around'], ['kyklos', 'around']] },
-  { id: 'language', label: 'Greek or Latin', buckets: [['Greek', 'Greek roots'], ['Latin', 'Latin roots']], items: 'language' }
+  { id: 'language', label: 'Greek or Latin', buckets: [['Greek', 'Greek roots'], ['Latin', 'Latin roots']], items: 'language' },
+  /* Set 2: drag each word from the sheet to the root it comes from. items: 'derivs' uses DERIVS for the listed roots. */
+  { id: 'sheet1', label: 'Sheet 17 to 20: which root?', buckets: [['nomen', 'nomen'], ['pro', 'pro'], ['prae', 'prae'], ['ad', 'ad']], items: 'derivs' },
+  { id: 'sheet2', label: 'Sheet 21 to 24: which root?', buckets: [['jacio', 'jacio'], ['pono', 'pono'], ['cum', 'cum'], ['figo', 'figo']], items: 'derivs' }
 ];

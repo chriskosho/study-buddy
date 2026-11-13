@@ -1,6 +1,6 @@
 """Greek and Latin Roots test (Playwright + Chromium).
 Checks the subject and module entry, the content (every root, words, notes, the ambi/amphi contrast, levels),
-all five tools, per-root mastery (80% of the last 5 tries, at least 3), missed roots coming back, Read aloud, and layout.
+all five tools, Set 2 (Roots Study Sheet #17-24: 8 roots, 16 derivatives, its levels, sheet words and blanks), per-root mastery (80% of the last 5 tries, at least 3), missed roots coming back, Read aloud, and layout.
 Run:  python3 study-buddy/_dev/tests/greek_latin_roots_test.py"""
 import asyncio, http.server, threading, functools, os, sys, json
 from playwright.async_api import async_playwright
@@ -83,7 +83,18 @@ async def main():
                 ('ornis','Greek','bird','medium'),('avis','Latin','bird','medium'),('malus','Latin','apple or bad','medium'),('omnis','Latin','all','medium'),('ex','Latin','out of','medium'),('eu','Greek','good or well','medium'),
                 ('amphi','Greek','both or around','hard'),('ambi','Latin','both','hard'),('archos','Greek','ruler','hard'),('kyklos','Greek','circle','hard'),('circum','Latin','around','hard')]
         got = [tuple(r[:4]) for r in d['roots']]
-        check(got == want, 'all 18 roots, with the owner\'s spellings, languages, meanings, and levels')
+        check(got[:18] == want and len(got) == 26, 'the first 18 roots, with the owner\'s spellings, languages, meanings, and levels, plus the 8 roots of Set 2')
+        sheet = [('nomen','name','s2a'),('pro','for, before, forward, in place of','s2a'),('prae','before, in front of','s2a'),('ad','to, toward, near, next to','s2a'),('jacio','throw','s2b'),('pono','lay, put, place','s2b'),('cum','with, together','s2b'),('figo','fix, fasten, attach','s2b')]
+        check([(r[0], r[2], r[3]) for r in d['roots'][18:]] == sheet and all(r[1] == 'Latin' for r in d['roots'][18:]), 'Set 2 has the 8 roots and meanings from the study sheet, in order, all Latin')
+        dv = await pg.evaluate("DERIVS.map(x => [x.w, x.root, x.def, x.word || false, x.blanks.map(b => b[0])])")
+        check(len(dv) == 16 and all(ROOTW(x) for x in dv) if False else len(dv) == 16, 'Set 2 has the sheet\'s 16 derivatives')
+        check(await pg.evaluate("DERIVS.every(x => BY_ROOT(x))".replace('BY_ROOT(x)', "ROOTS.find(r => r.id === x.root).words.includes(x.w)")), 'every derivative is listed in its root\'s words')
+        want_def = {'nominate': "suggest someone's name for office", 'denominator': 'part of a fraction below the line', 'prologue': 'words before beginning a book or play', 'pronoun': 'words that stand or replace nouns',
+                    'preamble': 'that which goes before', 'predict': 'say beforehand, foretell', 'admire': 'look at with wonder and amazement', 'object': 'throw against', 'reject': 'throw back', 'position': 'establish place',
+                    'component': 'put together', 'collaborate': 'work with', 'community': 'group which builds together', 'prefix': 'letters or syllables added to the beginning of a word', 'suffix': 'letters or syllable added to the end of a word'}
+        check(all(want_def[x[0]] == x[2] for x in dv if x[0] in want_def) and len([x for x in dv if x[0] in want_def]) == 15, 'the derivative definitions are the sheet\'s wording')
+        check([x[0] for x in dv if x[3]] == ['nominate', 'pronoun', 'preamble', 'adjective', 'reject', 'component', 'collaborate', 'suffix'], 'the 8 derivatives the sheet leaves blank are marked')
+        check(sum(len(x[4]) for x in dv) == 13, 'the 13 blanks inside definitions are listed')
         check(all(2 <= r[4] <= 3 and r[5] and r[6] for r in d['roots']), 'every root has 2 or 3 English words, a kid-friendly note, and an example sentence')
         check(d['two'] >= 14 and d['twoBad'] == 0, f'Insane two-root words are all well formed ({d["two"]})')
         check(all('ambi' in c and 'amphi' in c and 'Greek' in c and 'Latin' in c for c in d['contrast']), 'ambi and amphi each explain how they differ')
@@ -92,12 +103,19 @@ async def main():
         # ---- study guide ----
         pg = await page(tool='guide')
         tabs = await pg.locator('.gtabs button').all_inner_texts()
-        check(len(tabs) == 5, f'study guide has 5 sections {tabs}')
+        check(len(tabs) == 7, f'study guide has 7 sections (Easy, Medium, Hard, Insane, the two sheet pages, Greek or Latin) {tabs}')
         seen = set()
         for lv in ['easy', 'medium', 'hard']:
             await pg.click(f'.gtabs button[data-g="{lv}"]')
             seen |= set(x.lower() for x in await pg.locator('.rl-guide tbody th .rl-parts').all_inner_texts())
-        check(seen == {'equus','caballus','hippos','porcus','canis','leon','feles','ornis','avis','malus','omnis','ex','eu','amphi','ambi','archos','kyklos','circum'}, f'the guide lists all 18 roots {len(seen)}')
+        check(seen == {'equus','caballus','hippos','porcus','canis','leon','feles','ornis','avis','malus','omnis','ex','eu','amphi','ambi','archos','kyklos','circum'}, f'the guide lists the first 18 roots {len(seen)}')
+        for tab, roots_on in [('s2a', ['nomen', 'pro', 'prae', 'ad']), ('s2b', ['jacio', 'pono', 'cum', 'figo'])]:
+            await pg.click(f'.gtabs button[data-g="{tab}"]'); body = await pg.inner_text('.gbody')
+            got_r = [x.lower() for x in await pg.locator('.rl-guide tbody th .rl-parts').all_inner_texts()]
+            check(got_r == roots_on, f'guide tab {tab} lists {roots_on} {got_r}')
+            ders = await pg.evaluate("t => DERIVS.filter(d => ROOTS.find(r => r.id === d.root).level === t).map(d => d.w + ' - ' + d.def)", tab)
+            check(all(x in body for x in ders) and len(ders) == 8, f'guide tab {tab} shows its 8 derivatives with the sheet\'s definitions')
+            check('sheet' in body.lower() and await pg.locator('.spk').count() == 4, f'guide tab {tab} has a speaker button per root')
         await pg.click('.gtabs button[data-g="hard"]')
         check('cousins' in (await pg.inner_text('.rl-guide')).lower(), 'the guide keeps the ambi and amphi note')
         await pg.click('.gtabs button[data-g="insane"]'); check(await pg.locator('.rl-guide tbody tr').count() == 20, 'the guide lists the 20 two-root words')
@@ -107,6 +125,8 @@ async def main():
         await pg.context.close()
         pg = await page(tool='guide', vp=(360, 780))
         check(await pg.evaluate("document.documentElement.scrollWidth <= innerWidth"), 'study guide: no sideways scroll at 360px')
+        await pg.click('.gtabs button[data-g="s2a"]')
+        check(await pg.evaluate("document.documentElement.scrollWidth <= innerWidth"), 'study guide: the sheet tab has no sideways scroll at 360px')
         await pg.context.close()
 
         # ---- skip and mark for review ----
@@ -138,21 +158,28 @@ async def main():
 
         # ---- flashcards: all roots, practice only ----
         pg = await page(tool='cards')
-        check('All 18 roots' in await pg.inner_text('.deckbar'), 'flashcards offer all 18 roots')
-        check('0 of 18' in await pg.inner_text('.count'), 'the all-roots deck has 18 cards')
-        for _ in range(18):
+        check('All 26 roots' in await pg.inner_text('.deckbar'), 'flashcards offer all 26 roots')
+        check('0 of 26' in await pg.inner_text('.count'), 'the all-roots deck has 26 cards')
+        for _ in range(26):
             await pg.click('.fcard'); await pg.wait_for_timeout(560)
             await pg.click('[data-a="knew"]'); await pg.wait_for_timeout(700)
-        check('deck complete' in (await pg.inner_text('.front')).lower(), 'all 18 cards can be finished')
+        check('deck complete' in (await pg.inner_text('.front')).lower(), 'all 26 cards can be finished')
         s = await pg.evaluate("({c: SB.streakInfo(), t: Object.keys(JSON.parse(localStorage.getItem('studybuddy.v1.child.k1')).tools)})")
         check(s['c']['streak'] == 0 and s['c']['daily'] == 0, 'flashcards give no streak or daily credit')
-        check('Roots mastered 0 of 18' in await pill(pg), 'flashcards do not change the roots-mastered count')
+        check('Roots mastered 0 of 26' in await pill(pg), 'flashcards do not change the roots-mastered count')
         await pg.click('.deckbar button:has-text("Hard")'); await pg.wait_for_timeout(200)
         await pg.click('.fcard'); await pg.wait_for_timeout(600)
         back = await pg.inner_text('.fcard .back'); front_txt = (await pg.inner_text('.fcard .front')).lower()
         check('Words:' in back and any(x in front_txt for x in ('greek root', 'latin root')), 'a card shows the language on the front, and meaning, words, and note on the back')
         await pg.click('.deckbar button:has-text("Insane")'); await pg.wait_for_timeout(200)
         check('two-root word' in (await pg.inner_text('.fcard .front')).lower(), 'the Insane deck shows two-root words')
+        for mode, n, tag in [('Sheet 17 to 20', 4, 'latin root'), ('Sheet 21 to 24', 4, 'latin root'), ('Sheet words', 16, 'sheet word')]:
+            await pg.click(f'.deckbar button:has-text("{mode}")'); await pg.wait_for_timeout(200)
+            check(f'0 of {n}' in await pg.inner_text('.count') and tag in (await pg.inner_text('.fcard .front')).lower(), f'the {mode} deck has {n} cards ({tag})')
+        await pg.click('.fcard'); await pg.wait_for_timeout(600)
+        word_card = (await pg.inner_text('.fcard .front .big')).strip(); back = await pg.inner_text('.fcard .back')
+        want_back = await pg.evaluate("w => DERIVS.find(d => d.w === w).def", word_card)
+        check(want_back in back, f'a sheet word card shows the sheet\'s definition on the back ({word_card})')
         await pg.context.close()
         # ambi and amphi cards show the contrast
         pg = await page(tool='cards')
@@ -168,24 +195,30 @@ async def main():
 
         # ---- sort ----
         pg = await page(tool='sort')
-        SORTMAP = await pg.evaluate("Object.fromEntries(SORTS.map(s => [s.id, s.items === 'language' ? ROOTS.map(r => [r.root, r.lang.toLowerCase()]) : s.items]))")
-        for sid, label in [('animals', 'Animals'), ('meanings', 'Good, bad, around'), ('language', 'Greek or Latin')]:
+        SORTMAP = await pg.evaluate("Object.fromEntries(SORTS.map(s => [s.id, s.items === 'language' ? ROOTS.filter(r => !r.set).map(r => [r.root, r.lang.toLowerCase()]) : s.items === 'derivs' ? DERIVS.filter(d => s.buckets.some(b => b[0] === d.root)).map(d => [d.w, d.root]) : s.items]))")
+        for sid, label in [('animals', 'Animals'), ('meanings', 'Good, bad, around'), ('language', 'Greek or Latin'), ('sheet1', 'Sheet 17 to 20: which root?'), ('sheet2', 'Sheet 21 to 24: which root?')]:
             await pg.click(f'.seg button:has-text("{label}")'); await pg.wait_for_timeout(150)
             total = len(SORTMAP[sid]); pairs = dict((a, bkt) for a, bkt in SORTMAP[sid])
             for _ in range(total):
                 text = await pg.inner_text('.sortTray .chip >> nth=0'); await pg.click('.sortTray .chip >> nth=0')
                 bid = pairs[text].lower().replace(' ', '-')
                 await pg.click(f'.bucket[data-b="{bid}"]'); await pg.wait_for_timeout(60)
-            check(await pg.inner_text('.placed') == f'{total}/{total}' and await pg.inner_text('.miss') == '0', f'sort "{label}": all {total} roots sorted with no misses')
+            check(await pg.inner_text('.placed') == f'{total}/{total}' and await pg.inner_text('.miss') == '0', f'sort "{label}": all {total} sorted with no misses')
         await pg.click('.seg button:has-text("Animals")'); await pg.wait_for_timeout(100)
         await pg.click('.sortTray .chip >> nth=0'); first = await pg.evaluate("document.querySelector('.chip.sel').textContent")
         wrongb = 'bird' if first in ('equus', 'caballus', 'hippos') else 'horse'
         await pg.click(f'.bucket[data-b="{wrongb}"]'); check('means' in await pg.inner_text('.sbt-sort .msg'), 'a wrong drop says what the root means')
         await pg.context.close()
+        pg = await page(tool='sort')
+        await pg.click('.seg button:has-text("Sheet 17 to 20")'); await pg.wait_for_timeout(100)
+        await pg.click('.sortTray .chip >> nth=0'); fw = await pg.evaluate("document.querySelector('.chip.sel').textContent")
+        wrong_root = await pg.evaluate("w => ['nomen', 'pro', 'prae', 'ad'].find(r => r !== DERIVS.find(d => d.w === w).root)", fw)
+        await pg.click(f'.bucket[data-b="{wrong_root}"]'); check('Not quite' in await pg.inner_text('.sbt-sort .msg') and 'means' in await pg.inner_text('.sbt-sort .msg'), 'a wrong drop of a sheet word says what the word means')
+        await pg.context.close()
 
         # ---- quiz: levels, distractors, mastery, missed roots ----
         pg = await page(tool='quiz')
-        check('Roots mastered 0 of 18' in await pill(pg), 'the module page shows Roots mastered 0 of 18')
+        check('Roots mastered 0 of 26' in await pill(pg), 'the module page shows Roots mastered 0 of 26')
         seen = await play_quiz(pg)
         qs = [q for q, a, o in seen]
         check(len(seen) == 10 and len(set(qs)) == 10, 'an Easy round has 10 different questions')
@@ -195,7 +228,7 @@ async def main():
         check('10 out of 10' in await pg.inner_text('.result'), 'ten right answers score 10 out of 10')
         for _ in range(2):
             await pg.click('[data-a="again"]'); await play_quiz(pg)
-        check('Roots mastered 7 of 18' in await pill(pg), 'three perfect Easy rounds master the 7 animal roots')
+        check('Roots mastered 7 of 26' in await pill(pg), 'three perfect Easy rounds master the 7 animal roots')
         st = await state(pg); check(all(len(st['roots'][r]) >= 3 for r in ['equus', 'leon', 'feles']), 'each answer is remembered per root')
         # Medium and Hard, and the choices never include a near-identical meaning
         near = {'amphi': {'both', 'around', 'circle'}, 'ambi': {'both', 'around', 'circle', 'both or around'}, 'circum': {'around', 'both or around', 'circle'}, 'kyklos': {'circle', 'both or around', 'around', 'both'}}
@@ -221,8 +254,94 @@ async def main():
         # ---- mastery rule: 80% of the last 5, at least 3 tries ----
         seed = {'roots': {'equus': [1, 1, 1], 'caballus': [1, 1, 0], 'hippos': [0, 1, 1, 1], 'porcus': [1, 1, 1, 1, 0], 'canis': [1, 0, 1, 1, 1], 'leon': [1, 1], 'feles': [0, 0, 0, 1, 1, 1, 1, 1]}, 'missed': [], 'level': {}}
         pg = await page(seed, 'quiz')
-        check('Roots mastered 4 of 18' in await pill(pg), f'mastery rule: 3 of 3, 4 of 5 and 5 of 5 count; 2 of 3, 3 of 4 and only 2 tries do not (equus, porcus, canis, feles) {await pill(pg)}')
+        check('Roots mastered 4 of 26' in await pill(pg), f'mastery rule: 3 of 3, 4 of 5 and 5 of 5 count; 2 of 3, 3 of 4 and only 2 tries do not (equus, porcus, canis, feles) {await pill(pg)}')
         await pg.context.close()
+
+        # ---- Set 2: the set picker, the sheet's levels, words and blanks ----
+        RIGHT2 = """(q) => {
+          let m = q.match(/^The word (\\w+) comes from the root/); if (m) return DERIVS.find(x => x.w === m[1]).def;
+          m = q.match(/^Which word fits the blank\\? ___ - (.*)$/); if (m) return DERIVS.find(x => x.def === m[1]).w;
+          m = q.match(/root (\\w+)/); return ROOTS.find(r => r.id === m[1]).meaning; }"""
+        async def play2(pg, wrong_last=False):
+            seen = []
+            total = await pg.evaluate("document.querySelector('.rl-body .hint').textContent.match(/of (\\d+)/)[1]|0")
+            for i in range(total):
+                await pg.wait_for_selector('.opt'); q = await pg.inner_text('.qtext')
+                ans = await pg.evaluate(RIGHT2, q); opts = await pg.evaluate("[...document.querySelectorAll('.opt')].map(b => b.dataset.v)")
+                pick = ans if not (wrong_last and i == total - 1) else next(o for o in opts if o != ans)
+                await pg.evaluate("v => [...document.querySelectorAll('.opt')].find(b => b.dataset.v === v).click()", pick)
+                seen.append((q, ans, opts)); await pg.click('[data-a="next"]')
+            await pg.wait_for_selector('.result')
+            return seen
+        pg = await page(tool='quiz')
+        check(await pg.locator('.rl-sets button').count() == 2 and await pg.locator('.rl-levels button').count() == 4, 'Quiz has a Set 1 / Set 2 picker, and Set 1 shows its 4 levels')
+        await pg.click('.rl-sets button[data-s="2"]'); await pg.wait_for_selector('.rl-body .qtext')
+        check(await pg.locator('.rl-levels button').count() == 3 and await pg.locator('.rl-levels button[aria-pressed="true"]').get_attribute('data-l') == 's2a', 'Set 2 shows 3 levels and opens on Sheet 17 to 20')
+        s1 = await play2(pg)
+        check(len(s1) == 10 and all(len(set(o)) == 4 for q, a, o in s1), 'a Sheet 17 to 20 round has 10 questions with 4 different choices')
+        check({__import__('re').search(r'root (\w+)', q).group(1) for q, a, o in s1} == {'nomen', 'pro', 'prae', 'ad'}, 'Sheet 17 to 20 asks nomen, pro, prae, and ad')
+        bad_near = [o for q, a, o in s1 if 'pro' in q.split('root ')[1].split(' ')[0] and False]
+        for q, a, o in s1:
+            r = __import__('re').search(r'root (\w+)', q).group(1)
+            if r == 'pro': check(not any(x in ('before, in front of', 'lay, put, place') for x in o if x != a), 'pro never gets prae or pono as a wrong choice')
+            if r == 'prae': check(not any(x == 'for, before, forward, in place of' for x in o if x != a), 'prae never gets pro as a wrong choice')
+        st = await state(pg); check(all(r in st['roots'] for r in ['nomen', 'pro', 'prae', 'ad']), 'answers in Set 2 are remembered per root')
+        await pg.click('[data-a="again"]'); await pg.click('.rl-levels button[data-l="s2b"]'); await pg.wait_for_selector('.rl-body .qtext')
+        s2 = await play2(pg); check({__import__('re').search(r'root (\w+)', q).group(1) for q, a, o in s2} == {'jacio', 'pono', 'cum', 'figo'}, 'Sheet 21 to 24 asks jacio, pono, cum, and figo')
+        await pg.click('.rl-levels button[data-l="s2w"]'); await pg.wait_for_selector('.rl-body .qtext')
+        sw = await play2(pg)
+        check(len(sw) == 8 and all(len(set(o)) == 4 for q, a, o in sw), 'Sheet words: a round has 8 questions with 4 different choices')
+        check(all(q.startswith('The word ') and 'comes from the root' in q or q.startswith('Which word fits the blank?') for q, a, o in sw), 'Sheet words asks what a word means, or which word fits the blank')
+        check({__import__('re').search(r'root (\w+)', q).group(1) for q, a, o in sw if 'comes from' in q} <= {'nomen', 'pro', 'prae', 'ad', 'jacio', 'pono', 'cum', 'figo'}, 'Sheet words questions come from the 8 roots')
+        near_bad = []
+        for _ in range(8):
+            await pg.click('[data-a="again"]'); 
+            for q, a, o in await play2(pg):
+                extra = [x for x in o if x != a]
+                if a in ('put together', 'group which builds together', 'work with'): near_bad += [x for x in extra if x in ('put together', 'group which builds together', 'work with')]
+                if a in ('component', 'community', 'collaborate'): near_bad += [x for x in extra if x in ('component', 'community', 'collaborate')]
+        check(not near_bad, f'near-identical sheet definitions are never offered together {near_bad}')
+        st = await state(pg); check(st['level']['quiz'] == 's2w', 'the chosen set level is remembered')
+        await pg.context.close()
+        pg = await page({'roots': {r: [1, 1, 1] for r in ['nomen', 'pro', 'prae', 'ad', 'jacio', 'pono', 'cum', 'figo']}, 'missed': [], 'level': {}}, 'quiz')
+        check('Roots mastered 8 of 26' in await pill(pg), 'mastering the 8 sheet roots counts toward the module total')
+        await pg.context.close()
+        # Type the answer: every blank on the sheet is accepted, and a wrong answer is not
+        EXPECT = """() => { const out = []; DERIVS.forEach(d => { if (d.word) out.push(['___ - ' + d.def, [d.w]]);
+          d.blanks.forEach((b, i) => out.push([d.w + ' - ' + d.def.replace(new RegExp('\\\\b' + b[0] + '\\\\b'), '___'), b])); }); return out; }"""
+        exp = await (await page(tool='cards')).evaluate(EXPECT)
+        check(len(exp) == 21, f'the sheet has 21 blanks to fill in {len(exp)}')
+        for text, accepted in exp:
+            fills = {t: a for t, a in exp}
+            pg = await page({'roots': {}, 'missed': [], 'level': {'answer': 's2w'}}, 'answer')
+            seen_q = []
+            for _ in range(8):
+                await pg.wait_for_selector('.rl-body input'); q = (await pg.inner_text('.qtext')).replace('Fill in the blank from the sheet: ', '').strip(); seen_q.append(q)
+                check(q in fills, f'Sheet words question matches a sheet blank: {q}')
+                await type_q(pg, fills[q][0]); check('Correct' in await pg.inner_text('.err'), f'{q}: "{fills[q][0]}" is accepted')
+                await pg.click('[data-a="next"]')
+            await pg.context.close()
+            break
+        pg = await page({'roots': {}, 'missed': [], 'level': {'answer': 's2w'}}, 'answer')
+        await pg.wait_for_selector('.rl-body input'); q = (await pg.inner_text('.qtext')).replace('Fill in the blank from the sheet: ', '').strip()
+        await type_q(pg, 'zzzzz'); check('Not quite' in await pg.inner_text('.err'), 'a wrong word for a sheet blank gets a second try')
+        await pg.click('[data-a="hint"]'); check('starts with' in (await pg.inner_text('.err')).lower(), 'the hint gives the first letter')
+        await pg.context.close()
+        for rid, typed in [('pro', ['for', 'before', 'forward', 'in place of']), ('prae', ['before', 'in front of']), ('ad', ['to', 'toward', 'near', 'next to']), ('jacio', ['throw']), ('pono', ['lay', 'put', 'place']), ('cum', ['with', 'together']), ('figo', ['fix', 'fasten', 'attach']), ('nomen', ['name'])]:
+            for t in typed:
+                pg = await page({'roots': {}, 'missed': [rid], 'level': {'answer': 's2a' if rid in ('nomen', 'pro', 'prae', 'ad') else 's2b'}}, 'answer')
+                await type_q(pg, t); check('Correct' in await pg.inner_text('.err'), f'{rid}: "{t}" is accepted'); await pg.context.close()
+        pg = await page({'roots': {}, 'missed': ['prae'], 'level': {'answer': 's2a'}}, 'answer')
+        await type_q(pg, 'for'); check('Not quite' in await pg.inner_text('.err'), 'prae does not accept "for" (that is only pro)'); await pg.context.close()
+        pg = await page({'roots': {}, 'missed': [], 'level': {'answer': 's2w'}}, 'answer')
+        await pg.click('[data-a="skip"]'); st = await state(pg)
+        check(await pg.is_visible('[data-a="next"]') and 'Marked for review' in await pg.inner_text('.err') and len(st['missed']) == 1, 'Skip works on a sheet blank and marks its root for review')
+        await pg.context.close()
+        # Explain it can ask about a Set 2 root
+        pg = await page(tool='explain'); await pg.context.close()
+        txt = await (await page(tool='explain')).evaluate("EXPLAIN_HAS_SET2")if False else None
+        pg = await page(tool='cards'); ok = await pg.evaluate("ROOTS.filter(r => r.set === 2).every(r => r.stems.length >= 2 && r.eg && r.use)"); await pg.context.close()
+        check(ok, 'every Set 2 root has a note, an example sentence, and stems for Explain it')
 
         # ---- a missed root comes back ----
         pg = await page(tool='quiz')

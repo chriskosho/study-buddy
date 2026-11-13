@@ -993,16 +993,16 @@ window.SB_REGISTRY = {
       id: 'greek-latin-roots',
       subject: 'roots',
       title: 'Greek and Latin Roots',
-      blurb: 'Memorize what 18 roots mean, like equus, ornis, and circum, and the English words built from them.',
+      blurb: 'Memorize what 26 roots mean, like equus, ornis, circum, and nomen, and the English words built from them. Set 2 is Roots Study Sheet #17 to 24.',
       tags: [],
       path: 'modules/roots/greek-latin-roots/index.html',
       storage: ['greek-latin-roots'],
       tools: [
-        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'All 18 roots by level, with their words and notes you can hear.' },
-        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'All 18 roots with their meanings, words, and notes. Practice only.' },
-        { id: 'sort', name: 'Sort it', difficulty: 'easy', blurb: 'Sort roots by meaning, or by Greek and Latin. Mastered at 80%.' },
-        { id: 'quiz', name: 'Quiz', difficulty: 'medium', masterAt: 18, blurb: 'Pick the meaning of a root, from Easy to Insane. Missed roots come back first, and you can skip a question to review it later. Mastered when all 18 roots are mastered.' },
-        { id: 'answer', name: 'Type the answer', difficulty: 'hard', masterAt: 18, blurb: 'Type the meaning of a root. Two tries, a hint, and a Skip button. Mastered when all 18 roots are mastered.' },
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'All 26 roots by set and level, with their words and notes you can hear. Study Sheet #17 to 24 is its own set.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'All 26 roots with their meanings, words, and notes, plus the sheet\'s words. Practice only.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'easy', blurb: 'Sort roots by meaning, or by Greek and Latin, or sort the sheet\'s words by their root. Mastered at 80%.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'medium', masterAt: 26, blurb: 'Pick the meaning of a root, from Easy to Insane, or the words on Study Sheet #17 to 24. Missed roots come back first, and you can skip a question to review it later. Mastered when all 26 roots are mastered.' },
+        { id: 'answer', name: 'Type the answer', difficulty: 'hard', masterAt: 26, blurb: 'Type the meaning of a root, or the missing words from Study Sheet #17 to 24. Two tries, a hint, and a Skip button. Mastered when all 26 roots are mastered.' },
         { id: 'explain', name: 'Explain it', difficulty: 'insane', blurb: 'Use a root word in a complete sentence. Mastered at 4 of 5.' }
       ]
     }
