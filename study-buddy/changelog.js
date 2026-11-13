@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-12', title: 'Greek and Latin Roots: Study Sheet #17 to 24', items: [
+    'The Greek and Latin Roots module has a new Set 2 from the Roots Study Sheet (#17 to 24): nomen, pro, prae, ad, jacio, pono, cum, and figo, with the sheet\'s meanings and its 16 derivatives (nominate, denominator, prologue, pronoun, and more).',
+    'Study guide has a tab for each page of the sheet. Quiz and Type the answer have a Set 1 / Set 2 picker, with Sheet 17 to 20, Sheet 21 to 24, and Sheet words (fill in the blanks, like the sheet). Flashcards have decks for each, and Sort it matches each word to its root.',
+    'Roots mastered now counts all 26 roots, so the Quiz and Type the answer are mastered when all 26 are.' ] },
   { date: '2026-11-09', title: 'New: 5th Grade Science, Unit 4 (Force and Motion)', items: [
     'Science has eight new modules that follow the Unit 4 book in order: Forces, Gravity and Friction, Other Forces, Patterns of Motion, Simple Machines, Compound Machines, Scientific Inquiry and Engineering, and the Unit 4 Practice Test. Newton and His Laws was already there.',
     'Each lesson has a Study guide in the book\'s wording (with its tables and vocabulary), Flashcards, a Quiz, Sort it, Explain it, and Put in order where it fits. The labs are a tab in the study guide that points to the Lab Manual.',
