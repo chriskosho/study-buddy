@@ -6,6 +6,8 @@
    Q: id, s (section), q (question), code (optional code shown under it), c (choices), a (indexes of the right choices; two or more means
    "choose all that apply" and the question says how many), x (why), src, chk. Choices are shown in a random order. */
 window.SFMC = {
+  MODULE: 'sfmc-developer',
+  TITLE: 'Salesforce Certified Marketing Cloud Engagement Developer',
   EXAM: { questions: 60, unscored: 5, minutes: 105, passPct: 63, pass: 38 },
 
   SOURCES: {

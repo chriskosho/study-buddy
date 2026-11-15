@@ -123,6 +123,22 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'sfmc-specialist',
+      subject: 'other',
+      title: 'Marketing Cloud Engagement Specialist',
+      blurb: 'Prepare for the Salesforce Certified Marketing Cloud Engagement Specialist exam: study notes for each exam section with sources, flashcards, sorting, practice by section, and a timed 60-question mock exam.',
+      tags: ['salesforce', 'certification', 'email marketing'],
+      path: 'modules/other/sfmc-specialist/index.html',
+      storage: ['sfmc-specialist'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The exam facts, each section\'s objectives from Salesforce\'s guide, and short notes with links to their sources.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Key terms for email, automation, data, and Einstein, by section. Practice only.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Send settings, Automation Studio or Journey Builder, re-entry settings, and Einstein personas. Mastered at 80%.' },
+        { id: 'quiz', name: 'Practice', kind: 'study', difficulty: 'medium', blurb: 'Questions from one section at a time, or the ones you missed, with the reason and source after each. Practice only.' },
+        { id: 'exam', name: 'Mock exam', difficulty: 'hard', masterAt: 41, blurb: '60 questions in the real section weights, 90 minutes, 41 right (67%) to pass.' }
+      ]
+    },
+    {
       id: 'south-america',
       subject: 'geography',
       title: 'South America',

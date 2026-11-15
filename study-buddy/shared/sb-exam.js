@@ -1,8 +1,10 @@
-/* Marketing Cloud Engagement Developer: tools. Content is in data.js (window.SFMC).
+/* Study Buddy exam prep: the tools for a certification module made from a data file (window.SFMC in the module's data.js).
+   Used by Marketing Cloud Developer and Marketing Cloud Engagement Specialist. The data names the module (MODULE) and the credential (TITLE),
+   and gives EXAM, SECTIONS, SOURCES, GUIDE, CARDS, SORTS, and Q (see modules/other/sfmc-developer/data.js).
    Study guide: the exam facts, then a tab per exam section (the guide's objectives and short notes with their sources).
    Flashcards: key terms by section. Sort it: four sorting sets.
    Practice: questions from one section (or all, or the ones missed), answered one at a time with the reason shown.
-   Mock exam: 60 questions picked in the exam's section weights (dm 9, pl 21, api 13, dmg 13, sec 4), 105 minutes, 38 right (63%) to pass.
+   Mock exam: EXAM.questions questions picked in the exam's section weights (each section's n), EXAM.minutes long, EXAM.pass right to pass.
    Some questions have more than one right answer ("Choose 2"); they count only when every right choice and nothing else is picked.
    Choices are shown in a random order that is kept with the exam, so a resumed exam looks the same. */
 (function () {
@@ -11,7 +13,7 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const { shuffle } = SBT;
   const esc = SB.esc;
-  const { EXAM, SECTIONS, GUIDE, CARDS, SORTS, SOURCES, Q } = window.SFMC;
+  const { MODULE, TITLE, EXAM, SECTIONS, GUIDE, CARDS, SORTS, SOURCES, Q } = window.SFMC;
   const SEC = Object.fromEntries(SECTIONS.map(s => [s.id, s]));
   const QBY = Object.fromEntries(Q.map(q => [q.id, q]));
   const L = 'ABCDE';
@@ -30,12 +32,12 @@
     init(ctx) {
       const P = ctx.panel;
       const TABS = [{ id: 'exam', title: 'The exam' }, ...SECTIONS.map(s => ({ id: s.id, title: s.name + ' (' + s.pct + '%)' }))];
-      P.innerHTML = `<h2>Study guide</h2><p class="lead">Salesforce Certified Marketing Cloud Engagement Developer. The objectives are from Salesforce’s exam guide; the notes are short summaries with links to their sources.</p>
+      P.innerHTML = `<h2>Study guide</h2><p class="lead">${esc(TITLE)}. The objectives are from Salesforce’s exam guide; the notes are short summaries with links to their sources.</p>
         <div class="seg gtabs" role="group" aria-label="Exam section">${TABS.map((t, i) => `<button type="button" data-g="${t.id}" aria-pressed="${i === 0}">${esc(t.title)}</button>`).join('')}</div><div class="gbody"></div>`;
       const body = $('.gbody', P);
       function show(id) {
         if (id === 'exam') {
-          body.innerHTML = `<div class="gcols"><div><h3>The exam</h3><ul class="ideas">
+          body.innerHTML = `<div class="gcols sexam"><div><h3>The exam</h3><ul class="ideas">
               <li>${EXAM.questions} multiple-choice or multiple-select questions, plus up to ${EXAM.unscored} unscored ones.</li>
               <li>${EXAM.minutes} minutes.</li><li>Passing score: ${EXAM.passPct}% (${EXAM.pass} of ${EXAM.questions}).</li>
               <li>Multiple-select questions say how many to choose. You need every right choice.</li></ul>
@@ -348,5 +350,5 @@
     leave() { SB.stopSpeech(); }
   };
 
-  SBM.start({ module: 'sfmc-developer', defaults: { reveal: 'now', timed: true }, tools: { guide, cards, sort, quiz, exam } });
+  SBM.start({ module: MODULE, defaults: { reveal: 'now', timed: true }, tools: { guide, cards, sort, quiz, exam } });
 })();

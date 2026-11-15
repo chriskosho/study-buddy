@@ -77,7 +77,8 @@ async def main():
         check(tabs == ['The exam', 'Data Modeling (14%)', 'Programmatic Languages (35%)', 'API (22%)', 'Data Management (22%)', 'Security (7%)'], f'guide tabs {tabs}')
         body = await pg.inner_text('.gbody')
         check('105 minutes' in body and '63% (38 of 60)' in body and 'original' in body, 'the exam tab shows the facts and says the questions are original')
-        worst = 0
+        worst = (await overflow(pg))['v']
+        check(worst <= 0, f'the exam tab fits at 1440x900 ({worst})')
         for sid in ['dm', 'pl', 'api', 'dmg', 'sec']:
             await pg.click(f'.gtabs button[data-g="{sid}"]')
             n = await pg.locator('.stabs button').count(); blocks = await pg.evaluate(f"SFMC.GUIDE.{sid}.length")

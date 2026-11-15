@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-15', title: 'New: Marketing Cloud Engagement Specialist (exam prep)', items: [
+    'Other has a second Salesforce exam module, for the Marketing Cloud Engagement Specialist exam: email best practices, Content Builder and send settings, Automation Studio and Journey Builder, subscriber and data management, and tracking, reports, and Einstein.',
+    'It works like Marketing Cloud Developer: a Study guide with the exam\'s objectives and notes linked to Salesforce\'s pages, Flashcards, Sort it, Practice by section, and a Mock exam (60 questions in the real section weights, 90 minutes, 41 right to pass).',
+    'All 134 practice questions are original.',
+    'The Developer module\'s study guide now fits on one screen for its exam facts too.' ] },
   { date: '2026-11-15', title: 'New: Marketing Cloud Developer (exam prep)', items: [
     'Other has a new module for the Salesforce Certified Marketing Cloud Engagement Developer exam.',
     'The Study guide shows the exam facts and each section\'s objectives from Salesforce\'s exam guide, with short notes on each topic and links to the Salesforce pages they come from.',

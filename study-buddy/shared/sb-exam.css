@@ -1,4 +1,4 @@
-/* Marketing Cloud Developer: styles only this module needs (the question screens follow the Ham Radio module). Colors come from the theme tokens. */
+/* Study Buddy exam prep (shared/sb-exam.js): question screens (from the Ham Radio module), code samples, the timer, and guide extras. Colors come from the theme tokens. */
 .hfig{margin:0 auto 8px;text-align:center}
 .hfig img{max-width:100%;height:auto;max-height:clamp(130px,26vh,260px);width:auto;mix-blend-mode:multiply}
 html.sb-dark .hfig img{filter:invert(1);mix-blend-mode:screen}
@@ -82,3 +82,6 @@ html.sb-dark .hfig img{filter:invert(1);mix-blend-mode:screen}
 .face .sfront{font-size:clamp(22px,3vw,34px);overflow-wrap:anywhere}
 .hlab{margin-right:4px}
 @media (max-width:760px){.stabs{display:flex;flex-wrap:nowrap;overflow-x:auto;border:0;background:none;gap:6px;margin:0 -14px 12px;padding:2px 14px 4px;scrollbar-width:none}.stabs button{flex:0 0 auto;white-space:nowrap;border:2px solid var(--line);border-radius:999px;background:var(--surface)}.stabs button[aria-pressed="true"]{border-color:var(--teal)}.scode{font-size:13px;padding:8px 10px}.stimer{margin-left:0}}
+.sexam .ttable{font-size:15.5px}
+.sexam .ttable th,.sexam .ttable td{padding:6px 12px}
+.sexam .ideas{font-size:16.5px}
