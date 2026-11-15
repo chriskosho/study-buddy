@@ -1,6 +1,11 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-15', title: 'New: Marketing Cloud Developer (exam prep)', items: [
+    'Other has a new module for the Salesforce Certified Marketing Cloud Engagement Developer exam.',
+    'The Study guide shows the exam facts and each section\'s objectives from Salesforce\'s exam guide, with short notes on each topic and links to the Salesforce pages they come from.',
+    'Flashcards, Sort it, and Practice by section (or just the questions you missed) help you learn it. The Mock exam has 60 questions in the real section weights, a 105-minute timer you can turn off, and 38 right (63%) to pass.',
+    'All 144 practice questions are original, not copied from the real exam. Some ask you to choose 2, like the real exam.' ] },
   { date: '2026-11-12', title: 'Greek and Latin Roots: Study Sheet #17 to 24', items: [
     'The Greek and Latin Roots module has a new Set 2 from the Roots Study Sheet (#17 to 24): nomen, pro, prae, ad, jacio, pono, cum, and figo, with the sheet\'s meanings and its 16 derivatives (nominate, denominator, prologue, pronoun, and more).',
     'Study guide has a tab for each page of the sheet. Quiz and Type the answer have a Set 1 / Set 2 picker, with Sheet 17 to 20, Sheet 21 to 24, and Sheet words (fill in the blanks, like the sheet). Flashcards have decks for each, and Sort it matches each word to its root.',
