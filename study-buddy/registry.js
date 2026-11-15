@@ -107,6 +107,22 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'sfmc-developer',
+      subject: 'other',
+      title: 'Marketing Cloud Developer',
+      blurb: 'Prepare for the Salesforce Certified Marketing Cloud Engagement Developer exam: study notes for each exam section with sources, flashcards, sorting, practice by section, and a timed 60-question mock exam.',
+      tags: ['salesforce', 'certification'],
+      path: 'modules/other/sfmc-developer/index.html',
+      storage: ['sfmc-developer'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The exam facts, each section\'s objectives from Salesforce\'s guide, and short notes with links to their sources.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Key terms, functions, and API routes by section. Practice only.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Data extension types, REST or SOAP, email or landing page, and which activity. Mastered at 80%.' },
+        { id: 'quiz', name: 'Practice', kind: 'study', difficulty: 'medium', blurb: 'Questions from one section at a time, or the ones you missed, with the reason and source after each. Practice only.' },
+        { id: 'exam', name: 'Mock exam', difficulty: 'hard', masterAt: 38, blurb: '60 questions in the real section weights, 105 minutes, 38 right (63%) to pass.' }
+      ]
+    },
+    {
       id: 'south-america',
       subject: 'geography',
       title: 'South America',
