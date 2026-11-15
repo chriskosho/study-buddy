@@ -139,6 +139,22 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'sfmc-admin',
+      subject: 'other',
+      title: 'Marketing Cloud Engagement Administrator',
+      blurb: 'Prepare for the Salesforce Certified Marketing Cloud Engagement Administrator exam: study notes for each exam section with sources, flashcards, sorting, practice by section, and a timed 60-question mock exam.',
+      tags: ['salesforce', 'certification', 'admin'],
+      path: 'modules/other/sfmc-admin/index.html',
+      storage: ['sfmc-admin'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The exam facts, each section\'s objectives from Salesforce\'s guide, and short notes with links to their sources.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'Setup, security, channels, and maintenance terms by section. Practice only.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Where a setting lives, which product, which role, and which tool tells you. Mastered at 80%.' },
+        { id: 'quiz', name: 'Practice', kind: 'study', difficulty: 'medium', blurb: 'Questions from one section at a time, or the ones you missed, with the reason and source after each. Practice only.' },
+        { id: 'exam', name: 'Mock exam', difficulty: 'hard', masterAt: 41, blurb: '60 questions in the real section weights, 105 minutes, 41 right (67%) to pass.' }
+      ]
+    },
+    {
       id: 'south-america',
       subject: 'geography',
       title: 'South America',

@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-15', title: 'New: Marketing Cloud Engagement Administrator (exam prep)', items: [
+    'Other has a third Salesforce exam module, for the Marketing Cloud Engagement Administrator exam: digital marketing basics and compliance, subscriber data, Setup (business units, users and roles, security settings, Marketing Cloud Connect), channels (email, SMS, push, advertising, journeys), and maintenance.',
+    'Like the other two: a Study guide with the exam\'s objectives and notes linked to Salesforce\'s pages, Flashcards, Sort it, Practice by section, and a Mock exam (60 questions in the real section weights, 105 minutes, 41 right to pass).',
+    'All 132 practice questions are original.' ] },
   { date: '2026-11-15', title: 'New: Marketing Cloud Engagement Specialist (exam prep)', items: [
     'Other has a second Salesforce exam module, for the Marketing Cloud Engagement Specialist exam: email best practices, Content Builder and send settings, Automation Studio and Journey Builder, subscriber and data management, and tracking, reports, and Einstein.',
     'It works like Marketing Cloud Developer: a Study guide with the exam\'s objectives and notes linked to Salesforce\'s pages, Flashcards, Sort it, Practice by section, and a Mock exam (60 questions in the real section weights, 90 minutes, 41 right to pass).',
