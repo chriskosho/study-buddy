@@ -531,3 +531,9 @@ The owner renamed the Scratch pad to **Notepad** and asked for a real notebook: 
 - The guide notes, 43 flashcards, 4 sorts (where a setting lives, which product, which standard role, which monitoring tool), and 132 questions are original, each with a source page (mostly Trailhead units on Setup, Marketing Cloud Connect, synchronized data sources, MobileConnect, MobilePush, and Advertising Studio). A separate reviewer checked every answer against Salesforce documentation.
 - Test: `sfmc_admin_test.py` (made from the Specialist test).
 
+
+## 54. Greek and Roman Myths (History, November 2026)
+- Module `myths` (`modules/history/myths/`): made from five photographed pages of the teacher's "Greek and Roman Myth Study Guide" (test 11/19): Jason and the Golden Fleece, Perseus & Medusa, Cupid & Psyche, Damon and Pythias, The Sword of Damocles, Horatius and the Bridge, Androcles and the Lion. `data.js` (`STORIES`: `qa`, `talk`, `main`, `note`) keeps the teacher's questions and italic answers; questions the sheet leaves unanswered have an empty answer and show as "Talk it over" in the guide (not scored, and left out of the flashcards).
+- Tools: Study guide (a tab per story; questions in pages of 8 so each page fits one screen, plus Talk it over), Flashcards (Questions, Which story?, Every quiz question), Quiz (69 questions, mastered on the Full quiz), Sort it (3 sets: Greek myth, story, gift giver), Put in order (5 sets), Fill it in (26 sentences, 10 per round), Explain it (5 of the teacher's discussion questions, mastered at 4 of 5). All use the shared builders.
+- Added, not on the photos: the quiz's wrong answers, the Sort it and Put in order cards, and the blanked words. A separate pass compared `data.js` with the photos and its fixes were applied. The sheet spells the three-headed dog "Cerebus"; the app uses "Cerberus".
+- Test: `myths_test.py` (every tool with the right answers from `data.js`, guide pages fit 1440x900, hub, 360 px).

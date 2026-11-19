@@ -416,6 +416,24 @@ window.SB_REGISTRY = {
       ]
     },
     {
+      id: 'myths',
+      subject: 'history',
+      title: 'Greek and Roman Myths',
+      blurb: 'The study guide for the myth test: Jason and the Golden Fleece, Perseus & Medusa, Cupid & Psyche, Damon and Pythias, The Sword of Damocles, Horatius and the Bridge, and Androcles and the Lion.',
+      tags: ['myths', 'greece', 'rome', 'reading'],
+      path: 'modules/history/myths/index.html',
+      storage: ['myths'],
+      tools: [
+        { id: 'guide', name: 'Study guide', kind: 'study', difficulty: 'easy', blurb: 'The questions and answers from your teacher\u2019s sheet, story by story, plus the discussion questions to talk over.' },
+        { id: 'cards', name: 'Flashcards', kind: 'study', difficulty: 'easy', blurb: 'The sheet\u2019s questions, which story each one is from, and every quiz question. Practice only.' },
+        { id: 'quiz', name: 'Quiz', difficulty: 'easy', full: true, blurb: '10 multiple-choice questions from the sheet. Mastered at 80% on the Full quiz.' },
+        { id: 'sort', name: 'Sort it', difficulty: 'medium', blurb: 'Sort facts into the right myth, story, or god. Mastered at 80%.' },
+        { id: 'order', name: 'Put in order', difficulty: 'medium', blurb: 'Put what happens in each story in order. Mastered at 80% in place on the first check.' },
+        { id: 'blanks', name: 'Fill it in', difficulty: 'hard', blurb: 'Type the missing word from a sentence in the guide. Two tries and a hint. Mastered at 8 of 10.' },
+        { id: 'explain', name: 'Explain it', difficulty: 'insane', masterAt: 4, blurb: 'Answer the teacher\u2019s discussion questions in complete sentences. Mastered at 4 of 5.' }
+      ]
+    },
+    {
       id: 'mere-christianity',
       subject: 'other',
       title: 'Mere Christianity, Book 1',
