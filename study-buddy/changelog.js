@@ -1,6 +1,10 @@
 /* Study Buddy change log: what changed, newest first, in plain words. Add a new entry at the top whenever a pull request is merged.
    Each entry: date (YYYY-MM-DD), title, and a list of items. */
 window.SB_CHANGELOG = [
+  { date: '2026-11-18', title: 'New: Greek and Roman Myths', items: [
+    'History has a new module made from your teacher\u2019s Greek and Roman Myth Study Guide (test Thursday 11/19): Jason and the Golden Fleece, Perseus & Medusa, Cupid & Psyche, Damon and Pythias, The Sword of Damocles, Horatius and the Bridge, and Androcles and the Lion.',
+    'The Study guide has every question and answer from the sheet in the teacher\u2019s words, story by story, with the discussion questions under Talk it over. Flashcards, a Quiz, Sort it, Put in order, Fill it in, and Explain it help you learn it.',
+    'The wrong answers in the Quiz, and the Sort it, Put in order, and Fill it in cards, are worded from the sheet\u2019s answers and were not on it.' ] },
   { date: '2026-11-15', title: 'New: Marketing Cloud Engagement Administrator (exam prep)', items: [
     'Other has a third Salesforce exam module, for the Marketing Cloud Engagement Administrator exam: digital marketing basics and compliance, subscriber data, Setup (business units, users and roles, security settings, Marketing Cloud Connect), channels (email, SMS, push, advertising, journeys), and maintenance.',
     'Like the other two: a Study guide with the exam\'s objectives and notes linked to Salesforce\'s pages, Flashcards, Sort it, Practice by section, and a Mock exam (60 questions in the real section weights, 105 minutes, 41 right to pass).',

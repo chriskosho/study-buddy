@@ -1,0 +1,24 @@
+/* Greek and Roman Myths: styles only this module needs (the same look as Ancient Rome). */
+.gtabs{margin-bottom:12px;flex-wrap:wrap}
+.gtabs button{padding:6px 10px;font-size:14px}
+.gsub{margin:0 0 10px}
+.gbody h3{margin:0 0 6px}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
+.qa .item{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:6px 10px;font-size:14.5px;line-height:1.3;display:flex;gap:8px;align-items:flex-start}
+.qa .item .t{flex:1;min-width:0}
+.qa .item b{display:block;font-weight:800}
+.qa .item span{display:block}
+.qa .item .spk{width:32px;height:32px;flex:0 0 auto}
+.qa .item .spk svg{width:17px;height:17px}
+.qa .item.open b{color:var(--navy-ink)}
+.qa .item.open span{font-style:italic;color:var(--ink-soft,var(--ink))}
+.gnote{margin:8px 0 0;padding:6px 10px;border-left:4px solid var(--note-line);background:var(--tint-note);border-radius:8px;font-size:14px}
+.blank{display:inline-block;border-bottom:3px solid var(--coral);min-width:90px;color:transparent}
+@media (min-width:761px){.sortTray .chip{font-size:16px;padding:8px 14px}.sbt-sort .bucket{min-height:150px}}
+@media (max-width:760px){
+  .gtabs{display:flex;flex-wrap:nowrap;overflow-x:auto;border:0;background:none;gap:6px;margin:0 -14px 12px;padding:2px 14px 4px;scrollbar-width:none}
+  .gtabs::-webkit-scrollbar{display:none}
+  .gtabs button{flex:0 0 auto;white-space:nowrap;border:2px solid var(--line);border-radius:999px;background:var(--surface)}
+  .gtabs button[aria-pressed="true"]{border-color:var(--teal)}
+  .qa{grid-template-columns:1fr}
+}
